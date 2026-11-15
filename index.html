@@ -1332,8 +1332,8 @@ async function installCheck() {
 function hsBanner() {
   if (standalone() || !isPhone() || typeof S.installed !== 'boolean' || Date.now() < Number(ls.get('hsnz') || 0)) return '';
   return S.installed
-    ? `<div class="hsb has"><span class="tic">${ic('heart')}</span><span class="grow"><b>You already have the app</b><small>Open Let’s Together from your Home Screen for full screen and nudges.</small></span><button class="x" data-act="hsx" aria-label="Dismiss">×</button></div>`
-    : `<div class="hsb"><span class="tic">${ic('plus')}</span><span class="grow"><b>Add it to your Home Screen</b><small>Full screen like an app, and nudges can reach you.</small></span><button class="go" data-act="hshow">${bip ? 'Install' : 'Show me how'}</button><button class="x" data-act="hsx" aria-label="Dismiss">×</button></div>`;
+    ? `<div class="hsb has"><span class="tic">${ic('heart')}</span><span class="grow"><b>You already have the app</b><small>Open it from your Home Screen.</small></span><button class="x" data-act="hsx" aria-label="Dismiss">×</button></div>`
+    : `<div class="hsb"><span class="tic">${ic('plus')}</span><span class="grow"><b>Add to Home Screen</b><small>Full screen, with nudges.</small></span><button class="go" data-act="hshow">${bip ? 'Install' : 'Show me how'}</button><button class="x" data-act="hsx" aria-label="Dismiss">×</button></div>`;
 }
 function installSheet() {
   const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
