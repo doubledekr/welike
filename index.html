@@ -210,6 +210,21 @@ body::before{content:"";position:fixed;inset:-20% -10% auto -10%;height:60%;back
 .mcard .mimg img{width:100%;height:100%;object-fit:cover}
 .mcard b{font-family:var(--serif);font-weight:400;font-size:18px;line-height:1.1}
 .mcard small{font-size:12px;line-height:1.3;color:#e6d6dc;font-style:italic}
+.tn-head{text-align:center;padding:4px 0 2px}
+.tn-head .brand{font-size:15px;opacity:.85;letter-spacing:.3px}
+.tn-head h2{font-family:var(--serif);font-style:italic;font-weight:400;font-size:34px;line-height:1.05;margin-top:6px;background:linear-gradient(100deg,#ffd0a8 15%,#fff 40%,#ff8fb0 62%,#ffd0a8 88%);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:sheen 5s linear infinite}
+.tn .tile{position:relative;overflow:hidden;min-height:122px;border-radius:22px;background:linear-gradient(160deg,rgba(255,122,77,.24),rgba(255,77,126,.1) 55%,rgba(255,255,255,.03))!important;box-shadow:inset 0 0 0 1px rgba(255,170,150,.28),inset 0 1px 0 rgba(255,255,255,.24),0 16px 30px -20px rgba(255,90,100,.95)}
+.tn .tile::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.17) 50%,transparent 65%);transform:translateX(-120%);animation:sweep 4.8s ease-in-out infinite}
+.tn .tile:nth-child(2)::after{animation-delay:.6s}.tn .tile:nth-child(3)::after{animation-delay:1.2s}.tn .tile:nth-child(4)::after{animation-delay:1.8s}.tn .tile:nth-child(5)::after{animation-delay:2.4s}
+.tn .tile.wide{min-height:0;padding:14px}
+.tn .tile.star{background:linear-gradient(135deg,#ff7a4d,#ff4d7e)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 14px 34px -12px rgba(255,90,100,.95);animation:pulse 3s ease-in-out infinite}
+.tn .tile.star small{color:rgba(255,255,255,.88)}.tn .tile.star .tic{background:rgba(255,255,255,.22);box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
+.tn .tic{width:46px;height:46px;border-radius:15px}
+.rec-from{display:flex;align-items:center;gap:10px;margin:2px 0 12px}
+.rec-from b{font-family:var(--serif);font-weight:400;font-size:21px;line-height:1.15}
+.trailer{margin:0 -18px 14px;aspect-ratio:16/9;background:#000;position:relative}
+.trailer iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.rec-btns{display:flex;flex-direction:column;gap:10px;margin-top:16px}
 @keyframes celein{from{transform:translate(-50%,-30px) scale(.7);opacity:0}}
 @keyframes celeout{to{transform:translate(-50%,-20px);opacity:0}}
 @keyframes beat{50%{transform:scale(1.25)}}
@@ -300,6 +315,8 @@ async function onEvent(p) {
   else if (p.type === 'game') { if (S.view === 'swipe' && S.sess?.id === p.session) { S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); S.view = 'game'; render(); } else toast(`${p.from} wants to play for tonight’s pick. Open the round to join.`, 5000); }
   else if (p.type === 'tb') { if (S.view === 'game' && S.tb?.id === p.id) { S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); render(); } }
   else if (p.type === 'final') { if (S.view !== 'game') showFinal(p.card, !!p.shuffle && S.sess?.id === p.session); }
+  else if (p.type === 'rec') { try { navigator.vibrate?.(40); } catch {} recSheet(p.card, p.from); }
+  else if (p.type === 'recreply') recReply(p);
   else if (p.type === 'joined') { await refresh(); if (S.view === 'home') render(); }
 }
 const b64u = s => { const p = '='.repeat((4 - s.length % 4) % 4); const r = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...r].map(c => c.charCodeAt(0))); };
@@ -349,7 +366,7 @@ async function loadSession(id) {
   S.sess = d.session; S.deck = d.deck; S.matches = d.matches; S.total = d.total; S.theirLeft = d.their_left; S.solo = !!d.session.solo; S.rewatch = !!d.session.filters?.rewatch; S.bite = !!d.session.filters?.bite; S.hist = [];
 }
 async function openSession(id) {
-  try { closeSheet(); await loadSession(id); S.view = 'swipe'; if (!S.deck.length && S.matches.length) { S.view = 'matches'; } render(); }
+  try { closeSheet(); await loadSession(id); S.view = 'swipe'; S.skips = []; render(); }
   catch (e) { toast('That round is no longer available.'); S.view = 'home'; render(); }
 }
 async function startSession(deck, filters, note, announce = true) {
@@ -438,9 +455,9 @@ function biteDoneHTML() {
 }
 function tonightSheet() {
   const st = S.state, p = partner(), latest = (st.sessions || []).find(s => s.from !== S.me && s.my_left > 0), rest = (st.sessions || []).filter(s => s !== latest);
-  let h = `<div class="grab"></div><h2>What should we do tonight?</h2><p class="muted" style="margin-top:6px;font-size:14.5px">${p ? `Pick one. ${esc(p)} gets a nudge and the same cards, and you keep going until something lands.` : 'Pick one to start a round.'}</p>
+  let h = `<div class="grab"></div><div class="tn"><div class="tn-head"><div class="brand">We<i>Like</i></div><h2>What should we<br>do tonight?</h2><p class="muted" style="margin-top:8px;font-size:14px">${p ? `Pick one. ${esc(p)} gets the same cards.` : 'Pick one to start a round.'}</p></div>
     <div class="grid" style="margin-top:14px">` + ['movie', 'dinner', 'activity', 'event'].map(d => `<button class="tile" data-nudge="${d}" style="background:var(--bg)"><span class="tic">${ic(DIC[d])}</span><span><b>${DECKS[d].label}</b><small>${DECKS[d].hint}</small></span></button>`).join('') +
-    `<button class="tile wide" data-nudge="mix" style="background:var(--bg)"><span class="tic">${ic('shuffle')}</span><span><b>${DECKS.mix.label}</b><small>${DECKS.mix.hint}</small></span></button></div>`;
+    `<button class="tile wide" data-nudge="mix" style="background:var(--bg)"><span class="tic">${ic('shuffle')}</span><span><b>${DECKS.mix.label}</b><small>${DECKS.mix.hint}</small></span></button>${p ? `<button class="tile wide star" data-act="search"><span class="tic">${ic('play')}</span><span><b>Send one pick</b><small>Find a movie and send ${esc(p)} the trailer for a yes or no</small></span></button>` : ''}</div>`;
   if (st.counts.liked && p) h += `<div style="height:10px"></div><button class="tile wide" data-act="wishlist" style="width:100%;background:var(--bg)"><span class="tic">${ic('mail')}</span><span><b>Share my wishlist</b><small>Send ${esc(p)} the movies you have liked and let them pick</small></span></button>`;
   if (st.counts.rewatch) h += `<div style="height:10px"></div><button class="tile wide" data-act="rewatch" style="width:100%;background:var(--bg)"><span class="tic">${ic('repeat')}</span><span><b>Watch it again?</b><small>${st.counts.rewatch} you have already seen</small></span></button>`;
   if (rest.length) h += `<div class="sect">Recent rounds</div>` + rest.map(s => {
@@ -448,7 +465,36 @@ function tonightSheet() {
     const name = s.filters?.wishlist ? (s.from === S.me ? 'Your wishlist' : esc(s.from) + "'s wishlist") : s.filters?.rewatch ? 'Watch again?' : s.filters?.second ? 'Second look' : DECKS[s.deck].label;
     return `<button class="sess" data-open="${s.id}"><span class="tic">${ic(DIC[s.deck])}</span><span class="grow"><b>${name}</b><small>${s.from === S.me ? 'You' : esc(s.from)} · ${ago(s.created_at)} · ${status}</small></span>${s.matches ? `<span class="pill hot">${s.matches} match${s.matches > 1 ? 'es' : ''}</span>` : ''}</button>`;
   }).join('');
-  sheet(h);
+  sheet(h.replace('<div class="sect">Recent rounds</div>', '</div><div class="sect">Recent rounds</div>') + (rest.length ? '' : '</div>'));
+}
+/* ---------- send one pick ---------- */
+const ytId = u => (String(u || '').match(/(?:[?&]v=|youtu\.be\/|embed\/)([\w-]{11})/) || [])[1];
+const recVerb = c => c.deck === 'movie' ? 'watch this' : c.deck === 'dinner' ? (c.kind === 'cook' ? 'make this' : 'eat here') : c.deck === 'event' ? 'go to this' : 'do this';
+async function sendRec(c) {
+  if (!c || !partner()) return;
+  try { await rpc('like_card', { p_code: S.code, p_member: S.me, p_card: c.id }); } catch {}
+  send({ type: 'rec', card: c });
+  push(`${S.me}: want to ${recVerb(c)} tonight?`, c.title + (c.deck === 'movie' ? ' · tap for the trailer' : ''), `./?rec=${c.id}`);
+  closeSheet(); toast(`Sent to ${them()}. You will hear back here.`, 3500);
+}
+function recSheet(c, from) {
+  if (!c) return; S.rec = c; const d = c.data || {}, y = ytId(d.trailer), img = d.backdrop || c.image;
+  const top = y ? `<div class="trailer"><iframe src="https://www.youtube-nocookie.com/embed/${y}?playsinline=1&rel=0&modestbranding=1" title="Trailer" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>` : img ? `<div class="hero"><img src="${esc(img)}" alt=""></div>` : '<div class="grab"></div>';
+  const meta = c.deck === 'movie' ? [d.year, d.runtime ? d.runtime + ' min' : '', d.us_rating, d.user_rating ? '★ ' + d.user_rating : ''].filter(Boolean).join(' · ') : (c.subtitle || '');
+  sheet(`${y ? '<div class="grab"></div>' : ''}${top}<div class="body"><div class="rec-from"><span class="tic">${ic('heart')}</span><b>${esc(from || them())} wants to ${recVerb(c)} tonight</b></div>
+    <h2>${esc(c.title)}</h2>${meta ? `<p class="muted" style="margin-top:6px;font-size:14px">${esc(meta)}</p>` : ''}
+    ${c.deck === 'movie' ? `<div class="tags">${(d.services || []).map(x => `<span class="tag svc" style="--dot:${SVC_DOT[x] || '#fff'}">${esc(x)}</span>`).join('')}${(d.genres || []).slice(0, 3).map(g => `<span class="tag">${esc(g)}</span>`).join('')}</div>` : ''}
+    ${d.plot || d.notes ? `<p style="font-size:14.5px">${esc(String(d.plot || d.notes).slice(0, 260))}</p>` : ''}
+    <div class="rec-btns"><button class="btn" data-act="recyes">Let’s ${c.deck === 'movie' ? 'watch it' : 'do it'}</button><button class="btn ghost" data-act="recno">Try again, babe</button></div></div>`);
+}
+async function openRec(id) {
+  try { const c = await rpc('get_card', { p_code: S.code, p_id: id }); if (c) recSheet(c, partner()); } catch {}
+}
+function recReply(p) {
+  const c = p.card; if (!c) return;
+  if (p.yes) { closeSheet(); showMatch(c); return showFinal(c); }
+  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><h2>Try again, babe</h2><p class="muted" style="margin-top:8px;font-size:14.5px">${esc(p.from)} passed on <b style="color:var(--text)">${esc(c.title)}</b>.</p></div></div>
+    <div style="height:16px"></div><button class="btn" data-act="search">Send another pick</button><div style="height:10px"></div><button class="btn ghost" data-act="closesheet">Leave it for now</button>`);
 }
 function searchSheet() {
   sheet(`<div class="grab"></div><h2>Find a movie</h2><p class="muted" style="margin-top:6px;font-size:14.5px">Search by title, actor, director or genre. Liking one here counts the same as swiping yes, so it gets dealt early in your next round.</p>
@@ -714,7 +760,7 @@ function showMatch(c) {
 function endMatchesHTML() {
   const ms = S.matches, many = ms.length > 1; S.listCards = ms;
   return `<div class="mrow ${many ? '' : 'one'}">${ms.map((c, i) => { const cl = chainLabel(c); return `<div class="mcard"><button class="mimg" data-detail="${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="">` : emojiFor(c)}</button><b>${esc(c.title)}</b>${c.deck === 'movie' && i < 3 ? `<small data-why="${c.id}" style="display:none"></small>` : ''}<button class="btn sm" data-final="${c.id}">${many ? 'Choose this' : 'Lock it in'}</button>${cl ? `<button class="btn ghost sm" data-chain="${c.id}">${cl} →</button>` : ''}</div>`; }).join('')}</div>
-    ${many && !S.solo ? '<button class="btn ghost" data-lad="game">Play for it</button><button class="btn ghost" data-lad="pick">Pick one at random</button>' : ''}`;
+    ${many && !S.solo ? '<button class="btn ghost" data-lad="game">Play for it</button><button class="btn ghost" data-lad="pick">Pick one at random</button>' : ''}${S.bite ? '' : '<button class="btn ghost" data-act="more">Deal more cards</button>'}`;
 }
 async function pickNext() {
   const c = await rpc('pick_next', { p_code: S.code, p_session: S.sess.id, p_skip: S.skips || [] });
@@ -734,7 +780,7 @@ function renderMatches() {
 function sheet(html) { $layer.innerHTML = `<div class="scrim" data-scrim><div class="sheet">${html}</div></div>`; }
 function closeSheet() { $layer.innerHTML = ''; }
 function showDetail(c) {
-  if (!c) return; const d = c.data || {}; let b = '';
+  if (!c) return; S.detailCard = c; const d = c.data || {}; let b = '';
   if (c.deck === 'movie') {
     b = `<div class="tags">${(d.services || []).map(s => `<span class="tag svc" style="--dot:${SVC_DOT[s] || '#fff'}">${esc(s)}</span>`).join('')}${(d.genres || []).map(g => `<span class="tag">${esc(g)}</span>`).join('')}</div>
       <p class="muted" style="font-size:13.5px">${[d.user_rating ? `★ ${d.user_rating} / 10` : '', d.critic_score ? `Critics ${d.critic_score}%` : ''].filter(Boolean).join(' · ')}</p>
@@ -756,7 +802,7 @@ function showDetail(c) {
   } else b = c.data?.chain ? `<p>If you both say yes, you go straight into picking ${c.data.chain.deck === 'movie' ? 'a movie' : c.data.chain.deck === 'event' ? 'an event' : 'the food'}.</p>` : '';
   const img = d.backdrop || c.image;
   sheet(`${img ? `<div class="hero"><button class="close" data-act="closesheet" aria-label="Close">×</button><img src="${esc(img)}" alt=""></div>` : '<div class="grab"></div>'}
-    <div class="body"><h2>${img ? '' : emojiFor(c) + ' '}${esc(c.title)}</h2>${c.subtitle ? `<p class="muted" style="margin-top:6px">${esc(c.subtitle)}</p>` : ''}<div style="height:10px"></div>${b}</div>`);
+    <div class="body"><h2>${img ? '' : emojiFor(c) + ' '}${esc(c.title)}</h2>${c.subtitle ? `<p class="muted" style="margin-top:6px">${esc(c.subtitle)}</p>` : ''}${partner() && c.id ? `<div style="height:12px"></div><button class="btn" data-act="sendrec">${ic('play')} Send to ${esc(them())} for tonight</button>` : ''}<div style="height:10px"></div>${b}</div>`);
 }
 const F = { services: new Set(), genres: new Set(), kinds: new Set(), q: new Set(), types: new Set(), days: 2 };
 function nudgeSheet(deck) {
@@ -847,6 +893,9 @@ document.addEventListener('click', async e => {
       case 'reshuffle': { const c = await pickNext(); if (!c) return; send({ type: 'final', card: c, shuffle: true, session: S.sess.id }); return showFinal(c, true); }
       case 'closematch': return document.querySelector('.match')?.remove();
       case 'closesheet': return closeSheet();
+      case 'sendrec': t.disabled = true; return sendRec(S.detailCard);
+      case 'recyes': { const c = S.rec; if (!c) return; t.disabled = true; try { await rpc('like_card', { p_code: S.code, p_member: S.me, p_card: c.id }); } catch {} send({ type: 'recreply', yes: true, card: c }); push(`${S.me} said yes`, `Tonight: ${c.title}`, './'); closeSheet(); showMatch(c); return showFinal(c); }
+      case 'recno': { const c = S.rec; if (!c) return; send({ type: 'recreply', yes: false, card: c }); push(`${S.me}: try again, babe`, `Not feeling ${c.title} tonight.`, './'); closeSheet(); return toast(`Told ${them()} to try again.`); }
       case 'more': { const n = await rpc('more_cards', { p_code: S.code, p_session: S.sess.id }); if (!n) return toast('That is everything for now.'); send({ type: 'more', session: S.sess.id }); await loadSession(S.sess.id); S.view = 'swipe'; return render(); }
       case 'solo': { const mine = (S.state.sessions || []).find(x => x.solo && x.my_left > 0); if (mine) return openSession(mine.id); return startSession('movie', { solo: true }, null, false); }
       case 'rewatch': return startSession('movie', { rewatch: true }, 'Watch one again?');
@@ -876,7 +925,7 @@ document.addEventListener('click', async e => {
 document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'sq') { e.preventDefault(); searchGo(); return; }
   if (e.key === 'Enter' && e.target.id === 'p_q') { e.preventDefault(); e.target.blur(); document.querySelector('[data-act="psearch"]')?.click(); } });
 document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && S.code && S.me) { try { await refresh(); if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) render(); else if (S.view === 'swipe' && S.sess) { const d = await rpc('get_session', { p_code: S.code, p_session: S.sess.id, p_member: S.me }); S.theirLeft = d.their_left; S.total = d.total; if (d.matches.length !== S.matches.length) { S.matches = d.matches; } if (d.deck.length !== S.deck.length && !busy) { S.deck = d.deck; drawStack(); } else updateBar(); } } catch {} } });
-if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); navigator.serviceWorker.addEventListener('message', e => { const u = e.data?.open; if (u) { const s = new URL(u).searchParams.get('s'); if (s && S.me) openSession(s); } }); }
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); navigator.serviceWorker.addEventListener('message', e => { const u = e.data?.open; if (u) { const q = new URL(u).searchParams, s = q.get('s'), r = q.get('rec'); if (s && S.me) openSession(s); else if (r && S.me) openRec(r); } }); }
 
 async function boot() {
   if (!S.code || !S.me) return render();
@@ -884,7 +933,8 @@ async function boot() {
   connect(); resavePush();
   const s = new URLSearchParams(location.search).get('s');
   if (s) { history.replaceState(null, '', location.pathname); return openSession(s); }
-  render();
+  const rc = new URLSearchParams(location.search).get('rec'); if (rc) history.replaceState(null, '', location.pathname);
+  render(); if (rc) return openRec(rc);
   if (!standalone() && !ls.get('a2hs')) installSheet(); else if (!S.settings.setup && !ls.get('setupskip')) setupSheet();
 }
 boot();
