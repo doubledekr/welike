@@ -404,6 +404,34 @@ html.ios-app .match,html.ios-app .lfront,html.ios-app .scrim,html.ios-app .lbar{
 .mcard .btn{width:100%;white-space:normal;line-height:1.2;padding:10px 8px;font-size:14px;min-height:40px}
 .mcard .btn.ghost{font-size:13px;font-weight:600}
 .done .btn{flex:none}
+/* big verdict stamps, centred on the card */
+.stamp{top:36%;left:50%;right:auto;bottom:auto;font-size:clamp(50px,17vw,80px);line-height:1.05;padding:6px 24px 10px;border-width:5px;border-radius:20px;white-space:nowrap;background:rgba(10,8,12,.55);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);text-shadow:0 2px 14px rgba(0,0,0,.6);z-index:3}
+.stamp.yes{left:50%;transform:translate(-50%,-50%) rotate(-10deg);box-shadow:0 0 40px -6px rgba(89,211,154,.7)}
+.stamp.no{left:50%;right:auto;transform:translate(-50%,-50%) rotate(10deg);box-shadow:0 0 40px -6px rgba(255,138,138,.7)}
+.stamp.love{left:50%;top:36%;bottom:auto;transform:translate(-50%,-50%);box-shadow:0 0 44px -6px rgba(255,198,92,.8)}
+.stamp.seen{left:50%;top:36%;transform:translate(-50%,-50%);box-shadow:0 0 40px -6px rgba(217,210,220,.5)}
+/* first-run walkthrough */
+.coach{position:fixed;inset:0;z-index:35;background:rgba(8,6,10,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:calc(var(--st) + 20px) 26px calc(var(--sb) + 22px);text-align:center;animation:fade .2s}
+html.ios-app .coach{position:absolute}
+.coach-stage{position:relative;width:min(56vw,220px);aspect-ratio:2/3;flex:none}
+.coach-card{position:absolute;inset:0;border-radius:24px;display:grid;place-items:center;background:radial-gradient(120% 80% at 50% 0%,rgba(255,90,110,.5),#2a2030 60%,#1c171f);box-shadow:0 24px 50px -18px rgba(0,0,0,.9),inset 0 0 0 1px rgba(255,255,255,.16)}
+.coach-card .mark{width:64px;height:64px;opacity:.9}
+.coach-card .cs{position:absolute;top:34%;left:50%;transform:translate(-50%,-50%) rotate(-8deg);font-family:var(--serif);font-size:38px;line-height:1.05;padding:4px 14px 7px;border:4px solid;border-radius:14px;white-space:nowrap;background:rgba(10,8,12,.6)}
+.coach-card .ci{position:absolute;right:12px;top:12px;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.5);display:grid;place-items:center;font-family:var(--serif);font-style:italic;font-size:20px}
+.coach[data-s="0"] .coach-card{animation:cR 1.9s ease-in-out infinite}.coach[data-s="0"] .cs{color:var(--ok)}
+.coach[data-s="1"] .coach-card{animation:cL 1.9s ease-in-out infinite}.coach[data-s="1"] .cs{color:#ff8a8a;transform:translate(-50%,-50%) rotate(8deg)}
+.coach[data-s="2"] .coach-card{animation:cU 1.9s ease-in-out infinite}.coach[data-s="2"] .cs{color:var(--gold);transform:translate(-50%,-50%)}
+.coach[data-s="3"] .coach-card{animation:cD 1.9s ease-in-out infinite}.coach[data-s="3"] .cs{color:#d9d2dc;transform:translate(-50%,-50%)}
+.coach[data-s="4"] .cs{display:none}.coach[data-s="4"] .ci{animation:pulse 1.4s ease-in-out infinite;background:linear-gradient(135deg,#ff7a4d,#ff4d7e)}
+.coach[data-s="5"] .cs{display:none}.coach[data-s="5"] .coach-card{animation:beat 1.2s ease-in-out infinite}
+.coach h2{font-family:var(--serif);font-weight:400;font-size:clamp(28px,8.5vw,34px);line-height:1.15}
+.coach p{color:#cfc5d2;font-size:16px;line-height:1.5;max-width:330px;min-height:72px}
+.coach .btn{max-width:320px}
+.coach .skip{color:var(--muted);font-size:14px;padding:8px}
+@keyframes cR{0%,100%{transform:none}45%,75%{transform:translate(64px,0) rotate(9deg)}}
+@keyframes cL{0%,100%{transform:none}45%,75%{transform:translate(-64px,0) rotate(-9deg)}}
+@keyframes cU{0%,100%{transform:none}45%,75%{transform:translate(0,-54px)}}
+@keyframes cD{0%,100%{transform:none}45%,75%{transform:translate(0,54px)}}
 @keyframes celein{from{transform:translate(-50%,-30px) scale(.7);opacity:0}}
 @keyframes celeout{to{transform:translate(-50%,-20px);opacity:0}}
 @keyframes beat{50%{transform:scale(1.25)}}
@@ -909,6 +937,23 @@ function installSheet() {
     <div class="note" style="margin:0 0 16px">Your couple code is <b>${esc(S.code)}</b>. You will type it once more inside the app.</div>
     <button class="btn" data-act="a2hsdone">Got it</button>`);
 }
+const COACH = [
+  ['Yes', 'Swipe right for yes', 'You would be up for this. Your other half never sees it unless they say yes too.'],
+  ['Nope', 'Swipe left for nope', 'Not this time. It stays out of the way for a while, then can come back another day.'],
+  ['Love it', 'Swipe up to love it', 'A yes with extra weight. If you both say yes, you will see who loved it.'],
+  ['Seen it', 'Swipe down if you have seen it', 'Movies only. It goes to your Seen folder so it stops coming up, and can return later as a watch-again.'],
+  ['', 'Tap a card for the details', 'Cast, trailer, where it is streaming, menus and maps. The buttons under the card do the same as swiping.'],
+  ['', 'Both say yes and it is a match', 'Matches collect in your library behind the heart at the top. Open it any time to pick one, shuffle, or play for it.'],
+];
+function coach(i = 0) {
+  document.querySelector('.coach')?.remove(); if (i >= COACH.length) { ls.set('coach', '1'); return; }
+  const [st, h, p] = COACH[i], el = document.createElement('div'); el.className = 'coach'; el.dataset.s = i;
+  el.innerHTML = `<div class="ob-dots" style="margin:0">${COACH.map((_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('')}</div>
+    <div class="coach-stage"><div class="coach-card">${MARK}<span class="cs">${st}</span><span class="ci">i</span></div></div>
+    <h2>${h}</h2><p>${p}</p><button class="btn" data-act="coachnext" data-i="${i + 1}">${i === COACH.length - 1 ? 'Start swiping' : 'Next'}</button>
+    ${i === COACH.length - 1 ? '' : '<button class="skip" data-act="coachnext" data-i="99">Skip the walkthrough</button>'}`;
+  document.body.appendChild(el);
+}
 const needPushAsk = () => pushState() === 'default' && !ls.get('askedpush');
 function pushAskSheet() {
   sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('heart')}</span><h2>Turn on nudges?</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">Get a notification when ${esc(them())} wants to pick something, sends you a trailer, or you match. Nothing else, no marketing.</p></div></div>
@@ -920,6 +965,7 @@ function nextOnboard() {
   if (!standalone() && !ls.get('a2hs')) return installSheet();
   if (needSetup()) return setupSheet();
   if (needPushAsk()) return pushAskSheet();
+  if (!ls.get('coach')) return coach();
 }
 const needSetup = () => (!S.settings.zip && !S.settings.lat) || (!S.settings.setup && !ls.get('setupskip'));
 function setupSheet() { sheet(`<div class="grab"></div><h2>Which streaming services do you have?</h2><p class="muted" style="margin-top:6px;font-size:14.5px">${S.settings.zip || S.settings.lat ? 'Tap the ones you pay for, so movie cards only show things you can actually watch. This applies to both of you and can be changed later.' : 'Add your home ZIP code and tap the streaming services you pay for. Both apply to the two of you and can be changed later.'}</p>${settingsForm()}<div style="height:10px"></div><button class="btn ghost" data-act="skipsetup">Not now</button>`); }
@@ -939,7 +985,7 @@ function youHTML() {
     <div class="item"><span class="em">🎟️</span><span class="grow"><b>${S.state.counts.event} upcoming events</b><small>Next three days</small></span></div>
     <div class="item"><span class="em">🧺</span><span class="grow"><b>${S.state.counts.pantry} pantry items</b><small>Used to flag dinners you can cook now</small></span></div>
     <div class="item"><span class="em">♥</span><span class="grow"><b>${S.state.counts.liked} movies you have liked</b><small>These carry into every movie night until one of you marks them watched</small></span></div>
-    <div style="height:22px"></div><button class="btn ghost" data-act="signout">Sign out on this phone</button>
+    <div style="height:22px"></div><button class="btn ghost" data-act="coach">How swiping works</button><div style="height:10px"></div><button class="btn ghost" data-act="signout">Sign out on this phone</button>
     <p class="muted" style="font-size:11.5px;text-align:center;margin-top:18px">Streaming data powered by Watchmode.com</p>`;
 }
 function listsHTML() {
@@ -1217,8 +1263,10 @@ document.addEventListener('click', async e => {
       case 'psearch': return placeSearch(t);
       case 'a2hsdone': ls.set('a2hs', '1'); closeSheet(); return nextOnboard();
       case 'skipsetup': ls.set('setupskip', '1'); closeSheet(); if (S.settings.zip || S.settings.lat) nextOnboard(); return;
-      case 'pushyes': ls.set('askedpush', '1'); closeSheet(); return enablePush();
-      case 'pushno': ls.set('askedpush', '1'); return closeSheet();
+      case 'pushyes': ls.set('askedpush', '1'); closeSheet(); await enablePush().catch(() => {}); return nextOnboard();
+      case 'pushno': ls.set('askedpush', '1'); closeSheet(); return nextOnboard();
+      case 'coachnext': return coach(Number(ds.i));
+      case 'coach': return coach(0);
       case 'geo': { if (!navigator.geolocation) return toast('This phone will not share its location with Let’s Together.'); navigator.geolocation.getCurrentPosition(async pos => { try { S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { lat: pos.coords.latitude, lng: pos.coords.longitude } }); document.querySelectorAll('#geonote').forEach(n => n.textContent = 'Location saved'); toast('Location saved.'); } catch { toast('Could not save your location.'); } }, () => toast('Location is turned off for Let’s Together in your phone settings.'), { timeout: 10000 }); return; }
       case 'wishlist': return startSession('movie', { wishlist: true }, null);
       case 'tonight': return tonightSheet();
