@@ -196,6 +196,24 @@ body::before{content:"";position:fixed;inset:-20% -10% auto -10%;height:60%;back
 .steps{display:flex;flex-direction:column;gap:12px;margin:18px 0}
 .step{display:flex;align-items:center;gap:12px;font-size:15.5px;line-height:1.35}
 .step .num{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;flex:none;font-weight:700;font-size:14px;color:#fff;background:linear-gradient(135deg,#ff7a4d,#ff4d7e);box-shadow:0 0 16px -4px rgba(255,90,100,.8)}
+.cele{position:fixed;left:50%;top:calc(var(--st) + 14px);transform:translateX(-50%);z-index:45;display:flex;align-items:center;gap:10px;padding:10px 16px 10px 10px;border-radius:999px;max-width:90%;
+  background:linear-gradient(135deg,#ff7a4d,#ff4d7e);color:#fff;box-shadow:0 0 44px -4px rgba(255,90,100,.9),inset 0 1px 0 rgba(255,255,255,.4);animation:celein .45s cubic-bezier(.2,1.5,.4,1),celeout .35s 2.3s forwards}
+.cele .hb{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.22);display:grid;place-items:center;font-size:18px;animation:beat .6s ease-in-out 3}
+.cele b{display:block;font-family:var(--serif);font-weight:400;font-size:19px;line-height:1.1}.cele small{font-size:12.5px;opacity:.95;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+.cele i{position:absolute;left:50%;top:50%;width:7px;height:7px;border-radius:2px;background:var(--c,#ffd0a8);opacity:0;animation:pop2 .9s .1s ease-out forwards}
+.mrow{display:flex;gap:10px;overflow-x:auto;width:100%;padding:6px 2px 10px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.mrow.one{justify-content:center}
+.mcard{flex:0 0 156px;scroll-snap-align:center;border-radius:18px;padding:8px;display:flex;flex-direction:column;gap:7px;text-align:left;background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,.03));box-shadow:inset 0 0 0 1px rgba(255,255,255,.12),0 0 30px -12px rgba(255,90,100,.7)}
+.mrow.one .mcard{flex-basis:200px}
+.mcard .mimg{height:190px;border-radius:12px;overflow:hidden;background:var(--surface2);display:grid;place-items:center;font-size:56px;width:100%}
+.mrow.one .mimg{height:240px}
+.mcard .mimg img{width:100%;height:100%;object-fit:cover}
+.mcard b{font-family:var(--serif);font-weight:400;font-size:18px;line-height:1.1}
+.mcard small{font-size:12px;line-height:1.3;color:#e6d6dc;font-style:italic}
+@keyframes celein{from{transform:translate(-50%,-30px) scale(.7);opacity:0}}
+@keyframes celeout{to{transform:translate(-50%,-20px);opacity:0}}
+@keyframes beat{50%{transform:scale(1.25)}}
+@keyframes pop2{0%{opacity:1;transform:translate(-50%,-50%)}100%{opacity:0;transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y))) rotate(200deg)}}
 @keyframes sheen{to{background-position:-220% 0}}
 @keyframes sweep{0%,55%{transform:translateX(-120%)}80%,100%{transform:translateX(120%)}}
 @keyframes pulse{0%,100%{box-shadow:0 10px 28px -8px rgba(255,90,100,.8),inset 0 1px 0 rgba(255,255,255,.4)}50%{box-shadow:0 10px 36px -4px rgba(255,90,100,1),inset 0 1px 0 rgba(255,255,255,.4)}}
@@ -281,7 +299,7 @@ async function onEvent(p) {
   else if (p.type === 'shortlist') { await refresh(); const pill = document.querySelector('[data-act=shortlist]'); if (pill) { pill.textContent = '♥ ' + (S.state.counts.shortlist || 0); pill.classList.toggle('hot', !!S.state.counts.shortlist); } }
   else if (p.type === 'game') { if (S.view === 'swipe' && S.sess?.id === p.session) { S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); S.view = 'game'; render(); } else toast(`${p.from} wants to play for tonight’s pick. Open the round to join.`, 5000); }
   else if (p.type === 'tb') { if (S.view === 'game' && S.tb?.id === p.id) { S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); render(); } }
-  else if (p.type === 'final') { if (S.view !== 'game') showFinal(p.card); }
+  else if (p.type === 'final') { if (S.view !== 'game') showFinal(p.card, !!p.shuffle && S.sess?.id === p.session); }
   else if (p.type === 'joined') { await refresh(); if (S.view === 'home') render(); }
 }
 const b64u = s => { const p = '='.repeat((4 - s.length % 4) % 4); const r = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...r].map(c => c.charCodeAt(0))); };
@@ -505,15 +523,15 @@ async function ladder(kind, btn) {
     S.view = 'game'; return render();
   }
   if (kind === 'pick') {
-    const c = await rpc('pick_for_us', { p_code: S.code, p_session: sess.id }); if (!c) return toast('Nothing to pick from yet.');
-    send({ type: 'final', card: c }); push(`Tonight: ${c.title}`, 'WeLike picked it for you both.', `./?s=${sess.id}`);
-    return showFinal(c);
+    S.skips = []; const c = await pickNext(); if (!c) return toast('Nothing to pick from yet.');
+    send({ type: 'final', card: c, shuffle: true, session: sess.id }); push(`Tonight: ${c.title}`, 'WeLike picked it for you both.', `./?s=${sess.id}`);
+    return showFinal(c, true);
   }
 }
-function showFinal(c) {
+function showFinal(c, canShuffle = false) {
   document.querySelector('.match')?.remove(); closeSheet();
   const m = document.createElement('div'); m.className = 'match';
-  m.innerHTML = `<h1>Tonight’s<br>pick</h1><div class="pic">${c.image ? `<img src="${esc(c.image)}" alt="">` : emojiFor(c)}</div><h3>${esc(c.title)}</h3>${c.subtitle ? `<p style="color:#f3dfe6;font-size:15px">${esc(c.subtitle)}</p>` : ''}<button class="btn" data-act="closematch">Sounds good</button>`;
+  m.innerHTML = `<h1>Tonight’s<br>pick</h1><div class="pic">${c.image ? `<img src="${esc(c.image)}" alt="">` : emojiFor(c)}</div><h3>${esc(c.title)}</h3>${c.subtitle ? `<p style="color:#f3dfe6;font-size:15px">${esc(c.subtitle)}</p>` : ''}<button class="btn" data-act="closematch">Sounds good</button>${canShuffle && S.sess ? `<button class="btn ghost" data-act="reshuffle">${ic('shuffle')} Not feeling it, shuffle</button>` : ''}`;
   m._card = c; document.body.appendChild(m);
 }
 function renderGame() {
@@ -643,10 +661,11 @@ function drawStack() {
     acts.style.visibility = 'hidden';
     if (S.bite) { st.innerHTML = biteDoneHTML(); return; }
     const waiting = !S.solo && S.theirLeft > 0;
-    st.innerHTML = `<div class="done"><div class="badge">${ic(S.matches.length ? 'heart' : 'eye')}</div><h3>${S.matches.length ? `${S.matches.length} match${S.matches.length > 1 ? 'es' : ''} so far` : 'You are through the deck'}</h3>
+    st.innerHTML = `<div class="done"><div class="badge">${ic(S.matches.length ? 'heart' : 'eye')}</div><h3>${S.matches.length > 1 ? `${S.matches.length} matches. Which one?` : S.matches.length ? 'You matched' : 'You are through the deck'}</h3>
       <p class="muted">${S.solo ? 'Your likes are saved. They count toward the next round, and you match the moment you both like the same one.' : waiting ? `${esc(them())} still has ${S.theirLeft} to swipe. You will both see matches as they land.` : 'You have both been through all of these.'}</p>
-      ${S.matches.length ? `<button class="btn" data-act="matches">See matches</button>${S.matches.length > 1 && !S.solo ? '<button class="btn ghost" data-lad="pick">Pick one for us</button>' : ''}` : ladderHTML(waiting)}
+      ${S.matches.length ? endMatchesHTML() : ladderHTML(waiting)}
       <button class="btn ghost" data-act="more">Deal more cards</button>${S.hist.length ? '<button class="btn ghost" data-sw="undo">Undo last swipe</button>' : ''}</div>`;
+    st.querySelectorAll('[data-why]').forEach(el => { const c = S.matches.find(x => x.id === el.dataset.why); if (c) whyLine(c, el); });
     return;
   }
   acts.style.visibility = ''; if (seen) seen.style.display = S.deck[0].deck === 'movie' && !S.rewatch ? '' : 'none';
@@ -685,11 +704,22 @@ async function undo() {
 }
 const chainLabel = c => c.data?.chain ? (c.data.chain.deck === 'movie' ? 'Pick the movie' : c.data.chain.deck === 'event' ? 'Pick an event' : c.data.chain.filters?.kinds?.[0] === 'cook' ? 'Pick what to cook' : c.data.chain.filters?.kinds?.[0] === 'orderin' ? 'Pick where to order from' : 'Pick a place') : null;
 function showMatch(c) {
-  document.querySelector('.match')?.remove();
-  const m = document.createElement('div'); m.className = 'match'; const cl = chainLabel(c);
-  m.innerHTML = `<h1>You both<br>like this</h1><div class="pic">${c.image ? `<img src="${esc(c.image)}" alt="">` : emojiFor(c)}</div><h3>${esc(c.title)}</h3><p id="why" style="display:none;font-size:15px;line-height:1.4;color:#f3dfe6;max-width:320px;font-style:italic"></p>
-    ${cl ? `<button class="btn" data-chain="${c.id}">${cl} →</button>` : ''}<button class="btn ${cl ? 'ghost' : ''}" data-act="closematch">Keep swiping</button><button class="btn ghost" data-act="matches">See all matches</button>`;
-  m._card = c; document.body.appendChild(m); whyLine(c, m.querySelector('#why')); if (navigator.vibrate) navigator.vibrate([30, 40, 60]);
+  document.querySelector('.cele')?.remove();
+  const m = document.createElement('div'); m.className = 'cele';
+  const bits = Array.from({ length: 12 }, (_, i) => { const a = i / 12 * 6.283, r = 70 + (i % 3) * 26; return `<i style="--x:${Math.round(Math.cos(a) * r)}px;--y:${Math.round(Math.sin(a) * r * .7)}px;--c:${['#ffd0a8', '#fff', '#ffc65c', '#ff9db8'][i % 4]}"></i>`; }).join('');
+  m.innerHTML = `${bits}<span class="hb">${ic('heart')}</span><span><b>It’s a match</b><small>${esc(c.title)}</small></span>`;
+  document.body.appendChild(m); setTimeout(() => m.remove(), 2800);
+  try { navigator.vibrate?.([30, 40, 60]); } catch {}
+}
+function endMatchesHTML() {
+  const ms = S.matches, many = ms.length > 1; S.listCards = ms;
+  return `<div class="mrow ${many ? '' : 'one'}">${ms.map((c, i) => { const cl = chainLabel(c); return `<div class="mcard"><button class="mimg" data-detail="${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="">` : emojiFor(c)}</button><b>${esc(c.title)}</b>${c.deck === 'movie' && i < 3 ? `<small data-why="${c.id}" style="display:none"></small>` : ''}<button class="btn sm" data-final="${c.id}">${many ? 'Choose this' : 'Lock it in'}</button>${cl ? `<button class="btn ghost sm" data-chain="${c.id}">${cl} →</button>` : ''}</div>`; }).join('')}</div>
+    ${many && !S.solo ? '<button class="btn ghost" data-lad="game">Play for it</button><button class="btn ghost" data-lad="pick">Pick one at random</button>' : ''}`;
+}
+async function pickNext() {
+  const c = await rpc('pick_next', { p_code: S.code, p_session: S.sess.id, p_skip: S.skips || [] });
+  if (c) S.skips = [...(S.skips || []), c.id];
+  return c;
 }
 function renderMatches() {
   const d = DECKS[S.sess.deck];
@@ -781,12 +811,13 @@ async function saveAdd(t) {
 
 /* ---------- events ---------- */
 document.addEventListener('click', async e => {
-  const t = e.target.closest('[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-hdeck],[data-like],[data-lad],[data-chg],[data-tbpick],[data-g],[data-seenany],[data-padd],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
+  const t = e.target.closest('[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-hdeck],[data-like],[data-final],[data-lad],[data-chg],[data-tbpick],[data-g],[data-seenany],[data-padd],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
   if (!t) return; const ds = t.dataset;
   try {
     if (t.id === 'jgo') { const name = document.getElementById('jn').value.trim(), code = document.getElementById('jc').value.trim().toUpperCase(); if (!name || !code) return toast('Enter your name and the couple code.'); t.disabled = true; try { const r = await rpc('join_couple', { p_code: code, p_name: name }); S.code = code; S.me = r.name; ls.set('code', code); ls.set('name', r.name); history.replaceState(null, '', location.pathname); await boot(); send({ type: 'joined' }); } catch (er) { t.disabled = false; toast(errMsg(er)); } return; }
     if ('scrim' in ds) return closeSheet();
     if (ds.tab) { S.tab = ds.tab; S.view = 'home'; if (ds.tab === 'home') await refresh(); return render(); }
+    if (ds.final) { const c = await rpc('set_final', { p_code: S.code, p_session: S.sess.id, p_card: ds.final }); send({ type: 'final', card: c }); push(`Tonight: ${c.title}`, `${S.me} locked it in.`, `./?s=${S.sess.id}`); return showFinal(c); }
     if (ds.like) { t.disabled = true; const r = await rpc('like_card', { p_code: S.code, p_member: S.me, p_card: ds.like }); t.outerHTML = '<span class="pill hot">Liked</span>'; if (r.match) { toast('You have both liked that one. It will come up first next round.', 3500); send({ type: 'shortlist' }); } refresh().catch(() => {}); return; }
     if (ds.hdeck) { S.homeDeck = ds.hdeck; ls.set('deck', ds.hdeck); return render(); }
     if (ds.lad) return ladder(ds.lad, t);
@@ -813,6 +844,7 @@ document.addEventListener('click', async e => {
       case 'home': S.view = 'home'; S.tab = 'home'; await refresh(); return render();
       case 'swipe': S.view = 'swipe'; return render();
       case 'matches': document.querySelector('.match')?.remove(); try { const d = await rpc('get_session', { p_code: S.code, p_session: S.sess.id, p_member: S.me }); S.matches = d.matches; S.theirLeft = d.their_left; } catch {} S.view = 'matches'; return render();
+      case 'reshuffle': { const c = await pickNext(); if (!c) return; send({ type: 'final', card: c, shuffle: true, session: S.sess.id }); return showFinal(c, true); }
       case 'closematch': return document.querySelector('.match')?.remove();
       case 'closesheet': return closeSheet();
       case 'more': { const n = await rpc('more_cards', { p_code: S.code, p_session: S.sess.id }); if (!n) return toast('That is everything for now.'); send({ type: 'more', session: S.sess.id }); await loadSession(S.sess.id); S.view = 'swipe'; return render(); }
