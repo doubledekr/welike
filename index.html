@@ -348,7 +348,6 @@ async function startSession(deck, filters, note, announce = true) {
   }
   if (filters?.wishlist) { closeSheet(); await refresh(); S.view = 'home'; S.tab = 'home'; render(); return toast(`Sent ${r.count} movie${r.count > 1 ? 's' : ''} to ${them()}. You will see matches as they pick.`, 4000); }
   closeSheet(); await openSession(r.id);
-  if (deck === 'movie' && !filters?.solo && !filters?.rewatch && S.matches.length) toast(`${S.matches.length} movie${S.matches.length > 1 ? 's' : ''} you both already liked ${S.matches.length > 1 ? 'are' : 'is'} in your matches.`, 4000);
 }
 const emptyMsg = (d, f) => f?.wishlist ? 'Nothing new on your wishlist to share. Like a few movies first.' : f?.rewatch ? 'Nothing in your Seen folder to rewatch yet.' : d === 'dinner' ? 'No dinner ideas yet. Add some under Lists.' : d === 'event' ? 'No upcoming events loaded yet.' : d === 'movie' ? 'No movies match those filters.' : 'Nothing to swipe yet. Add some under Lists.';
 function onHand(card) { const ing = card.data?.ingredients || []; if (!ing.length || !S.pantry.length) return null; const have = ing.filter(i => S.pantry.some(p => { const a = p.item.toLowerCase(), b = i.toLowerCase(); return a.includes(b) || b.includes(a); })); return { have: have.length, total: ing.length, missing: ing.filter(i => !have.includes(i)) }; }
@@ -433,9 +432,9 @@ function tonightSheet() {
 }
 async function shortlistSheet() {
   const items = await rpc('shortlist', { p_code: S.code }); S.listCards = items; const lab = { movie: 'Movie', dinner: 'Eat', event: 'Event' };
-  sheet(`<div class="grab"></div><h2>Your shortlist</h2><p class="muted" style="margin-top:6px;font-size:14.5px">Everything you have both said yes to. These come up first when you start a round.</p>` +
+  sheet(`<div class="grab"></div><h2>Your shortlist</h2><p class="muted" style="margin-top:6px;font-size:14.5px">Things you have both liked at some point. They are not decisions: they get dealt first when you start a round, and you each still choose on the night.</p>` +
     (items.length ? items.map(c => `<div class="item"><button data-detail="${c.id}" style="width:44px;height:62px;border-radius:8px;overflow:hidden;background:var(--bg);flex:none;display:grid;place-items:center;font-size:22px">${c.image ? `<img src="${esc(c.image)}" alt="" style="width:100%;height:100%;object-fit:cover">` : emojiFor(c)}</button><button class="grow" style="text-align:left" data-detail="${c.id}"><b>${esc(c.title)}</b><small>${lab[c.deck] || ''}${c.subtitle ? ' · ' + esc(c.subtitle) : ''}</small></button>${c.deck === 'movie' ? `<button class="btn ghost sm" data-seenany="${c.id}">Watched</button>` : ''}</div>`).join('')
-      : `<div class="note"><b>Nothing yet.</b> When you have both liked the same movie, place or event, it lands here quietly.</div>`));
+      : `<div class="note"><b>Nothing yet.</b> When you have both liked the same movie, place or event while browsing, it lands here quietly.</div>`));
 }
 
 /* ---------- landing ladder: what to do when a round ends with no match ---------- */
@@ -660,7 +659,7 @@ async function commit(verdict) {
   try {
     const r = await rpc('swipe', { p_code: S.code, p_session: sess, p_member: S.me, p_card: card.id, p_verdict: verdict });
     send({ type: 'swipe', session: sess, left: S.deck.length });
-    if (r.match && S.bite) { S.state.counts.shortlist = (S.state.counts.shortlist || 0) + 1; const pill = document.querySelector('[data-act=shortlist]'); if (pill) { pill.textContent = '♥ ' + S.state.counts.shortlist; pill.classList.add('hot'); } toast(`On your shortlist: you both like ${card.title}`, 3500); send({ type: 'shortlist' }); }
+    if (r.match && S.bite) { S.state.counts.shortlist = (S.state.counts.shortlist || 0) + 1; const pill = document.querySelector('[data-act=shortlist]'); if (pill) { pill.textContent = '♥ ' + S.state.counts.shortlist; pill.classList.add('hot'); } toast(`You have both liked ${card.title}. It will come up first next round.`, 3500); send({ type: 'shortlist' }); }
     else if (r.match) { const m = { ...card, loves: verdict === 'love' ? 1 : 0 }; S.matches.unshift(m); updateBar(); send({ type: 'match', session: sess, card: m }); push(`It's a match ${emojiFor(card)}`, `You and ${S.me} both said yes to ${card.title}.`, `./?s=${sess}`); showMatch(m); }
   } catch (e) { toast('That swipe did not save. Check your connection.'); S.deck.unshift(card); S.hist.pop(); drawStack(); }
 }
