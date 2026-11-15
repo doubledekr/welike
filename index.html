@@ -38,6 +38,12 @@ h1,h2,h3,p{margin:0}
 .row{display:flex;align-items:center;gap:10px}
 .grow{flex:1;min-width:0}
 
+.home{flex:1;min-height:0;display:flex;flex-direction:column;padding:calc(var(--st) + 8px) 14px calc(var(--sb) + 10px)}
+.home .row{gap:8px}
+.ib{width:36px;height:36px;border-radius:50%;background:var(--surface);font-size:16px;display:grid;place-items:center;color:var(--text)}
+.nudge.slim{padding:9px 12px;border-radius:14px;margin-top:8px;font-size:13.5px}
+.nudge.slim b{font-size:17px;display:inline}.nudge.slim small{font-size:12.5px}.nudge.slim .go{padding:6px 12px;font-size:13px}
+.done{overflow-y:auto;justify-content:flex-start}.done>:first-child{margin-top:auto}.done>:last-child{margin-bottom:auto}
 /* tab bar */
 .tabs{display:flex;border-top:1px solid var(--line);background:rgba(16,13,18,.94);padding-bottom:var(--sb)}
 .tabs button{flex:1;padding:10px 0 9px;font-size:11px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;letter-spacing:.3px}
@@ -186,6 +192,7 @@ const SVC_DOT = { 'Netflix': '#e50914', 'Hulu': '#1ce783', 'Prime Video': '#00a8
 
 const ls = { get: k => { try { return localStorage.getItem('wl_' + k) } catch { return null } }, set: (k, v) => { try { localStorage.setItem('wl_' + k, v) } catch {} }, del: k => { try { localStorage.removeItem('wl_' + k) } catch {} } };
 const S = { code: ls.get('code'), me: ls.get('name'), state: null, pantry: [], tab: 'home', view: 'home', sess: null, deck: [], hist: [], matches: [], listTab: 'activity', chan: null };
+S.homeDeck = ls.get('deck') || 'movie';
 const $app = document.getElementById('app'), $layer = document.getElementById('layer');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const rpc = async (fn, args) => { const { data, error } = await sb.rpc(fn, args); if (error) throw error; return data; };
@@ -212,6 +219,10 @@ async function onEvent(p) {
   else if (p.type === 'match') { if (S.view === 'swipe' && S.sess?.id === p.session) { S.matches.unshift(p.card); showMatch(p.card); } else toast(`Match with ${p.from}: ${p.card.title}`, 4000); refresh().then(() => S.view === 'home' && render()); }
   else if (p.type === 'more' && S.view === 'swipe' && S.sess?.id === p.session) { await loadSession(p.session); renderSwipe(); }
   else if (p.type === 'swipe') { if (S.view === 'swipe' && S.sess?.id === p.session) { S.theirLeft = p.left; updateBar(); } }
+  else if (p.type === 'shortlist') { await refresh(); const pill = document.querySelector('[data-act=shortlist]'); if (pill) { pill.textContent = '♥ ' + (S.state.counts.shortlist || 0); pill.classList.toggle('hot', !!S.state.counts.shortlist); } }
+  else if (p.type === 'game') { if (S.view === 'swipe' && S.sess?.id === p.session) { S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); S.view = 'game'; render(); } else toast(`${p.from} wants to play for tonight’s pick. Open the round to join.`, 5000); }
+  else if (p.type === 'tb') { if (S.view === 'game' && S.tb?.id === p.id) { S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); render(); } }
+  else if (p.type === 'final') { if (S.view !== 'game') showFinal(p.card); }
   else if (p.type === 'joined') { await refresh(); if (S.view === 'home') render(); }
 }
 const b64u = s => { const p = '='.repeat((4 - s.length % 4) % 4); const r = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...r].map(c => c.charCodeAt(0))); };
@@ -258,10 +269,10 @@ async function refresh() {
 }
 async function loadSession(id) {
   const d = await rpc('get_session', { p_code: S.code, p_session: id, p_member: S.me });
-  S.sess = d.session; S.deck = d.deck; S.matches = d.matches; S.total = d.total; S.theirLeft = d.their_left; S.solo = !!d.session.solo; S.rewatch = !!d.session.filters?.rewatch; S.hist = [];
+  S.sess = d.session; S.deck = d.deck; S.matches = d.matches; S.total = d.total; S.theirLeft = d.their_left; S.solo = !!d.session.solo; S.rewatch = !!d.session.filters?.rewatch; S.bite = !!d.session.filters?.bite; S.hist = [];
 }
 async function openSession(id) {
-  try { await loadSession(id); S.view = 'swipe'; if (!S.deck.length && S.matches.length) { S.view = 'matches'; } render(); }
+  try { closeSheet(); await loadSession(id); S.view = 'swipe'; if (!S.deck.length && S.matches.length) { S.view = 'matches'; } render(); }
   catch (e) { toast('That round is no longer available.'); S.view = 'home'; render(); }
 }
 async function startSession(deck, filters, note, announce = true) {
@@ -289,10 +300,15 @@ function render() {
   if (!S.code || !S.me) return renderJoin();
   if (S.view === 'swipe') return renderSwipe();
   if (S.view === 'matches') return renderMatches();
-  const body = S.tab === 'lists' ? listsHTML() : S.tab === 'you' ? youHTML() : homeHTML();
-  $app.innerHTML = `<div class="view">${body}</div>
-    <nav class="tabs">${[['home', '🔥', 'Tonight'], ['lists', '📝', 'Lists'], ['you', '👤', 'You']].map(([k, i, l]) => `<button data-tab="${k}" class="${S.tab === k ? 'on' : ''}"><span class="ico">${i}</span>${l}</button>`).join('')}</nav>`;
-  if (S.tab === 'lists') loadList();
+  if (S.view === 'game') return renderGame();
+  if (S.view === 'guess') return renderGuess();
+  if (S.tab === 'lists' || S.tab === 'you') {
+    $app.innerHTML = `<div class="view"><div class="topbar" style="margin-bottom:4px"><button class="back" data-tab="home" aria-label="Back">‹</button></div>${S.tab === 'lists' ? listsHTML() : youHTML()}</div>`;
+    if (S.tab === 'lists') loadList();
+    return;
+  }
+  $app.innerHTML = homeHTML();
+  loadBite();
 }
 function renderJoin() {
   const pre = new URLSearchParams(location.search).get('c') || S.code || '';
@@ -305,27 +321,151 @@ function renderJoin() {
     <div style="height:10px"></div><button class="btn ghost" data-act="newcouple">No code? Start a new couple</button>
     <p class="muted" style="font-size:12.5px;text-align:center;margin-top:12px;line-height:1.4">Starting a new couple gives you a code and an invite link to send to your other half.</p></div>`;
 }
+const HDECKS = [['movie', 'Movies'], ['dinner', 'Eat'], ['event', 'Events']];
 function homeHTML() {
-  const st = S.state, ss = st.sessions || [], p = partner();
-  const incoming = ss.filter(s => s.from !== S.me && s.my_left > 0);
-  const hour = new Date().getHours();
-  const when = hour < 11 ? 'this morning' : hour < 16 ? 'today' : 'tonight';
-  let h = `<div class="row"><div class="brand grow">We<i>Like</i></div>${p ? `<span class="pill">with ${esc(p)}</span>` : ''}</div>
-    <h1 class="hello">What are we doing ${when}, ${esc(S.me)}?</h1>`;
-  if (!p) h += `<div class="note"><b>Waiting for your other half.</b> Send them the invite link, they enter their name, and you are connected.<div style="height:10px"></div><button class="btn sm" data-act="invite">Copy invite link</button></div>`;
-  incoming.forEach(s => { h += `<button class="nudge" data-open="${s.id}"><span class="em">${DECKS[s.deck].em}</span><span class="grow"><b>${esc(s.from)} ${s.filters?.wishlist ? 'shared a wishlist' : 'nudged you'}</b><small>${s.filters?.wishlist ? 'Movies they want to watch' : esc(s.note || (s.filters?.rewatch ? 'Watch one again?' : DECKS[s.deck].nudge))} · ${s.my_left} to swipe</small></span><span class="go">Swipe</span></button>`; });
-  h += `<div class="sect">Send a nudge</div><div class="grid">` +
-    ['movie', 'dinner', 'activity', 'event'].map(d => `<button class="tile" data-nudge="${d}"><span class="em">${DECKS[d].em}</span><span><b>${DECKS[d].label}</b><small>${DECKS[d].hint}</small></span></button>`).join('') +
-    `<button class="tile wide" data-nudge="mix"><span class="em">${DECKS.mix.em}</span><span><b>${DECKS.mix.label}</b><small>${DECKS.mix.hint}</small></span></button></div>
-    <div class="sect">Any time</div><button class="tile wide" data-act="solo" style="width:100%"><span class="em">🍿</span><span><b>Browse movies</b><small>Swipe on your own. Likes carry into the next movie night${st.counts.liked ? ` · ${st.counts.liked} liked so far` : ''}</small></span></button>
-    ${st.counts.liked && p ? `<div style="height:10px"></div><button class="tile wide" data-act="wishlist" style="width:100%"><span class="em">💌</span><span><b>Share my wishlist</b><small>Send ${esc(p)} the movies you have liked and let them pick the ones they would watch too</small></span></button>` : ''}
-    ${st.counts.rewatch ? `<div style="height:10px"></div><button class="tile wide" data-act="rewatch" style="width:100%"><span class="em">🔁</span><span><b>Watch it again?</b><small>${st.counts.rewatch} movie${st.counts.rewatch > 1 ? 's' : ''} you have already seen. Swipe to find one you would both rewatch</small></span></button>` : ''}`;
-  const rest = ss.filter(s => !incoming.includes(s));
+  const st = S.state, p = partner(), incoming = (st.sessions || []).filter(s => s.from !== S.me && s.my_left > 0);
+  if (!HDECKS.some(d => d[0] === S.homeDeck)) S.homeDeck = 'movie';
+  return `<div class="home">
+    <div class="row"><div class="brand grow" style="font-size:28px">We<i>Like</i></div>
+      <button class="pill ${st.counts.shortlist ? 'hot' : ''}" data-act="shortlist" aria-label="Shortlist">♥ ${st.counts.shortlist || 0}</button>
+      <button class="ib" data-tab="lists" aria-label="Lists">☰</button><button class="ib" data-tab="you" aria-label="You and settings">⚙</button></div>
+    ${!p ? `<button class="nudge slim" data-act="invite"><span class="grow"><b>Invite your other half</b></span><span class="go">Send link</span></button>` : ''}
+    ${incoming.slice(0, 2).map(s => `<button class="nudge slim" data-open="${s.id}"><span class="grow"><b>${esc(s.from)} ${s.filters?.wishlist ? 'shared a wishlist' : 'nudged you'}</b><small> · ${esc(s.filters?.wishlist ? 'movies to pick from' : s.note || DECKS[s.deck].label)} · ${s.my_left} to swipe</small></span><span class="go">Swipe</span></button>`).join('')}
+    <div class="seg" style="margin:8px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="${S.homeDeck === k ? 'on' : ''}">${l}</button>`).join('')}</div>
+    <small class="muted" id="prog" style="min-height:16px;text-align:center;font-size:12px"></small>
+    <div class="stack" id="stack" style="margin:6px 0 10px"><div class="done"><p class="muted">Dealing today's handful…</p></div></div>
+    <div class="actions" id="acts" style="visibility:hidden"><button class="act sm" data-sw="undo" aria-label="Undo">↩</button><button class="act no" data-sw="no" aria-label="No">✕</button>
+      <button class="act sm" data-sw="seen" id="seenb" aria-label="Seen it" style="display:none">👁</button>
+      <button class="act love" data-sw="love" aria-label="Love it">★</button><button class="act yes" data-sw="yes" aria-label="Yes">♥</button></div>
+    <button class="btn" data-act="tonight" style="margin-top:10px">What should we do tonight?</button>
+  </div>`;
+}
+// The main screen deals one small solo stack per deck per day. Likes are saved quietly and feed the next round.
+async function loadBite() {
+  const deck = S.homeDeck, extra = !!S.unlock; S.unlock = false;
+  const here = () => S.view === 'home' && S.tab === 'home' && S.homeDeck === deck && document.getElementById('stack');
+  try {
+    if (deck === 'dinner') await nearby(6000);
+    const r = await rpc('start_bite', { p_code: S.code, p_member: S.me, p_deck: deck, p_extra: extra });
+    if (!here()) return;
+    await loadSession(r.id); if (!here()) return;
+    drawStack();
+  } catch (e) { const st = document.getElementById('stack'); if (st && here()) st.innerHTML = '<div class="done"><p class="muted">Could not load today’s cards. Reopen the app to try again.</p></div>'; }
+}
+function biteDoneHTML() {
+  const names = { movie: 'movies', dinner: 'places to eat', event: 'events' }, extra = !!S.sess?.filters?.extra, none = !S.total, p = partner();
+  return `<div class="done"><div style="font-size:46px">${none ? '🌙' : '🍿'}</div><h3>${none ? 'Nothing new here today' : `That is today’s handful of ${names[S.sess.deck] || 'cards'}`}</h3>
+    <p class="muted">${none ? (S.sess.deck === 'dinner' ? 'Add your ZIP code in settings to load restaurants near you, or add your own under Lists.' : 'Check back tomorrow, or add your own under Lists.') : 'A fresh handful arrives tomorrow.'}${!extra && p && !none ? ' Play a quick guessing round to unlock a few more now.' : ''}</p>
+    ${p ? `<button class="btn ghost" data-act="guess">How well do you know ${esc(p)}?</button>` : ''}${S.hist.length ? '<button class="btn ghost" data-sw="undo">Undo last swipe</button>' : ''}</div>`;
+}
+function tonightSheet() {
+  const st = S.state, p = partner(), rest = (st.sessions || []).filter(s => !(s.from !== S.me && s.my_left > 0));
+  let h = `<div class="grab"></div><h2>What should we do tonight?</h2><p class="muted" style="margin-top:6px;font-size:14.5px">${p ? `Pick one. ${esc(p)} gets a nudge and the same cards, and you keep going until something lands.` : 'Pick one to start a round.'}</p>
+    <div class="grid" style="margin-top:14px">` + ['movie', 'dinner', 'activity', 'event'].map(d => `<button class="tile" data-nudge="${d}" style="background:var(--bg)"><span class="em">${DECKS[d].em}</span><span><b>${DECKS[d].label}</b><small>${DECKS[d].hint}</small></span></button>`).join('') +
+    `<button class="tile wide" data-nudge="mix" style="background:var(--bg)"><span class="em">${DECKS.mix.em}</span><span><b>${DECKS.mix.label}</b><small>${DECKS.mix.hint}</small></span></button></div>`;
+  if (st.counts.liked && p) h += `<div style="height:10px"></div><button class="tile wide" data-act="wishlist" style="width:100%;background:var(--bg)"><span class="em">💌</span><span><b>Share my wishlist</b><small>Send ${esc(p)} the movies you have liked and let them pick</small></span></button>`;
+  if (st.counts.rewatch) h += `<div style="height:10px"></div><button class="tile wide" data-act="rewatch" style="width:100%;background:var(--bg)"><span class="em">🔁</span><span><b>Watch it again?</b><small>${st.counts.rewatch} you have already seen</small></span></button>`;
   if (rest.length) h += `<div class="sect">Recent rounds</div>` + rest.map(s => {
-    const status = s.my_left > 0 ? `${s.my_left} left for you` : s.solo ? 'Done' : s.their_left > 0 ? `Waiting on ${esc(them())}` : 'Both done';
-    return `<button class="sess" data-open="${s.id}"><span class="em">${DECKS[s.deck].em}</span><span class="grow"><b>${s.solo ? 'Browsing movies' : s.filters?.wishlist ? (s.from === S.me ? 'Your wishlist' : esc(s.from) + "'s wishlist") : s.filters?.rewatch ? 'Watch again?' : DECKS[s.deck].label}</b><small>${s.solo ? 'Just you' : s.from === S.me ? 'You' : esc(s.from)} · ${ago(s.created_at)} · ${status}</small></span>${s.matches ? `<span class="pill hot">${s.matches} match${s.matches > 1 ? 'es' : ''}</span>` : ''}</button>`;
+    const status = s.my_left > 0 ? `${s.my_left} left for you` : s.their_left > 0 ? `Waiting on ${esc(them())}` : 'Both done';
+    const name = s.filters?.wishlist ? (s.from === S.me ? 'Your wishlist' : esc(s.from) + "'s wishlist") : s.filters?.rewatch ? 'Watch again?' : s.filters?.second ? 'Second look' : DECKS[s.deck].label;
+    return `<button class="sess" data-open="${s.id}"><span class="em" style="background:var(--bg)">${DECKS[s.deck].em}</span><span class="grow"><b>${name}</b><small>${s.from === S.me ? 'You' : esc(s.from)} · ${ago(s.created_at)} · ${status}</small></span>${s.matches ? `<span class="pill hot">${s.matches} match${s.matches > 1 ? 'es' : ''}</span>` : ''}</button>`;
   }).join('');
-  return h;
+  sheet(h);
+}
+async function shortlistSheet() {
+  const items = await rpc('shortlist', { p_code: S.code }); S.listCards = items; const lab = { movie: 'Movie', dinner: 'Eat', event: 'Event' };
+  sheet(`<div class="grab"></div><h2>Your shortlist</h2><p class="muted" style="margin-top:6px;font-size:14.5px">Everything you have both said yes to. These come up first when you start a round.</p>` +
+    (items.length ? items.map(c => `<div class="item"><button data-detail="${c.id}" style="width:44px;height:62px;border-radius:8px;overflow:hidden;background:var(--bg);flex:none;display:grid;place-items:center;font-size:22px">${c.image ? `<img src="${esc(c.image)}" alt="" style="width:100%;height:100%;object-fit:cover">` : emojiFor(c)}</button><button class="grow" style="text-align:left" data-detail="${c.id}"><b>${esc(c.title)}</b><small>${lab[c.deck] || ''}${c.subtitle ? ' · ' + esc(c.subtitle) : ''}</small></button>${c.deck === 'movie' ? `<button class="btn ghost sm" data-seenany="${c.id}">Watched</button>` : ''}</div>`).join('')
+      : `<div class="note"><b>Nothing yet.</b> When you have both liked the same movie, place or event, it lands here quietly.</div>`));
+}
+
+/* ---------- landing ladder: what to do when a round ends with no match ---------- */
+const CUISINES = ['Pizza', 'Mexican', 'Thai', 'Chinese', 'Sushi', 'Burger', 'Italian', 'Indian', 'Mediterranean', 'Barbecue', 'Breakfast', 'Sandwich', 'Seafood', 'Steak'];
+const EVTYPES = ['Music', 'Comedy', 'Trivia', 'Arts and Film', 'Sports and Games', 'Seasonal', 'Special Event'];
+function ladderHTML(waiting) {
+  if (S.solo || !partner()) return '';
+  const canNarrow = ['movie', 'dinner', 'event'].includes(S.sess.deck);
+  return `<div class="kv" style="margin:6px 0 0">No match yet. Try one of these</div>
+    ${waiting ? '' : '<button class="btn" data-lad="second">Second look at each other’s picks</button>'}
+    ${canNarrow ? '<button class="btn ghost" data-lad="narrow">Narrow it down</button>' : ''}
+    <button class="btn ghost" data-lad="change">Change the question</button>
+    <button class="btn ghost" data-lad="game">Play for it</button><button class="btn ghost" data-lad="pick">Just pick for us</button>`;
+}
+async function ladder(kind, btn) {
+  const sess = S.sess, deck = sess.deck;
+  if (kind === 'second') {
+    btn.disabled = true; const r = await rpc('ladder_second', { p_code: S.code, p_member: S.me, p_session: sess.id }); btn.disabled = false;
+    if (!r.id) return toast('Neither of you liked anything in that round. Try narrowing it down.', 4000);
+    send({ type: 'nudge', deck, session: r.id }); push(`${S.me} wants a second look`, `${r.count} from the last round that one of you liked. Any you would go with?`, `./?s=${r.id}`);
+    return openSession(r.id);
+  }
+  if (kind === 'narrow') {
+    F.genres.clear(); F.q.clear(); F.types.clear();
+    const chips = deck === 'movie' ? (S.state.genres || []).map(g => ['genres', g]) : deck === 'dinner' ? CUISINES.map(g => ['q', g]) : EVTYPES.map(g => ['types', g]);
+    return sheet(`<div class="grab"></div><h2>Narrow it down</h2><p class="muted" style="margin-top:6px;font-size:14.5px">Pick two or three. ${esc(them())} gets a fresh, smaller round built from them.</p><div class="chips" style="margin-top:14px">${chips.map(([f, g]) => `<button class="chip" data-f="${f}" data-v="${esc(g)}">${esc(g)}</button>`).join('')}</div><div style="height:16px"></div><button class="btn" data-lad="narrowgo">Deal the narrowed round</button>`);
+  }
+  if (kind === 'narrowgo') {
+    const f = deck === 'movie' ? { genres: [...F.genres] } : deck === 'dinner' ? { q: [...F.q] } : { types: [...F.types] }, picked = Object.values(f)[0];
+    if (!picked.length) return toast('Pick at least one.');
+    return startSession(deck, f, `Narrowed to ${picked.join(', ')}`.slice(0, 80));
+  }
+  if (kind === 'change') {
+    S.chg = deck === 'movie' ? [{ label: 'Something light', deck: 'movie', filters: { genres: ['Comedy', 'Romance', 'Animation', 'Family'] } }, { label: 'Something intense', deck: 'movie', filters: { genres: ['Thriller', 'Horror', 'Crime', 'Action'] } }, { label: 'An old favorite to rewatch', deck: 'movie', filters: { rewatch: true } }]
+      : deck === 'dinner' ? [{ label: 'Take out instead', deck: 'dinner', filters: { kinds: ['orderin'] } }, { label: 'Cook from the pantry', deck: 'dinner', filters: { kinds: ['cook'] } }, { label: 'Look further out', deck: 'dinner', filters: { kinds: ['restaurant'] }, widen: true }]
+      : deck === 'event' ? [{ label: 'Stay in with a movie', deck: 'movie', filters: {} }, { label: 'Go eat instead', deck: 'dinner', filters: { kinds: ['restaurant'] } }, { label: 'Keep it simple', deck: 'activity', filters: {} }]
+      : [{ label: 'Movie night', deck: 'movie', filters: {} }, { label: 'Dinner', deck: 'dinner', filters: {} }, { label: 'Out tonight', deck: 'event', filters: {} }];
+    return sheet(`<div class="grab"></div><h2>Change the question</h2><p class="muted" style="margin-top:6px;font-size:14.5px">Sometimes the answer is a different kind of night.</p><div style="height:6px"></div>${S.chg.map((o, i) => `<div style="height:10px"></div><button class="btn ghost" data-chg="${i}">${o.label}</button>`).join('')}`);
+  }
+  if (kind === 'game') {
+    S.tb = await rpc('tiebreak_start', { p_code: S.code, p_member: S.me, p_session: sess.id });
+    send({ type: 'game', session: sess.id, id: S.tb.id });
+    if (S.tb.mine == null && !S.tb.done) push(`${S.me} wants to play for it`, 'Closest guess wins and picks tonight.', `./?s=${sess.id}`);
+    S.view = 'game'; return render();
+  }
+  if (kind === 'pick') {
+    const c = await rpc('pick_for_us', { p_code: S.code, p_session: sess.id }); if (!c) return toast('Nothing to pick from yet.');
+    send({ type: 'final', card: c }); push(`Tonight: ${c.title}`, 'WeLike picked it for you both.', `./?s=${sess.id}`);
+    return showFinal(c);
+  }
+}
+function showFinal(c) {
+  document.querySelector('.match')?.remove(); closeSheet();
+  const m = document.createElement('div'); m.className = 'match';
+  m.innerHTML = `<h1>Tonight’s<br>pick</h1><div class="pic">${c.image ? `<img src="${esc(c.image)}" alt="">` : emojiFor(c)}</div><h3>${esc(c.title)}</h3>${c.subtitle ? `<p style="color:#f3dfe6;font-size:15px">${esc(c.subtitle)}</p>` : ''}<button class="btn" data-act="closematch">Sounds good</button>`;
+  m._card = c; document.body.appendChild(m);
+}
+function renderGame() {
+  const t = S.tb, row = c => `<div class="item"><span style="width:44px;height:62px;border-radius:8px;overflow:hidden;background:var(--surface);flex:none;display:grid;place-items:center;font-size:22px">${c.image ? `<img src="${esc(c.image)}" alt="" style="width:100%;height:100%;object-fit:cover">` : emojiFor(c)}</span><span class="grow"><b>${esc(c.title)}</b><small>${esc(c.subtitle || '')}</small></span>${t.winner === S.me && !t.pick ? `<button class="btn sm" data-tbpick="${c.id}">Pick</button>` : ''}</div>`;
+  let b;
+  if (!t.done) b = t.mine != null ? `<p class="muted" style="margin-top:14px">Your guess is in: <b style="color:var(--text)">${t.mine}</b>. Waiting on ${esc(them())}.</p><div style="height:12px"></div><button class="btn ghost" data-act="tbrefresh">Check again</button>`
+    : `<label class="field"><span>Your guess</span><input id="tbg" inputmode="numeric" maxlength="4" placeholder="1999"></label><div style="height:12px"></div><button class="btn" data-act="tbguess">Lock it in</button>`;
+  else {
+    const who = Object.entries(t.guesses || {}).map(([n, g]) => `${n === S.me ? 'You' : esc(n)} said ${g}`).join(', ');
+    b = `<p style="margin-top:14px;font-size:15px">The answer was <b>${t.answer}</b>. ${who}.</p>` + (t.pick
+      ? `<h3 class="serif" style="font-size:30px;margin:14px 0 4px">Tonight: ${esc(t.pick.title)}</h3><p class="muted">${t.winner === S.me ? 'Your pick.' : esc(t.winner) + ' picked it.'}</p><div style="height:14px"></div><button class="btn" data-act="home">Done</button>`
+      : `<h3 class="serif" style="font-size:26px;margin:14px 0 6px">${t.winner === S.me ? 'You win. Pick one.' : esc(t.winner) + ' wins and is picking.'}</h3>${(t.cards || []).map(row).join('')}${t.winner === S.me ? '' : '<div style="height:12px"></div><button class="btn ghost" data-act="tbrefresh">Check again</button>'}`);
+  }
+  $app.innerHTML = `<div class="view"><div class="topbar"><button class="back" data-act="swipe" aria-label="Back">‹</button><div class="grow"><h2>Play for it</h2><small>Closest guess wins and picks</small></div></div>
+    <div class="note" style="border-style:solid"><b style="font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.15">${esc(t.question)}</b></div>${b}</div>`;
+}
+
+/* ---------- "How well do you know them?" ---------- */
+async function startGuess() {
+  const q = await rpc('guess_deck', { p_code: S.code, p_member: S.me });
+  if (q.length < 3) return toast(`Not enough to guess on yet. Come back once ${them()} has swiped more.`, 4000);
+  S.gq = q; S.gi = 0; S.ga = []; S.gres = null; S.view = 'guess'; render();
+}
+function renderGuess() {
+  if (S.gres) { const r = S.gres;
+    $app.innerHTML = `<div class="center"><div style="font-size:54px">🎯</div><h2 class="serif" style="font-size:42px;line-height:1.05">You got ${r.score} of ${r.total}</h2><p class="muted" style="margin:10px 0 22px;font-size:15.5px;line-height:1.45">Which ones stay secret.${r.overall != null ? ` So far you read ${esc(them())} right ${r.overall}% of the time.` : ''}</p><button class="btn" data-act="unlock">Unlock a few more cards</button><div style="height:10px"></div><button class="btn ghost" data-act="home">Done</button></div>`;
+    return; }
+  $app.innerHTML = `<div class="swipe"><div class="topbar"><button class="back" data-act="home" aria-label="Back">‹</button><div class="grow"><h2>What did ${esc(them())} say?</h2><small>${S.gi + 1} of ${S.gq.length} · you only see your score</small></div></div>
+    <div class="stack">${cardHTML(S.gq[S.gi])}</div><div class="actions" style="gap:10px"><button class="btn ghost" data-g="0">Passed</button><button class="btn" data-g="1">Said yes</button></div></div>`;
+}
+async function guessAnswer(yes) {
+  S.ga.push({ card: S.gq[S.gi].id, guess: yes }); S.gi++;
+  if (S.gi < S.gq.length) return render();
+  S.gres = await rpc('guess_submit', { p_code: S.code, p_member: S.me, p_answers: S.ga }); render();
 }
 function settingsForm() {
   const st = S.settings || {}, all = S.state.services || [], on = st.services?.length ? st.services : all;
@@ -385,7 +525,7 @@ const emojiFor = c => c.data?.emoji || (c.deck === 'dinner' ? KINDS[c.kind]?.[1]
 function cardHTML(c, cls = '') {
   const tags = [];
   if (c.deck === 'movie') { (c.data.services || []).slice(0, 2).forEach(s => tags.push(`<span class="tag svc" style="--dot:${SVC_DOT[s] || '#fff'}">${esc(s)}</span>`)); (c.data.genres || []).slice(0, 2).forEach(g => tags.push(`<span class="tag">${esc(g)}</span>`)); if (c.data.user_rating) tags.push(`<span class="tag">★ ${c.data.user_rating}</span>`); }
-  if (c.deck === 'dinner') { tags.push(`<span class="tag">${KINDS[c.kind]?.[0] || 'Dinner'}</span>`); if (c.data.rating) tags.push(`<span class="tag">★ ${c.data.rating}</span>`); if (c.data.price) tags.push(`<span class="tag">${esc(c.data.price)}</span>`); if (c.data.delivery) tags.push('<span class="tag">Delivers</span>'); const oh = onHand(c); if (oh) tags.push(`<span class="tag">${oh.have === oh.total ? 'You have everything' : `${oh.have} of ${oh.total} on hand`}</span>`); }
+  if (c.deck === 'dinner') { tags.push(`<span class="tag">${KINDS[c.kind]?.[0] || 'Dinner'}</span>`); if (c.data.rating) tags.push(`<span class="tag">★ ${c.data.rating}</span>`); if (c.data.price) tags.push(`<span class="tag">${esc(c.data.price)}</span>`); if (c.data.delivery) tags.push('<span class="tag">Delivers</span>'); if (c.data.miles != null) tags.push(`<span class="tag">${c.data.miles} mi</span>`); const oh = onHand(c); if (oh) tags.push(`<span class="tag">${oh.have === oh.total ? 'You have everything' : `${oh.have} of ${oh.total} on hand`}</span>`); }
   if (c.deck === 'event') { tags.push(`<span class="tag">${fmtDate(c.event_date)}</span>`); if (c.kind) tags.push(`<span class="tag">${esc(c.kind)}</span>`); if (c.data.area) tags.push(`<span class="tag">${esc(c.data.area)}</span>`); }
   if (c.deck === 'activity' && c.data.chain) tags.push(`<span class="tag">Then pick ${c.data.chain.deck === 'movie' ? 'a movie' : c.data.chain.deck === 'event' ? 'an event' : 'the food'}</span>`);
   const art = c.image ? `<img class="bg" src="${esc(c.image)}" alt="" draggable="false" onerror="this.remove()">` : '';
@@ -393,7 +533,7 @@ function cardHTML(c, cls = '') {
     <div class="shade"><h3>${esc(c.title)}</h3>${c.subtitle ? `<div class="sub">${esc(c.subtitle)}</div>` : ''}<div class="tags">${tags.join('')}</div></div>
     <div class="info">i</div><div class="stamp yes">Yes</div><div class="stamp no">Nope</div><div class="stamp love">Love it</div>${c.deck === 'movie' && !S.rewatch ? '<div class="stamp seen">Seen it</div>' : ''}</div>`;
 }
-function updateBar() { const el = document.getElementById('prog'); if (el) el.textContent = S.solo || !partner() ? `${S.deck.length} left` : `${S.deck.length} left · ${them()} has ${S.theirLeft ? S.theirLeft + ' to go' : 'finished'}`; const m = document.getElementById('mcount'); if (m) { m.textContent = S.matches.length ? `${S.matches.length} match${S.matches.length > 1 ? 'es' : ''}` : 'No matches yet'; m.className = 'pill' + (S.matches.length ? ' hot' : ''); } }
+function updateBar() { const el = document.getElementById('prog'); if (el) el.textContent = S.bite ? (S.deck.length ? `${S.deck.length} left today` : '') : S.solo || !partner() ? `${S.deck.length} left` : `${S.deck.length} left · ${them()} has ${S.theirLeft ? S.theirLeft + ' to go' : 'finished'}`; const m = document.getElementById('mcount'); if (m) { m.textContent = S.matches.length ? `${S.matches.length} match${S.matches.length > 1 ? 'es' : ''}` : 'No matches yet'; m.className = 'pill' + (S.matches.length ? ' hot' : ''); } }
 function renderSwipe() {
   const d = S.solo ? { label: 'Browse movies' } : S.sess.filters?.wishlist ? { label: S.sess.from === S.me ? 'Your wishlist' : esc(S.sess.from) + "'s wishlist" } : S.rewatch ? { label: 'Watch again?' } : DECKS[S.sess.deck], movie = S.deck[0]?.deck === 'movie' && !S.rewatch;
   $app.innerHTML = `<div class="swipe"><div class="topbar"><button class="back" data-act="home" aria-label="Back">‹</button>
@@ -409,10 +549,12 @@ function drawStack() {
   const acts = document.getElementById('acts'), seen = document.getElementById('seenb');
   if (!S.deck.length) {
     acts.style.visibility = 'hidden';
+    if (S.bite) { st.innerHTML = biteDoneHTML(); return; }
     const waiting = !S.solo && S.theirLeft > 0;
     st.innerHTML = `<div class="done"><div style="font-size:54px">${S.matches.length ? '🎉' : '👀'}</div><h3>${S.matches.length ? `${S.matches.length} match${S.matches.length > 1 ? 'es' : ''} so far` : 'You are through the deck'}</h3>
-      <p class="muted">${S.solo ? 'Your likes are saved. They count toward the next movie night, and you match the moment you both like the same one.' : waiting ? `${esc(them())} still has ${S.theirLeft} to swipe. You will both see matches as they land.` : 'You have both been through all of these.'}</p>
-      ${S.matches.length ? '<button class="btn" data-act="matches">See matches</button>' : ''}<button class="btn ghost" data-act="more">Deal more cards</button>${S.hist.length ? '<button class="btn ghost" data-sw="undo">Undo last swipe</button>' : ''}</div>`;
+      <p class="muted">${S.solo ? 'Your likes are saved. They count toward the next round, and you match the moment you both like the same one.' : waiting ? `${esc(them())} still has ${S.theirLeft} to swipe. You will both see matches as they land.` : 'You have both been through all of these.'}</p>
+      ${S.matches.length ? `<button class="btn" data-act="matches">See matches</button>${S.matches.length > 1 && !S.solo ? '<button class="btn ghost" data-lad="pick">Pick one for us</button>' : ''}` : ladderHTML(waiting)}
+      <button class="btn ghost" data-act="more">Deal more cards</button>${S.hist.length ? '<button class="btn ghost" data-sw="undo">Undo last swipe</button>' : ''}</div>`;
     return;
   }
   acts.style.visibility = ''; if (seen) seen.style.display = S.deck[0].deck === 'movie' && !S.rewatch ? '' : 'none';
@@ -437,16 +579,17 @@ async function commit(verdict) {
   const card = S.deck[0], el = document.querySelector('#stack .card:last-child'), sess = S.sess.id;
   if (el) { const to = verdict === 'no' ? 'translate(-140%,30px) rotate(-24deg)' : verdict === 'love' ? 'translate(0,-140%)' : verdict === 'seen' ? 'translate(0,140%) scale(.8)' : 'translate(140%,30px) rotate(24deg)'; el.style.transition = 'transform .28s ease-in, opacity .28s'; el.style.transform = to; el.style.opacity = '.3'; const st = el.querySelector('.stamp.' + verdict); if (st) st.style.opacity = 1; }
   S.deck.shift(); S.hist.push({ card, verdict });
-  setTimeout(() => { busy = false; if (S.view === 'swipe' && S.sess?.id === sess) drawStack(); }, 230);
+  setTimeout(() => { busy = false; if ((S.view === 'swipe' || S.bite) && S.sess?.id === sess && document.getElementById('stack')) drawStack(); }, 230);
   try {
     const r = await rpc('swipe', { p_code: S.code, p_session: sess, p_member: S.me, p_card: card.id, p_verdict: verdict });
     send({ type: 'swipe', session: sess, left: S.deck.length });
-    if (r.match) { const m = { ...card, loves: verdict === 'love' ? 1 : 0 }; S.matches.unshift(m); updateBar(); send({ type: 'match', session: sess, card: m }); push(`It's a match ${emojiFor(card)}`, `You and ${S.me} both said yes to ${card.title}.`, `./?s=${sess}`); showMatch(m); }
+    if (r.match && S.bite) { S.state.counts.shortlist = (S.state.counts.shortlist || 0) + 1; const pill = document.querySelector('[data-act=shortlist]'); if (pill) { pill.textContent = '♥ ' + S.state.counts.shortlist; pill.classList.add('hot'); } toast(`On your shortlist: you both like ${card.title}`, 3500); send({ type: 'shortlist' }); }
+    else if (r.match) { const m = { ...card, loves: verdict === 'love' ? 1 : 0 }; S.matches.unshift(m); updateBar(); send({ type: 'match', session: sess, card: m }); push(`It's a match ${emojiFor(card)}`, `You and ${S.me} both said yes to ${card.title}.`, `./?s=${sess}`); showMatch(m); }
   } catch (e) { toast('That swipe did not save. Check your connection.'); S.deck.unshift(card); S.hist.pop(); drawStack(); }
 }
 async function undo() {
   const h = S.hist.pop(); if (!h) return toast('Nothing to undo.');
-  try { await rpc('unswipe', { p_code: S.code, p_session: S.sess.id, p_member: S.me, p_card: h.card.id }); S.deck.unshift(h.card); S.matches = S.matches.filter(m => m.id !== h.card.id); if (S.view !== 'swipe') { S.view = 'swipe'; renderSwipe(); } else drawStack(); } catch { S.hist.push(h); toast('Could not undo.'); }
+  try { await rpc('unswipe', { p_code: S.code, p_session: S.sess.id, p_member: S.me, p_card: h.card.id }); S.deck.unshift(h.card); S.matches = S.matches.filter(m => m.id !== h.card.id); if (S.bite) drawStack(); else if (S.view !== 'swipe') { S.view = 'swipe'; renderSwipe(); } else drawStack(); } catch { S.hist.push(h); toast('Could not undo.'); }
 }
 const chainLabel = c => c.data?.chain ? (c.data.chain.deck === 'movie' ? 'Pick the movie' : c.data.chain.deck === 'event' ? 'Pick an event' : c.data.chain.filters?.kinds?.[0] === 'cook' ? 'Pick what to cook' : c.data.chain.filters?.kinds?.[0] === 'orderin' ? 'Pick where to order from' : 'Pick a place') : null;
 function showMatch(c) {
@@ -483,6 +626,7 @@ function showDetail(c) {
       ${d.ingredients?.length ? `<div class="kv">Ingredients</div><p style="margin-top:0">${d.ingredients.map(i => { const miss = oh && oh.missing.includes(i); return `<span style="${miss ? 'color:var(--muted)' : ''}">${oh ? (miss ? '○ ' : '● ') : ''}${esc(i)}</span>`; }).join('<br>')}</p>${oh ? `<p class="muted" style="font-size:13px">${oh.have} of ${oh.total} in your pantry</p>` : ''}` : ''}
       ${d.url ? `<div style="height:18px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.url)}" target="_blank" rel="noopener">Open website</a>` : ''}
       ${d.maps ? `<div style="height:10px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.maps)}" target="_blank" rel="noopener">Open in Google Maps</a>${d.photo_credit ? `<p class="muted" style="font-size:11.5px;text-align:center">Photo: ${esc(d.photo_credit)} via Google</p>` : ''}` : ''}`;
+  if (c.kind !== 'cook') b += `<div style="height:10px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="https://www.ubereats.com/search?q=${encodeURIComponent(c.title)}" target="_blank" rel="noopener">Find on Uber Eats</a>`;
   } else if (c.deck === 'event') {
     b = `<div class="tags"><span class="tag">${fmtDate(c.event_date)}</span>${c.kind ? `<span class="tag">${esc(c.kind)}</span>` : ''}</div>
       ${d.time ? `<div class="kv">When</div><p style="margin-top:0">${esc(d.time)}</p>` : ''}${d.venue ? `<div class="kv">Where</div><p style="margin-top:0">${esc(d.venue)}${d.area ? ` (${esc(d.area)})` : ''}</p>` : ''}${d.notes ? `<p>${esc(d.notes)}</p>` : ''}
@@ -492,7 +636,7 @@ function showDetail(c) {
   sheet(`${img ? `<div class="hero"><button class="close" data-act="closesheet" aria-label="Close">×</button><img src="${esc(img)}" alt=""></div>` : '<div class="grab"></div>'}
     <div class="body"><h2>${img ? '' : emojiFor(c) + ' '}${esc(c.title)}</h2>${c.subtitle ? `<p class="muted" style="margin-top:6px">${esc(c.subtitle)}</p>` : ''}<div style="height:10px"></div>${b}</div>`);
 }
-const F = { services: new Set(), genres: new Set(), kinds: new Set(), days: 2 };
+const F = { services: new Set(), genres: new Set(), kinds: new Set(), q: new Set(), types: new Set(), days: 2 };
 function nudgeSheet(deck) {
   const d = DECKS[deck], st = S.state; F.services.clear(); F.genres.clear(); F.kinds.clear(); F.days = 2; let f = '';
   if (deck === 'movie') f = `<div class="kv">Where</div><div class="chips">${(st.services || []).map(s => `<button class="chip" data-f="services" data-v="${esc(s)}">${esc(s)}</button>`).join('')}</div>
@@ -545,12 +689,18 @@ async function saveAdd(t) {
 
 /* ---------- events ---------- */
 document.addEventListener('click', async e => {
-  const t = e.target.closest('[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-padd],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
+  const t = e.target.closest('[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-hdeck],[data-lad],[data-chg],[data-tbpick],[data-g],[data-seenany],[data-padd],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
   if (!t) return; const ds = t.dataset;
   try {
     if (t.id === 'jgo') { const name = document.getElementById('jn').value.trim(), code = document.getElementById('jc').value.trim().toUpperCase(); if (!name || !code) return toast('Enter your name and the couple code.'); t.disabled = true; try { const r = await rpc('join_couple', { p_code: code, p_name: name }); S.code = code; S.me = r.name; ls.set('code', code); ls.set('name', r.name); history.replaceState(null, '', location.pathname); await boot(); send({ type: 'joined' }); } catch (er) { t.disabled = false; toast(errMsg(er)); } return; }
     if ('scrim' in ds) return closeSheet();
     if (ds.tab) { S.tab = ds.tab; S.view = 'home'; if (ds.tab === 'home') await refresh(); return render(); }
+    if (ds.hdeck) { S.homeDeck = ds.hdeck; ls.set('deck', ds.hdeck); return render(); }
+    if (ds.lad) return ladder(ds.lad, t);
+    if (ds.chg) { const o = S.chg?.[+ds.chg]; if (!o) return; if (o.widen) { const cur = Number(S.settings?.radius_mi || 2), next = [5, 10, 25].find(m => m > cur) || 25; S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { radius_mi: next } }); toast(`Looking within ${next} miles now.`); } return startSession(o.deck, o.filters, o.label); }
+    if (ds.tbpick) { S.tb = await rpc('tiebreak_pick', { p_code: S.code, p_member: S.me, p_id: S.tb.id, p_card: ds.tbpick }); send({ type: 'tb', id: S.tb.id }); push(`Tonight: ${S.tb.pick.title}`, `${S.me} won the tie-breaker and picked it.`, './'); return render(); }
+    if (ds.g) return guessAnswer(ds.g === '1');
+    if (ds.seenany) { await rpc('mark_seen_any', { p_code: S.code, p_card: ds.seenany }); await refresh(); toast('Moved to your Seen folder for both of you.'); return shortlistSheet(); }
     if (ds.nudge) return nudgeSheet(ds.nudge);
     if (ds.svc) return t.classList.toggle('on');
     if (ds.f) { const set = F[ds.f]; set.has(ds.v) ? set.delete(ds.v) : set.add(ds.v); return t.classList.toggle('on'); }
@@ -581,6 +731,12 @@ document.addEventListener('click', async e => {
       case 'skipsetup': ls.set('setupskip', '1'); return closeSheet();
       case 'geo': { if (!navigator.geolocation) return toast('This phone will not share its location with WeLike.'); navigator.geolocation.getCurrentPosition(async pos => { try { S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { lat: pos.coords.latitude, lng: pos.coords.longitude } }); document.querySelectorAll('#geonote').forEach(n => n.textContent = 'Location saved'); toast('Location saved.'); } catch { toast('Could not save your location.'); } }, () => toast('Location is turned off for WeLike in your phone settings.'), { timeout: 10000 }); return; }
       case 'wishlist': return startSession('movie', { wishlist: true }, null);
+      case 'tonight': return tonightSheet();
+      case 'shortlist': return shortlistSheet();
+      case 'guess': return startGuess();
+      case 'unlock': S.unlock = true; S.view = 'home'; S.tab = 'home'; await refresh(); return render();
+      case 'tbguess': { const g = parseInt(document.getElementById('tbg').value, 10); if (!(g > 1880 && g < 2100)) return toast('Enter a year.'); S.tb = await rpc('tiebreak_guess', { p_code: S.code, p_member: S.me, p_id: S.tb.id, p_guess: g }); send({ type: 'tb', id: S.tb.id }); return render(); }
+      case 'tbrefresh': S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: S.tb.id }); return render();
       case 'add': return addSheet();
       case 'savepantry': { const items = document.getElementById('pt').value.split(/\n|,/).map(s => s.replace(/^[\s\-•*\d.x×]+(?=\D)/i, '').replace(/\$\s?\d+(\.\d+)?/g, '').trim()).filter(s => s.length > 1).map(item => ({ item })); const n = await rpc('set_pantry', { p_code: S.code, p_items: items }); await refresh(); toast(`${n} pantry items saved.`); return loadList(); }
       case 'invite': { const link = `${location.origin}${location.pathname}?c=${S.code}`; try { if (navigator.share) await navigator.share({ title: 'WeLike', text: 'Join me on WeLike', url: link }); else { await navigator.clipboard.writeText(link); toast('Invite link copied.'); } } catch {} return; }
