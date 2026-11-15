@@ -269,7 +269,7 @@ const ICONS = {
   ticket: 'M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4zM14 6v12',
   shuffle: 'M3 7h4l10 10h4M17 7h4M3 17h4l3-3M14 10l3-3M19 5l2 2-2 2M19 15l2 2-2 2',
   list: 'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01', sliders: 'M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M16 4v4M10 10v4M18 16v4',
-  mail: 'M3 6h18v12H3zM3 7l9 6 9-6', repeat: 'M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3',
+  play: 'M7 4l13 8-13 8z', mail: 'M3 6h18v12H3zM3 7l9 6 9-6', repeat: 'M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3',
   target: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z',
   search: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-3.5-3.5',
   share: 'M12 15V3M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7', plus: 'M4 4h16v16H4zM12 8v8M8 12h8',
@@ -760,7 +760,7 @@ function showMatch(c) {
 function endMatchesHTML() {
   const ms = S.matches, many = ms.length > 1; S.listCards = ms;
   return `<div class="mrow ${many ? '' : 'one'}">${ms.map((c, i) => { const cl = chainLabel(c); return `<div class="mcard"><button class="mimg" data-detail="${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="">` : emojiFor(c)}</button><b>${esc(c.title)}</b>${c.deck === 'movie' && i < 3 ? `<small data-why="${c.id}" style="display:none"></small>` : ''}<button class="btn sm" data-final="${c.id}">${many ? 'Choose this' : 'Lock it in'}</button>${cl ? `<button class="btn ghost sm" data-chain="${c.id}">${cl} →</button>` : ''}</div>`; }).join('')}</div>
-    ${many && !S.solo ? '<button class="btn ghost" data-lad="game">Play for it</button><button class="btn ghost" data-lad="pick">Pick one at random</button>' : ''}${S.bite ? '' : '<button class="btn ghost" data-act="more">Deal more cards</button>'}`;
+    ${many && !S.solo ? '<button class="btn ghost" data-lad="game">Play for it</button><button class="btn ghost" data-lad="pick">Pick one at random</button>' : ''}`;
 }
 async function pickNext() {
   const c = await rpc('pick_next', { p_code: S.code, p_session: S.sess.id, p_skip: S.skips || [] });
