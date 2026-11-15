@@ -1229,7 +1229,7 @@ function dayEdit() {
   const row = s => {
     const it = pl.items[s], c = it.card, lab = PSLOT[s][0], ref = pRef(s), fixedT = c && isDated(c) && evStart(c);
     const tm = fixedT ? `<b class="ptm">${pT(it.time)}</b>` : `<input class="ptm" type="time" step="900" value="${esc(it.time)}" data-pltime="${s}" aria-label="${lab} time">`;
-    if (!c) return `<div class="prow pe"><span class="pimg">+</span><span class="grow"><small>${tm} · ${lab}</small><b>${it.find ? 'You will find one together' : pCands(s).length ? 'Open spot' : 'Nothing you both like fits here'}</b><small>${it.find ? `You each get 8 picks to swipe. The first one you both like goes here.` : 'Find one together, or leave it out.'}</small></span>${!it.find && pCands(s).length ? `<button class="pill" data-pl="swap|${s}">Pick</button>` : ''}<button class="pill ${it.find ? 'hot' : ''}" data-pl="find|${s}">${it.find ? 'Finding' : 'Find one'}</button><button class="x" data-pl="rm|${s}" aria-label="Leave out">×</button></div>`;
+    if (!c) return `<div class="prow pe"><span class="pimg">+</span><span class="grow"><small>${tm} · ${lab}</small><b>${it.find ? 'Finding this one together' : pCands(s).length ? 'Open spot' : 'Nothing you both like fits here'}</b><small>${it.find ? `You will both swipe 8 picks after you send. The first one you both like goes here.` : 'Find one together, or leave it out.'}</small></span>${!it.find && pCands(s).length ? `<button class="pill" data-pl="swap|${s}">Pick</button>` : ''}<button class="pill ${it.find ? '' : 'hot'}" data-pl="find|${s}">${it.find ? 'Undo' : 'Find together'}</button><button class="x" data-pl="rm|${s}" aria-label="Leave out">×</button></div>`;
     const o = isDated(c) ? true : openAt(c, pl.day, it.time, PSTAY[s] || 60), mi = ref && ref.id !== c.id && c.id !== pl.anchor?.id ? pMi(ref, c) : null, cl = !isDated(c) && o ? closesAt(c, pl.day, it.time) : null;
     const note = [o === false ? '<span class="pwarn">Closed then, or closes too soon</span>' : cl ? 'open until ' + cl : isDated(c) && !evStart(c) ? 'pick a start time when you book' : '', mi != null ? `${mi} mi from ${esc((n => n.length > 20 ? n.slice(0, 19).trim() + '…' : n)(ref.title.split(/[,(]/)[0].trim()))}` : '', pl.mode === 'in' && s === 'dinner' ? (c.kind === 'cook' ? 'cook at home' : 'order in') : ''].filter(Boolean).join(' · ');
     const more = pCands(s).filter(x => x.id !== c.id).length;
@@ -1239,11 +1239,11 @@ function dayEdit() {
   sheet(`<div class="grab"></div><div class="body"><h2>${pl.id ? 'Change the plan' : pl.mode === 'in' ? 'A night in' : 'Plan a day'}</h2>
     <div class="pdays">${days.map(d => `<button class="chip ${d === pl.day ? 'on' : ''}" data-pl="day|${d}">${d === t ? 'Today' : d === pAdd(t, 1) ? 'Tomorrow' : dfmt(d)}</button>`).join('')}</div>
     ${pl.anchor ? '' : `<div class="seg" style="margin:10px 0 2px"><button data-pl="mode|out" class="${pl.mode === 'out' ? 'on' : ''}">Going out</button><button data-pl="mode|in" class="${pl.mode === 'in' ? 'on' : ''}">Night in</button></div>`}
-    ${ls.get('pdtip') ? '' : `<div class="ptip"><span><b>Tap a time</b> to change it. <b>Swap</b> trades in something else you both like. An empty spot can be filled with <b>Find one</b>: you each get 8 picks and the first match goes in.</span><button data-pl="tip" aria-label="Got it">×</button></div>`}
+    ${ls.get('pdtip') ? '' : `<div class="ptip"><span><b>Tap a time</b> to change it. <b>Swap</b> trades in something else you both like. An empty spot can be filled with <b>Find together</b>: you each get 8 picks and the first match goes in.</span><button data-pl="tip" aria-label="Got it">×</button></div>`}
     <div style="margin-top:6px">${ordered.map(row).join('')}</div>
     ${addable.length ? `<div class="chips" style="margin-top:12px">${addable.map(s => `<button class="chip" data-pl="add|${s}">+ ${PSLOT[s][0]}</button>`).join('')}</div>` : ''}
     <div style="height:16px"></div>
-    <button class="btn" data-pl="send" ${ok ? '' : 'disabled style="opacity:.5"'}>${pl.id ? 'Send the change' : 'Send'} to ${esc(them())}</button>
+    <button class="btn" data-pl="send" ${ok ? '' : 'disabled style="opacity:.5"'}>${finds ? 'Send and start swiping' : (pl.id ? 'Send the change' : 'Send') + ' to ' + esc(them())}</button>
     <p class="muted" style="margin-top:8px;font-size:12.5px;text-align:center">${ok ? `${esc(them())} can say yes, swap something, or pass. Either of you can change it until the day.` : 'A plan needs at least two things, and one of them picked.'}</p>
   </div>`);
 }
@@ -1255,7 +1255,7 @@ async function daySend(btn) {
   const p = await rpc('plan_save', { p_code: S.code, p_member: S.me, p_id: pl.id, p_day: pl.day, p_mode: pl.mode, p_items: items });
   // A short round for each empty slot: both people get the same picks and the first match fills the slot.
   const ref = ordered.map(s => pl.items[s].card).find(c => c?.data?.lat != null), have = new Set((S.state?.sessions || []).filter(s => s.filters?.plan === p.id).map(s => s.filters.slot));
-  let rounds = 0;
+  let rounds = 0, first = null;
   for (const it of items.filter(i => i.find && !have.has(i.slot))) {
     const [deck, f] = pFindFor(it.slot.startsWith('drinks') ? 'drinks' : it.slot, pl.mode), filters = { ...f, plan: p.id, slot: it.slot, n: 8 };
     if (deck === 'event' && !rounds) await outings(6000); if (deck === 'dinner' && !rounds) await nearby();
@@ -1263,15 +1263,17 @@ async function daySend(btn) {
     const note = `For ${pDayLow(pl.day)}: ${PSLOT[it.slot][0].toLowerCase()}`;
     let r = await rpc('start_session', { p_code: S.code, p_member: S.me, p_deck: deck, p_note: note, p_filters: filters });
     if (!r.id && filters.near) { delete filters.near; r = await rpc('start_session', { p_code: S.code, p_member: S.me, p_deck: deck, p_note: note, p_filters: filters }); }
-    if (r.id) { rounds++; send({ type: 'nudge', deck, session: r.id }); }
+    if (r.id) { rounds++; first = first || r.id; send({ type: 'nudge', deck, session: r.id }); }
   }
   const names = p.items.filter(i => i.card).map(i => i.card.title.split(/[,(]/)[0].trim()).slice(0, 3).join(', then ');
   send({ type: 'dayplan', id: p.id, day: p.day, edit: !!pl.id });
   push(`${S.me} ${pl.id ? 'changed the plan for' : 'planned'} ${pDayLow(p.day)}`, names + (rounds ? '. One spot is open: swipe a few picks to fill it.' : '. Say yes, swap something, or pass.'), `./?plan=${p.id}`);
   // Weekly hours miss holidays and one-off closures: check the real hours for that date (Google publishes a week ahead).
   let shut = 0; if (pl.mode === 'out') { try { const ck = await Promise.race([sb.functions.invoke('placeinfo', { body: { code: S.code, plan: p.id } }), new Promise(r => setTimeout(() => r(null), 7000))]); shut = ck?.data?.closed?.length || 0; } catch {} }
-  await refresh(); S.pl = null; daySheet(p.id);
-  toast(shut ? `Sent, but heads up: ${shut === 1 ? 'one place is' : shut + ' places are'} not open then. Tap Change it to swap.` : rounds ? `Sent to ${them()}. Swipe the picks for the open spot whenever you like.` : `Sent to ${them()}. You will hear back here.`, 4000);
+  await refresh(); S.pl = null;
+  // Straight into the picks for the open spot: the plan is sent, and swiping is the next thing to do.
+  if (first) { closeSheet(); try { await openSession(first); } catch { daySheet(p.id); } } else daySheet(p.id);
+  toast(shut ? `Sent, but heads up: ${shut === 1 ? 'one place is' : shut + ' places are'} not open then. Tap Change it to swap.` : rounds ? `Sent to ${them()}. Swipe your 8 picks: the first one you both like goes into the plan.` : `Sent to ${them()}. You will hear back here.`, 4000);
 }
 function daySheet(id) {
   const p = (S.plans || []).find(x => x.id === id); if (!p) return toast('That plan is not around any more.');
