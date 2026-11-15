@@ -273,6 +273,7 @@ const DECKS = {
   dinner:   { label: 'Dinner',       em: '🍽️', hint: 'Cook, go out or order in',  nudge: 'What are we eating?' },
   activity: { label: 'Do something', em: '✨', hint: 'How to spend the time',     nudge: 'Want to do something?' },
   event:    { label: 'Out tonight',  em: '🎟️', hint: 'What is on around Detroit', nudge: 'Want to go out?' },
+  trip:     { label: 'Trips',        em: '🧭', hint: 'Someday ideas, no plans needed', nudge: 'Trips' },
   mix:      { label: 'Surprise me',  em: '🎲', hint: 'A bit of everything',       nudge: 'Surprise me' },
 };
 const ICONS = {
@@ -286,13 +287,13 @@ const ICONS = {
   ticket: 'M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4zM14 6v12',
   shuffle: 'M3 7h4l10 10h4M17 7h4M3 17h4l3-3M14 10l3-3M19 5l2 2-2 2M19 15l2 2-2 2',
   list: 'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01', sliders: 'M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M16 4v4M10 10v4M18 16v4',
-  play: 'M7 4l13 8-13 8z', mail: 'M3 6h18v12H3zM3 7l9 6 9-6', repeat: 'M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3',
+  play: 'M7 4l13 8-13 8z', plane: 'M21 3L3 10.5l6.5 2.5L12 20l3-5.5L21 3zM9.5 13L21 3', mail: 'M3 6h18v12H3zM3 7l9 6 9-6', repeat: 'M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3',
   target: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z',
   search: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-3.5-3.5',
   share: 'M12 15V3M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7', plus: 'M4 4h16v16H4zM12 8v8M8 12h8',
 };
 const ic = n => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[n] || ''}"/></svg>`;
-const DIC = { movie: 'film', dinner: 'dine', activity: 'spark', event: 'ticket', mix: 'shuffle' };
+const DIC = { movie: 'film', dinner: 'dine', activity: 'spark', event: 'ticket', mix: 'shuffle', trip: 'plane' };
 const KINDS = { cook: ['Cook at home', '🍳'], restaurant: ['Restaurant', '🍷'], orderin: ['Order in', '🥡'] };
 const EVENT_EM = { 'Music': '🎶', 'Comedy': '🎤', 'Trivia': '🧠', 'Arts and Film': '🎞️', 'Sports and Games': '🏟️', 'Brunch': '🥞', 'Happy Hour': '🍻', 'Seasonal': '🍂', 'Special Event': '✨' };
 const SVC_DOT = { 'Netflix': '#e50914', 'Hulu': '#1ce783', 'Prime Video': '#00a8e1', 'Disney+': '#5b8cff', 'Peacock': '#ffd23f', 'Shudder': '#ff3b3b',
@@ -300,13 +301,14 @@ const SVC_DOT = { 'Netflix': '#e50914', 'Hulu': '#1ce783', 'Prime Video': '#00a8
 
 const ls = { get: k => { try { return localStorage.getItem('wl_' + k) } catch { return null } }, set: (k, v) => { try { localStorage.setItem('wl_' + k, v) } catch {} }, del: k => { try { localStorage.removeItem('wl_' + k) } catch {} } };
 const S = { code: ls.get('code'), me: ls.get('name'), state: null, pantry: [], tab: 'home', view: 'home', sess: null, deck: [], hist: [], matches: [], listTab: 'activity', chan: null };
-S.homeDeck = ls.get('deck') || 'movie';
+S.homeDeck = ls.get('deck') || 'movie'; S.tripCity = ls.get('tripcity') || '';
 const $app = document.getElementById('app'), $layer = document.getElementById('layer');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const rpc = async (fn, args) => { const { data, error } = await sb.rpc(fn, args); if (error) throw error; return data; };
 const partner = () => (S.state?.members || []).find(m => m !== S.me) || null;
 const them = () => partner() || 'your person';
 const ago = t => { const m = Math.round((Date.now() - new Date(t)) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' hr ago' : Math.round(m / 1440) + ' d ago'; };
+const fmtMins = m => m >= 1440 ? `${Math.round(m / 1440)} day${m >= 2880 ? 's' : ''}` : m >= 90 ? `${Math.round(m / 30) / 2} hrs` : `${m} min`;
 const fmtDate = d => { if (!d) return ''; const x = new Date(d + 'T12:00:00'); const t = new Date(); t.setHours(12, 0, 0, 0); const diff = Math.round((x - t) / 864e5); return diff === 0 ? 'Today' : diff === 1 ? 'Tomorrow' : x.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); };
 
 let toastT;
@@ -433,7 +435,7 @@ function renderJoin() {
     <div style="height:10px"></div><button class="btn ghost" data-act="newcouple">No code? Start a new couple</button>
     <p class="muted" style="font-size:12.5px;text-align:center;margin-top:12px;line-height:1.4">Starting a new couple gives you a code and an invite link to send to your other half.</p></div>`;
 }
-const HDECKS = [['movie', 'Movies'], ['dinner', 'Eat'], ['event', 'Events']];
+const HDECKS = [['movie', 'Movies'], ['dinner', 'Eat'], ['event', 'Events'], ['trip', 'Trips']];
 function homeHTML() {
   const st = S.state, p = partner(), incoming = (st.sessions || []).filter(s => s.from !== S.me && s.my_left > 0);
   if (!HDECKS.some(d => d[0] === S.homeDeck)) S.homeDeck = 'movie';
@@ -444,7 +446,7 @@ function homeHTML() {
       <button class="ib" data-tab="lists" aria-label="Lists">${ic('list')}</button><button class="ib" data-tab="you" aria-label="You and settings">${ic('sliders')}</button></div>
     ${!p ? `<button class="nudge slim" data-act="invite"><span class="grow"><b>Invite your other half</b></span><span class="go">Send link</span></button>` : ''}
     ${incoming.slice(0, 1).map(s => `<button class="nudge slim" data-open="${s.id}"><span class="grow"><b>${esc(s.from)} ${s.filters?.wishlist ? 'shared a wishlist' : 'nudged you'}</b><small> · ${esc(s.filters?.wishlist ? 'movies to pick from' : s.note || DECKS[s.deck].label)} · ${s.my_left} to swipe</small></span><span class="go">Swipe</span></button>`).join('')}
-    <div class="seg" style="margin:8px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="${S.homeDeck === k ? 'on' : ''}">${l}</button>`).join('')}</div>
+    <div class="seg" style="margin:8px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="${S.homeDeck === k ? 'on' : ''}">${l}</button>`).join('')}</div>${S.homeDeck === 'trip' ? `<div class="row" style="justify-content:space-between;margin:6px 2px 0"><small class="muted" style="font-size:12.5px">Someday ideas. No nudges, just likes.</small><button class="chip ${S.tripCity ? 'on' : ''}" data-act="tripcity" style="padding:5px 12px;font-size:13px">${esc(S.tripCity || 'Anywhere')} ▾</button></div>` : ''}
     <small class="muted" id="prog" style="min-height:16px;text-align:center;font-size:12px"></small>
     <div class="stack" id="stack" style="margin:6px 0 10px"><div class="done"><p class="muted">Dealing today's handful…</p></div></div>
     <div class="actions" id="acts" style="visibility:hidden"><button class="act sm" data-sw="undo" aria-label="Undo">${ic('undo')}</button><button class="act no" data-sw="no" aria-label="No">${ic('x')}</button>
@@ -459,14 +461,16 @@ async function loadBite() {
   const here = () => S.view === 'home' && S.tab === 'home' && S.homeDeck === deck && document.getElementById('stack');
   try {
     if (deck === 'dinner') await nearby(6000);
-    const r = await rpc('start_bite', { p_code: S.code, p_member: S.me, p_deck: deck, p_extra: extra });
+    if (deck === 'event' && S.settings.zip && ls.get('lexp') !== new Date().toDateString()) { ls.set('lexp', new Date().toDateString()); await Promise.race([sb.functions.invoke('trips', { body: { action: 'local', code: S.code } }).catch(() => {}), new Promise(r => setTimeout(r, 5000))]); }
+    const r = deck === 'trip' ? await rpc('start_trips', { p_code: S.code, p_member: S.me, p_city: S.tripCity || '', p_extra: extra })
+      : await rpc('start_bite', { p_code: S.code, p_member: S.me, p_deck: deck, p_extra: extra });
     if (!here()) return;
     await loadSession(r.id); if (!here()) return;
     drawStack();
   } catch (e) { const st = document.getElementById('stack'); if (st && here()) st.innerHTML = '<div class="done"><p class="muted">Could not load today’s cards. Reopen the app to try again.</p></div>'; }
 }
 function biteDoneHTML() {
-  const names = { movie: 'movies', dinner: 'places to eat', event: 'events' }, extra = !!S.sess?.filters?.extra, none = !S.total, p = partner();
+  const names = { movie: 'movies', dinner: 'places to eat', event: 'events', trip: 'trip ideas' }, extra = !!S.sess?.filters?.extra, none = !S.total, p = partner();
   return `<div class="done"><div class="badge">${ic(DIC[S.sess.deck] || 'film')}</div><h3>${none ? 'Nothing new here today' : `That is today’s handful of ${names[S.sess.deck] || 'cards'}`}</h3>
     <p class="muted">${none ? (S.sess.deck === 'dinner' ? 'Add your ZIP code in settings to load restaurants near you, or add your own under Lists.' : 'Check back tomorrow, or add your own under Lists.') : 'A fresh handful arrives tomorrow.'}${!extra && p && !none ? ' Play a quick guessing round to unlock a few more now.' : ''}</p>
     ${p ? `<button class="btn ghost" data-act="guess">How well do you know ${esc(p)}?</button>` : ''}${S.hist.length ? '<button class="btn ghost" data-sw="undo">Undo last swipe</button>' : ''}</div>`;
@@ -536,6 +540,23 @@ async function shortlistSheet() {
       : `<div class="note"><b>Nothing yet.</b> When you have both liked the same movie, place or event while browsing, it lands here quietly.</div>`));
 }
 
+/* ---------- trips: filter by city ---------- */
+async function tripCitySheet() {
+  sheet(`<div class="grab"></div><h2>Where to?</h2><p class="muted" style="margin-top:6px;font-size:14.5px">Trips is a someday deck from everywhere. Pick a city to narrow it, or type a new one to add it.</p>
+    <label class="field"><span>Add a city</span><input id="tcq" maxlength="40" enterkeyhint="go" placeholder="Lisbon, Asheville, Oaxaca…"></label>
+    <div style="height:10px"></div><button class="btn ghost sm" data-act="tripadd">Add and show</button>
+    <div class="sect">Cities</div><div class="chips" id="tcl"><span class="muted" style="font-size:14px">Loading…</span></div>`);
+  try { const cs = await rpc('trip_cities', { p_code: S.code }); const el = document.getElementById('tcl');
+    if (el) el.innerHTML = `<button class="chip ${S.tripCity ? '' : 'on'}" data-tripc="">Anywhere</button>` + cs.map(c => `<button class="chip ${S.tripCity === c.city ? 'on' : ''}" data-tripc="${esc(c.city)}">${esc(c.city)}</button>`).join(''); } catch {}
+}
+async function tripAdd(btn) {
+  const q = document.getElementById('tcq')?.value.trim() || ''; if (q.length < 2) return toast('Type a city first.');
+  btn.disabled = true; btn.textContent = 'Finding things to do…';
+  const { data } = await sb.functions.invoke('trips', { body: { action: 'city', code: S.code, city: q } }).catch(() => ({}));
+  if (!data?.ok) { btn.disabled = false; btn.textContent = 'Add and show'; return toast(data?.error === 'nothing_found' ? 'Nothing found for that. Try a bigger city nearby.' : 'Could not load that city right now.', 4000); }
+  S.tripCity = data.city; ls.set('tripcity', data.city); closeSheet(); render();
+}
+
 /* ---------- shared library ---------- */
 async function openLibrary() {
   closeSheet(); document.querySelector('.lfront')?.remove();
@@ -543,25 +564,26 @@ async function openLibrary() {
   if (!S.libF || S.view !== 'library') S.libF = S.lib.some(c => c.who === 'both') ? 'both' : 'all';
   S.libSel = null; S.view = 'library'; render();
 }
-const libItems = () => (S.lib || []).filter(c => S.libF === 'all' || c.who === S.libF);
+const libItems = () => (S.lib || []).filter(c => S.libF === 'trip' ? c.deck === 'trip' : c.deck !== 'trip' && (S.libF === 'all' || c.who === S.libF));
 function renderLibrary() {
-  const all = S.lib || [], items = libItems(), p = partner(), nb = all.filter(c => c.who === 'both').length, sel = S.libSel; S.listCards = all;
-  const chips = [['both', 'Both of us'], ['me', 'Mine'], ...(p ? [['them', esc(p) + '’s']] : []), ['all', 'Everything']];
-  $app.innerHTML = `<div class="view"><div class="topbar"><button class="back" data-act="home" aria-label="Back">‹</button><div class="grow"><h2>Our library</h2><small>${sel ? 'Tap the ones you would be happy with, two to six' : `${nb} you both like · ${all.length} in all`}</small></div></div>
+  const all = S.lib || [], items = libItems(), p = partner(), trips = S.libF === 'trip', nb = all.filter(c => c.who === 'both' && (c.deck === 'trip') === trips).length, sel = S.libSel; S.listCards = all;
+  const chips = [['both', 'Both of us'], ['me', 'Mine'], ...(p ? [['them', esc(p) + '’s']] : []), ['all', 'Everything'], ...(all.some(c => c.deck === 'trip') ? [['trip', 'Trips']] : [])];
+  $app.innerHTML = `<div class="view"><div class="topbar"><button class="back" data-act="home" aria-label="Back">‹</button><div class="grow"><h2>Our library</h2><small>${sel ? 'Tap the ones you would be happy with, two to six' : trips ? `${nb} you both want to do · ${items.length} saved` : `${nb} you both like · ${all.filter(c => c.deck !== 'trip').length} in all`}</small></div></div>
     <div class="chips" style="margin-top:14px">${chips.map(([k, l]) => `<button class="chip ${S.libF === k ? 'on' : ''}" data-libf="${k}">${l}</button>`).join('')}</div>
     ${items.length ? `<div class="lgrid">${items.map((c, i) => `<button class="lcard ${c.who === 'both' ? 'both' : ''} ${sel?.has(c.id) ? 'sel' : ''}" data-lib="${c.id}" style="animation-delay:${Math.min(i, 20) * 25}ms" aria-label="${esc(c.title)}">${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy">` : `${emojiFor(c)}<span class="ttl">${esc(c.title)}</span>`}${c.who === 'both' ? `<span class="hb">${ic('heart')}</span>` : ''}</button>`).join('')}</div>`
       : `<div class="note" style="margin-top:16px"><b>Nothing here yet.</b> ${S.libF === 'both' ? 'When you have both liked the same thing, it lands here. Try Everything to see what each of you has liked so far.' : 'Swipe yes on a few movies, or use search to like the ones you already know you want.'}</div>`}
-    ${items.length ? `<div class="lbar">${sel ? `<button class="btn" id="lplay" data-act="libplay" ${sel.size < 2 ? 'disabled style="opacity:.5"' : ''}>Play for it (${sel.size})</button><button class="btn ghost" data-act="libcancel" style="flex:0 0 96px">Cancel</button>`
+    ${items.length && !trips ? `<div class="lbar">${sel ? `<button class="btn" id="lplay" data-act="libplay" ${sel.size < 2 ? 'disabled style="opacity:.5"' : ''}>Play for it (${sel.size})</button><button class="btn ghost" data-act="libcancel" style="flex:0 0 96px">Cancel</button>`
       : `<button class="btn" data-act="libshuffle">${ic('shuffle')} Shuffle a pick</button>${p && items.length > 1 ? '<button class="btn ghost" data-act="libselect">Pick a few and play</button>' : ''}`}</div>` : ''}</div>`;
 }
 function libFront(c, from) {
   if (!c) return; S.detailCard = c; document.querySelector('.lfront')?.remove();
   const d = c.data || {}, p = partner(), el = document.createElement('div'); el.className = 'lfront'; el.dataset.act = 'libclose';
   const meta = c.deck === 'movie' ? [d.year, d.runtime ? d.runtime + ' min' : '', (d.services || [])[0]].filter(Boolean).join(' · ') : (c.subtitle || '');
+  const both = c.deck === 'trip' ? ' · you both want to do this' : ' · you both like it';
   el.innerHTML = `<button class="lf-card" data-act="libdetail" aria-label="Details">${c.image ? `<img src="${esc(c.image)}" alt="">` : emojiFor(c)}</button>
-    <h3>${esc(c.title)}</h3><p class="muted" style="font-size:13.5px">${esc(meta)}${c.who === 'both' ? ' · you both like it' : c.who === 'me' ? ' · your like' : p ? ` · ${esc(p)}’s like` : ''}</p>
-    <button class="btn" data-act="libfinal">${c.deck === 'movie' ? 'Watch this tonight' : 'Do this tonight'}</button>
-    ${p ? `<button class="btn ghost" data-act="sendrec">${ic('play')} Ask ${esc(p)} first</button>` : ''}
+    <h3>${esc(c.title)}</h3><p class="muted" style="font-size:13.5px">${esc(meta)}${c.who === 'both' ? both : c.who === 'me' ? ' · your like' : p ? ` · ${esc(p)}’s like` : ''}</p>
+    ${c.deck === 'trip' ? `${d.url ? `<a class="btn" style="display:block;text-decoration:none" href="${esc(d.url)}" target="_blank" rel="noopener">View on Viator</a>` : ''}` : `<button class="btn" data-act="libfinal">${c.deck === 'movie' ? 'Watch this tonight' : 'Do this tonight'}</button>
+    ${p ? `<button class="btn ghost" data-act="sendrec">${ic('play')} Ask ${esc(p)} first</button>` : ''}`}
     <div class="row" style="gap:10px;width:100%;max-width:320px"><button class="btn ghost sm" data-act="libdetail" style="flex:1">Details</button>${c.deck === 'movie' ? `<button class="btn ghost sm" data-seenany="${c.id}" style="flex:1">Watched</button>` : ''}</div>`;
   document.body.appendChild(el);
   const card = el.querySelector('.lf-card'), a = from?.getBoundingClientRect(), b = card.getBoundingClientRect();
@@ -727,14 +749,15 @@ async function loadList() {
   if (!cards.length) { el.innerHTML = `<div class="note">${tab === 'dinner' ? '<b>No dinner ideas yet.</b> Add meals you cook, restaurants you like and your delivery go-tos.' : tab === 'event' ? '<b>No upcoming events loaded.</b> Add one yourself, or they arrive daily once the events feed is on.' : '<b>Nothing here yet.</b>'}</div>`; return; }
   el.innerHTML = cards.map(c => { const sub = tab === 'dinner' ? [KINDS[c.kind]?.[0], c.subtitle].filter(Boolean).join(' · ') : tab === 'event' ? [fmtDate(c.event_date), c.subtitle].filter(Boolean).join(' · ') : c.subtitle; return `<div class="item"><span class="em">${emojiFor(c)}</span><button class="grow" style="text-align:left" data-detail="${c.id}"><b>${esc(c.title)}</b><small>${esc(sub || '')}</small></button><button class="x" data-del="${c.id}" aria-label="Remove">×</button></div>`; }).join('');
 }
-const emojiFor = c => c.data?.emoji || (c.deck === 'dinner' ? KINDS[c.kind]?.[1] : c.deck === 'event' ? EVENT_EM[c.kind] || '🎟️' : c.deck === 'movie' ? '🎬' : '✨') || '✨';
+const emojiFor = c => c.data?.emoji || (c.deck === 'dinner' ? KINDS[c.kind]?.[1] : c.deck === 'event' ? EVENT_EM[c.kind] || '🎟️' : c.deck === 'movie' ? '🎬' : c.deck === 'trip' ? '🧭' : '✨') || '✨';
 
 /* ---------- cards ---------- */
 function cardHTML(c, cls = '') {
   const tags = [];
   if (c.deck === 'movie') { (c.data.services || []).slice(0, 2).forEach(s => tags.push(`<span class="tag svc" style="--dot:${SVC_DOT[s] || '#fff'}">${esc(s)}</span>`)); (c.data.genres || []).slice(0, 2).forEach(g => tags.push(`<span class="tag">${esc(g)}</span>`)); if (c.data.user_rating) tags.push(`<span class="tag">★ ${c.data.user_rating}</span>`); }
   if (c.deck === 'dinner') { tags.push(`<span class="tag">${KINDS[c.kind]?.[0] || 'Dinner'}</span>`); if (c.data.rating) tags.push(`<span class="tag">★ ${c.data.rating}</span>`); if (c.data.price) tags.push(`<span class="tag">${esc(c.data.price)}</span>`); if (c.data.delivery) tags.push('<span class="tag">Delivers</span>'); if (c.data.miles != null) tags.push(`<span class="tag">${c.data.miles} mi</span>`); const oh = onHand(c); if (oh) tags.push(`<span class="tag">${oh.have === oh.total ? 'You have everything' : `${oh.have} of ${oh.total} on hand`}</span>`); }
-  if (c.deck === 'event') { tags.push(`<span class="tag">${fmtDate(c.event_date)}</span>`); if (c.kind) tags.push(`<span class="tag">${esc(c.kind)}</span>`); if (c.data.area) tags.push(`<span class="tag">${esc(c.data.area)}</span>`); }
+  if (c.deck === 'trip') { if (c.kind) tags.push(`<span class="tag">${esc(c.kind)}</span>`); if (c.data.rating) tags.push(`<span class="tag">★ ${c.data.rating}</span>`); if (c.data.minutes) tags.push(`<span class="tag">${fmtMins(c.data.minutes)}</span>`); if (c.data.price) tags.push(`<span class="tag">from $${c.data.price}</span>`); }
+  if (c.deck === 'event') { tags.push(`<span class="tag">${c.data.flex ? 'This week' : fmtDate(c.event_date)}</span>`); if (c.kind) tags.push(`<span class="tag">${esc(c.kind)}</span>`); if (c.data.area) tags.push(`<span class="tag">${esc(c.data.area)}</span>`); }
   if (c.deck === 'activity' && c.data.chain) tags.push(`<span class="tag">Then pick ${c.data.chain.deck === 'movie' ? 'a movie' : c.data.chain.deck === 'event' ? 'an event' : 'the food'}</span>`);
   const art = c.image ? `<img class="bg" src="${esc(c.image)}" alt="" draggable="false" onerror="this.remove()">` : '';
   return `<div class="card ${cls}" data-id="${c.id}"><div class="art ${c.deck}">${emojiFor(c)}</div>${art}
@@ -847,14 +870,18 @@ function showDetail(c) {
       ${d.url ? `<div style="height:18px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.url)}" target="_blank" rel="noopener">Open website</a>` : ''}
       ${d.maps ? `<div style="height:10px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.maps)}" target="_blank" rel="noopener">Open in Google Maps</a>${d.photo_credit ? `<p class="muted" style="font-size:11.5px;text-align:center">Photo: ${esc(d.photo_credit)} via Google</p>` : ''}` : ''}`;
   if (c.kind !== 'cook') b += `<div style="height:10px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="https://www.ubereats.com/search?q=${encodeURIComponent(c.title)}" target="_blank" rel="noopener">Find on Uber Eats</a>`;
+  } else if (c.deck === 'trip') {
+    b = `<div class="tags">${c.kind ? `<span class="tag">${esc(c.kind)}</span>` : ''}${d.rating ? `<span class="tag">★ ${d.rating}${d.reviews ? ` (${Number(d.reviews).toLocaleString()})` : ''}</span>` : ''}${d.minutes ? `<span class="tag">${fmtMins(d.minutes)}</span>` : ''}${d.price ? `<span class="tag">from $${d.price}</span>` : ''}</div>
+      ${d.notes ? `<p>${esc(d.notes)}</p>` : ''}${d.url ? `<div style="height:18px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.url)}" target="_blank" rel="noopener">View on Viator</a>` : ''}
+      <p class="muted" style="font-size:11.5px;text-align:center">Experiences from Viator. WeLike may earn a commission if you book.</p>`;
   } else if (c.deck === 'event') {
-    b = `<div class="tags"><span class="tag">${fmtDate(c.event_date)}</span>${c.kind ? `<span class="tag">${esc(c.kind)}</span>` : ''}</div>
+    b = `<div class="tags"><span class="tag">${d.flex ? 'This week' : fmtDate(c.event_date)}</span>${c.kind ? `<span class="tag">${esc(c.kind)}</span>` : ''}</div>
       ${d.time ? `<div class="kv">When</div><p style="margin-top:0">${esc(d.time)}</p>` : ''}${d.venue ? `<div class="kv">Where</div><p style="margin-top:0">${esc(d.venue)}${d.area ? ` (${esc(d.area)})` : ''}</p>` : ''}${d.notes ? `<p>${esc(d.notes)}</p>` : ''}
       ${d.url ? `<div style="height:18px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.url)}" target="_blank" rel="noopener">View event page</a>` : ''}`;
   } else b = c.data?.chain ? `<p>If you both say yes, you go straight into picking ${c.data.chain.deck === 'movie' ? 'a movie' : c.data.chain.deck === 'event' ? 'an event' : 'the food'}.</p>` : '';
   const img = d.backdrop || c.image;
   sheet(`${img ? `<div class="hero"><button class="close" data-act="closesheet" aria-label="Close">×</button><img src="${esc(img)}" alt=""></div>` : '<div class="grab"></div>'}
-    <div class="body"><h2>${img ? '' : emojiFor(c) + ' '}${esc(c.title)}</h2>${c.subtitle ? `<p class="muted" style="margin-top:6px">${esc(c.subtitle)}</p>` : ''}${partner() && c.id ? `<div style="height:12px"></div><button class="btn" data-act="sendrec">${ic('play')} Send to ${esc(them())} for tonight</button>` : ''}<div style="height:10px"></div>${b}</div>`);
+    <div class="body"><h2>${img ? '' : emojiFor(c) + ' '}${esc(c.title)}</h2>${c.subtitle ? `<p class="muted" style="margin-top:6px">${esc(c.subtitle)}</p>` : ''}${partner() && c.id && c.deck !== 'trip' ? `<div style="height:12px"></div><button class="btn" data-act="sendrec">${ic('play')} Send to ${esc(them())} for tonight</button>` : ''}<div style="height:10px"></div>${b}</div>`);
 }
 const F = { services: new Set(), genres: new Set(), kinds: new Set(), q: new Set(), types: new Set(), days: 2 };
 function nudgeSheet(deck) {
@@ -909,7 +936,7 @@ async function saveAdd(t) {
 
 /* ---------- events ---------- */
 document.addEventListener('click', async e => {
-  const t = e.target.closest('[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-hdeck],[data-like],[data-final],[data-lad],[data-chg],[data-tbpick],[data-g],[data-seenany],[data-padd],[data-lib],[data-libf],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
+  const t = e.target.closest('[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-hdeck],[data-like],[data-final],[data-lad],[data-chg],[data-tbpick],[data-g],[data-seenany],[data-padd],[data-lib],[data-libf],[data-tripc],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
   if (!t) return; const ds = t.dataset;
   try {
     if (t.id === 'jgo') { const name = document.getElementById('jn').value.trim(), code = document.getElementById('jc').value.trim().toUpperCase(); if (!name || !code) return toast('Enter your name and the couple code.'); t.disabled = true; try { const r = await rpc('join_couple', { p_code: code, p_name: name }); S.code = code; S.me = r.name; ls.set('code', code); ls.set('name', r.name); history.replaceState(null, '', location.pathname); await boot(); send({ type: 'joined' }); } catch (er) { t.disabled = false; toast(errMsg(er)); } return; }
@@ -923,6 +950,7 @@ document.addEventListener('click', async e => {
     if (ds.tbpick) { S.tb = await rpc('tiebreak_pick', { p_code: S.code, p_member: S.me, p_id: S.tb.id, p_card: ds.tbpick }); send({ type: 'tb', id: S.tb.id }); push(`Tonight: ${S.tb.pick.title}`, `${S.me} won the tie-breaker and picked it.`, './'); return render(); }
     if (ds.g) return guessAnswer(ds.g === '1');
     if (ds.seenany) { await rpc('mark_seen_any', { p_code: S.code, p_card: ds.seenany }); await refresh(); toast('Moved to your Seen folder for both of you.'); return openLibrary(); }
+    if (ds.tripc != null) { S.tripCity = ds.tripc; ls.set('tripcity', ds.tripc); closeSheet(); return render(); }
     if (ds.libf) { S.libF = ds.libf; S.libSel = null; return renderLibrary(); }
     if (ds.lib) { const c = (S.lib || []).find(x => x.id === ds.lib); if (!S.libSel) return libFront(c, t);
       if (S.libSel.has(c.id)) S.libSel.delete(c.id); else if (S.libSel.size >= 6) return toast('Six is plenty.'); else S.libSel.add(c.id);
@@ -966,6 +994,8 @@ document.addEventListener('click', async e => {
       case 'search': return searchSheet();
       case 'searchgo': return searchGo();
       case 'shortlist': return openLibrary();
+      case 'tripcity': return tripCitySheet();
+      case 'tripadd': return tripAdd(t);
       case 'libclose': if (e.target === t) t.remove(); return;
       case 'libdetail': document.querySelector('.lfront')?.remove(); return showDetail(S.detailCard);
       case 'libfinal': { const c = S.detailCard; if (!c) return; send({ type: 'final', card: c }); push(`Tonight: ${c.title}`, `${S.me} picked it from your library.`, './'); return showFinal(c); }
@@ -986,6 +1016,7 @@ document.addEventListener('click', async e => {
   } catch (er) { console.error(er); toast(errMsg(er)); }
 });
 document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'sq') { e.preventDefault(); searchGo(); return; }
+  if (e.key === 'Enter' && e.target.id === 'tcq') { e.preventDefault(); e.target.blur(); document.querySelector('[data-act="tripadd"]')?.click(); return; }
   if (e.key === 'Enter' && e.target.id === 'p_q') { e.preventDefault(); e.target.blur(); document.querySelector('[data-act="psearch"]')?.click(); } });
 document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && S.code && S.me) { try { await refresh(); if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) render(); else if (S.view === 'swipe' && S.sess) { const d = await rpc('get_session', { p_code: S.code, p_session: S.sess.id, p_member: S.me }); S.theirLeft = d.their_left; S.total = d.total; if (d.matches.length !== S.matches.length) { S.matches = d.matches; } if (d.deck.length !== S.deck.length && !busy) { S.deck = d.deck; drawStack(); } else updateBar(); } } catch {} } });
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); navigator.serviceWorker.addEventListener('message', e => { const u = e.data?.open; if (u) { const q = new URL(u).searchParams, s = q.get('s'), r = q.get('rec'), g = q.get('tb'); if (s && S.me) openSession(s); else if (r && S.me) openRec(r); else if (g && S.me) openGame(g); } }); }
