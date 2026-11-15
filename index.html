@@ -513,6 +513,12 @@ html.ios-app .coach{position:absolute}
 .jhome>div{padding:0 13px 13px;font-size:14px;line-height:1.5;color:#d9d0dc}
 .jwho{margin-top:14px}.jwho small{display:block;color:var(--muted);font-size:13px;margin-bottom:8px}
 .jlink{display:block;width:100%;text-align:center;color:var(--muted);font-size:14px;padding:16px 8px 4px;text-decoration:underline;text-underline-offset:3px}
+.trav{display:flex;align-items:center;gap:10px;margin-top:8px;padding:10px 10px 10px 12px;border-radius:18px;background:linear-gradient(135deg,rgba(77,155,255,.28),rgba(45,212,191,.16));box-shadow:inset 0 0 0 1px rgba(120,190,255,.4),0 10px 26px -14px rgba(77,155,255,.9)}
+.trav .tic{width:36px;height:36px;border-radius:12px;font-size:18px;background:linear-gradient(135deg,#4d9bff,#2dd4bf)}
+.trav b{display:block;font-size:14.5px;line-height:1.25}.trav small{display:block;font-size:12.5px;color:#d5e6f5;line-height:1.3}
+.trav .go{flex:none;padding:8px 14px;border-radius:99px;font-weight:700;font-size:13.5px;color:#06263d;background:#fff}
+.trav .x{flex:none;width:30px;height:30px;border-radius:50%;font-size:19px;color:#d5e6f5}
+small .ic{vertical-align:-2px}
 @keyframes celein{from{transform:translate(-50%,-30px) scale(.7);opacity:0}}
 @keyframes celeout{to{transform:translate(-50%,-20px);opacity:0}}
 @keyframes beat{50%{transform:scale(1.25)}}
@@ -558,7 +564,7 @@ const ICONS = {
   ticket: 'M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4zM14 6v12',
   shuffle: 'M3 7h4l10 10h4M17 7h4M3 17h4l3-3M14 10l3-3M19 5l2 2-2 2M19 15l2 2-2 2',
   list: 'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01', sliders: 'M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M16 4v4M10 10v4M18 16v4',
-  play: 'M7 4l13 8-13 8z', plane: 'M21 3L3 10.5l6.5 2.5L12 20l3-5.5L21 3zM9.5 13L21 3', mail: 'M3 6h18v12H3zM3 7l9 6 9-6', repeat: 'M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3',
+  play: 'M7 4l13 8-13 8z', pin: 'M12 21s-6-5.4-6-10a6 6 0 0 1 12 0c0 4.6-6 10-6 10zM12 8.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z', plane: 'M21 3L3 10.5l6.5 2.5L12 20l3-5.5L21 3zM9.5 13L21 3', mail: 'M3 6h18v12H3zM3 7l9 6 9-6', repeat: 'M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3',
   target: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z',
   search: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-3.5-3.5',
   share: 'M12 15V3M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7', plus: 'M4 4h16v16H4zM12 8v8M8 12h8',
@@ -647,7 +653,37 @@ async function whyLine(c, el) {
 
 /* ---------- nearby restaurants (Google Places, optional) ---------- */
 // Tops up the dinner deck with popular restaurants inside the couple's radius. Best-effort: a failure just means no new cards.
+/* ---------- travel mode: per phone, asks before switching ---------- */
+try { S.away = JSON.parse(ls.get('away') || 'null'); } catch { S.away = null; }
+const homeGeo = () => { const s = S.settings || {}; return typeof s.lat === 'number' && typeof s.lng === 'number' ? [s.lat, s.lng] : s.zgeo ? [s.zgeo.lat, s.zgeo.lng] : null; };
+function milesApart(a, b, c, d) { const r = x => x * Math.PI / 180, h = Math.sin(r(c - a) / 2) ** 2 + Math.cos(r(a)) * Math.cos(r(c)) * Math.sin(r(d - b) / 2) ** 2; return 3958.8 * 2 * Math.asin(Math.sqrt(h)); }
+let travelBusy = false, travelAt = 0;
+async function checkTravel(ask = false) {
+  if (!S.code || !S.me || !navigator.geolocation || travelBusy) return;
+  if (!ask && (!ls.get('travel') || Date.now() - travelAt < 10 * 60000)) return;
+  const hg = homeGeo(); if (!hg) { if (ask) toast('Open Eat once so your home area is saved, then try again.', 4500); return; }
+  travelBusy = true; travelAt = Date.now();
+  try {
+    const pos = await new Promise(res => navigator.geolocation.getCurrentPosition(res, () => res(null), { maximumAge: 20 * 60000, timeout: 10000 }));
+    if (!pos) { if (ask) toast('Could not get your location. Check that location is allowed for this app.', 4500); return; }
+    if (ask) ls.set('travel', '1');
+    const lat = pos.coords.latitude, lng = pos.coords.longitude;
+    if (milesApart(hg[0], hg[1], lat, lng) < 30) {
+      S.awayOffer = null;
+      if (S.away) { S.away = null; ls.del('away'); toast('Welcome home. Back to your usual places.', 3500); if (S.view === 'home') render(); }
+      else if (ask) { toast('Travel mode is on. You are near home right now.', 3500); if (S.tab === 'you') render(); }
+      return;
+    }
+    let city = '';
+    try { const j = await (await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat.toFixed(3)}&longitude=${lng.toFixed(3)}&localityLanguage=en`)).json(); city = j.city || j.locality || j.principalSubdivision || ''; } catch {}
+    if (!city) { if (ask) toast('Travel mode is on.'); return; }
+    if (S.away?.city === city) { S.away = { city, lat, lng }; ls.set('away', JSON.stringify(S.away)); return; }
+    if (!ask && ls.get('awayno') === city + new Date().toDateString()) return;
+    S.awayOffer = { city, lat, lng }; S.view = S.view; if (S.view === 'home' && !$layer.innerHTML) { S.tab = 'home'; render(); }
+  } finally { travelBusy = false; }
+}
 async function nearby(ms = 9000) {
+  if (S.away) { try { const call = sb.functions.invoke('places', { body: { code: S.code, action: 'away', lat: S.away.lat, lng: S.away.lng, city: S.away.city } }).then(r => r.data).catch(() => null); return await Promise.race([call, new Promise(r => setTimeout(() => r(null), Math.max(ms, 10000)))]); } catch { return null; } }
   try {
     const call = sb.functions.invoke('places', { body: { code: S.code, action: 'nearby' } }).then(async r => { if (!r.error) return r.data; try { return await r.error.context.json(); } catch { return null; } }).catch(() => null);
     return await Promise.race([call, new Promise(r => setTimeout(() => r(null), ms))]);
@@ -672,6 +708,7 @@ async function startSession(deck, filters, note, announce = true) {
     const nb = await nearby();
     if (nb?.error === 'no_location' && deck === 'dinner') toast('Add your ZIP code on the You tab to get restaurants near you.', 4500);
   }
+  if (S.away && (deck === 'dinner' || deck === 'event')) { filters = { ...(filters || {}), away: S.away.city }; if (deck === 'event') { filters.days = 7; await Promise.race([sb.functions.invoke('trips', { body: { action: 'local', code: S.code, city: S.away.city } }).catch(() => {}), new Promise(r => setTimeout(r, 7000))]); } }
   const r = await rpc('start_session', { p_code: S.code, p_member: S.me, p_deck: deck, p_note: note || null, p_filters: filters || {} });
   if (!r.id) { toast(emptyMsg(deck, filters)); return; }
   if ((deck === 'movie' || deck === 'mix') && !filters?.rewatch && !filters?.wishlist) await taste({ action: 'rank', session: r.id }, 7000);
@@ -774,7 +811,7 @@ function homeHTML() {
       <button class="ib" data-tab="lists" aria-label="Lists">${ic('list')}</button><button class="ib" data-tab="you" aria-label="You and settings">${ic('sliders')}</button></div>
     ${!p ? `<button class="nudge slim" data-act="invite"><span class="grow"><b>Invite your other half</b></span><span class="go">Send link</span></button>` : ''}
     ${incoming.slice(0, 1).map(s => `<button class="nudge slim" data-open="${s.id}"><span class="grow"><b>${esc(s.from)} ${s.filters?.wishlist ? 'shared a wishlist' : 'nudged you'}</b><small> · ${esc(s.filters?.wishlist ? 'movies to pick from' : s.note || DECKS[s.deck].label)} · ${s.my_left} to swipe</small></span><span class="go">Swipe</span></button>`).join('')}
-    <div class="seg" style="margin:8px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="${S.homeDeck === k ? 'on' : ''}">${l}</button>`).join('')}</div>${S.homeDeck === 'trip' ? `<div class="row" style="justify-content:space-between;margin:6px 2px 0"><button class="chip" data-act="trips" style="padding:5px 12px;font-size:13px">${ic('heart')} Saved trips</button><button class="chip ${S.tripCity ? 'on' : ''}" data-act="tripcity" style="padding:5px 12px;font-size:13px">${esc(S.tripCity || 'Anywhere')} ▾</button></div>` : ''}
+    <div class="seg" style="margin:8px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="${S.homeDeck === k ? 'on' : ''}">${l}</button>`).join('')}</div>${S.awayOffer ? `<div class="trav"><span class="tic">${ic('pin')}</span><span class="grow"><b>Looks like you’re in ${esc(S.awayOffer.city)}</b><small>Show places to eat and things to do here?</small></span><button class="go" data-act="awayyes">Show</button><button class="x" data-act="awayno" aria-label="Not now">×</button></div>` : ''}${S.away && (S.homeDeck === 'dinner' || S.homeDeck === 'event') ? `<div class="row" style="justify-content:space-between;margin:6px 2px 0"><small class="muted" style="font-size:12.5px">${ic('pin')} Showing ${esc(S.away.city)} on this phone</small><button class="chip" data-act="awayoff" style="padding:5px 12px;font-size:13px">Back to home</button></div>` : ''}${S.homeDeck === 'trip' ? `<div class="row" style="justify-content:space-between;margin:6px 2px 0"><button class="chip" data-act="trips" style="padding:5px 12px;font-size:13px">${ic('heart')} Saved trips</button><button class="chip ${S.tripCity ? 'on' : ''}" data-act="tripcity" style="padding:5px 12px;font-size:13px">${esc(S.tripCity || 'Anywhere')} ▾</button></div>` : ''}
     <small class="muted" id="prog" style="min-height:17px;text-align:center;font-size:12.5px;line-height:17px;margin-top:10px"></small>
     <div class="stack" id="stack" style="margin:10px 0 14px"><div class="done"><p class="muted">Dealing today's handful…</p></div></div>
     <div class="actions" id="acts" style="visibility:hidden"><button class="act sm" data-sw="undo" aria-label="Undo">${ic('undo')}</button><button class="act no" data-sw="no" aria-label="No">${ic('x')}</button>
@@ -789,8 +826,11 @@ async function loadBite() {
   const here = () => S.view === 'home' && S.tab === 'home' && S.homeDeck === deck && document.getElementById('stack');
   try {
     if (deck === 'dinner') await nearby(6000);
-    if (deck === 'event' && S.settings.zip && ls.get('lexp') !== new Date().toDateString()) { ls.set('lexp', new Date().toDateString()); await Promise.race([sb.functions.invoke('trips', { body: { action: 'local', code: S.code } }).catch(() => {}), new Promise(r => setTimeout(r, 5000))]); }
+    const away = S.away && (deck === 'dinner' || deck === 'event') ? S.away.city : '';
+    if (deck === 'event' && away) await Promise.race([sb.functions.invoke('trips', { body: { action: 'local', code: S.code, city: away } }).catch(() => {}), new Promise(r => setTimeout(r, 7000))]);
+    else if (deck === 'event' && S.settings.zip && ls.get('lexp') !== new Date().toDateString()) { ls.set('lexp', new Date().toDateString()); await Promise.race([sb.functions.invoke('trips', { body: { action: 'local', code: S.code } }).catch(() => {}), new Promise(r => setTimeout(r, 5000))]); }
     const r = deck === 'trip' ? await rpc('start_trips', { p_code: S.code, p_member: S.me, p_city: S.tripCity || '', p_extra: extra })
+      : away ? await rpc('start_bite_at', { p_code: S.code, p_member: S.me, p_deck: deck, p_extra: extra, p_away: away })
       : await rpc('start_bite', { p_code: S.code, p_member: S.me, p_deck: deck, p_extra: extra });
     if (!here()) return;
     await loadSession(r.id); if (!here()) return;
@@ -1173,6 +1213,7 @@ function youHTML() {
     <div class="item"><span class="em">👤</span><span class="grow"><b>${esc(S.me)}</b><small>${p ? 'Paired with ' + esc(p) : 'Not paired yet'}</small></span><button class="btn ghost sm" data-act="rename">Change name</button></div>
     <div class="item"><span class="em">🔑</span><span class="grow"><b>${esc(S.code)}</b><small>Your couple code</small></span><button class="btn ghost sm" data-act="invite">Copy invite</button></div>
     <div class="sect">Home and streaming</div>${settingsForm()}
+    <div class="sect">Travel</div><div class="note" style="border-style:solid"><b>${ls.get('travel') ? 'Travel mode is on for this phone.' : 'Away from home?'}</b> ${ls.get('travel') ? `When you open the app more than 30 miles from home, it asks whether to show restaurants and things to do where you are. Home stays saved${p ? `, and ${esc(p)} keeps seeing home unless their phone is away too` : ''}.` : 'Turn on travel mode and the app will notice when you open it in another city, then ask before switching.'}<div style="height:10px"></div>${ls.get('travel') ? '<button class="btn ghost sm" data-act="traveloff">Turn off</button>' : '<button class="btn sm" data-act="travelon">Turn on travel mode</button>'}</div>
     <div class="sect">Notifications</div>${pushBlock}
     <div class="sect">What is in the decks</div>
     <div class="item"><span class="em">🎬</span><span class="grow"><b>${S.state.counts.movie} movies</b><small>${(S.state.services || []).join(', ') || 'Loading the catalog'}</small></span></div>
@@ -1436,6 +1477,11 @@ document.addEventListener('click', async e => {
       case 'closematch': return document.querySelector('.match')?.remove();
       case 'finalsend': { const mm = document.querySelector('.match'), c = mm?._card; if (!c) return; send({ type: 'final', card: c }); push(`Tonight: ${c.title}`, `${S.me} picked it from your library.`, './'); mm.remove(); return toast(`Locked in. ${them()} has been told.`, 3500); }
       case 'closesheet': return closeSheet();
+      case 'travelon': return checkTravel(true);
+      case 'traveloff': ls.del('travel'); ls.del('away'); S.away = null; S.awayOffer = null; return render();
+      case 'awayyes': if (!S.awayOffer) return; S.away = S.awayOffer; ls.set('away', JSON.stringify(S.away)); S.awayOffer = null; if (S.homeDeck !== 'event') S.homeDeck = 'dinner'; toast(`Showing ${S.away.city} on this phone. Home is still saved.`, 3500); return render();
+      case 'awayno': if (S.awayOffer) ls.set('awayno', S.awayOffer.city + new Date().toDateString()); S.awayOffer = null; return render();
+      case 'awayoff': if (S.away) ls.set('awayno', S.away.city + new Date().toDateString()); S.away = null; ls.del('away'); return render();
       case 'rename': sheet(`<div class="grab"></div><h2>Change your name</h2><p class="muted" style="margin-top:6px;font-size:14.5px">This is the name ${esc(them())} sees. Your swipes, likes and matches stay with you.</p><label class="field"><span>Your name</span><input id="rn" maxlength="24" autocomplete="given-name" value="${esc(S.me)}"></label><div style="height:14px"></div><button class="btn" data-act="renamego">Save name</button>`); return;
       case 'renamego': { const n = document.getElementById('rn').value.trim(); if (!n) return toast('Enter a name.'); if (n === S.me) return closeSheet(); t.disabled = true;
         try { const r = await rpc('rename_member', { p_code: S.code, p_member: S.me, p_new: n }); S.me = r.name; ls.set('name', r.name); closeSheet(); await refresh(); send({ type: 'joined' }); toast(`You are now ${r.name}.`); return render(); }
@@ -1527,7 +1573,7 @@ async function checkVersion() {
     if (tag !== buildTag && S.view === 'home' && !$layer.innerHTML && !document.querySelector('.match,.lfront,.coach')) location.reload(); } catch {}
 }
 checkVersion();
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkVersion(); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { checkVersion(); checkTravel(); } });
 document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && S.code && S.me) { try { await refresh(); if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) render(); else if (S.view === 'swipe' && S.sess) { const d = await rpc('get_session', { p_code: S.code, p_session: S.sess.id, p_member: S.me }); S.theirLeft = d.their_left; S.total = d.total; if (d.matches.length !== S.matches.length) { S.matches = d.matches; } if (d.deck.length !== S.deck.length && !busy) { S.deck = d.deck; drawStack(); } else updateBar(); } } catch {} } });
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); navigator.serviceWorker.addEventListener('message', e => { const u = e.data?.open; if (u) { const q = new URL(u).searchParams, s = q.get('s'), r = q.get('rec'), g = q.get('tb'); if (s && S.me) openSession(s); else if (r && S.me) openRec(r); else if (g && S.me) openGame(g); } }); }
 
@@ -1540,7 +1586,7 @@ async function boot() {
   const rc = new URLSearchParams(location.search).get('rec'); if (rc) history.replaceState(null, '', location.pathname);
   const tg = new URLSearchParams(location.search).get('tb'); if (tg) { history.replaceState(null, '', location.pathname); return openGame(tg); }
   render(); if (rc) return openRec(rc);
-  nextOnboard();
+  nextOnboard(); checkTravel();
 }
 boot();
 </script>
