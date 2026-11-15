@@ -697,7 +697,7 @@ const BRAND = 'Let’s <i>Together</i>';
 const ic = n => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[n] || ''}"/></svg>`;
 const DIC = { movie: 'film', dinner: 'dine', activity: 'spark', event: 'ticket', mix: 'shuffle', trip: 'plane', art: 'frame' };
 const KINDS = { cook: ['Cook at home', '🍳'], restaurant: ['Restaurant', '🍷'], orderin: ['Order in', '🥡'] };
-const EVENT_EM = { 'Music': '🎶', 'Comedy': '🎤', 'Trivia': '🧠', 'Arts and Film': '🎞️', 'Sports and Games': '🏟️', 'Brunch': '🥞', 'Happy Hour': '🍻', 'Seasonal': '🍂', 'Special Event': '✨' };
+const EVENT_EM = { 'Music': '🎶', 'Comedy': '🎤', 'Trivia': '🧠', 'Arts and Film': '🎞️', 'Sports and Games': '🏟️', 'Brunch': '🥞', 'Happy Hour': '🍻', 'Seasonal': '🍂', 'Special Event': '✨', 'Bar': '🍸', 'Museum': '🏛️', 'Gallery': '🖼️', 'Bookstore': '📚', 'Bowling': '🎳', 'Games & fun': '🕹️', 'Night out': '🌙', 'Shops': '🛍️' };
 const SVC_DOM = { 'Netflix': 'netflix.com', 'Hulu': 'hulu.com', 'Prime Video': 'primevideo.com', 'Disney+': 'disneyplus.com', 'Peacock': 'peacocktv.com', 'Shudder': 'shudder.com', 'HBO Max': 'hbomax.com',
   'Paramount+': 'paramountplus.com', 'Paramount+ with Showtime': 'paramountplus.com', 'Apple TV+': 'tv.apple.com', 'Crunchyroll': 'crunchyroll.com', 'Pluto TV': 'pluto.tv', 'Tubi': 'tubitv.com', 'Starz': 'starz.com', 'AMC+': 'amcplus.com', 'MGM+': 'mgmplus.com' };
 const svcLogo = s => SVC_DOM[s] ? `<img class="slogo" src="https://cdn.brandfetch.io/domain/${SVC_DOM[s]}/w/64/h/64/theme/dark/fallback/404?c=1ide15fAhmzE0W6xyhp" alt="" onerror="this.parentNode.classList.remove('lg');this.remove()">` : '';
@@ -1152,9 +1152,10 @@ function pFill() {
   }
 }
 async function dayPool() {
-  S.pool = await rpc('shortlist', { p_code: S.code });
+  const get = async () => (await rpc('shortlist', { p_code: S.code })).filter(c => !c.data?.away);
+  S.pool = await get();
   // Places liked before opening hours were kept: look those up once, then carry on.
-  if (S.pool.some(c => c.data?.place_id && !c.data?.hours_at)) { try { await Promise.race([sb.functions.invoke('placeinfo', { body: { code: S.code } }), new Promise(r => setTimeout(r, 6000))]); S.pool = await rpc('shortlist', { p_code: S.code }); } catch {} }
+  if (S.pool.some(c => c.data?.place_id && !c.data?.hours_at)) { try { await Promise.race([sb.functions.invoke('placeinfo', { body: { code: S.code } }), new Promise(r => setTimeout(r, 6000))]); S.pool = await get(); } catch {} }
 }
 const pSum = p => { const n = p.items.filter(i => i.card).length; return `${n} thing${n === 1 ? '' : 's'}${p.items.some(i => !i.card && i.find) ? ' and one to find' : ''}`; };
 const pStatus = p => p.status === 'agreed' ? 'You are both in' : p.ok?.[S.me] ? `Waiting on ${esc(them())}` : `${esc(p.by)} is asking`;
@@ -1207,9 +1208,9 @@ function dayEdit() {
   const row = s => {
     const it = pl.items[s], c = it.card, lab = PSLOT[s][0], ref = pRef(s), fixedT = c && isDated(c) && evStart(c);
     const tm = fixedT ? `<b class="ptm">${pT(it.time)}</b>` : `<input class="ptm" type="time" step="900" value="${esc(it.time)}" data-pltime="${s}" aria-label="${lab} time">`;
-    if (!c) return `<div class="prow pe"><span class="pimg">+</span><span class="grow"><small>${tm} · ${lab}</small><b>${it.find ? 'You will find one together' : 'Nothing you both like fits here'}</b><small>${it.find ? `You each get 8 picks to swipe. The first one you both like goes here.` : 'Find one together, or leave it out.'}</small></span><button class="pill ${it.find ? 'hot' : ''}" data-pl="find|${s}">${it.find ? 'Finding' : 'Find one'}</button><button class="x" data-pl="rm|${s}" aria-label="Leave out">×</button></div>`;
+    if (!c) return `<div class="prow pe"><span class="pimg">+</span><span class="grow"><small>${tm} · ${lab}</small><b>${it.find ? 'You will find one together' : pCands(s).length ? 'Open spot' : 'Nothing you both like fits here'}</b><small>${it.find ? `You each get 8 picks to swipe. The first one you both like goes here.` : 'Find one together, or leave it out.'}</small></span>${!it.find && pCands(s).length ? `<button class="pill" data-pl="swap|${s}">Pick</button>` : ''}<button class="pill ${it.find ? 'hot' : ''}" data-pl="find|${s}">${it.find ? 'Finding' : 'Find one'}</button><button class="x" data-pl="rm|${s}" aria-label="Leave out">×</button></div>`;
     const o = isDated(c) ? true : openAt(c, pl.day, it.time), mi = ref && ref.id !== c.id ? pMi(ref, c) : null, cl = !isDated(c) && o ? closesAt(c, pl.day, it.time) : null;
-    const note = [o === false ? '<span class="pwarn">Closed at that time</span>' : cl ? 'open until ' + cl : '', mi != null ? `${mi} mi from ${esc(ref.title.split(/[,(]/)[0].slice(0, 22))}` : '', pl.mode === 'in' && s === 'dinner' ? (c.kind === 'cook' ? 'cook at home' : 'order in') : ''].filter(Boolean).join(' · ');
+    const note = [o === false ? '<span class="pwarn">Closed at that time</span>' : cl ? 'open until ' + cl : '', mi != null ? `${mi} mi from ${esc((n => n.length > 20 ? n.slice(0, 19).trim() + '…' : n)(ref.title.split(/[,(]/)[0].trim()))}` : '', pl.mode === 'in' && s === 'dinner' ? (c.kind === 'cook' ? 'cook at home' : 'order in') : ''].filter(Boolean).join(' · ');
     const more = pCands(s).filter(x => x.id !== c.id).length;
     return `<div class="prow">${c.image ? `<img src="${esc(c.image)}" alt="">` : `<span class="pimg">${emojiFor(c)}</span>`}<span class="grow"><small>${tm} · ${lab}</small><b>${esc(c.title)}</b><small>${note || esc((c.subtitle || '').split(' · ')[0])}</small></span>${more && c.id !== pl.anchor?.id ? `<button class="pill" data-pl="swap|${s}">Swap</button>` : ''}${c.id === pl.anchor?.id && pl.fixed ? '' : `<button class="x" data-pl="rm|${s}" aria-label="Remove">×</button>`}</div>`;
   };
@@ -1289,7 +1290,7 @@ async function dayAct(v, a, t) {
   if (v === 'rm') { if (pl.items[a]?.card || pl.items[a]?.find || pl.slots.length > 1) { if (pl.items[a].card && pCands(a).length <= 1 || !pl.items[a].card) { pl.slots = pl.slots.filter(s => s !== a); delete pl.items[a]; } else { pl.items[a].card = null; pl.items[a].find = false; pl.items[a].empty = true; } } }
   if (v === 'add') { pl.slots.push(a); delete pl.items[a]; }
   if (v === 'find') { pl.items[a].find = !pl.items[a].find; pl.items[a].empty = !pl.items[a].find; }
-  if (v === 'swap') { const cs = pCands(a), i = cs.findIndex(c => c.id === pl.items[a].card?.id); pl.items[a].card = cs[(i + 1) % cs.length] || pl.items[a].card; }
+  if (v === 'swap') { const cs = pCands(a), i = cs.findIndex(c => c.id === pl.items[a].card?.id); pl.items[a].card = cs[(i + 1) % cs.length] || pl.items[a].card; pl.items[a].find = false; pl.items[a].empty = false; }
   dayEdit();
 }
 // One line on Home: yesterday's plan ("did you go?"), a plan waiting on my answer, or the next one coming up.
