@@ -853,7 +853,7 @@ async function guessAnswer(yes) {
   S.gres = await rpc('guess_submit', { p_code: S.code, p_member: S.me, p_answers: S.ga }); render();
 }
 function settingsForm() {
-  const st = S.settings || {}, all = S.state.services || [], on = st.services?.length ? st.services : all;
+  const st = S.settings || {}, all = S.state.services || [], on = st.services?.length ? st.services : (st.setup ? all : []);
   return `<label class="field"><span>Home ZIP code</span><input id="s_zip" inputmode="numeric" autocomplete="postal-code" maxlength="10" value="${esc(st.zip || '')}" placeholder="48201"></label>
     <div style="height:10px"></div><div class="row"><button class="btn ghost sm" data-act="geo">${st.lat ? 'Update from where I am now' : 'Use where I am now instead'}</button><small class="muted" id="geonote" style="font-size:12px">${st.lat ? 'Location saved' : ''}</small></div>
     <label class="field"><span>How far to look for restaurants</span><select id="s_rad">${[1, 2, 5, 10].map(m => `<option value="${m}" ${Number(st.radius_mi || 2) === m ? 'selected' : ''}>Within ${m} mile${m > 1 ? 's' : ''}</option>`).join('')}</select></label>
@@ -870,8 +870,20 @@ function installSheet() {
     <div class="note" style="margin:0 0 16px">Your couple code is <b>${esc(S.code)}</b>. You will type it once more inside the app.</div>
     <button class="btn" data-act="a2hsdone">Got it</button>`);
 }
+const needPushAsk = () => pushState() === 'default' && !ls.get('askedpush');
+function pushAskSheet() {
+  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('heart')}</span><h2>Turn on nudges?</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">Get a notification when ${esc(them())} wants to pick something, sends you a trailer, or you match. Nothing else, no marketing.</p></div></div>
+    <div style="height:18px"></div><button class="btn" data-act="pushyes">Turn on nudges</button><div style="height:10px"></div><button class="btn ghost" data-act="pushno">Not now</button>
+    <p class="muted" style="font-size:12.5px;text-align:center;margin-top:12px">You can change this any time on the You screen.</p>`);
+}
+function nextOnboard() {
+  if (!S.code || !S.me || S.view !== 'home') return;
+  if (!standalone() && !ls.get('a2hs')) return installSheet();
+  if (needSetup()) return setupSheet();
+  if (needPushAsk()) return pushAskSheet();
+}
 const needSetup = () => (!S.settings.zip && !S.settings.lat) || (!S.settings.setup && !ls.get('setupskip'));
-function setupSheet() { sheet(`<div class="grab"></div><h2>Set up your couple</h2><p class="muted" style="margin-top:6px;font-size:14.5px">${S.settings.zip || S.settings.lat ? 'These apply to both of you. Either of you can change them later on the You tab.' : 'Add your home ZIP code so restaurants and events near you can load. It applies to both of you.'}</p>${settingsForm()}<div style="height:10px"></div><button class="btn ghost" data-act="skipsetup">Not now</button>`); }
+function setupSheet() { sheet(`<div class="grab"></div><h2>Which streaming services do you have?</h2><p class="muted" style="margin-top:6px;font-size:14.5px">${S.settings.zip || S.settings.lat ? 'Tap the ones you pay for, so movie cards only show things you can actually watch. This applies to both of you and can be changed later.' : 'Add your home ZIP code and tap the streaming services you pay for. Both apply to the two of you and can be changed later.'}</p>${settingsForm()}<div style="height:10px"></div><button class="btn ghost" data-act="skipsetup">Not now</button>`); }
 function youHTML() {
   const ps = pushState(), p = partner();
   const pushBlock = ps === 'granted' ? `<div class="note"><b>Nudges are on for this phone.</b> You will get a notification when ${esc(them())} nudges you or you match.</div>`
@@ -1157,10 +1169,12 @@ document.addEventListener('click', async e => {
         if (!jz) { S.joinMode = 'new'; S.joinForm = true; history.replaceState(null, '', location.pathname); render(); const n2 = document.getElementById('jn'); if (n2) n2.value = name; return toast('Add your first name and home ZIP to start.', 3500); }
         if (!name) return toast('Enter your name first.'); const zip = jz.value.trim(); if (!/^\d{5}$/.test(zip)) return toast('Enter your 5-digit home ZIP code.');
         t.disabled = true; try { const r = await rpc('create_couple', { p_name: name }); S.code = r.code; S.me = r.name; ls.set('code', r.code); ls.set('name', r.name); try { await rpc('set_settings', { p_code: r.code, p_settings: { zip } }); } catch {} history.replaceState(null, '', location.pathname); await boot(); toast('You are set up. Send the invite link to your other half.', 4500); } catch (er) { t.disabled = false; toast(errMsg(er)); } return; }
-      case 'savesettings': { const root = t.closest('.sheet') || document; const services = [...root.querySelectorAll('[data-svc].on')].map(x => x.dataset.svc); if (!services.length) return toast('Pick at least one streaming service.'); { const z = root.querySelector('#s_zip').value.trim(); if (!/^\d{5}(-\d{4})?$/.test(z) && !(S.settings?.lat && !z)) return toast('Enter your 5-digit home ZIP code.'); } S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { zip: root.querySelector('#s_zip').value.trim(), services, radius_mi: Number(root.querySelector('#s_rad')?.value || 2), setup: true } }); closeSheet(); toast('Saved for both of you.'); send({ type: 'joined' }); return render(); }
+      case 'savesettings': { const root = t.closest('.sheet') || document; const services = [...root.querySelectorAll('[data-svc].on')].map(x => x.dataset.svc); if (!services.length) return toast('Pick at least one streaming service.'); { const z = root.querySelector('#s_zip').value.trim(); if (!/^\d{5}(-\d{4})?$/.test(z) && !(S.settings?.lat && !z)) return toast('Enter your 5-digit home ZIP code.'); } S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { zip: root.querySelector('#s_zip').value.trim(), services, radius_mi: Number(root.querySelector('#s_rad')?.value || 2), setup: true } }); const fromSheet = !!t.closest('.sheet'); closeSheet(); toast('Saved for both of you.'); send({ type: 'joined' }); render(); if (fromSheet) nextOnboard(); return; }
       case 'psearch': return placeSearch(t);
-      case 'a2hsdone': ls.set('a2hs', '1'); closeSheet(); if (needSetup()) setupSheet(); return;
-      case 'skipsetup': ls.set('setupskip', '1'); return closeSheet();
+      case 'a2hsdone': ls.set('a2hs', '1'); closeSheet(); return nextOnboard();
+      case 'skipsetup': ls.set('setupskip', '1'); closeSheet(); if (S.settings.zip || S.settings.lat) nextOnboard(); return;
+      case 'pushyes': ls.set('askedpush', '1'); closeSheet(); return enablePush();
+      case 'pushno': ls.set('askedpush', '1'); return closeSheet();
       case 'geo': { if (!navigator.geolocation) return toast('This phone will not share its location with Let’s Together.'); navigator.geolocation.getCurrentPosition(async pos => { try { S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { lat: pos.coords.latitude, lng: pos.coords.longitude } }); document.querySelectorAll('#geonote').forEach(n => n.textContent = 'Location saved'); toast('Location saved.'); } catch { toast('Could not save your location.'); } }, () => toast('Location is turned off for Let’s Together in your phone settings.'), { timeout: 10000 }); return; }
       case 'wishlist': return startSession('movie', { wishlist: true }, null);
       case 'tonight': return tonightSheet();
@@ -1228,7 +1242,7 @@ async function boot() {
   const rc = new URLSearchParams(location.search).get('rec'); if (rc) history.replaceState(null, '', location.pathname);
   const tg = new URLSearchParams(location.search).get('tb'); if (tg) { history.replaceState(null, '', location.pathname); return openGame(tg); }
   render(); if (rc) return openRec(rc);
-  if (!standalone() && !ls.get('a2hs')) installSheet(); else if (needSetup()) setupSheet();
+  nextOnboard();
 }
 boot();
 </script>
