@@ -839,10 +839,13 @@ async function checkTravel(ask = false) {
     S.awayOffer = { city, lat, lng }; S.view = S.view; if (S.view === 'home' && !$layer.innerHTML) { S.tab = 'home'; render(); }
   } finally { travelBusy = false; }
 }
+// One restaurant lookup at a time per phone: a second ask while one is running shares its result, so the same places are never saved twice at once
+const nbFlight = {};
+const nbShare = (key, make) => nbFlight[key] ||= make().finally(() => { delete nbFlight[key]; });
 async function nearby(ms = 9000) {
-  if (S.away) { try { const call = sb.functions.invoke('places', { body: { code: S.code, action: 'away', lat: S.away.lat, lng: S.away.lng, city: S.away.city } }).then(r => r.data).catch(() => null); return await Promise.race([call, new Promise(r => setTimeout(() => r(null), Math.max(ms, 10000)))]); } catch { return null; } }
+  if (S.away) { try { const aw = S.away, call = nbShare('away:' + aw.city, () => sb.functions.invoke('places', { body: { code: S.code, action: 'away', lat: aw.lat, lng: aw.lng, city: aw.city } }).then(r => r.data).catch(() => null)); return await Promise.race([call, new Promise(r => setTimeout(() => r(null), Math.max(ms, 10000)))]); } catch { return null; } }
   try {
-    const call = sb.functions.invoke('places', { body: { code: S.code, action: 'nearby', member: S.me } }).then(async r => { if (!r.error) return r.data; try { return await r.error.context.json(); } catch { return null; } }).catch(() => null);
+    const call = nbShare('nearby', () => sb.functions.invoke('places', { body: { code: S.code, action: 'nearby', member: S.me } }).then(async r => { if (!r.error) return r.data; try { return await r.error.context.json(); } catch { return null; } }).catch(() => null));
     return await Promise.race([call, new Promise(r => setTimeout(() => r(null), ms))]);
   } catch { return null; }
 }
