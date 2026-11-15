@@ -617,7 +617,7 @@ const KINDS = { cook: ['Cook at home', '🍳'], restaurant: ['Restaurant', '🍷
 const EVENT_EM = { 'Music': '🎶', 'Comedy': '🎤', 'Trivia': '🧠', 'Arts and Film': '🎞️', 'Sports and Games': '🏟️', 'Brunch': '🥞', 'Happy Hour': '🍻', 'Seasonal': '🍂', 'Special Event': '✨' };
 const SVC_DOM = { 'Netflix': 'netflix.com', 'Hulu': 'hulu.com', 'Prime Video': 'primevideo.com', 'Disney+': 'disneyplus.com', 'Peacock': 'peacocktv.com', 'Shudder': 'shudder.com', 'HBO Max': 'hbomax.com',
   'Paramount+': 'paramountplus.com', 'Paramount+ with Showtime': 'paramountplus.com', 'Apple TV+': 'tv.apple.com', 'Crunchyroll': 'crunchyroll.com', 'Pluto TV': 'pluto.tv', 'Tubi': 'tubitv.com', 'Starz': 'starz.com', 'AMC+': 'amcplus.com', 'MGM+': 'mgmplus.com' };
-const svcLogo = s => SVC_DOM[s] ? `<img class="slogo" src="https://cdn.brandfetch.io/domain/${SVC_DOM[s]}/w/64/h/64/theme/dark/fallback/404?c=1ide15fAhmzE0W6xyhp" alt="" loading="lazy" onerror="this.parentNode.classList.remove('lg');this.remove()">` : '';
+const svcLogo = s => SVC_DOM[s] ? `<img class="slogo" src="https://cdn.brandfetch.io/domain/${SVC_DOM[s]}/w/64/h/64/theme/dark/fallback/404?c=1ide15fAhmzE0W6xyhp" alt="" onerror="this.parentNode.classList.remove('lg');this.remove()">` : '';
 const svcTag = s => `<span class="tag svc ${SVC_DOM[s] ? 'lg' : ''}" style="--dot:${SVC_DOT[s] || '#fff'}">${svcLogo(s)}${esc(s)}</span>`;
 const SVC_DOT = { 'Netflix': '#e50914', 'Hulu': '#1ce783', 'Prime Video': '#00a8e1', 'Disney+': '#5b8cff', 'Peacock': '#ffd23f', 'Shudder': '#ff3b3b',
   'HBO Max': '#a56bff', 'Paramount+': '#2f6bff', 'Paramount+ with Showtime': '#e0344b', 'Apple TV+': '#d8d8d8', 'Crunchyroll': '#ff7a1a', 'Pluto TV': '#ffe600', 'Tubi': '#ff5a36', 'Starz': '#7fd4d4', 'AMC+': '#c9a24a', 'MGM+': '#d4af37' };
