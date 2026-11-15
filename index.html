@@ -737,7 +737,7 @@ async function onEvent(p) {
   else if (p.type === 'swipe') { if (S.view === 'swipe' && S.sess?.id === p.session) { S.theirLeft = p.left; updateBar(); } }
   else if (p.type === 'narrow') { toast(`${p.from} picked what they are in the mood for. Open the round and tap Narrow it down to add yours.`, 6000); if (S.view === 'swipe' && S.sess?.id === p.session) { try { await loadSession(p.session); S.view = 'swipe'; drawStack(); } catch {} } }
   else if (p.type === 'shortlist') { await refresh(); paintHearts(); }
-  else if (p.type === 'dayplan') { await refresh(); toast(p.resp === 'yes' ? `${p.from} is in for ${pDayName(p.day).toLowerCase()}.` : p.resp === 'drop' ? `${p.from} passed on the plan for ${pDayName(p.day).toLowerCase()}.` : p.resp ? '' : `${p.from} ${p.edit ? 'changed the plan for' : 'planned'} ${pDayName(p.day).toLowerCase()}. Take a look.`, 4500); if (S.view === 'home' && !document.querySelector('.scrim')) render(); else if (S.plView === p.id && document.querySelector('[data-pl^="resp"],[data-pl="edit"]')) daySheet(p.id); }
+  else if (p.type === 'dayplan') { await refresh(); toast(p.resp === 'yes' ? `${p.from} is in for ${pDayLow(p.day)}.` : p.resp === 'drop' ? `${p.from} passed on the plan for ${pDayLow(p.day)}.` : p.resp ? '' : `${p.from} ${p.edit ? 'changed the plan for' : 'planned'} ${pDayLow(p.day)}. Take a look.`, 4500); if (S.view === 'home' && !document.querySelector('.scrim')) render(); else if (S.plView === p.id && document.querySelector('[data-pl^="resp"],[data-pl="edit"]')) daySheet(p.id); }
   else if (p.type === 'game') { if (p.lib || (S.view === 'swipe' && S.sess?.id === p.session)) { closeSheet(); document.querySelector('.lfront')?.remove(); if (p.lib) toast(`${p.from} picked a few. Quick game: the winner chooses tonight.`, 4500); S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); S.view = 'game'; render(); } else toast(`${p.from} wants to play for tonight’s pick. Open the round to join.`, 5000); }
   else if (p.type === 'tb') { if (S.view === 'game' && S.tb?.id === p.id && !S.playing) { S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); render(); } }
   else if (p.type === 'final') { if (S.view !== 'game') showFinal(p.card, !!p.shuffle && S.sess?.id === p.session); }
@@ -1095,6 +1095,7 @@ const pToday = () => pIso(new Date());
 const pAdd = (iso, n) => { const [y, m, d] = iso.split('-').map(Number); return pIso(new Date(y, m - 1, d + n)); };
 const pDow = iso => { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d).getDay(); };
 const pDayName = iso => iso === pToday() ? 'Today' : iso === pAdd(pToday(), 1) ? 'Tomorrow' : iso === pAdd(pToday(), -1) ? 'Yesterday' : dfmt(iso);
+const pDayLow = iso => { const n = pDayName(iso); return n === dfmt(iso) ? n : n.toLowerCase(); };
 const pT = t => { const [h, m] = String(t || '').split(':').map(Number); return isNaN(h) ? '' : `${h % 12 || 12}${m ? ':' + String(m).padStart(2, '0') : ''}${h < 12 ? 'am' : 'pm'}`; };
 const pNow = () => { const n = new Date(); return String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0'); };
 const isDated = c => c.deck === 'event' && !c.data?.place && !!c.event_date && c.event_date < '2090';
@@ -1238,14 +1239,14 @@ async function daySend(btn) {
     const [deck, f] = pFindFor(it.slot.startsWith('drinks') ? 'drinks' : it.slot, pl.mode), filters = { ...f, plan: p.id, slot: it.slot, n: 8 };
     if (deck === 'event' && !rounds) await outings(6000); if (deck === 'dinner' && !rounds) await nearby();
     if (ref && deck !== 'movie') filters.near = { lat: ref.data.lat, lng: ref.data.lng, mi: it.slot.startsWith('drinks') ? 1.5 : 4 };
-    const note = `For ${pDayName(pl.day).toLowerCase()}: ${PSLOT[it.slot][0].toLowerCase()}`;
+    const note = `For ${pDayLow(pl.day)}: ${PSLOT[it.slot][0].toLowerCase()}`;
     let r = await rpc('start_session', { p_code: S.code, p_member: S.me, p_deck: deck, p_note: note, p_filters: filters });
     if (!r.id && filters.near) { delete filters.near; r = await rpc('start_session', { p_code: S.code, p_member: S.me, p_deck: deck, p_note: note, p_filters: filters }); }
     if (r.id) { rounds++; send({ type: 'nudge', deck, session: r.id }); }
   }
   const names = p.items.filter(i => i.card).map(i => i.card.title.split(/[,(]/)[0].trim()).slice(0, 3).join(', then ');
   send({ type: 'dayplan', id: p.id, day: p.day, edit: !!pl.id });
-  push(`${S.me} ${pl.id ? 'changed the plan for' : 'planned'} ${pDayName(p.day).toLowerCase()}`, names + (rounds ? '. One spot is open: swipe a few picks to fill it.' : '. Say yes, swap something, or pass.'), `./?plan=${p.id}`);
+  push(`${S.me} ${pl.id ? 'changed the plan for' : 'planned'} ${pDayLow(p.day)}`, names + (rounds ? '. One spot is open: swipe a few picks to fill it.' : '. Say yes, swap something, or pass.'), `./?plan=${p.id}`);
   await refresh(); S.pl = null; daySheet(p.id);
   toast(rounds ? `Sent to ${them()}. Swipe the picks for the open spot whenever you like.` : `Sent to ${them()}. You will hear back here.`, 4000);
 }
@@ -1278,8 +1279,8 @@ async function dayAct(v, a, t) {
   if (v === 'resp') {
     t.disabled = true; const p = await rpc('plan_respond', { p_code: S.code, p_member: S.me, p_id: S.plView, p_action: a });
     send({ type: 'dayplan', id: p.id, day: p.day, resp: a });
-    if (a === 'yes') push(`${S.me} is in for ${pDayName(p.day).toLowerCase()}`, p.items.filter(i => i.card).map(i => i.card.title.split(/[,(]/)[0].trim()).slice(0, 3).join(', then '), `./?plan=${p.id}`);
-    if (a === 'drop') push(`${S.me} passed on the plan for ${pDayName(p.day).toLowerCase()}`, 'No harm done. Try a different day, or a different mix.', './');
+    if (a === 'yes') push(`${S.me} is in for ${pDayLow(p.day)}`, p.items.filter(i => i.card).map(i => i.card.title.split(/[,(]/)[0].trim()).slice(0, 3).join(', then '), `./?plan=${p.id}`);
+    if (a === 'drop') push(`${S.me} passed on the plan for ${pDayLow(p.day)}`, 'No harm done. Try a different day, or a different mix.', './');
     await refresh(); closeSheet(); if (S.view === 'home') render();
     return toast(a === 'yes' ? (p.status === 'agreed' ? 'It’s a plan. You are both in.' : 'You’re in.') : a === 'went' ? 'Nice. Glad you went.' : a === 'drop' ? 'Plan called off.' : 'No worries.', 3000);
   }
@@ -1299,7 +1300,7 @@ function dayHome() {
   const p = ps.find(x => x.day < t && x.status === 'agreed') || ps.find(x => x.day >= t && x.status === 'sent' && !x.ok?.[S.me]) || ps.filter(x => x.day >= t && (x.status === 'agreed' || x.status === 'sent')).sort((a, b) => a.day.localeCompare(b.day))[0];
   if (!p) return '';
   const past = p.day < t, ask = !past && !p.ok?.[S.me];
-  return `<button class="tripbar" data-pl="view|${p.id}" style="width:100%;text-align:left"><span class="tic">${ic('list')}</span><span class="grow"><b>${past ? `Yesterday’s plan: did you go?` : ask ? `${esc(p.by)} planned ${pDayName(p.day).toLowerCase()}` : `${pDayName(p.day)}: ${p.mode === 'in' ? 'night in' : 'your plan'}`}</b><small>${past ? pSum(p) : pSum(p) + ' · ' + pStatus(p)}</small></span><span class="go">${past ? 'Answer' : ask ? 'Look' : 'Open'}</span></button>`;
+  return `<button class="tripbar" data-pl="view|${p.id}" style="width:100%;text-align:left"><span class="tic">${ic('list')}</span><span class="grow"><b>${past ? `Yesterday’s plan: did you go?` : ask ? `${esc(p.by)} planned ${pDayLow(p.day)}` : `${pDayName(p.day)}: ${p.mode === 'in' ? 'night in' : 'your plan'}`}</b><small>${past ? pSum(p) : pSum(p) + ' · ' + pStatus(p)}</small></span><span class="go">${past ? 'Answer' : ask ? 'Look' : 'Open'}</span></button>`;
 }
 document.addEventListener('change', e => { const s = e.target?.dataset?.pltime; if (s && S.pl?.items[s] && e.target.value) { S.pl.items[s].time = e.target.value; dayEdit(); } });
 /* ---------- send one pick ---------- */
