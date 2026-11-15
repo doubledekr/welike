@@ -1,4 +1,4 @@
-# WeLike
+# Let's Together (formerly WeLike)
 
 A two-person swipe app for picking movies, dinner, activities and local events. Each person swipes the same deck on their own phone; cards you both said yes to become matches.
 
