@@ -714,7 +714,7 @@ const fmtDate = d => { if (!d) return ''; const x = new Date(d + 'T12:00:00'); c
 
 let toastT;
 function toast(msg, ms = 2600) { clearTimeout(toastT); document.querySelector('.toast')?.remove(); const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); toastT = setTimeout(() => t.remove(), ms); }
-function errMsg(e) { const m = (e?.message || String(e)); if (m.includes('bad_code')) return 'That code is not right.'; if (m.includes('couple_full')) return 'Two people have already joined with this code.'; if (m.includes('bad_name')) return 'Enter a name.'; return 'Something went wrong. Try again.'; }
+function errMsg(e) { const m = (e?.message || String(e)); if (m.includes('bad_code')) return 'That code does not match a couple. New here? Start a new couple instead.'; if (m.includes('couple_full')) return 'Two people have already joined with this code.'; if (m.includes('bad_name')) return 'Enter a name.'; return 'Something went wrong. Try again.'; }
 
 /* ---------- realtime + push ---------- */
 function connect() {
@@ -935,17 +935,17 @@ function renderLanding() {
       `<div class="steps" style="text-align:left;margin:4px 0 0">${ios ? st(1, `Tap <b>Share</b> ${ic('share')} at the bottom of Safari`) + st(2, 'Scroll down and tap <b>Add to Home Screen</b>') + st(3, 'Open Let’s Together from the new icon')
         : st(1, 'Tap the <b>menu</b> (three dots) in Chrome') + st(2, 'Tap <b>Add to Home screen</b> or <b>Install app</b>') + st(3, 'Open Let’s Together from the new icon')}</div><small class="muted" style="font-size:12.5px">${ios ? 'On Android: Chrome menu, then Add to Home screen.' : 'On iPhone: Safari, Share, then Add to Home Screen.'}</small>`)]),
     slide(`${MARK}`, 'Ready when you are', 'Start a new couple to get an invite link for your better half. No email or password, just your first name.',
-      `${standalone() ? '' : `<div class="note" style="margin:0;text-align:left;font-size:14px"><b>Still in your browser?</b> Save Let’s Together to your Home Screen and open it from the icon before you sign up, so you only sign in once.<div style="height:10px"></div><button class="btn ghost sm" data-act="obhome">Show me how</button></div>`}<button class="btn" data-act="getstarted" data-mode="new">Start a new couple</button><button class="btn ghost" data-act="getstarted" data-mode="code">Log in or join with a code</button>`),
+      `${standalone() ? '' : `<div class="note" style="margin:0;text-align:left;font-size:14px"><b>Still in your browser?</b> Save Let’s Together to your Home Screen and open it from the icon before you sign up, so you only sign in once.<div style="height:10px"></div><button class="btn ghost sm" data-act="obhome">Show me how</button></div>`}<button class="btn" data-act="getstarted" data-mode="new">Start a new couple</button><button class="btn ghost" data-act="getstarted" data-mode="code">I have a code from my partner</button>`),
   ];
-  $app.innerHTML = `<div class="ob"><div class="ob-top"><div class="brand hb">${MARK}<span>${BRAND}</span></div><button class="btn ghost sm" data-act="getstarted" data-mode="code">Log in</button></div>
+  $app.innerHTML = `<div class="ob"><div class="ob-top"><div class="brand hb">${MARK}<span>${BRAND}</span></div><button class="btn ghost sm" data-act="getstarted" data-mode="code">I have a code</button></div>
     ${standalone() ? '' : `<button class="ob-ban" data-act="obhome">${ic('share')}<span><b>Save to your Home Screen first</b><small>Then open it from the icon to sign up</small></span><i>How</i></button>`}
     <div class="ob-pager" id="obp">${slides.join('')}</div>
     <div class="ob-dots" id="obd">${slides.map((_, i) => `<i class="${i ? '' : 'on'}"></i>`).join('')}</div>
-    <div class="ob-foot"><button class="btn" data-act="obnext" id="obn">Next</button></div></div>`;
+    <div class="ob-foot"><button class="btn" data-act="obnext" id="obn">Next</button><button class="jlink" data-act="getstarted" data-mode="new" id="obs">Skip the tour and start a new couple</button></div></div>`;
   const pg = document.getElementById('obp'), n = slides.length;
   pg.addEventListener('scroll', () => { const i = Math.round(pg.scrollLeft / pg.clientWidth); S.obI = i;
     document.querySelectorAll('#obd i').forEach((d, k) => d.classList.toggle('on', k === i));
-    const b = document.getElementById('obn'); if (b) b.style.visibility = i >= n - 1 ? 'hidden' : ''; }, { passive: true });
+    const b = document.getElementById('obn'); if (b) b.style.visibility = i >= n - 1 ? 'hidden' : ''; const sk = document.getElementById('obs'); if (sk) sk.style.visibility = i >= n - 1 ? 'hidden' : ''; }, { passive: true });
 }
 async function joinWho() {
   const el = document.getElementById('jwho'), code = (document.getElementById('jc')?.value || '').trim().toUpperCase(); if (!el) return;
@@ -955,7 +955,7 @@ async function joinWho() {
     if (hd && ms.length === 1) { hd.textContent = `${ms[0]} invited you`; if (ld) ld.textContent = `Enter your first name to pair up with ${ms[0]} and start swiping together.`; }
     if (hd && ms.length >= 2) { hd.textContent = 'Welcome back'; if (ld) ld.textContent = 'This couple is already paired. Tap your name to log back in.'; }
     el.innerHTML = ms.length ? `<div class="jwho"><small>${ms.length >= 2 ? 'Which one are you?' : `Or, if you are ${esc(ms[0])} logging back in:`}</small><div class="chips">${ms.map(n => `<button class="chip on" data-who="${esc(n)}">I’m ${esc(n)}</button>`).join('')}</div></div>` : '';
-  } catch { el.innerHTML = '<p class="muted" style="font-size:13px;margin-top:8px">That code does not match a couple yet. Check it and try again.</p>'; }
+  } catch { el.innerHTML = '<div class="note" style="margin-top:10px;font-size:14px"><b>That code does not match a couple.</b> Codes come from a partner’s invite. If nobody sent you one, you are in the right place to start fresh.<div style="height:10px"></div><button class="btn sm" data-act="newcouple">Start a new couple</button></div>'; }
 }
 function renderJoin() {
   const pre = (new URLSearchParams(location.search).get('c') || S.code || '').toUpperCase(), ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
@@ -973,13 +973,13 @@ function renderJoin() {
     const isNew = S.joinMode === 'new';
     $app.innerHTML = `<div class="center jinv"><button class="btn ghost sm" data-act="landing" style="width:auto;align-self:flex-start;margin-bottom:14px">‹ How it works</button>
       <div class="jtop">${MARK}<div class="brand">${BRAND}</div></div>
-      <h1>${isNew ? 'Start your couple' : 'Welcome back'}</h1><p class="muted jlead">${isNew ? 'Enter your first name and home ZIP. You will get an invite link to send to your better half.' : 'Enter your couple code, then tap your name. New here with an invite? Enter your name and the code you were sent.'}</p>
+      <h1>${isNew ? 'Start your couple' : 'Got a couple code?'}</h1><p class="muted jlead">${isNew ? 'Enter your first name and home ZIP. You will get an invite link to send to your better half.' : 'A couple code comes from your partner’s invite, or from when you first signed up. It is not something you make up. Enter it below, then your first name.'}</p>
       ${home}
       <label class="field"><span>Your first name</span><input id="jn" autocomplete="given-name" maxlength="24" placeholder="First name"></label>
       ${isNew ? `<label class="field"><span>Home ZIP code, for restaurants and events near you</span><input id="jz" inputmode="numeric" autocomplete="postal-code" maxlength="5" placeholder="48201"></label><input id="jc" type="hidden" value="">`
-        : `<label class="field"><span>Your couple code</span><input id="jc" autocapitalize="characters" autocomplete="off" maxlength="12" placeholder="8 letters and numbers"></label>`}<div id="jwho"></div>
+        : `<label class="field"><span>Code from your invite</span><input id="jc" autocapitalize="characters" autocomplete="off" maxlength="12" placeholder="From your partner’s message"></label>`}<div id="jwho"></div>
       <div style="height:18px"></div>${isNew ? `<button class="btn" data-act="newcouple">Start a new couple</button><button class="jlink" data-act="getstarted" data-mode="code">I have a code already</button>`
-        : `<button class="btn" id="jgo">Log in or join</button><button class="jlink" data-act="newcouple">No code? Start a new couple</button>`}</div>`;
+        : `<button class="btn" id="jgo">Log in or join</button><div style="height:10px"></div><button class="btn ghost" data-act="newcouple">New here, no code? Start a new couple</button>`}</div>`;
   }
   joinWho();
 }
@@ -1563,14 +1563,15 @@ function hsBanner() {
     : `<div class="hsb"><span class="tic">${ic('plus')}</span><span class="grow"><b>Add to Home Screen</b><small>Full screen, with nudges.</small></span><button class="go" data-act="hshow">${bip ? 'Install' : 'Show me how'}</button><button class="x" data-act="hsx" aria-label="Dismiss">×</button></div>`;
 }
 function installSheet() {
-  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  sheet(`<div class="grab"></div><h2>Put Let’s Together on your Home Screen</h2><p class="muted" style="margin-top:6px;font-size:14.5px">It opens full screen like an app, and nudges can reach you as notifications.</p>
+  const ios = IOS, chrome = /CriOS|FxiOS|EdgiOS/i.test(navigator.userAgent);
+  carrySignIn();
+  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('share')}</span><h2>One last step: add it to your Home Screen</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">Let’s Together is meant to be opened from its own icon, like any other app. That is the only way it can send you a nudge when ${esc(partner() || 'your other half')} likes something or you match.</p></div></div>
     <div class="steps">${ios
-      ? `<div class="step"><span class="num">1</span><span>Tap the <b>Share</b> button ${ic('share')} in Safari’s toolbar</span></div><div class="step"><span class="num">2</span><span>Scroll down and tap <b>Add to Home Screen</b> ${ic('plus')}</span></div>`
-      : `<div class="step"><span class="num">1</span><span>Open your browser’s menu</span></div><div class="step"><span class="num">2</span><span>Choose <b>Install app</b> or <b>Add to Home screen</b></span></div>`}
-      <div class="step"><span class="num">3</span><span>Open Let’s Together from the new icon and sign in there with the same name and code</span></div></div>
-    <div class="note" style="margin:0 0 16px">Your couple code is <b>${esc(S.code)}</b>. You will type it once more inside the app.</div>
-    <button class="btn" data-act="a2hsdone">Got it</button>`);
+      ? `<div class="step"><span class="num">1</span><span>Tap <b>Share</b> ${ic('share')} ${chrome ? 'at the top right, next to the address' : 'at the bottom of Safari'}</span></div><div class="step"><span class="num">2</span><span>Scroll down the list and tap <b>Add to Home Screen</b> ${ic('plus')}, then <b>Add</b></span></div>`
+      : `<div class="step"><span class="num">1</span><span>Open your browser’s <b>menu</b> (three dots)</span></div><div class="step"><span class="num">2</span><span>Tap <b>Install app</b> or <b>Add to Home screen</b></span></div>`}
+      <div class="step"><span class="num">3</span><span>Close this page and open <b>Let’s Together</b> from the new icon. You should already be signed in</span></div></div>
+    <div class="note" style="margin:0 0 16px">If it asks you to sign in, tap <b>I have a code</b>, enter <b>${esc(S.code)}</b> and tap your name.</div>
+    <button class="btn" data-act="a2hsdone">I’ve added it</button>`);
 }
 const COACH = [
   ['Like it', 'Swipe right to like it', 'You would be up for this. Your other half only sees it if they like it too, or as a rare scratch-card hint.'],
@@ -2192,7 +2193,28 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && S.code && S.me) { try { await refresh(); if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) render(); else if (S.view === 'swipe' && S.sess) { const d = await rpc('get_session', { p_code: S.code, p_session: S.sess.id, p_member: S.me }); S.theirLeft = d.their_left; S.total = d.total; if (d.matches.length !== S.matches.length) { S.matches = d.matches; } if (d.deck.length !== S.deck.length && !busy) { S.deck = d.deck; drawStack(); } else updateBar(); } } catch {} } });
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); navigator.serviceWorker.addEventListener('message', e => { const u = e.data?.open; if (u) { const q = new URL(u).searchParams, s = q.get('s'), r = q.get('rec'), g = q.get('tb'); if (s && S.me) openSession(s); else if (r && S.me) openRec(r, q.get('keen')); else if (g && S.me) openGame(g); else if (q.get('trip') && S.me) openGetaway(q.get('trip'), partner()); else if (SHW[q.get('share')] && S.me) openShareTab(q.get('share')); } }); }
 
+// iPhone keeps a Home Screen app's storage apart from the browser's, so signing up in Safari and then opening the
+// icon used to mean signing in a second time with the couple code. While someone is signed in in the browser, the
+// page address and the app manifest both carry their couple code and name, so the icon they save opens signed in.
+const IOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+function carrySignIn() {
+  if (!IOS || standalone() || !S.code || !S.me) return;
+  const q = `?c=${encodeURIComponent(S.code)}&n=${encodeURIComponent(S.me)}`, base = location.origin + location.pathname.replace(/[^/]*$/, '');
+  try { if (location.search !== q) history.replaceState(null, '', location.pathname + q); } catch {}
+  try {
+    const m = { name: 'Let’s Together', short_name: 'Together', start_url: base + q, scope: base, display: 'standalone', orientation: 'portrait', background_color: '#100d12', theme_color: '#100d12',
+      icons: [{ src: base + 'icon-192.png', sizes: '192x192', type: 'image/png' }, { src: base + 'icon-512.png', sizes: '512x512', type: 'image/png' }] };
+    const l = document.querySelector('link[rel="manifest"]'); if (l) l.href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(m));
+  } catch {}
+}
 async function boot() {
+  { const q = new URLSearchParams(location.search), c = (q.get('c') || '').trim().toUpperCase(), n = (q.get('n') || '').trim();
+    if ((!S.code || !S.me) && c && n) {
+      // Opened from a Home Screen icon that carries a sign-in: use it. In a browser a name in the address is ignored
+      // and removed, so a link passed to someone else can never sign them in as the sender.
+      if (standalone()) { try { const r = await rpc('join_couple', { p_code: c, p_name: n }); S.code = c; S.me = r.name; ls.set('code', c); ls.set('name', r.name); } catch {} }
+      else { try { history.replaceState(null, '', location.pathname + '?c=' + encodeURIComponent(c)); } catch {} }
+    } }
   if (!S.code || !S.me) return render();
   try { await refresh(); } catch (e) { if (String(e.message).includes('bad_code')) { ls.del('code'); ls.del('name'); S.code = S.me = null; return render(); } $app.innerHTML = `<div class="center"><div class="brand">${BRAND}</div><p class="muted" style="margin:12px 0 18px">Could not reach the server. Check your connection.</p><button class="btn" onclick="location.reload()">Try again</button></div>`; return; }
   connect(); resavePush();
@@ -2203,7 +2225,7 @@ async function boot() {
   const tp = new URLSearchParams(location.search).get('trip'); if (tp) history.replaceState(null, '', location.pathname);
   const shq = new URLSearchParams(location.search).get('share'); if (shq) history.replaceState(null, '', location.pathname);
   render(); if (rc) return openRec(rc, rk); if (tp) return openGetaway(tp, partner()); if (SHW[shq]) return openShareTab(shq);
-  nextOnboard(); checkTravel(); scratchCheck(); installCheck(); evPeek();
+  nextOnboard(); checkTravel(); scratchCheck(); installCheck(); evPeek(); carrySignIn();
 }
 boot();
 </script>
