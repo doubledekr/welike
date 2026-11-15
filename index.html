@@ -242,6 +242,15 @@ async function whyLine(c, el) {
   if (r?.ok && r.note && el.isConnected) { el.textContent = r.note; el.style.display = ''; }
 }
 
+/* ---------- nearby restaurants (Google Places, optional) ---------- */
+// Tops up the dinner deck with popular restaurants inside the couple's radius. Best-effort: a failure just means no new cards.
+async function nearby(ms = 9000) {
+  try {
+    const call = sb.functions.invoke('places', { body: { code: S.code, action: 'nearby' } }).then(async r => { if (!r.error) return r.data; try { return await r.error.context.json(); } catch { return null; } }).catch(() => null);
+    return await Promise.race([call, new Promise(r => setTimeout(() => r(null), ms))]);
+  } catch { return null; }
+}
+
 /* ---------- data ---------- */
 async function refresh() {
   const [st, pantry, settings] = await Promise.all([rpc('get_state', { p_code: S.code, p_member: S.me }), rpc('get_pantry', { p_code: S.code }), rpc('get_settings', { p_code: S.code })]);
@@ -256,6 +265,10 @@ async function openSession(id) {
   catch (e) { toast('That round is no longer available.'); S.view = 'home'; render(); }
 }
 async function startSession(deck, filters, note, announce = true) {
+  if (deck === 'mix' || (deck === 'dinner' && (!filters?.kinds?.length || filters.kinds.some(k => k !== 'cook')))) {
+    const nb = await nearby();
+    if (nb?.error === 'no_location' && deck === 'dinner') toast('Add your ZIP code on the You tab to get restaurants near you.', 4500);
+  }
   const r = await rpc('start_session', { p_code: S.code, p_member: S.me, p_deck: deck, p_note: note || null, p_filters: filters || {} });
   if (!r.id) { toast(emptyMsg(deck, filters)); return; }
   if ((deck === 'movie' || deck === 'mix') && !filters?.rewatch && !filters?.wishlist) await taste({ action: 'rank', session: r.id }, 7000);
@@ -318,6 +331,7 @@ function settingsForm() {
   const st = S.settings || {}, all = S.state.services || [], on = st.services?.length ? st.services : all;
   return `<label class="field"><span>Home ZIP code</span><input id="s_zip" inputmode="numeric" autocomplete="postal-code" maxlength="10" value="${esc(st.zip || '')}" placeholder="48201"></label>
     <div style="height:10px"></div><div class="row"><button class="btn ghost sm" data-act="geo">${st.lat ? 'Update from where I am now' : 'Use where I am now instead'}</button><small class="muted" id="geonote" style="font-size:12px">${st.lat ? 'Location saved' : ''}</small></div>
+    <label class="field"><span>How far to look for restaurants</span><select id="s_rad">${[1, 2, 5, 10].map(m => `<option value="${m}" ${Number(st.radius_mi || 2) === m ? 'selected' : ''}>Within ${m} mile${m > 1 ? 's' : ''}</option>`).join('')}</select></label>
     <div class="kv">Streaming services you have</div><div class="chips">${all.map(x => `<button class="chip ${on.includes(x) ? 'on' : ''}" data-svc="${esc(x)}">${esc(x)}</button>`).join('')}</div>
     <div style="height:16px"></div><button class="btn" data-act="savesettings">Save</button>`;
 }
@@ -371,7 +385,7 @@ const emojiFor = c => c.data?.emoji || (c.deck === 'dinner' ? KINDS[c.kind]?.[1]
 function cardHTML(c, cls = '') {
   const tags = [];
   if (c.deck === 'movie') { (c.data.services || []).slice(0, 2).forEach(s => tags.push(`<span class="tag svc" style="--dot:${SVC_DOT[s] || '#fff'}">${esc(s)}</span>`)); (c.data.genres || []).slice(0, 2).forEach(g => tags.push(`<span class="tag">${esc(g)}</span>`)); if (c.data.user_rating) tags.push(`<span class="tag">★ ${c.data.user_rating}</span>`); }
-  if (c.deck === 'dinner') { tags.push(`<span class="tag">${KINDS[c.kind]?.[0] || 'Dinner'}</span>`); const oh = onHand(c); if (oh) tags.push(`<span class="tag">${oh.have === oh.total ? 'You have everything' : `${oh.have} of ${oh.total} on hand`}</span>`); }
+  if (c.deck === 'dinner') { tags.push(`<span class="tag">${KINDS[c.kind]?.[0] || 'Dinner'}</span>`); if (c.data.rating) tags.push(`<span class="tag">★ ${c.data.rating}</span>`); if (c.data.price) tags.push(`<span class="tag">${esc(c.data.price)}</span>`); if (c.data.delivery) tags.push('<span class="tag">Delivers</span>'); const oh = onHand(c); if (oh) tags.push(`<span class="tag">${oh.have === oh.total ? 'You have everything' : `${oh.have} of ${oh.total} on hand`}</span>`); }
   if (c.deck === 'event') { tags.push(`<span class="tag">${fmtDate(c.event_date)}</span>`); if (c.kind) tags.push(`<span class="tag">${esc(c.kind)}</span>`); if (c.data.area) tags.push(`<span class="tag">${esc(c.data.area)}</span>`); }
   if (c.deck === 'activity' && c.data.chain) tags.push(`<span class="tag">Then pick ${c.data.chain.deck === 'movie' ? 'a movie' : c.data.chain.deck === 'event' ? 'an event' : 'the food'}</span>`);
   const art = c.image ? `<img class="bg" src="${esc(c.image)}" alt="" draggable="false" onerror="this.remove()">` : '';
@@ -562,7 +576,7 @@ document.addEventListener('click', async e => {
       case 'solo': { const mine = (S.state.sessions || []).find(x => x.solo && x.my_left > 0); if (mine) return openSession(mine.id); return startSession('movie', { solo: true }, null, false); }
       case 'rewatch': return startSession('movie', { rewatch: true }, 'Watch one again?');
       case 'newcouple': { const name = document.getElementById('jn').value.trim(); if (!name) return toast('Enter your name first.'); t.disabled = true; try { const r = await rpc('create_couple', { p_name: name }); S.code = r.code; S.me = r.name; ls.set('code', r.code); ls.set('name', r.name); history.replaceState(null, '', location.pathname); await boot(); toast('You are set up. Send the invite link to your other half.', 4500); } catch (er) { t.disabled = false; toast(errMsg(er)); } return; }
-      case 'savesettings': { const root = t.closest('.sheet') || document; const services = [...root.querySelectorAll('[data-svc].on')].map(x => x.dataset.svc); if (!services.length) return toast('Pick at least one streaming service.'); S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { zip: root.querySelector('#s_zip').value.trim(), services, setup: true } }); closeSheet(); toast('Saved for both of you.'); send({ type: 'joined' }); return render(); }
+      case 'savesettings': { const root = t.closest('.sheet') || document; const services = [...root.querySelectorAll('[data-svc].on')].map(x => x.dataset.svc); if (!services.length) return toast('Pick at least one streaming service.'); S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { zip: root.querySelector('#s_zip').value.trim(), services, radius_mi: Number(root.querySelector('#s_rad')?.value || 2), setup: true } }); closeSheet(); toast('Saved for both of you.'); send({ type: 'joined' }); return render(); }
       case 'psearch': return placeSearch(t);
       case 'skipsetup': ls.set('setupskip', '1'); return closeSheet();
       case 'geo': { if (!navigator.geolocation) return toast('This phone will not share its location with WeLike.'); navigator.geolocation.getCurrentPosition(async pos => { try { S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { lat: pos.coords.latitude, lng: pos.coords.longitude } }); document.querySelectorAll('#geonote').forEach(n => n.textContent = 'Location saved'); toast('Location saved.'); } catch { toast('Could not save your location.'); } }, () => toast('Location is turned off for WeLike in your phone settings.'), { timeout: 10000 }); return; }
