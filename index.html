@@ -346,6 +346,32 @@ button{touch-action:manipulation}
 .lgridm div{display:flex;align-items:center;gap:10px;padding:12px;border-radius:16px;font-size:14.5px;font-weight:600;background:linear-gradient(160deg,rgba(255,122,77,.2),rgba(255,77,126,.08));box-shadow:inset 0 0 0 1px rgba(255,170,150,.24)}
 .lgridm .tic{width:36px;height:36px;border-radius:11px;font-size:18px}
 .land .foot{color:var(--muted);font-size:12px;line-height:1.5;text-align:center;margin-top:26px}
+.ob{flex:1;min-height:0;display:flex;flex-direction:column;padding:calc(var(--st) + 12px) 0 calc(var(--sb) + 16px)}
+.ob-top{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:0 18px 6px}
+.ob-pager{flex:1;min-height:0;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.ob-pager::-webkit-scrollbar{display:none}
+.ob-slide{flex:0 0 100%;min-width:0;scroll-snap-align:center;scroll-snap-stop:always;padding:10px 18px;display:flex}
+.ob-card{flex:1;min-height:0;overflow-y:auto;border-radius:30px;padding:26px 22px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:13px;text-align:center;position:relative;
+  background:radial-gradient(120% 70% at 50% 0%,rgba(255,90,110,.26),rgba(255,255,255,.03) 60%),linear-gradient(180deg,#231c27,#1a161d);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12),inset 0 1px 0 rgba(255,255,255,.2),0 24px 50px -24px rgba(0,0,0,.9),0 0 70px -30px rgba(255,90,110,.6)}
+.ob-card>.mark{width:84px;height:84px;box-shadow:0 0 60px -6px rgba(255,90,100,.9);animation:bob 4s ease-in-out infinite}
+.ob-card .brand{font-size:clamp(36px,11vw,46px)}
+.ob-card h2{font-family:var(--serif);font-weight:400;font-size:clamp(26px,8vw,33px);line-height:1.15}
+.ob-card p{color:#cfc5d2;font-size:16px;line-height:1.5;max-width:340px}
+.ob-card .btn{max-width:320px}
+.ob-card .step{font-size:15px}.ob-card .step .ic{vertical-align:-3px}
+.ob-hint{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;letter-spacing:.4px;animation:nudgeL 1.8s ease-in-out infinite}
+.ob-art{position:relative;height:150px;width:210px;display:grid;place-items:center}
+.ob-art .mini{position:absolute;width:92px;height:128px;border-radius:18px;display:grid;place-items:center;font-size:34px;color:#fff;box-shadow:0 18px 36px -14px rgba(0,0,0,.9),inset 0 0 0 1px rgba(255,255,255,.18)}
+.ob-art .mini.no{left:14px;transform:rotate(-10deg);background:linear-gradient(160deg,#3a3140,#262029);color:#a39aa8}
+.ob-art .mini.yes{right:14px;transform:rotate(9deg);background:linear-gradient(135deg,#ff7a4d,#ff4d7e)}
+.ob-art .mini.a{left:30px;top:4px;background:linear-gradient(160deg,rgba(255,255,255,.22),rgba(255,255,255,.08))}
+.ob-art .mini.b{right:30px;bottom:4px;background:linear-gradient(160deg,rgba(255,255,255,.22),rgba(255,255,255,.08))}
+.ob-dots{display:flex;gap:6px;justify-content:center;margin:10px 0 12px}
+.ob-dots i{width:7px;height:7px;border-radius:99px;background:rgba(255,255,255,.2);transition:all .25s}
+.ob-dots i.on{width:22px;background:linear-gradient(135deg,#ff7a4d,#ff4d7e)}
+.ob-foot{padding:0 18px}
+@media (max-height:640px){.ob-art{height:110px}.ob-art .mini{width:70px;height:98px}.ob-card{padding:18px 18px;gap:9px}.ob-card>.mark{width:60px;height:60px}.ob-card p{font-size:15px}}
+@keyframes nudgeL{0%,100%{transform:translateX(0)}50%{transform:translateX(-10px)}}
 @keyframes celein{from{transform:translate(-50%,-30px) scale(.7);opacity:0}}
 @keyframes celeout{to{transform:translate(-50%,-20px);opacity:0}}
 @keyframes beat{50%{transform:scale(1.25)}}
@@ -530,37 +556,39 @@ function render() {
   loadBite();
 }
 function renderLanding() {
-  const step = (n, t, d) => `<div class="lstep"><span class="num">${n}</span><span><b>${t}</b><small>${d}</small></span></div>`;
-  $app.innerHTML = `<div class="land">
-    <div class="hero-l">${MARK}<div class="brand">${BRAND}</div>
-      <h1>Stop asking “what do you want to do?”</h1>
-      <p class="lead">You each swipe on your own phone. Let’s Together shows what you both said yes to, so tonight gets decided in a minute.</p>
-      <button class="btn" data-act="getstarted">Get started, it’s free</button>
-      <div style="height:10px"></div><button class="btn ghost" data-act="getstarted">I have a couple code</button></div>
-    <div class="sect">How it works</div>
-    ${step(1, 'Swipe separately', 'Yes, no, or love it. Nobody sees your swipes, so you can be honest.')}
-    ${step(2, 'See what you both like', 'When you have both said yes to the same thing, it is a match and lands in your shared library.')}
-    ${step(3, 'Decide tonight', 'Pick a match, shuffle one at random, send a trailer for a quick yes or no, or play a tie-breaker and let the winner choose.')}
-    <div class="sect">What you can match on</div>
-    <div class="lgridm"><div><span class="tic">${ic('film')}</span>Movies on your streaming services</div><div><span class="tic">${ic('dine')}</span>Restaurants near you</div><div><span class="tic">${ic('ticket')}</span>Local events this week</div><div><span class="tic">${ic('plane')}</span>Trips for someday</div></div>
-    <div class="sect">Start in two minutes</div>
-    ${step(1, 'Add it to your Home Screen', 'iPhone: open this page in Safari, tap Share, then Add to Home Screen. Android: open it in Chrome, tap the menu, then Add to Home screen. It then opens full screen like any app and can send you notifications.')}
-    ${step(2, 'Start your couple', 'Open it from the new icon, tap Get started, enter your first name and choose Start a new couple. No email or password.')}
-    ${step(3, 'Invite your other half', 'Tap Copy invite on your profile and text them the link. They add it to their Home Screen, enter their name, and you are paired.')}
-    <div style="height:20px"></div><button class="btn" data-act="getstarted">Get started</button>
-    <p class="foot">Free while we test it with friends. Each couple’s swipes are private to that couple.<br>Streaming data from Watchmode. Experiences from Viator.</p></div>`;
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent), st = (n, t) => `<div class="step"><span class="num">${n}</span><span>${t}</span></div>`;
+  const slide = (art, h, p, extra = '') => `<section class="ob-slide"><div class="ob-card">${art}<h2>${h}</h2><p>${p}</p>${extra}</div></section>`;
+  const slides = [
+    slide(`${MARK}<div class="brand">${BRAND}</div>`, 'Stop asking “what do you want to do?”', 'A swipe app for two. Swipe this way to see how it works.', `<div class="ob-hint">${ic('undo')} swipe</div>`),
+    slide(`<div class="ob-art"><span class="mini no">${ic('x')}</span><span class="mini yes">${ic('heart')}</span></div>`, 'Swipe separately', 'Movies, places to eat, local events and someday trips. Yes, no, or love it. Nobody sees your swipes, so you can be honest.'),
+    slide(`<div class="ob-art"><span class="mini a"></span><span class="mini b"></span><span class="badge" style="position:absolute">${ic('heart')}</span></div>`, 'See what you both like', 'When you have both said yes to the same thing, it is a match. Matches collect in a shared library you can open any time.'),
+    slide(`<div class="ob-art"><span class="badge">${ic('shuffle')}</span></div>`, 'Decide tonight', 'Pick a match, shuffle one at random, send a trailer for a quick yes or no, or play a tie-breaker and let the winner choose.'),
+    ...(standalone() ? [] : [slide(`<div class="ob-art"><span class="badge">${ic('share')}</span></div>`, 'Put it on your Home Screen', 'It opens full screen like any app and can send you a notification when your other half nudges you.',
+      `<div class="steps" style="text-align:left;margin:4px 0 0">${ios ? st(1, `Tap <b>Share</b> ${ic('share')} at the bottom of Safari`) + st(2, 'Scroll down and tap <b>Add to Home Screen</b>') + st(3, 'Open Let’s Together from the new icon')
+        : st(1, 'Tap the <b>menu</b> (three dots) in Chrome') + st(2, 'Tap <b>Add to Home screen</b> or <b>Install app</b>') + st(3, 'Open Let’s Together from the new icon')}</div><small class="muted" style="font-size:12.5px">${ios ? 'On Android: Chrome menu, then Add to Home screen.' : 'On iPhone: Safari, Share, then Add to Home Screen.'}</small>`)]),
+    slide(`${MARK}`, 'Ready when you are', 'Start a new couple to get an invite link for your better half. No email or password, just your first name.',
+      `<button class="btn" data-act="getstarted" data-mode="new">Start a new couple</button><button class="btn ghost" data-act="getstarted" data-mode="code">Log in or join with a code</button>`),
+  ];
+  $app.innerHTML = `<div class="ob"><div class="ob-top"><div class="brand hb">${MARK}<span>${BRAND}</span></div><button class="btn ghost sm" data-act="getstarted" data-mode="code">Log in</button></div>
+    <div class="ob-pager" id="obp">${slides.join('')}</div>
+    <div class="ob-dots" id="obd">${slides.map((_, i) => `<i class="${i ? '' : 'on'}"></i>`).join('')}</div>
+    <div class="ob-foot"><button class="btn" data-act="obnext" id="obn">Next</button></div></div>`;
+  const pg = document.getElementById('obp'), n = slides.length;
+  pg.addEventListener('scroll', () => { const i = Math.round(pg.scrollLeft / pg.clientWidth); S.obI = i;
+    document.querySelectorAll('#obd i').forEach((d, k) => d.classList.toggle('on', k === i));
+    const b = document.getElementById('obn'); if (b) b.style.visibility = i >= n - 1 ? 'hidden' : ''; }, { passive: true });
 }
 function renderJoin() {
   const pre = new URLSearchParams(location.search).get('c') || S.code || '';
   if (!pre && !S.joinForm) return renderLanding();
-  $app.innerHTML = `<div class="center">${pre ? '' : '<button class="btn ghost sm" data-act="landing" style="width:auto;align-self:flex-start;margin-bottom:18px">‹ What is this?</button>'}
+  $app.innerHTML = `<div class="center">${pre ? '' : '<button class="btn ghost sm" data-act="landing" style="width:auto;align-self:flex-start;margin-bottom:18px">‹ How it works</button>'}
     <div class="brand" style="font-size:44px">${BRAND}</div>
-    <p class="muted" style="margin:10px 0 22px;font-size:16px;line-height:1.45">Enter your first name. Join with a code your other half sent, or start a new couple.</p>
+    <p class="muted" style="margin:10px 0 22px;font-size:16px;line-height:1.45">${S.joinMode === 'new' && !pre ? 'Enter your first name to start. You will get an invite link to send to your better half.' : 'Already set up? Enter the same first name and couple code to log back in. New here with an invite? Enter your name and the code you were sent.'}</p>
     ${standalone() ? '' : `<div class="note" style="margin:0 0 6px"><b>On a phone?</b> Add Let’s Together to your Home Screen first (Share ${ic('share')} then Add to Home Screen) and sign in from that icon, so you only do this once.</div>`}
     <label class="field"><span>Your name</span><input id="jn" autocomplete="given-name" maxlength="24" placeholder="First name"></label>
-    <label class="field"><span>Couple code, if your other half sent you one</span><input id="jc" autocapitalize="characters" autocomplete="off" maxlength="12" value="${esc(pre)}" placeholder="8 letters and numbers"></label>
-    <div style="height:18px"></div><button class="btn" id="jgo">Join with this code</button>
-    <div style="height:10px"></div><button class="btn ghost" data-act="newcouple">No code? Start a new couple</button>
+    <label class="field"><span>${S.joinMode === 'new' && !pre ? 'Couple code (leave blank to start a new couple)' : 'Your couple code'}</span><input id="jc" autocapitalize="characters" autocomplete="off" maxlength="12" value="${esc(pre)}" placeholder="8 letters and numbers"></label>
+    <div style="height:18px"></div>${S.joinMode === 'new' && !pre ? `<button class="btn" data-act="newcouple">Start a new couple</button><div style="height:10px"></div><button class="btn ghost" id="jgo">I have a code, join with it</button>`
+      : `<button class="btn" id="jgo">${pre ? 'Join with this code' : 'Log in or join'}</button><div style="height:10px"></div><button class="btn ghost" data-act="newcouple">No code? Start a new couple</button>`}
     <p class="muted" style="font-size:12.5px;text-align:center;margin-top:12px;line-height:1.4">Starting a new couple gives you a code and an invite link to send to your other half.</p></div>`;
 }
 const HDECKS = [['movie', 'Movies'], ['dinner', 'Eat'], ['event', 'Events'], ['trip', 'Trips']];
@@ -1105,7 +1133,8 @@ document.addEventListener('click', async e => {
       case 'reshuffle': { const mm = document.querySelector('.match'); if (mm?._pool) { const c = libPick(mm._pool, mm._card?.id); send({ type: 'final', card: c }); return showFinal(c, true, mm._pool); } const c = await pickNext(); if (!c) return; send({ type: 'final', card: c, shuffle: true, session: S.sess.id }); return showFinal(c, true); }
       case 'closematch': return document.querySelector('.match')?.remove();
       case 'closesheet': return closeSheet();
-      case 'getstarted': S.joinForm = true; return render();
+      case 'getstarted': S.joinForm = true; S.joinMode = ds.mode || 'code'; return render();
+      case 'obnext': { const pg = document.getElementById('obp'); if (pg) pg.scrollBy({ left: pg.clientWidth, behavior: 'smooth' }); return; }
       case 'landing': S.joinForm = false; return render();
       case 'sendrec': t.disabled = true; return sendRec(S.detailCard);
       case 'recyes': { const c = S.rec; if (!c) return; t.disabled = true; try { await rpc('like_card', { p_code: S.code, p_member: S.me, p_card: c.id }); } catch {} send({ type: 'recreply', yes: true, card: c }); push(`${S.me} said yes`, `Tonight: ${c.title}`, './'); closeSheet(); showMatch(c); return showFinal(c); }
