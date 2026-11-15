@@ -943,7 +943,7 @@ function homeHTML() {
     <div class="row"><div class="brand grow hb">${MARK}<span>${BRAND}</span></div>
       <button class="pill ${st.counts.shortlist ? 'hot' : ''}" data-act="shortlist" aria-label="Shortlist">♥ ${st.counts.shortlist || 0}</button>
       <button class="ib" data-act="search" aria-label="Search movies">${ic('search')}</button>
-      <button class="ib" data-tab="lists" aria-label="Lists">${ic('list')}</button><button class="ib" data-tab="you" aria-label="You and settings">${ic('sliders')}</button></div>${hsBanner()}
+      <button class="ib" data-tab="lists" aria-label="Lists">${ic('list')}</button><button class="ib" data-tab="you" aria-label="You and settings">${ic('sliders')}</button></div>${hsBanner()}${S.evPend && ls.get('evno') !== evKey() ? `<div class="hsb"><span class="tic">${ic('ticket')}</span><span class="grow"><b>You liked ${S.evPend.count > 1 ? S.evPend.count + ' events' : 'an event'} this week</b><small>Send to ${esc(them())} before ${S.evPend.count > 1 ? 'they pass' : 'it passes'}?</small></span><button class="go" data-act="evask">Share</button><button class="x" data-act="evx" aria-label="Dismiss">×</button></div>` : ''}
     ${!p ? `<button class="nudge slim" data-act="invite"><span class="grow"><b>Invite your other half</b></span><span class="go">Send link</span></button>` : ''}
     ${incoming.slice(0, 1).map(s => `<button class="nudge slim" data-open="${s.id}"><span class="grow"><b>${esc(s.from)} ${s.filters?.evshare ? 'liked events this week' : s.filters?.wishlist ? 'shared a wishlist' : 'nudged you'}</b><small> · ${esc(s.filters?.evshare ? 'before they pass' : s.filters?.wishlist ? 'movies to pick from' : s.note || DECKS[s.deck].label)} · ${s.my_left} to swipe</small></span><span class="go">Swipe</span></button>`).join('')}
     <div class="seg" style="margin:8px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="${S.homeDeck === k ? 'on' : ''}">${l}${heartTag(k)}</button>`).join('')}</div>${scratchShow() && !S.awayOffer ? `<button class="scratch-pill" data-act="scratch">${ic('spark')}<span><b>A scratch card is waiting</b><small>One thing ${esc(p)} is in on</small></span><i>Scratch</i></button>` : ''}${S.awayOffer ? `<div class="trav"><span class="tic">${ic('pin')}</span><span class="grow"><b>Looks like you’re in ${esc(S.awayOffer.city)}</b><small>Show places to eat and things to do here?</small></span><button class="go" data-act="awayyes">Show</button><button class="x" data-act="awayno" aria-label="Not now">×</button></div>` : ''}${S.away && (S.homeDeck === 'dinner' || S.homeDeck === 'event') ? `<div class="row" style="justify-content:space-between;margin:6px 2px 0"><small class="muted" style="font-size:12.5px">${ic('pin')} Showing ${esc(S.away.city)} on this phone</small><button class="chip" data-act="awayoff" style="padding:5px 12px;font-size:13px">Back to home</button></div>` : ''}${S.homeDeck === 'art' ? `<div class="row" style="justify-content:space-between;margin:6px 2px 0"><button class="chip" data-act="gallery" style="padding:5px 12px;font-size:13px">${ic('frame')} Our gallery</button><small class="muted" style="font-size:12.5px">No nudges, just likes</small></div>` : ''}${S.homeDeck === 'trip' ? `<div class="row" style="justify-content:space-between;margin:6px 2px 0"><button class="chip" data-act="trips" style="padding:5px 12px;font-size:13px">${ic('heart')} Saved trips</button><button class="chip ${S.tripCity ? 'on' : ''}" data-act="tripcity" style="padding:5px 12px;font-size:13px">${esc(S.tripCity || 'Anywhere')} ▾</button></div>` : ''}
@@ -1523,20 +1523,32 @@ async function commit(verdict) {
   try {
     const r = await rpc('swipe', { p_code: S.code, p_session: sess, p_member: S.me, p_card: card.id, p_verdict: verdict });
     send({ type: 'swipe', session: sess, left: S.deck.length });
-    if (S.bite && card.deck === 'event') { if (r.match) push(`You matched on an event ${emojiFor(card)}`, `You and ${S.me} both want to go to ${card.title}.`, './'); else if (verdict === 'yes' || verdict === 'love') S.evLiked = true; if (r.keen && r.weeks === 3 && !r.match && partner()) keenNudge(card, r.weeks); if (!S.deck.length) evShare(); }
+    if (S.bite && card.deck === 'event') { if (r.match) push(`You matched on an event ${emojiFor(card)}`, `You and ${S.me} both want to go to ${card.title}.`, './'); else if (verdict === 'yes' || verdict === 'love') S.evLiked = true; if (r.keen && r.weeks === 3 && !r.match && partner()) keenNudge(card, r.weeks); if (!S.deck.length && S.evLiked) { S.evLiked = false; evPeek(true); } }
     if (r.match && S.bite) { S.state.counts.shortlist = (S.state.counts.shortlist || 0) + 1; const hm = S.state.counts.hearts ||= {}; hm[card.deck] = (hm[card.deck] || 0) + 1; paintHearts(); toast(`You have both liked ${card.title}. It will come up first next round.`, 3500); send({ type: 'shortlist' }); }
     else if (r.match) { const m = { ...card, loves: verdict === 'love' ? 1 : 0 }; S.matches.unshift(m); updateBar(); send({ type: 'match', session: sess, card: m }); push(`It's a match ${emojiFor(card)}`, `You and ${S.me} both said yes to ${card.title}.`, `./?s=${sess}`); showMatch(m); }
   } catch (e) { toast('That swipe did not save. Check your connection.'); S.deck.unshift(card); S.hist.pop(); drawStack(); }
 }
-// Events are time sensitive: when I finish (or leave) the events handful with fresh likes, pass them to my partner
-async function evShare() {
-  if (!S.evLiked || !partner() || !S.code) return; S.evLiked = false;
-  try { const r = await rpc('event_share', { p_code: S.code, p_member: S.me }); if (!r?.id) return;
+// Events are time sensitive: after liking some, I get asked whether to pass them to my partner before they pass
+const evKey = () => (S.evPend?.count || 0) + '|' + new Date().toDateString();
+async function evPeek(ask) {
+  if (!partner() || !S.code || !S.me) return;
+  try { const r = await rpc('event_share', { p_code: S.code, p_member: S.me, p_send: false }); S.evPend = r?.count ? r : null; } catch { return; }
+  if ($layer.innerHTML) return;
+  if (S.evPend && ask) evSheet(); else if (S.view === 'home' && S.tab === 'home') render();
+}
+function evSheet() {
+  const r = S.evPend; if (!r) return; const n = r.count, ts = r.titles || [r.title];
+  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('ticket')}</span><h2>Share what you liked?</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">You liked ${n > 1 ? n + ' events' : 'an event'} happening this week. Send ${n > 1 ? 'them' : 'it'} to ${esc(them())} so you can both weigh in before ${n > 1 ? 'they pass' : 'it passes'}.</p></div></div>
+    <div class="steps" style="margin-top:14px">${ts.slice(0, 4).map(t => `<div class="step"><span class="num">${ic('heart')}</span><span>${esc(t)}</span></div>`).join('')}${ts.length > 4 ? `<div class="step"><span class="num">+</span><span>${ts.length - 4} more</span></div>` : ''}</div>
+    <button class="btn" data-act="evsend">Send to ${esc(them())}</button><div style="height:10px"></div><button class="btn ghost" data-act="evlater">Not now</button>`);
+}
+async function evSend() {
+  try { const r = await rpc('event_share', { p_code: S.code, p_member: S.me, p_send: true }); S.evPend = null; if (!r?.id) return;
     const n = r.count, more = n > 1 ? ` and ${n - 1} more` : '';
     send({ type: 'nudge', deck: 'event', session: r.id, evshare: true });
     push(`${S.me} found ${n > 1 ? n + ' events' : 'an event'} this week 🎟️`, `${r.title}${more}. Swipe the ones you would go to before ${n > 1 ? 'they pass' : 'it passes'}.`, `./?s=${r.id}`);
-    toast(`Sent ${n > 1 ? n + ' events' : r.title} to ${them()} so ${n > 1 ? 'they are' : 'it is'} seen in time.`, 4000);
-  } catch {}
+    toast(`Sent ${n > 1 ? n + ' events' : r.title} to ${them()}.`, 3500);
+  } catch { toast('Could not send those. Try again in a moment.'); }
 }
 function keenNudge(c, w) {   // the same event liked three different weeks: tell the other person once
   send({ type: 'rec', card: c, keen: w });
@@ -1676,7 +1688,7 @@ document.addEventListener('click', async e => {
     if (ds.tab) { S.tab = ds.tab; S.view = 'home'; if (ds.tab === 'home') await refresh(); return render(); }
     if (ds.final) { const c = await rpc('set_final', { p_code: S.code, p_session: S.sess.id, p_card: ds.final }); send({ type: 'final', card: c }); push(`Tonight: ${c.title}`, `${S.me} locked it in.`, `./?s=${S.sess.id}`); return showFinal(c); }
     if (ds.like) { t.disabled = true; const r = await rpc('like_card', { p_code: S.code, p_member: S.me, p_card: ds.like }); t.outerHTML = '<span class="pill hot">Liked</span>'; if (r.match) { toast('You have both liked that one. It will come up first next round.', 3500); send({ type: 'shortlist' }); } refresh().catch(() => {}); return; }
-    if (ds.hdeck) { evShare(); S.homeDeck = ds.hdeck; ls.set('deck', ds.hdeck); return render(); }
+    if (ds.hdeck) { S.homeDeck = ds.hdeck; ls.set('deck', ds.hdeck); return render(); }
     if (ds.lad) return ladder(ds.lad, t);
     if (ds.chg) { const o = S.chg?.[+ds.chg]; if (!o) return; if (o.widen) { const cur = Number(S.settings?.radius_mi || 2), next = [5, 10, 25].find(m => m > cur) || 25; S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { radius_mi: next } }); toast(`Looking within ${next} miles now.`); } return startSession(o.deck, o.filters, o.label); }
     if (ds.tbpick) { S.tb = await rpc('tiebreak_pick', { p_code: S.code, p_member: S.me, p_id: S.tb.id, p_card: ds.tbpick }); send({ type: 'tb', id: S.tb.id }); push(`Tonight: ${S.tb.pick.title}`, `${S.me} won the tie-breaker and picked it.`, './'); return render(); }
@@ -1715,6 +1727,9 @@ document.addEventListener('click', async e => {
       case 'scratch': return openScratch();
       case 'hsx': ls.set('hsnz', String(Date.now() + (S.installed ? 30 : 3) * 864e5)); return render();
       case 'hshow': if (bip) { const e = bip; bip = null; try { e.prompt(); await e.userChoice; } catch {} return render(); } return installSheet();
+      case 'evask': return evSheet();
+      case 'evsend': t.disabled = true; await evSend(); closeSheet(); return S.view === 'home' ? render() : null;
+      case 'evlater': case 'evx': ls.set('evno', evKey()); closeSheet(); return S.view === 'home' ? render() : null;
       case 'scolater': document.querySelector('.sco')?.remove(); return;
       case 'scratchdone': document.querySelector('.scr')?.remove(); return render();
       case 'travelon': return checkTravel(true);
@@ -1819,7 +1834,7 @@ async function checkVersion() {
     if (tag !== buildTag && S.view === 'home' && !$layer.innerHTML && !document.querySelector('.match,.lfront,.coach')) location.reload(); } catch {}
 }
 checkVersion();
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') evShare(); if (document.visibilityState === 'visible') { checkVersion(); checkTravel(); S.peekTried = false; scratchCheck(); } });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { evPeek(); checkVersion(); checkTravel(); S.peekTried = false; scratchCheck(); } });
 document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && S.code && S.me) { try { await refresh(); if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) render(); else if (S.view === 'swipe' && S.sess) { const d = await rpc('get_session', { p_code: S.code, p_session: S.sess.id, p_member: S.me }); S.theirLeft = d.their_left; S.total = d.total; if (d.matches.length !== S.matches.length) { S.matches = d.matches; } if (d.deck.length !== S.deck.length && !busy) { S.deck = d.deck; drawStack(); } else updateBar(); } } catch {} } });
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); navigator.serviceWorker.addEventListener('message', e => { const u = e.data?.open; if (u) { const q = new URL(u).searchParams, s = q.get('s'), r = q.get('rec'), g = q.get('tb'); if (s && S.me) openSession(s); else if (r && S.me) openRec(r, q.get('keen')); else if (g && S.me) openGame(g); } }); }
 
@@ -1832,7 +1847,7 @@ async function boot() {
   const rc = new URLSearchParams(location.search).get('rec'), rk = new URLSearchParams(location.search).get('keen'); if (rc) history.replaceState(null, '', location.pathname);
   const tg = new URLSearchParams(location.search).get('tb'); if (tg) { history.replaceState(null, '', location.pathname); return openGame(tg); }
   render(); if (rc) return openRec(rc, rk);
-  nextOnboard(); checkTravel(); scratchCheck(); installCheck();
+  nextOnboard(); checkTravel(); scratchCheck(); installCheck(); evPeek();
 }
 boot();
 </script>
