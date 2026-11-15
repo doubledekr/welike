@@ -966,7 +966,7 @@ function paintHearts() {   // header total plus the small per-category counts
 }
 const HDECKS = [['movie', 'Movies'], ['dinner', 'Eat'], ['event', 'Events'], ['trip', 'Trips'], ['art', 'Art']];
 function homeHTML() {
-  const st = S.state, p = partner(), incoming = (st.sessions || []).filter(s => s.from !== S.me && s.my_left > 0 && !(s.filters?.evshare && s.created_at && Date.now() - new Date(s.created_at) > 8 * 864e5));
+  const st = S.state, p = partner(), incoming = (st.sessions || []).filter(s => s.from !== S.me && s.my_left > 0 && !(s.filters?.evshare && s.created_at && Date.now() - new Date(s.created_at) > 8 * 864e5)).sort((a, b) => (a.filters?.share || a.filters?.evshare ? 1 : 0) - (b.filters?.share || b.filters?.evshare ? 1 : 0));   // a nudge for right now takes the one slot ahead of a some-time-soon list
   if (!HDECKS.some(d => d[0] === S.homeDeck)) S.homeDeck = 'movie';
   return `<div class="home">
     <div class="row"><div class="brand grow hb">${MARK}<span>${BRAND}</span></div>
