@@ -269,8 +269,10 @@ function renderJoin() {
     <div class="brand" style="font-size:56px">We<i>Like</i></div>
     <p class="muted" style="margin:10px 0 22px;font-size:16px;line-height:1.45">Swipe on movies, dinner and things to do. See what you both said yes to.</p>
     <label class="field"><span>Your name</span><input id="jn" autocomplete="given-name" maxlength="24" placeholder="First name"></label>
-    <label class="field"><span>Couple code</span><input id="jc" autocapitalize="characters" autocomplete="off" maxlength="12" value="${esc(pre)}" placeholder="8 letters and numbers"></label>
-    <div style="height:18px"></div><button class="btn" id="jgo">Let's go</button></div>`;
+    <label class="field"><span>Couple code, if your other half sent you one</span><input id="jc" autocapitalize="characters" autocomplete="off" maxlength="12" value="${esc(pre)}" placeholder="8 letters and numbers"></label>
+    <div style="height:18px"></div><button class="btn" id="jgo">Join with this code</button>
+    <div style="height:10px"></div><button class="btn ghost" data-act="newcouple">No code? Start a new couple</button>
+    <p class="muted" style="font-size:12.5px;text-align:center;margin-top:12px;line-height:1.4">Starting a new couple gives you a code and an invite link to send to your other half.</p></div>`;
 }
 function homeHTML() {
   const st = S.state, ss = st.sessions || [], p = partner();
@@ -506,6 +508,7 @@ document.addEventListener('click', async e => {
       case 'more': { const n = await rpc('more_cards', { p_code: S.code, p_session: S.sess.id }); if (!n) return toast('That is everything for now.'); send({ type: 'more', session: S.sess.id }); await loadSession(S.sess.id); S.view = 'swipe'; return render(); }
       case 'solo': { const mine = (S.state.sessions || []).find(x => x.solo && x.my_left > 0); if (mine) return openSession(mine.id); return startSession('movie', { solo: true }, null, false); }
       case 'rewatch': return startSession('movie', { rewatch: true }, 'Watch one again?');
+      case 'newcouple': { const name = document.getElementById('jn').value.trim(); if (!name) return toast('Enter your name first.'); t.disabled = true; try { const r = await rpc('create_couple', { p_name: name }); S.code = r.code; S.me = r.name; ls.set('code', r.code); ls.set('name', r.name); history.replaceState(null, '', location.pathname); await boot(); toast('You are set up. Send the invite link to your other half.', 4500); } catch (er) { t.disabled = false; toast(errMsg(er)); } return; }
       case 'add': return addSheet();
       case 'savepantry': { const items = document.getElementById('pt').value.split(/\n|,/).map(s => s.replace(/^[\s\-•*\d.x×]+(?=\D)/i, '').replace(/\$\s?\d+(\.\d+)?/g, '').trim()).filter(s => s.length > 1).map(item => ({ item })); const n = await rpc('set_pantry', { p_code: S.code, p_items: items }); await refresh(); toast(`${n} pantry items saved.`); return loadList(); }
       case 'invite': { const link = `${location.origin}${location.pathname}?c=${S.code}`; try { if (navigator.share) await navigator.share({ title: 'WeLike', text: 'Join me on WeLike', url: link }); else { await navigator.clipboard.writeText(link); toast('Invite link copied.'); } } catch {} return; }
