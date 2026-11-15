@@ -423,7 +423,8 @@ html.ios-app .coach{position:absolute}
 .coach[data-s="2"] .coach-card{animation:cU 1.9s ease-in-out infinite}.coach[data-s="2"] .cs{color:var(--gold);transform:translate(-50%,-50%)}
 .coach[data-s="3"] .coach-card{animation:cD 1.9s ease-in-out infinite}.coach[data-s="3"] .cs{color:#d9d2dc;transform:translate(-50%,-50%)}
 .coach[data-s="4"] .cs{display:none}.coach[data-s="4"] .ci{animation:pulse 1.4s ease-in-out infinite;background:linear-gradient(135deg,#ff7a4d,#ff4d7e)}
-.coach[data-s="5"] .cs{display:none}.coach[data-s="5"] .coach-card{animation:beat 1.2s ease-in-out infinite}
+.coach[data-s="5"] .cs,.coach[data-s="5"] .ci,.coach[data-s="5"] .mark{display:none}.coach .cl{display:none}.coach[data-s="5"] .cl{display:flex;flex-direction:column;gap:9px;width:78%}.cl i{display:flex;align-items:center;gap:8px;font-style:normal;font-size:13px;text-align:left;padding:9px 10px;border-radius:12px;background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}.cl i.new{background:linear-gradient(135deg,#ff7a4d,#ff4d7e);animation:pulse 1.4s ease-in-out infinite}
+.coach[data-s="6"] .cs{display:none}.coach[data-s="6"] .coach-card{animation:beat 1.2s ease-in-out infinite}
 .coach h2{font-family:var(--serif);font-weight:400;font-size:clamp(28px,8.5vw,34px);line-height:1.15}
 .coach p{color:#cfc5d2;font-size:16px;line-height:1.5;max-width:330px;min-height:72px}
 .coach .btn{max-width:320px}
@@ -470,6 +471,29 @@ html.ios-app .coach{position:absolute}
 .lact button{flex:none;display:flex;align-items:center;gap:9px;padding:10px 14px 10px 11px;border-radius:16px;text-align:left;background:linear-gradient(160deg,rgba(255,122,77,.2),rgba(255,77,126,.08));box-shadow:inset 0 0 0 1px rgba(255,170,150,.26)}
 .lact .ic{font-size:19px;color:#ff9db8;flex:none}
 .lact b{display:block;font-size:14px;font-weight:600;line-height:1.2}.lact small{display:block;font-size:11.5px;color:var(--muted);line-height:1.25}
+.gstage{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;min-height:62dvh;padding:16px 4px}
+.gstage h3,.gwin h3{font-family:var(--serif);font-weight:400;font-size:30px;line-height:1.15}
+.gstage p{font-size:15.5px;line-height:1.5;max-width:330px}
+.gstage .btn{max-width:320px}
+.gcount{font-family:var(--serif);font-size:clamp(96px,34vw,150px);line-height:1;animation:pop .3s cubic-bezier(.2,1.4,.4,1)}
+.gpad{width:min(78vw,300px);aspect-ratio:1;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,#ff7a4d,#ff4d7e);box-shadow:0 0 70px -10px rgba(255,90,110,.9),inset 0 2px 0 rgba(255,255,255,.4);touch-action:none;-webkit-user-select:none;user-select:none}
+.gpad b{font-family:var(--serif);font-weight:400;font-size:84px;line-height:1}.gpad small{font-size:15px;letter-spacing:2px;font-weight:700;opacity:.9}
+.gpad.hit{animation:ghit .12s ease-out}
+.gbar{width:100%;max-width:340px;height:6px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden}
+.gbar i{display:block;height:100%;background:linear-gradient(90deg,#ff7a4d,#ff4d7e);transform-origin:left}
+.gq{font-size:25px!important;max-width:350px}
+.gopts{display:grid;gap:10px;width:100%;max-width:350px}
+.gopt{padding:15px 14px;border-radius:16px;font-size:16.5px;font-weight:600;text-align:center;background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.03));box-shadow:inset 0 0 0 1px rgba(255,255,255,.13);touch-action:manipulation}
+.gopt.on{background:linear-gradient(135deg,#ff7a4d,#ff4d7e);color:#fff;box-shadow:0 8px 22px -8px rgba(255,90,100,.9)}
+.gopt:disabled:not(.on){opacity:.45}
+.gwin{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;margin:18px 0 14px}
+.gwin.me .badge{animation:beat .8s ease-in-out 3}
+.gres{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-radius:14px;margin-top:8px;background:rgba(255,255,255,.05);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);font-size:15px}
+.gres span{color:var(--muted)}
+.grev{margin-top:12px;display:grid;gap:8px}
+.grev div{padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.03);box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);text-align:left}
+.grev small{display:block;color:var(--muted);font-size:12px;line-height:1.35}.grev b{display:block;font-size:14.5px;margin:3px 0 2px}.grev span{display:block;font-size:12.5px;color:#d9d0dc}
+@keyframes ghit{50%{transform:scale(.94)}}
 @keyframes celein{from{transform:translate(-50%,-30px) scale(.7);opacity:0}}
 @keyframes celeout{to{transform:translate(-50%,-20px);opacity:0}}
 @keyframes beat{50%{transform:scale(1.25)}}
@@ -561,8 +585,8 @@ async function onEvent(p) {
   else if (p.type === 'swipe') { if (S.view === 'swipe' && S.sess?.id === p.session) { S.theirLeft = p.left; updateBar(); } }
   else if (p.type === 'narrow') { toast(`${p.from} picked what they are in the mood for. Open the round and tap Narrow it down to add yours.`, 6000); if (S.view === 'swipe' && S.sess?.id === p.session) { try { await loadSession(p.session); S.view = 'swipe'; drawStack(); } catch {} } }
   else if (p.type === 'shortlist') { await refresh(); const pill = document.querySelector('[data-act=shortlist]'); if (pill) { pill.textContent = '♥ ' + (S.state.counts.shortlist || 0); pill.classList.toggle('hot', !!S.state.counts.shortlist); } }
-  else if (p.type === 'game') { if (p.lib || (S.view === 'swipe' && S.sess?.id === p.session)) { closeSheet(); document.querySelector('.lfront')?.remove(); if (p.lib) toast(`${p.from} picked a few. Closest guess chooses tonight.`, 4500); S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); S.view = 'game'; render(); } else toast(`${p.from} wants to play for tonight’s pick. Open the round to join.`, 5000); }
-  else if (p.type === 'tb') { if (S.view === 'game' && S.tb?.id === p.id) { S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); render(); } }
+  else if (p.type === 'game') { if (p.lib || (S.view === 'swipe' && S.sess?.id === p.session)) { closeSheet(); document.querySelector('.lfront')?.remove(); if (p.lib) toast(`${p.from} picked a few. Quick game: the winner chooses tonight.`, 4500); S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); S.view = 'game'; render(); } else toast(`${p.from} wants to play for tonight’s pick. Open the round to join.`, 5000); }
+  else if (p.type === 'tb') { if (S.view === 'game' && S.tb?.id === p.id && !S.playing) { S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); render(); } }
   else if (p.type === 'final') { if (S.view !== 'game') showFinal(p.card, !!p.shuffle && S.sess?.id === p.session); }
   else if (p.type === 'rec') { try { navigator.vibrate?.(40); } catch {} recSheet(p.card, p.from); }
   else if (p.type === 'recreply') recReply(p);
@@ -929,7 +953,7 @@ async function ladder(kind, btn) {
   if (kind === 'game') {
     S.tb = await rpc('tiebreak_start', { p_code: S.code, p_member: S.me, p_session: sess.id });
     send({ type: 'game', session: sess.id, id: S.tb.id });
-    if (S.tb.mine == null && !S.tb.done) push(`${S.me} wants to play for it`, 'Closest guess wins and picks tonight.', `./?s=${sess.id}`);
+    if (!S.tb.mine && !S.tb.done) push(`${S.me} wants to play for it`, 'A quick game. The winner picks tonight.', `./?s=${sess.id}`);
     S.view = 'game'; return render();
   }
   if (kind === 'pick') {
@@ -944,7 +968,85 @@ function showFinal(c, canShuffle = false, pool = null) {
   m.innerHTML = `<h1>Tonight’s<br>pick</h1><div class="pic">${c.image ? `<img src="${esc(c.image)}" alt="">` : emojiFor(c)}</div><h3>${esc(c.title)}</h3>${c.subtitle ? `<p style="color:#f3dfe6;font-size:15px">${esc(c.subtitle)}</p>` : ''}${pool && partner() ? `<button class="btn" data-act="finalsend">Lock it in and tell ${esc(them())}</button>` : '<button class="btn" data-act="closematch">Sounds good</button>'}${canShuffle && (S.sess || pool) ? `<button class="btn ghost" data-act="reshuffle">${ic('shuffle')} Not feeling it, shuffle</button>` : ''}<small class="pull">Swipe down to close${pool && partner() ? `. Nothing is sent to ${esc(them())} unless you lock it in` : ''}</small>`;
   m._card = c; m._pool = pool; document.body.appendChild(m);
 }
+/* ---------- play for it: tap race, stop the clock, or best-of-three trivia (picked at random) ---------- */
+const GAMES = { taps: ['Tap race', 'Most taps in 3 seconds wins and picks'], clock: ['Stop the clock', 'Closest to the target time wins and picks'], trivia: ['Movie trivia', 'Best of three. Both right? The faster answer takes the point'] };
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const secs = ms => (ms / 1000).toFixed(2);
+function gameFrame(body) {
+  const g = GAMES[S.tb.game] || ['Play for it', ''];
+  $app.innerHTML = `<div class="view game"><div class="topbar"><button class="back" data-act="${S.tb.session ? 'swipe' : 'shortlist'}" aria-label="Back">‹</button><div class="grow"><h2>${g[0]}</h2><small>${g[1]}</small></div></div><div id="gstage" class="gstage">${body}</div></div>`;
+}
 function renderGame() {
+  const t = S.tb; if (!t.game || t.game === 'year') return renderGameYear();
+  if (t.done) return gameDone();
+  if (t.mine === true) return gameFrame(`<span class="badge">${ic('heart')}</span><h3>${t.stage === 'tb' ? 'Tie-breaker answer locked in' : 'Your turn is in'}</h3><p class="muted">Waiting on ${esc(them())}. They play on their own phone, and the result shows here when they finish.</p><button class="btn ghost" data-act="tbrefresh">Check again</button>`);
+  if (t.game === 'trivia' && t.stage === 'tb') return gameFrame(`<span class="badge">${ic('target')}</span><h3>All square</h3><p class="muted">You tied on points. One sudden-death question decides it: right answer wins, and if you are both right, the faster one takes it.</p><button class="btn" data-act="gplay">Start the tie-breaker</button>`);
+  const how = t.game === 'taps' ? `After the countdown, tap the pad as many times as you can in <b>${t.cfg.seconds} seconds</b>.`
+    : t.game === 'clock' ? `After the countdown a timer starts and then hides. Tap to stop it as close to <b>${secs(t.cfg.target)} seconds</b> as you can.`
+    : `Three multiple-choice questions, <b>${t.cfg.seconds} seconds</b> each. A right answer scores, and if you are both right the faster one takes the point. Tied after three? One more question settles it.`;
+  gameFrame(`<span class="badge">${ic(t.game === 'taps' ? 'spark' : t.game === 'clock' ? 'target' : 'film')}</span><h3>${GAMES[t.game][0]}</h3><p class="muted">${how}</p><p class="muted" style="font-size:13px">You each play on your own phone. The winner chooses tonight’s pick.</p><button class="btn" data-act="gplay">I’m ready</button>`);
+}
+async function gameSubmit(result) {
+  const st = document.getElementById('gstage'); if (st) st.innerHTML = '<p class="muted">Sending your result…</p>';
+  try { S.tb = await rpc('tiebreak_submit', { p_code: S.code, p_member: S.me, p_id: S.tb.id, p_result: result }); send({ type: 'tb', id: S.tb.id }); }
+  catch { toast('Could not send that. Check your connection and tap Check again.', 4500); }
+  S.playing = false; if (S.view === 'game') render();
+}
+async function countdown(st) { for (const n of [3, 2, 1]) { st.innerHTML = `<div class="gcount">${n}</div>`; await wait(650); if (!document.body.contains(st)) return false; } return true; }
+async function playGame() {
+  const t = S.tb, st = document.getElementById('gstage'); if (!st || S.playing) return; S.playing = true;
+  if (t.game === 'taps') {
+    if (!await countdown(st)) return void (S.playing = false);
+    let n = 0; st.innerHTML = `<div class="gbar"><i id="gb"></i></div><button class="gpad" id="gpad"><b id="gn">0</b><small>TAP!</small></button>`;
+    const pad = document.getElementById('gpad'), num = document.getElementById('gn'), bar = document.getElementById('gb'), ms = t.cfg.seconds * 1000;
+    const hit = e => { e.preventDefault(); n++; num.textContent = n; pad.classList.remove('hit'); void pad.offsetWidth; pad.classList.add('hit'); };
+    pad.addEventListener('pointerdown', hit); bar.style.transition = `transform ${ms}ms linear`; requestAnimationFrame(() => bar.style.transform = 'scaleX(0)');
+    await wait(ms); pad.removeEventListener('pointerdown', hit); try { navigator.vibrate?.(60); } catch {}
+    st.innerHTML = `<div class="gcount">${n}</div><p class="muted">taps</p>`; await wait(900); return gameSubmit({ taps: n });
+  }
+  if (t.game === 'clock') {
+    if (!await countdown(st)) return void (S.playing = false);
+    st.innerHTML = `<p class="muted" style="margin:0">Stop at <b style="color:var(--text)">${secs(t.cfg.target)} s</b></p><div class="gcount" id="gt">0.00</div><button class="gpad" id="gpad"><b>STOP</b><small>tap anywhere here</small></button>`;
+    const t0 = performance.now(), disp = document.getElementById('gt'), pad = document.getElementById('gpad'); let done = false, raf;
+    const tick = () => { if (done) return; const e = performance.now() - t0; disp.textContent = e < 1200 ? secs(e) : '?.??'; raf = requestAnimationFrame(tick); }; tick();
+    const ms = await new Promise(res => { pad.addEventListener('pointerdown', e => { e.preventDefault(); res(performance.now() - t0); }, { once: true }); setTimeout(() => res(t.cfg.target + 6000), t.cfg.target + 6000); });
+    done = true; cancelAnimationFrame(raf); const off = Math.abs(ms - t.cfg.target);
+    st.innerHTML = `<div class="gcount">${secs(ms)}</div><p class="muted">${secs(off)} s ${ms > t.cfg.target ? 'over' : 'under'} the target</p>`; await wait(1300); return gameSubmit({ ms: Math.round(ms) });
+  }
+  // trivia
+  const tb = t.stage === 'tb', qs = tb ? [t.cfg.tb] : t.cfg.questions, lim = (t.cfg.seconds || 10) * 1000, out = [];
+  for (let k = 0; k < qs.length; k++) {
+    const q = qs[k];
+    st.innerHTML = `<small class="muted" style="letter-spacing:1px;text-transform:uppercase;font-size:12px">${tb ? 'Tie-breaker' : `Question ${k + 1} of ${qs.length}`}</small><div class="gbar"><i id="gb"></i></div><h3 class="gq">${esc(q.q)}</h3><div class="gopts">${q.options.map((o, i) => `<button class="gopt" data-o="${i}">${esc(o)}</button>`).join('')}</div>`;
+    const bar = document.getElementById('gb'); bar.style.transition = `transform ${lim}ms linear`; requestAnimationFrame(() => bar.style.transform = 'scaleX(0)');
+    const t0 = performance.now();
+    const a = await new Promise(res => { st.querySelectorAll('.gopt').forEach(b => b.addEventListener('pointerdown', e => { e.preventDefault(); b.classList.add('on'); res({ i: Number(b.dataset.o), ms: Math.round(performance.now() - t0) }); }, { once: true })); setTimeout(() => res({ i: -1, ms: lim }), lim); });
+    st.querySelectorAll('.gopt').forEach(b => b.disabled = true); out.push(a);
+    if (!document.body.contains(st)) return void (S.playing = false);
+    await wait(a.i < 0 ? 900 : 450);
+  }
+  return gameSubmit(tb ? out[0] : { answers: out });
+}
+function gameDone() {
+  const t = S.tb, me = S.me, r = t.results || {}, names = Object.keys(r), who = n => n === me ? 'You' : esc(n), iWon = t.winner === me;
+  let sum = '';
+  if (t.game === 'taps') sum = names.map(n => `<div class="gres"><b>${who(n)}</b><span>${r[n].taps ?? 0} taps</span></div>`).join('');
+  else if (t.game === 'clock') sum = `<p class="muted" style="margin:0 0 6px">Target ${secs(t.cfg.target)} s</p>` + names.map(n => `<div class="gres"><b>${who(n)}</b><span>${secs(r[n].ms || 0)} s · ${secs(Math.abs((r[n].ms || 0) - t.cfg.target))} off</span></div>`).join('');
+  else {
+    sum = names.map(n => `<div class="gres"><b>${who(n)}</b><span>${r[n].points ?? 0} point${r[n].points === 1 ? '' : 's'}</span></div>`).join('');
+    const qs = [...(t.cfg.questions || []), ...(names.some(n => r[n].tb) && t.cfg.tb ? [t.cfg.tb] : [])];
+    sum += `<div class="grev">${qs.map((q, k) => { const tbq = k === 3, right = t.reveal?.[k];
+      const mark = n => { const a = tbq ? r[n].tb : r[n].answers?.[k]; return a && a.i === right ? `${who(n)} ✓ ${secs(a.ms)} s` : `${who(n)} ✗`; };
+      return `<div><small>${tbq ? 'Tie-breaker' : 'Q' + (k + 1)} · ${esc(q.q)}</small><b>${esc(q.options[right] ?? '')}</b><span>${names.map(mark).join(' · ')}</span></div>`; }).join('')}</div>`;
+  }
+  const row = c => `<div class="item"><span style="width:44px;height:62px;border-radius:8px;overflow:hidden;background:var(--surface);flex:none;display:grid;place-items:center;font-size:22px">${c.image ? `<img src="${esc(c.image)}" alt="" style="width:100%;height:100%;object-fit:cover">` : emojiFor(c)}</span><span class="grow"><b>${esc(c.title)}</b><small>${esc(c.subtitle || '')}</small></span>${iWon && !t.pick ? `<button class="btn sm" data-tbpick="${c.id}">Pick</button>` : ''}</div>`;
+  const tail = t.pick ? `<h3 class="serif" style="font-size:30px;margin:18px 0 4px;text-align:center">Tonight: ${esc(t.pick.title)}</h3><p class="muted" style="text-align:center">${iWon ? 'Your pick.' : esc(t.winner) + ' picked it.'}</p><div style="height:14px"></div><button class="btn" data-act="home">Done</button>`
+    : `<div class="sect" style="margin-top:18px">${iWon ? 'Your choice' : esc(t.winner) + ' is choosing from'}</div>${(t.cards || []).map(row).join('')}${iWon ? '' : '<div style="height:12px"></div><button class="btn ghost" data-act="tbrefresh">Check again</button>'}`;
+  const g = GAMES[t.game];
+  $app.innerHTML = `<div class="view game"><div class="topbar"><button class="back" data-act="${t.session ? 'swipe' : 'shortlist'}" aria-label="Back">‹</button><div class="grow"><h2>${g[0]}</h2><small>${g[1]}</small></div></div>
+    <div class="gwin ${iWon ? 'me' : ''}"><span class="badge">${ic(iWon ? 'star' : 'heart')}</span><h3>${iWon ? 'You win. You pick.' : esc(t.winner) + ' wins and picks.'}</h3></div>${sum}${tail}</div>`;
+}
+function renderGameYear() {
   const t = S.tb, row = c => `<div class="item"><span style="width:44px;height:62px;border-radius:8px;overflow:hidden;background:var(--surface);flex:none;display:grid;place-items:center;font-size:22px">${c.image ? `<img src="${esc(c.image)}" alt="" style="width:100%;height:100%;object-fit:cover">` : emojiFor(c)}</span><span class="grow"><b>${esc(c.title)}</b><small>${esc(c.subtitle || '')}</small></span>${t.winner === S.me && !t.pick ? `<button class="btn sm" data-tbpick="${c.id}">Pick</button>` : ''}</div>`;
   let b;
   if (!t.done) b = t.mine != null ? `<p class="muted" style="margin-top:14px">Your guess is in: <b style="color:var(--text)">${t.mine}</b>. Waiting on ${esc(them())}.</p><div style="height:12px"></div><button class="btn ghost" data-act="tbrefresh">Check again</button>`
@@ -1001,13 +1103,14 @@ const COACH = [
   ['Love it', 'Swipe up to love it', 'A yes with extra weight. If you both say yes, you will see who loved it.'],
   ['Seen it', 'Swipe down if you have seen it', 'Movies only. It goes to your Seen folder so it stops coming up, and can return later as a watch-again.'],
   ['', 'Tap a card for the details', 'Cast, trailer, where it is streaming, menus and maps. The buttons under the card do the same as swiping.'],
+  ['', 'Add your own ideas', 'Tap the list button at the top to add your own activities, restaurants and home-cooked dinners. Whatever you add gets dealt to both of you.'],
   ['', 'Both say yes and it is a match', 'Matches collect in your library behind the heart at the top. Open it any time to pick one, shuffle, or play for it.'],
 ];
 function coach(i = 0) {
   document.querySelector('.coach')?.remove(); if (i >= COACH.length) { ls.set('coach', '1'); return; }
   const [st, h, p] = COACH[i], el = document.createElement('div'); el.className = 'coach'; el.dataset.s = i;
   el.innerHTML = `<div class="ob-dots" style="margin:0">${COACH.map((_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('')}</div>
-    <div class="coach-stage"><div class="coach-card">${MARK}<span class="cs">${st}</span><span class="ci">i</span></div></div>
+    <div class="coach-stage"><div class="coach-card">${MARK}<span class="cs">${st}</span><span class="ci">i</span><span class="cl"><i>${ic('spark')} Go for a walk</i><i>${ic('dine')} Order in</i><i class="new">${ic('plus')} Add your own</i></span></div></div>
     <h2>${h}</h2><p>${p}</p><button class="btn" data-act="coachnext" data-i="${i + 1}">${i === COACH.length - 1 ? 'Start swiping' : 'Next'}</button>
     ${i === COACH.length - 1 ? '' : '<button class="skip" data-act="coachnext" data-i="99">Skip the walkthrough</button>'}`;
   document.body.appendChild(el);
@@ -1341,10 +1444,11 @@ document.addEventListener('click', async e => {
       case 'libshuffle': { const pool = libItems(); if (!pool.length) return; const c = libPick(pool); return showFinal(c, true, pool); }
       case 'libselect': S.libSel = new Set(); return renderLibrary();
       case 'libcancel': S.libSel = null; return renderLibrary();
-      case 'libplay': { if (!S.libSel || S.libSel.size < 2) return; t.disabled = true; S.tb = await rpc('tiebreak_lib', { p_code: S.code, p_member: S.me, p_cards: [...S.libSel] }); S.libSel = null; S.view = 'game'; send({ type: 'game', id: S.tb.id, lib: true }); push(`${S.me} wants to play for tonight’s pick`, 'Closest guess wins and chooses.', `./?tb=${S.tb.id}`); return render(); }
+      case 'libplay': { if (!S.libSel || S.libSel.size < 2) return; t.disabled = true; S.tb = await rpc('tiebreak_lib', { p_code: S.code, p_member: S.me, p_cards: [...S.libSel] }); S.libSel = null; S.view = 'game'; send({ type: 'game', id: S.tb.id, lib: true }); push(`${S.me} wants to play for tonight’s pick`, 'A quick game. The winner chooses.', `./?tb=${S.tb.id}`); return render(); }
       case 'guess': return startGuess();
       case 'unlock': S.unlock = true; S.view = 'home'; S.tab = 'home'; await refresh(); return render();
       case 'tbguess': { const g = parseInt(document.getElementById('tbg').value, 10); if (!(g > 1880 && g < 2100)) return toast('Enter a year.'); S.tb = await rpc('tiebreak_guess', { p_code: S.code, p_member: S.me, p_id: S.tb.id, p_guess: g }); send({ type: 'tb', id: S.tb.id }); return render(); }
+      case 'gplay': return playGame();
       case 'tbrefresh': S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: S.tb.id }); return render();
       case 'add': return addSheet();
       case 'savepantry': { const items = document.getElementById('pt').value.split(/\n|,/).map(s => s.replace(/^[\s\-•*\d.x×]+(?=\D)/i, '').replace(/\$\s?\d+(\.\d+)?/g, '').trim()).filter(s => s.length > 1).map(item => ({ item })); const n = await rpc('set_pantry', { p_code: S.code, p_items: items }); await refresh(); toast(`${n} pantry items saved.`); return loadList(); }
