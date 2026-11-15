@@ -242,7 +242,7 @@ body::before{content:"";position:fixed;inset:-20% -10% auto -10%;height:60%;back
 .lcard.sel{transform:scale(.93);box-shadow:0 0 0 3px #ff5c8a,0 0 26px -2px rgba(255,90,110,.9)}
 .lcard.sel::after{content:"✓";position:absolute;inset:0;background:rgba(255,77,126,.38);display:grid;place-items:center;font-size:34px;color:#fff;font-weight:700}
 .lbar{position:fixed;left:0;right:0;bottom:0;max-width:520px;margin:0 auto;padding:26px 14px calc(var(--sb) + 12px);display:flex;gap:10px;background:linear-gradient(transparent,rgba(16,13,18,.97) 40%);z-index:5}
-.lbar .btn{font-size:14.5px;padding:13px 10px}
+.lbar .btn{font-size:14.5px;padding:13px 10px}.lbar:has(.wide){flex-wrap:wrap}.lbar .wide{flex:1 0 100%}.view:has(.lbar .wide) .lgrid{padding-bottom:170px}
 .lfront{position:fixed;inset:0;z-index:25;background:rgba(8,6,10,.8);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 26px calc(var(--sb) + 20px);gap:10px;animation:fade .2s;text-align:center}
 .lf-card{width:min(58vw,230px);aspect-ratio:2/3;flex:none;border-radius:22px;overflow:hidden;background:var(--surface2);display:grid;place-items:center;font-size:90px;position:relative;box-shadow:0 30px 70px -10px rgba(0,0,0,.9),0 0 70px -10px rgba(255,90,110,.65),inset 0 0 0 1px rgba(255,255,255,.18);transition:transform .45s cubic-bezier(.2,1.15,.3,1)}
 .lf-card img{width:100%;height:100%;object-fit:cover;display:block}
@@ -710,7 +710,7 @@ function send(p) { try { S.chan?.send({ type: 'broadcast', event: 'ev', payload:
 function push(title, body, url) { sb.functions.invoke('nudge', { body: { code: S.code, member: S.me, title, body, url } }).catch(() => {}); }
 async function onEvent(p) {
   if (!p || p.from === S.me) return;
-  if (p.type === 'nudge') { toast(p.again ? `${p.from} is still hoping you will look at the ${p.share === 'dinner' ? 'places' : 'events'} they sent` : p.share === 'dinner' ? `${p.from} sent you places they want to try` : p.evshare ? `${p.from} sent you events they liked` : p.wishlist ? `${p.from} shared a wishlist with you` : `${p.from} nudged you: ${DECKS[p.deck]?.label || 'something'}`, 4000); await refresh(); if (S.view === 'home') render(); }
+  if (p.type === 'nudge') { toast(p.matched ? `${p.from} wants to pick from your matches. Swipe what you feel like right now.` : p.again ? `${p.from} is still hoping you will look at the ${p.share === 'dinner' ? 'places' : 'events'} they sent` : p.share === 'dinner' ? `${p.from} sent you places they want to try` : p.evshare ? `${p.from} sent you events they liked` : p.wishlist ? `${p.from} shared a wishlist with you` : `${p.from} nudged you: ${DECKS[p.deck]?.label || 'something'}`, 4000); await refresh(); if (S.view === 'home') render(); }
   else if (p.type === 'match') { if (S.view === 'swipe' && S.sess?.id === p.session) { S.matches.unshift(p.card); showMatch(p.card); } else toast(`Match with ${p.from}: ${p.card.title}`, 4000); refresh().then(() => S.view === 'home' && render()); }
   else if (p.type === 'more' && S.view === 'swipe' && S.sess?.id === p.session) { await loadSession(p.session); renderSwipe(); }
   else if (p.type === 'swipe') { if (S.view === 'swipe' && S.sess?.id === p.session) { S.theirLeft = p.left; updateBar(); } }
@@ -1016,7 +1016,7 @@ function tonightSheet() {
     <button class="tile wide" data-act="movielib" style="width:100%"><span class="tic">${ic('film')}</span><span><b>Movie library</b><small>Pick from your matches, shuffle, send a pick or play for it</small></span></button>`;
   const cur = rest.find(s => !s.filters?.bite && !s.filters?.solo && (s.from === S.me ? (s.my_left > 0 || s.their_left > 0) : s.my_left > 0));
   if (cur) { const status = cur.my_left > 0 ? `${cur.my_left} left for you` : `Waiting on ${esc(them())}`;
-    const name = cur.filters?.evshare ? (cur.from === S.me ? 'Events you sent' : esc(cur.from) + '’s event picks') : cur.filters?.share ? (cur.from === S.me ? 'Places you sent' : esc(cur.from) + '’s place picks') : cur.filters?.wishlist ? (cur.from === S.me ? 'Your wishlist' : esc(cur.from) + '’s wishlist') : cur.filters?.rewatch ? 'Watch again?' : cur.filters?.second ? 'Second look' : DECKS[cur.deck].label;
+    const name = cur.filters?.matched ? 'From your matches' : cur.filters?.evshare ? (cur.from === S.me ? 'Events you sent' : esc(cur.from) + '’s event picks') : cur.filters?.share ? (cur.from === S.me ? 'Places you sent' : esc(cur.from) + '’s place picks') : cur.filters?.wishlist ? (cur.from === S.me ? 'Your wishlist' : esc(cur.from) + '’s wishlist') : cur.filters?.rewatch ? 'Watch again?' : cur.filters?.second ? 'Second look' : DECKS[cur.deck].label;
     h += `<div class="sect">Round in progress</div><button class="sess" data-open="${cur.id}"><span class="tic">${ic(DIC[cur.deck])}</span><span class="grow"><b>${name}</b><small>Started ${ago(cur.created_at)} · ${status}</small></span>${cur.matches ? `<span class="pill hot">${cur.matches} match${cur.matches > 1 ? 'es' : ''}</span>` : ''}</button>`; }
   sheet(h.replace('<div class="sect">Round in progress</div>', '</div><div class="sect">Round in progress</div>') + (cur ? '' : '</div>'));
 }
@@ -1275,7 +1275,7 @@ const libBase = () => (S.lib || []).filter(c => S.libMode === 'movie' ? c.deck =
 const libItems = () => S.libMode === 'movie' && S.libF === 'seen' ? (S.libSeen || []) : libBase().filter(c => (S.libMode === 'movie' || !S.libC || c.deck === S.libC) && (S.libF === 'all' || c.who === S.libF));
 const LIBC = [['movie', 'Movies'], ['dinner', 'Eat'], ['event', 'Events'], ['trip', 'Trips'], ['art', 'Art']];
 function renderLibrary() {
-  const all = S.lib || [], base = libBase(), items = libItems(), p = partner(), trips = false, mv = S.libMode === 'movie', nb = base.filter(c => c.who === 'both').length, sel = S.libSel, play = mv || ['movie', 'dinner', 'event'].includes(S.libC); S.listCards = all;
+  const all = S.lib || [], base = libBase(), items = libItems(), p = partner(), trips = false, mv = S.libMode === 'movie', nb = base.filter(c => c.who === 'both').length, sel = S.libSel, play = mv || ['movie', 'dinner', 'event'].includes(S.libC), mdeck = mv ? 'movie' : play ? S.libC : ''; S.listCards = all;
   const seenF = mv && S.libF === 'seen', chips = mv ? [['both', 'Both of us'], ['me', 'Mine'], ['seen', 'Watched']] : [['both', 'Both of us'], ['me', 'Mine'], ['all', 'Everything']];
   $app.innerHTML = `<div class="view"><div class="topbar"><button class="back" data-act="home" aria-label="Back">‹</button><div class="grow"><h2>${mv ? 'Movie library' : 'Everything we like'}</h2><small>${sel ? 'Tap the ones you would be happy with, two to six' : `${nb} you both like · ${base.length} in all${mv && S.libSeen?.length ? ` · ${S.libSeen.length} watched` : ''}`}</small></div></div>
     <div class="chips" style="margin-top:14px">${chips.map(([k, l]) => `<button class="chip ${S.libF === k ? 'on' : ''}" data-libf="${k}">${l}</button>`).join('')}</div>
@@ -1284,7 +1284,7 @@ function renderLibrary() {
     ${items.length ? `<div class="lgrid">${items.map((c, i) => `<button class="lcard ${c.who === 'both' ? 'both' : ''} ${sel?.has(c.id) ? 'sel' : ''}" data-lib="${c.id}" style="animation-delay:${Math.min(i, 20) * 25}ms" aria-label="${esc(c.title)}">${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy">${c.deck === 'movie' ? '' : `<span class="ttl">${esc(c.title)}</span>`}` : `${emojiFor(c)}<span class="ttl">${esc(c.title)}</span>`}${c.who === 'both' ? `<span class="hb">${ic('heart')}</span>` : ''}</button>`).join('')}</div>`
       : `<div class="note" style="margin-top:16px"><b>Nothing here yet.</b> ${seenF ? 'Movies either of you marked as watched land here. Swipe a movie down, or tap Watched on one. You can still send one over for a rewatch.' : S.libF === 'both' ? (mv ? 'When you have both liked the same movie, it lands here. Try Mine to see your own likes.' : 'When you have both liked the same thing, it lands here. Try Everything to see what each of you has liked so far.') : 'Swipe yes on a few movies, or use search to like the ones you already know you want.'}</div>`}
     ${items.length && play && !seenF ? `<div class="lbar">${sel ? `<button class="btn" id="lplay" data-act="libplay" ${sel.size < 2 ? 'disabled style="opacity:.5"' : ''}>Play for it (${sel.size})</button><button class="btn ghost" data-act="libcancel" style="flex:0 0 96px">Cancel</button>`
-      : `<button class="btn" data-act="libshuffle">${ic('shuffle')} Shuffle a pick</button>${p && items.length > 1 ? '<button class="btn ghost" data-act="libselect">Pick a few and play</button>' : ''}`}</div>` : ''}</div>`;
+      : `${p && mdeck && items.filter(c => c.who === 'both' && c.deck === mdeck).length > 1 ? `<button class="btn wide" data-act="libmatched" data-d="${mdeck}">${ic('heart')} Swipe our matches together</button>` : ''}<button class="btn${p && mdeck && items.filter(c => c.who === 'both' && c.deck === mdeck).length > 1 ? ' ghost' : ''}" data-act="libshuffle">${ic('shuffle')} Shuffle a pick</button>${p && items.length > 1 ? '<button class="btn ghost" data-act="libselect">Pick a few and play</button>' : ''}`}</div>` : ''}</div>`;
 }
 const seenWho = a => (a || []).map(n => n === S.me ? 'you' : n).sort((x, y) => x === 'you' ? -1 : y === 'you' ? 1 : 0).join(' and ');
 function libFront(c, from) {
@@ -1645,7 +1645,7 @@ function cardHTML(c, cls = '') {
 }
 function updateBar() { const el = document.getElementById('prog'); if (el) el.textContent = S.bite ? (S.deck.length ? `${S.deck.length} left today` : '') : S.solo || !partner() ? `${S.deck.length} left` : `${S.deck.length} left · ${them()} has ${S.theirLeft ? S.theirLeft + ' to go' : 'finished'}`; const m = document.getElementById('mcount'); if (m) { m.textContent = S.matches.length ? `${S.matches.length} match${S.matches.length > 1 ? 'es' : ''}` : 'No matches yet'; m.className = 'pill' + (S.matches.length ? ' hot' : ''); } }
 function renderSwipe() {
-  const d = S.solo ? { label: 'Browse movies' } : S.sess.filters?.evshare ? { label: S.sess.from === S.me ? 'Events you sent' : esc(S.sess.from) + "'s event picks" } : S.sess.filters?.share ? { label: S.sess.from === S.me ? 'Places you sent' : esc(S.sess.from) + "'s place picks" } : S.sess.filters?.wishlist ? { label: S.sess.from === S.me ? 'Your wishlist' : esc(S.sess.from) + "'s wishlist" } : S.rewatch ? { label: 'Watch again?' } : S.sess.filters?.second ? { label: 'Second look' } : DECKS[S.sess.deck], movie = S.deck[0]?.deck === 'movie' && !S.rewatch;
+  const d = S.solo ? { label: 'Browse movies' } : S.sess.filters?.matched ? { label: 'From your matches' } : S.sess.filters?.evshare ? { label: S.sess.from === S.me ? 'Events you sent' : esc(S.sess.from) + "'s event picks" } : S.sess.filters?.share ? { label: S.sess.from === S.me ? 'Places you sent' : esc(S.sess.from) + "'s place picks" } : S.sess.filters?.wishlist ? { label: S.sess.from === S.me ? 'Your wishlist' : esc(S.sess.from) + "'s wishlist" } : S.rewatch ? { label: 'Watch again?' } : S.sess.filters?.second ? { label: 'Second look' } : DECKS[S.sess.deck], movie = S.deck[0]?.deck === 'movie' && !S.rewatch;
   $app.innerHTML = `<div class="swipe"><div class="topbar"><button class="back" data-act="home" aria-label="Back">‹</button>
       <div class="grow"><h2>${d.label}</h2><small id="prog"></small></div><button class="pill" id="mcount" data-act="matches"></button></div>
     <div class="stack" id="stack"></div>
@@ -1746,6 +1746,15 @@ function shareRemind() {
 function shareRemindBanner() {
   const r = shareRemind(); if (!r) return '';
   return `<div class="hsb"><span class="tic">${ic(SHW[r.d][3])}</span><span class="grow"><b>${esc(them())} has not answered ${shN(r.d, r.waiting)}</b><small>Nudge again before the week is out?</small></span><button class="go" data-act="shremind" data-d="${r.d}">Nudge</button><button class="x" data-act="shremx" data-d="${r.d}" aria-label="Dismiss">×</button></div>`;
+}
+// Past matches are not tonight's decision: deal them back to both of us and swipe for how we feel right now
+async function startMatched(deck) {
+  try { const r = await rpc('start_matched', { p_code: S.code, p_member: S.me, p_deck: deck });
+    if (!r?.id) { toast('You need at least two things you both like here first.', 3500); return renderLibrary(); }
+    send({ type: 'nudge', deck, session: r.id, matched: true });
+    push(`${S.me}: let’s pick from our matches`, `${r.count} things you have both liked. Swipe what you feel like right now.`, `./?s=${r.id}`);
+    await openSession(r.id);
+  } catch { toast('Could not start that. Try again in a moment.'); if (S.view === 'library') renderLibrary(); }
 }
 async function openShareTab(d) { S.view = 'home'; S.tab = 'home'; S.homeDeck = d; try { await refresh(); } catch {} render(); return openShare(d); }
 async function openShare(deck) {
@@ -2057,6 +2066,7 @@ document.addEventListener('click', async e => {
       case 'libfinal': { const c = S.detailCard; if (!c) return; send({ type: 'final', card: c }); push(`Tonight: ${c.title}`, `${S.me} picked it from your library.`, './'); return showFinal(c); }
       case 'libshuffle': { const pool = libItems(); if (!pool.length) return; const c = libPick(pool); return showFinal(c, true, pool); }
       case 'libselect': S.libSel = new Set(); return renderLibrary();
+      case 'libmatched': t.disabled = true; return startMatched(ds.d);
       case 'libcancel': S.libSel = null; return renderLibrary();
       case 'libplay': { if (!S.libSel || S.libSel.size < 2) return; t.disabled = true; S.tb = await rpc('tiebreak_lib', { p_code: S.code, p_member: S.me, p_cards: [...S.libSel] }); S.libSel = null; S.view = 'game'; send({ type: 'game', id: S.tb.id, lib: true }); push(`${S.me} wants to play for tonight’s pick`, 'A quick game. The winner chooses.', `./?tb=${S.tb.id}`); return render(); }
       case 'guess': return startGuess();
