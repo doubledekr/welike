@@ -372,6 +372,9 @@ button{touch-action:manipulation}
 .ob-foot{padding:0 18px}
 @media (max-height:640px){.ob-art{height:110px}.ob-art .mini{width:70px;height:98px}.ob-card{padding:18px 18px;gap:9px}.ob-card>.mark{width:60px;height:60px}.ob-card p{font-size:15px}}
 @keyframes nudgeL{0%,100%{transform:translateX(0)}50%{transform:translateX(-10px)}}
+html.ios-app,html.ios-app body{height:var(--appH,100lvh)}
+html.ios-app body{bottom:auto}
+html.ios-app .match,html.ios-app .lfront,html.ios-app .scrim,html.ios-app .lbar{position:absolute}
 @keyframes celein{from{transform:translate(-50%,-30px) scale(.7);opacity:0}}
 @keyframes celeout{to{transform:translate(-50%,-20px);opacity:0}}
 @keyframes beat{50%{transform:scale(1.25)}}
@@ -471,6 +474,12 @@ async function onEvent(p) {
   else if (p.type === 'joined') { await refresh(); if (S.view === 'home') render(); }
 }
 const b64u = s => { const p = '='.repeat((4 - s.length % 4) % 4); const r = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...r].map(c => c.charCodeAt(0))); };
+function fitScreen() {
+  if (navigator.standalone !== true) return;            // only the iPhone / iPad Home Screen app
+  const land = window.matchMedia('(orientation: landscape)').matches, h = land ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height);
+  if (h > 300) { document.documentElement.classList.add('ios-app'); document.documentElement.style.setProperty('--appH', h + 'px'); }
+}
+fitScreen(); addEventListener('resize', fitScreen); addEventListener('orientationchange', () => setTimeout(fitScreen, 250));
 const standalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 const pushState = () => !('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window) ? 'unsupported' : Notification.permission;
 async function enablePush() {
@@ -612,8 +621,8 @@ function homeHTML() {
     ${!p ? `<button class="nudge slim" data-act="invite"><span class="grow"><b>Invite your other half</b></span><span class="go">Send link</span></button>` : ''}
     ${incoming.slice(0, 1).map(s => `<button class="nudge slim" data-open="${s.id}"><span class="grow"><b>${esc(s.from)} ${s.filters?.wishlist ? 'shared a wishlist' : 'nudged you'}</b><small> · ${esc(s.filters?.wishlist ? 'movies to pick from' : s.note || DECKS[s.deck].label)} · ${s.my_left} to swipe</small></span><span class="go">Swipe</span></button>`).join('')}
     <div class="seg" style="margin:8px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="${S.homeDeck === k ? 'on' : ''}">${l}</button>`).join('')}</div>${S.homeDeck === 'trip' ? `<div class="row" style="justify-content:space-between;margin:6px 2px 0"><small class="muted" style="font-size:12.5px">Someday ideas. No nudges, just likes.</small><button class="chip ${S.tripCity ? 'on' : ''}" data-act="tripcity" style="padding:5px 12px;font-size:13px">${esc(S.tripCity || 'Anywhere')} ▾</button></div>` : ''}
-    <small class="muted" id="prog" style="min-height:16px;text-align:center;font-size:12px"></small>
-    <div class="stack" id="stack" style="margin:6px 0 10px"><div class="done"><p class="muted">Dealing today's handful…</p></div></div>
+    <small class="muted" id="prog" style="min-height:17px;text-align:center;font-size:12.5px;line-height:17px;margin-top:10px"></small>
+    <div class="stack" id="stack" style="margin:10px 0 14px"><div class="done"><p class="muted">Dealing today's handful…</p></div></div>
     <div class="actions" id="acts" style="visibility:hidden"><button class="act sm" data-sw="undo" aria-label="Undo">${ic('undo')}</button><button class="act no" data-sw="no" aria-label="No">${ic('x')}</button>
       <button class="act sm" data-sw="seen" id="seenb" aria-label="Seen it" style="display:none">${ic('eye')}</button>
       <button class="act love" data-sw="love" aria-label="Love it">${ic('star')}</button><button class="act yes" data-sw="yes" aria-label="Yes">${ic('heart')}</button></div>
