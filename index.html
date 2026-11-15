@@ -1532,12 +1532,23 @@ function pushAskSheet() {
 }
 function nextOnboard() {
   if (!S.code || !S.me || S.view !== 'home') return;
+  if (needInvite()) return inviteSheet();   // first thing: get the other half in. Asks again once a day, four times at most
   if (!standalone() && !ls.get('a2hs')) return installSheet();
   if (needSetup()) return setupSheet();
   if (holdForInstall()) return;   // this-phone steps wait for the Home Screen app, for a day
   if (needLoc()) return locSheet();
   if (needPushAsk()) return pushAskSheet();
   if (!ls.get('coach')) return coach();
+}
+const needInvite = () => !!S.state && !partner() && Date.now() - Number(ls.get('invAt') || 0) > 864e5 && Number(ls.get('invN') || 0) < 4;
+const inviteLink = () => `${location.origin}${location.pathname}?c=${S.code}`;
+const inviteMsg = () => `Join me on Let’s Together so we can stop asking “what do you want to do?” Open the link, save it to your Home Screen, then enter our couple code: ${S.code}`;
+const inviteAsked = () => { ls.set('invAt', String(Date.now())); ls.set('invN', String(Number(ls.get('invN') || 0) + 1)); };
+function inviteSheet() {
+  const again = Number(ls.get('invN') || 0) > 0;
+  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('heart')}</span><h2>${again ? 'Still waiting on your other half' : 'First, send the invite'}</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">${again ? 'Nothing can match until you are both in. Send the link again. Joining takes about a minute.' : 'Let’s Together works once you are both in. Send your other half the link now, then carry on setting up while they join.'}</p></div></div>
+    <div class="note" style="margin:16px 0">Your couple code is <b>${esc(S.code)}</b>. The link fills it in for them.</div>
+    ${isPhone() ? `<button class="btn" data-act="invtext">${ic('mail')} Text the invite</button><div style="height:10px"></div>` : ''}<button class="btn ${isPhone() ? 'ghost' : ''}" data-act="invshare">${isPhone() ? 'Send another way' : 'Copy the invite'}</button><div style="height:10px"></div><button class="btn ghost" data-act="invlater">I’ll do it later</button>`);
 }
 const isPhone = () => /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
 const holdForInstall = () => !standalone() && isPhone() && Date.now() - Number(ls.get('a2hs') || 0) < 864e5;
@@ -1930,9 +1941,12 @@ document.addEventListener('click', async e => {
       case 'newcouple': { const name = document.getElementById('jn').value.trim(), jz = document.getElementById('jz');
         if (!jz) { S.joinMode = 'new'; S.joinForm = true; history.replaceState(null, '', location.pathname); render(); const n2 = document.getElementById('jn'); if (n2) n2.value = name; return toast('Add your first name and home ZIP to start.', 3500); }
         if (!name) return toast('Enter your name first.'); const zip = jz.value.trim(); if (!/^\d{5}$/.test(zip)) return toast('Enter your 5-digit home ZIP code.');
-        t.disabled = true; try { const r = await rpc('create_couple', { p_name: name }); S.code = r.code; S.me = r.name; ls.set('code', r.code); ls.set('name', r.name); try { await rpc('set_settings', { p_code: r.code, p_settings: { zip } }); } catch {} history.replaceState(null, '', location.pathname); await boot(); toast('You are set up. Send the invite link to your other half.', 4500); } catch (er) { t.disabled = false; toast(errMsg(er)); } return; }
+        t.disabled = true; try { const r = await rpc('create_couple', { p_name: name }); S.code = r.code; S.me = r.name; ls.set('code', r.code); ls.set('name', r.name); try { await rpc('set_settings', { p_code: r.code, p_settings: { zip } }); } catch {} history.replaceState(null, '', location.pathname); await boot();  } catch (er) { t.disabled = false; toast(errMsg(er)); } return; }
       case 'savesettings': { const root = t.closest('.sheet') || document; const services = [...root.querySelectorAll('[data-svc].on')].map(x => x.dataset.svc); if (!services.length) return toast('Pick at least one streaming service.'); { const z = root.querySelector('#s_zip').value.trim(); if (!/^\d{5}(-\d{4})?$/.test(z) && !(S.settings?.lat && !z)) return toast('Enter your 5-digit home ZIP code.'); } S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { zip: root.querySelector('#s_zip').value.trim(), services, radius_mi: Number(root.querySelector('#s_rad')?.value || 2), setup: true } }); const fromSheet = !!t.closest('.sheet'); closeSheet(); toast('Saved for both of you.'); send({ type: 'joined' }); render(); if (fromSheet) nextOnboard(); return; }
       case 'psearch': return placeSearch(t);
+      case 'invtext': { inviteAsked(); closeSheet(); const body = encodeURIComponent(`${inviteMsg()}\n${inviteLink()}`); location.href = /iphone|ipad|ipod|macintosh/i.test(navigator.userAgent) ? `sms:&body=${body}` : `sms:?body=${body}`; return setTimeout(nextOnboard, 1200); }
+      case 'invshare': { inviteAsked(); try { if (navigator.share) await navigator.share({ title: 'Let’s Together', text: inviteMsg(), url: inviteLink() }); else { await navigator.clipboard.writeText(`${inviteMsg()}\n${inviteLink()}`); toast('Invite and code copied.'); } } catch {} closeSheet(); return nextOnboard(); }
+      case 'invlater': inviteAsked(); closeSheet(); toast('You can send it any time from the home screen.', 3500); return nextOnboard();
       case 'a2hsdone': ls.set('a2hs', String(Date.now())); closeSheet(); return nextOnboard();
       case 'skipsetup': ls.set('setupskip', '1'); closeSheet(); if (S.settings.zip || S.settings.lat) nextOnboard(); return;
       case 'locon': return locAsk();
