@@ -1751,7 +1751,7 @@ document.addEventListener('click', async e => {
     if (ds.planf) { const i = ds.planf.lastIndexOf('|'); S.planF ||= {}; S.planF[ds.planf.slice(0, i)] = ds.planf.slice(i + 1); return renderTrips(); }
     if ('libc' in ds) { S.libC = ds.libc; S.libSel = null; return renderLibrary(); }
     if (ds.libf) { S.libF = ds.libf; S.libSel = null; return renderLibrary(); }
-    if (ds.lib) { const c = (S.lib || []).find(x => x.id === ds.lib); if (!S.libSel) return libFront(c, t);
+    if (ds.lib) { const c = (S.lib || []).find(x => x.id === ds.lib) || (S.view === 'trips' ? (S.libThem || []).find(x => x.id === ds.lib) : null); if (!S.libSel) return libFront(c, t);
       if (S.libSel.has(c.id)) S.libSel.delete(c.id); else if (S.libSel.size >= 6) return toast('Six is plenty.'); else S.libSel.add(c.id);
       t.classList.toggle('sel', S.libSel.has(c.id)); const b = document.getElementById('lplay'); if (b) { b.textContent = `Play for it (${S.libSel.size})`; b.disabled = S.libSel.size < 2; b.style.opacity = S.libSel.size < 2 ? .5 : 1; } return; }
     if (ds.nudge) return nudgeSheet(ds.nudge);
