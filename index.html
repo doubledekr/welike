@@ -574,6 +574,8 @@ html.ios-app .scr{position:absolute}
 .case .tic{width:34px;height:34px;border-radius:11px;font-size:17px;background:linear-gradient(135deg,#4d9bff,#2dd4bf)}
 .case b{display:block;font-size:14.5px;line-height:1.25}.case small{display:block;font-size:12.5px;color:#d5e6f5}
 .case .go{flex:none;padding:8px 13px;border-radius:99px;font-weight:700;font-size:13px;color:#06263d;background:#fff}
+.stamp{font-size:clamp(44px,15vw,74px)}
+.coach-card .cs{font-size:34px}
 @keyframes celein{from{transform:translate(-50%,-30px) scale(.7);opacity:0}}
 @keyframes celeout{to{transform:translate(-50%,-20px);opacity:0}}
 @keyframes beat{50%{transform:scale(1.25)}}
@@ -741,7 +743,7 @@ async function openScratch() {
   let down = false, lx = 0, ly = 0, moves = 0, done = false;
   const pt = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; };
   const reveal = () => { if (done) return; done = true; cv.style.transition = 'opacity .5s'; cv.style.opacity = 0; setTimeout(() => cv.remove(), 520);
-    document.getElementById('scp').innerHTML = `${esc(them())} said <b>${c.loved ? 'Love it' : 'I’m in'}</b> to this one. It is not a match yet. If it comes up again, you know what to do.`;
+    document.getElementById('scp').innerHTML = `${esc(them())} said <b>${c.loved ? 'Love it' : 'Like it'}</b> to this one. It is not a match yet. If it comes up again, you know what to do.`;
     document.getElementById('scb').style.visibility = ''; ls.set('scratchAt', String(Date.now())); try { navigator.vibrate?.([20, 30, 40]); } catch {} };
   const check = () => { const d = g.getImageData(0, 0, W, H).data; let clear = 0, tot = 0; for (let i = 3; i < d.length; i += 4 * 37) { tot++; if (d[i] < 40) clear++; } if (clear / tot > .45) reveal(); };
   cv.addEventListener('pointerdown', e => { e.preventDefault(); down = true; [lx, ly] = pt(e); g.beginPath(); g.arc(lx, ly, g.lineWidth / 2, 0, 7); g.fill(); try { cv.setPointerCapture(e.pointerId); } catch {} });
@@ -842,7 +844,7 @@ function renderLanding() {
   const slide = (art, h, p, extra = '') => `<section class="ob-slide"><div class="ob-card">${art}<h2>${h}</h2><p>${p}</p>${extra}</div></section>`;
   const slides = [
     slide(`${MARK}<div class="brand">${BRAND}</div>`, 'Stop asking “what do you want to do?”', 'A swipe app for two. Swipe this way to see how it works.', `<div class="ob-hint">${ic('undo')} swipe</div>`),
-    slide(`<div class="ob-art"><span class="mini no">${ic('x')}</span><span class="mini yes">${ic('heart')}</span></div>`, 'Swipe separately', 'Movies, places to eat, local events and someday trips. Nope, I’m in, or love it. Your swipes stay private unless you both say yes, apart from a rare scratch-card hint.'),
+    slide(`<div class="ob-art"><span class="mini no">${ic('x')}</span><span class="mini yes">${ic('heart')}</span></div>`, 'Swipe separately', 'Movies, places to eat, local events and someday trips. No thanks, like it, or love it. Your swipes stay private unless you both say yes, apart from a rare scratch-card hint.'),
     slide(`<div class="ob-art"><span class="mini a"></span><span class="mini b"></span><span class="badge" style="position:absolute">${ic('heart')}</span></div>`, 'See what you both like', 'When you have both said yes to the same thing, it is a match. Matches collect in a shared library you can open any time.'),
     slide(`<div class="ob-art"><span class="badge">${ic('shuffle')}</span></div>`, 'Decide tonight', 'Pick a match, shuffle one at random, send a trailer for a quick yes or no, or play a tie-breaker and let the winner choose.'),
     ...(standalone() ? [] : [slide(`<div class="ob-art"><span class="badge">${ic('share')}</span></div>`, 'First, save it to your Home Screen', 'Do this before you sign up. Let’s Together is used from the icon on your Home Screen, not from the browser. That is how it opens full screen and how nudges reach you.',
@@ -1023,7 +1025,7 @@ function renderGallery() {
       ${dest ? `<div class="case"><span class="tic">${ic('plane')}</span><span class="grow"><b>${esc(h.city)} is on your trips list</b><small>${h.cs.length} piece${h.cs.length > 1 ? 's' : ''} to see and ${h.todo} thing${h.todo > 1 ? 's' : ''} to do</small></span><button class="go" data-act="trips">See the case</button></div>` : ''}
       ${open ? `<div class="gal">${h.cs.map(frameHTML).join('')}</div>${dest ? `<button class="jlink" data-astack="${esc(key)}" style="padding-top:4px">Stack them back up</button>` : ''}` : `<div class="astack-wrap">${artStack(h.cs, key, 'tap to spread out')}</div>`}
       ${h.city && h.nb && !dest ? `<button class="btn ghost sm" data-gcity="${esc(h.city)}" style="margin-top:12px">${ic('plane')} Things to do in ${esc(h.city)}</button>` : ''}</div>`; }).join('')
-      : `<div class="note" style="margin-top:16px"><b>Your gallery is empty.</b> Swipe “I’m in” or “Love it” on the Art tab and the pieces hang here, grouped by the museum that holds them.</div>`}
+      : `<div class="note" style="margin-top:16px"><b>Your gallery is empty.</b> Swipe “Like it” or “Love it” on the Art tab and the pieces hang here, grouped by the museum that holds them.</div>`}
     <p class="muted" style="font-size:11.5px;text-align:center;margin:22px 0 6px">Public-domain images from the Art Institute of Chicago and the Cleveland Museum of Art.</p></div>`;
 }
 
@@ -1049,7 +1051,7 @@ function renderTrips() {
       return `<div class="tcity"><div class="tc-h">${both ? '<span class="casetag">The case for going</span>' : ''}<b>${esc(g.city)}</b><small class="${g.tb || g.ab ? 'hot' : ''}">${line(g)}</small></div>
       <div class="trow">${g.a.length ? (open ? g.a.map(c => `<button class="tcard art ${c.who === 'both' ? 'both' : ''}" data-lib="${c.id}"><img src="${esc(c.image)}" alt="">${c.who === 'both' ? `<span class="hb">${ic('heart')}</span>` : ''}<span class="tt"><b>${esc(c.title)}</b><small>${esc(c.data?.museum || '')}</small></span></button>`).join('') : artStack(g.a, key, 'art to see')) : ''}${g.t.map(c => `<button class="tcard ${c.who === 'both' ? 'both' : ''}" data-lib="${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="">` : ''}${c.who === 'both' ? `<span class="hb">${ic('heart')}</span>` : ''}<span class="tt"><b>${esc(c.title)}</b><small>${[c.data?.price ? 'from $' + c.data.price : '', c.data?.rating ? '★ ' + c.data.rating : ''].filter(Boolean).join(' · ')}</small></span></button>`).join('')}</div>
       ${g.a.length && !g.t.length ? `<button class="btn ghost sm" data-gcity="${esc(g.city)}">${ic('plane')} Find things to do in ${esc(g.city)}</button>` : ''}</div>`; }).join('')
-      : `<div class="note" style="margin-top:16px"><b>No trips saved yet.</b> Swipe “I’m in” on the Trips tab and they collect here, grouped by city. Art you like in the same city stacks up alongside, so you can see the case for going.</div>`}
+      : `<div class="note" style="margin-top:16px"><b>No trips saved yet.</b> Swipe “Like it” on the Trips tab and they collect here, grouped by city. Art you like in the same city stacks up alongside, so you can see the case for going.</div>`}
     <p class="muted" style="font-size:11.5px;text-align:center;margin:22px 0 6px">Experiences from Viator. Let’s Together may earn a commission if you book.</p></div>`;
 }
 
@@ -1301,8 +1303,8 @@ function installSheet() {
     <button class="btn" data-act="a2hsdone">Got it</button>`);
 }
 const COACH = [
-  ['I’m in', 'Swipe right for I’m in', 'You would be up for this. Your other half only sees it if they say yes too, or as a rare scratch-card hint.'],
-  ['Nope', 'Swipe left for nope', 'Not this time. It stays out of the way for a while, then can come back another day.'],
+  ['Like it', 'Swipe right to like it', 'You would be up for this. Your other half only sees it if they say yes too, or as a rare scratch-card hint.'],
+  ['No thanks', 'Swipe left for no thanks', 'Not this time. It stays out of the way for a while, then can come back another day.'],
   ['Love it', 'Swipe up to love it', 'A yes with extra weight. If you both say yes, you will see who loved it.'],
   ['Seen it', 'Swipe down if you have seen it', 'Movies only. It goes to your Seen folder so it stops coming up, and can return later as a watch-again.'],
   ['', 'Tap a card for the details', 'Cast, trailer, where it is streaming, menus and maps. The buttons under the card do the same as swiping.'],
@@ -1391,7 +1393,7 @@ function cardHTML(c, cls = '') {
   const art = c.image ? `<img class="bg" src="${esc(c.image)}" alt="" draggable="false" onerror="this.remove()">` : '';
   return `<div class="card ${cls}" data-id="${c.id}"><div class="art ${c.deck}">${emojiFor(c)}</div>${art}
     <div class="shade"><h3>${esc(c.title)}</h3>${c.subtitle ? `<div class="sub">${esc(c.subtitle)}</div>` : ''}<div class="tags">${tags.join('')}</div></div>
-    <div class="info">i</div><div class="stamp yes">I’m in</div><div class="stamp no">Nope</div><div class="stamp love">Love it</div>${c.deck === 'movie' && !S.rewatch ? '<div class="stamp seen">Seen it</div>' : ''}</div>`;
+    <div class="info">i</div><div class="stamp yes">Like it</div><div class="stamp no">No thanks</div><div class="stamp love">Love it</div>${c.deck === 'movie' && !S.rewatch ? '<div class="stamp seen">Seen it</div>' : ''}</div>`;
 }
 function updateBar() { const el = document.getElementById('prog'); if (el) el.textContent = S.bite ? (S.deck.length ? `${S.deck.length} left today` : '') : S.solo || !partner() ? `${S.deck.length} left` : `${S.deck.length} left · ${them()} has ${S.theirLeft ? S.theirLeft + ' to go' : 'finished'}`; const m = document.getElementById('mcount'); if (m) { m.textContent = S.matches.length ? `${S.matches.length} match${S.matches.length > 1 ? 'es' : ''}` : 'No matches yet'; m.className = 'pill' + (S.matches.length ? ' hot' : ''); } }
 function renderSwipe() {
