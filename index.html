@@ -1000,7 +1000,7 @@ async function playGame() {
     let n = 0; st.innerHTML = `<div class="gbar"><i id="gb"></i></div><button class="gpad" id="gpad"><b id="gn">0</b><small>TAP!</small></button>`;
     const pad = document.getElementById('gpad'), num = document.getElementById('gn'), bar = document.getElementById('gb'), ms = t.cfg.seconds * 1000;
     const hit = e => { e.preventDefault(); n++; num.textContent = n; pad.classList.remove('hit'); void pad.offsetWidth; pad.classList.add('hit'); };
-    pad.addEventListener('pointerdown', hit); bar.style.transition = `transform ${ms}ms linear`; requestAnimationFrame(() => bar.style.transform = 'scaleX(0)');
+    pad.addEventListener('pointerdown', hit); bar.style.transition = `transform ${ms}ms linear`; setTimeout(() => bar.style.transform = 'scaleX(0)', 40);
     await wait(ms); pad.removeEventListener('pointerdown', hit); try { navigator.vibrate?.(60); } catch {}
     st.innerHTML = `<div class="gcount">${n}</div><p class="muted">taps</p>`; await wait(900); return gameSubmit({ taps: n });
   }
@@ -1008,9 +1008,9 @@ async function playGame() {
     if (!await countdown(st)) return void (S.playing = false);
     st.innerHTML = `<p class="muted" style="margin:0">Stop at <b style="color:var(--text)">${secs(t.cfg.target)} s</b></p><div class="gcount" id="gt">0.00</div><button class="gpad" id="gpad"><b>STOP</b><small>tap anywhere here</small></button>`;
     const t0 = performance.now(), disp = document.getElementById('gt'), pad = document.getElementById('gpad'); let done = false, raf;
-    const tick = () => { if (done) return; const e = performance.now() - t0; disp.textContent = e < 1200 ? secs(e) : '?.??'; raf = requestAnimationFrame(tick); }; tick();
+    raf = setInterval(() => { if (done) return; const e = performance.now() - t0; disp.textContent = e < 1200 ? secs(e) : '?.??'; }, 40);
     const ms = await new Promise(res => { pad.addEventListener('pointerdown', e => { e.preventDefault(); res(performance.now() - t0); }, { once: true }); setTimeout(() => res(t.cfg.target + 6000), t.cfg.target + 6000); });
-    done = true; cancelAnimationFrame(raf); const off = Math.abs(ms - t.cfg.target);
+    done = true; clearInterval(raf); const off = Math.abs(ms - t.cfg.target);
     st.innerHTML = `<div class="gcount">${secs(ms)}</div><p class="muted">${secs(off)} s ${ms > t.cfg.target ? 'over' : 'under'} the target</p>`; await wait(1300); return gameSubmit({ ms: Math.round(ms) });
   }
   // trivia
@@ -1018,7 +1018,7 @@ async function playGame() {
   for (let k = 0; k < qs.length; k++) {
     const q = qs[k];
     st.innerHTML = `<small class="muted" style="letter-spacing:1px;text-transform:uppercase;font-size:12px">${tb ? 'Tie-breaker' : `Question ${k + 1} of ${qs.length}`}</small><div class="gbar"><i id="gb"></i></div><h3 class="gq">${esc(q.q)}</h3><div class="gopts">${q.options.map((o, i) => `<button class="gopt" data-o="${i}">${esc(o)}</button>`).join('')}</div>`;
-    const bar = document.getElementById('gb'); bar.style.transition = `transform ${lim}ms linear`; requestAnimationFrame(() => bar.style.transform = 'scaleX(0)');
+    const bar = document.getElementById('gb'); bar.style.transition = `transform ${lim}ms linear`; setTimeout(() => bar.style.transform = 'scaleX(0)', 40);
     const t0 = performance.now();
     const a = await new Promise(res => { st.querySelectorAll('.gopt').forEach(b => b.addEventListener('pointerdown', e => { e.preventDefault(); b.classList.add('on'); res({ i: Number(b.dataset.o), ms: Math.round(performance.now() - t0) }); }, { once: true })); setTimeout(() => res({ i: -1, ms: lim }), lim); });
     st.querySelectorAll('.gopt').forEach(b => b.disabled = true); out.push(a);
