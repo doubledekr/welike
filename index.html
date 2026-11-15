@@ -238,6 +238,7 @@ const ICONS = {
   list: 'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01', sliders: 'M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M16 4v4M10 10v4M18 16v4',
   mail: 'M3 6h18v12H3zM3 7l9 6 9-6', repeat: 'M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3',
   target: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z',
+  search: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-3.5-3.5',
   share: 'M12 15V3M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7', plus: 'M4 4h16v16H4zM12 8v8M8 12h8',
 };
 const ic = n => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[n] || ''}"/></svg>`;
@@ -386,6 +387,7 @@ function homeHTML() {
   return `<div class="home">
     <div class="row"><div class="brand grow" style="font-size:28px">We<i>Like</i></div>
       <button class="pill ${st.counts.shortlist ? 'hot' : ''}" data-act="shortlist" aria-label="Shortlist">♥ ${st.counts.shortlist || 0}</button>
+      <button class="ib" data-act="search" aria-label="Search movies">${ic('search')}</button>
       <button class="ib" data-tab="lists" aria-label="Lists">${ic('list')}</button><button class="ib" data-tab="you" aria-label="You and settings">${ic('sliders')}</button></div>
     ${!p ? `<button class="nudge slim" data-act="invite"><span class="grow"><b>Invite your other half</b></span><span class="go">Send link</span></button>` : ''}
     ${incoming.slice(0, 1).map(s => `<button class="nudge slim" data-open="${s.id}"><span class="grow"><b>${esc(s.from)} ${s.filters?.wishlist ? 'shared a wishlist' : 'nudged you'}</b><small> · ${esc(s.filters?.wishlist ? 'movies to pick from' : s.note || DECKS[s.deck].label)} · ${s.my_left} to swipe</small></span><span class="go">Swipe</span></button>`).join('')}
@@ -429,6 +431,20 @@ function tonightSheet() {
     return `<button class="sess" data-open="${s.id}"><span class="tic">${ic(DIC[s.deck])}</span><span class="grow"><b>${name}</b><small>${s.from === S.me ? 'You' : esc(s.from)} · ${ago(s.created_at)} · ${status}</small></span>${s.matches ? `<span class="pill hot">${s.matches} match${s.matches > 1 ? 'es' : ''}</span>` : ''}</button>`;
   }).join('');
   sheet(h);
+}
+function searchSheet() {
+  sheet(`<div class="grab"></div><h2>Find a movie</h2><p class="muted" style="margin-top:6px;font-size:14.5px">Search by title, actor, director or genre. Liking one here counts the same as swiping yes, so it gets dealt early in your next round.</p>
+    <label class="field"><span>Search your services</span><input id="sq" maxlength="60" enterkeyhint="search" placeholder="Knives Out, Zendaya, heist…"></label>
+    <div style="height:10px"></div><button class="btn ghost sm" data-act="searchgo">Search</button><div id="sres"></div>`);
+  setTimeout(() => document.getElementById('sq')?.focus(), 250);
+}
+async function searchGo() {
+  const el = document.getElementById('sres'), q = document.getElementById('sq')?.value.trim() || ''; if (!el) return;
+  if (q.length < 2) return toast('Type at least two letters.');
+  el.innerHTML = '<p class="muted" style="font-size:14px;margin-top:12px">Searching…</p>';
+  const items = await rpc('search_movies', { p_code: S.code, p_member: S.me, p_q: q }); S.listCards = items;
+  el.innerHTML = items.length ? items.map(c => `<div class="item"><button data-detail="${c.id}" style="width:44px;height:62px;border-radius:8px;overflow:hidden;background:var(--bg);flex:none;display:grid;place-items:center">${c.image ? `<img src="${esc(c.image)}" alt="" style="width:100%;height:100%;object-fit:cover">` : ic('film')}</button><span class="grow"><b>${esc(c.title)}</b><small>${esc(c.subtitle || '')}</small><small>${esc((c.data.services || []).join(', '))}</small></span>${c.mine === 'seen' ? '<span class="pill">Seen</span>' : c.mine === 'yes' || c.mine === 'love' ? '<span class="pill hot">Liked</span>' : `<button class="btn sm" data-like="${c.id}">Like</button>`}</div>`).join('')
+    : '<div class="note">Nothing on your services matches that yet. The catalog grows a little every night.</div>';
 }
 async function shortlistSheet() {
   const items = await rpc('shortlist', { p_code: S.code }); S.listCards = items; const lab = { movie: 'Movie', dinner: 'Eat', event: 'Event' };
@@ -765,12 +781,13 @@ async function saveAdd(t) {
 
 /* ---------- events ---------- */
 document.addEventListener('click', async e => {
-  const t = e.target.closest('[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-hdeck],[data-lad],[data-chg],[data-tbpick],[data-g],[data-seenany],[data-padd],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
+  const t = e.target.closest('[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-hdeck],[data-like],[data-lad],[data-chg],[data-tbpick],[data-g],[data-seenany],[data-padd],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
   if (!t) return; const ds = t.dataset;
   try {
     if (t.id === 'jgo') { const name = document.getElementById('jn').value.trim(), code = document.getElementById('jc').value.trim().toUpperCase(); if (!name || !code) return toast('Enter your name and the couple code.'); t.disabled = true; try { const r = await rpc('join_couple', { p_code: code, p_name: name }); S.code = code; S.me = r.name; ls.set('code', code); ls.set('name', r.name); history.replaceState(null, '', location.pathname); await boot(); send({ type: 'joined' }); } catch (er) { t.disabled = false; toast(errMsg(er)); } return; }
     if ('scrim' in ds) return closeSheet();
     if (ds.tab) { S.tab = ds.tab; S.view = 'home'; if (ds.tab === 'home') await refresh(); return render(); }
+    if (ds.like) { t.disabled = true; const r = await rpc('like_card', { p_code: S.code, p_member: S.me, p_card: ds.like }); t.outerHTML = '<span class="pill hot">Liked</span>'; if (r.match) { toast('You have both liked that one. It will come up first next round.', 3500); send({ type: 'shortlist' }); } refresh().catch(() => {}); return; }
     if (ds.hdeck) { S.homeDeck = ds.hdeck; ls.set('deck', ds.hdeck); return render(); }
     if (ds.lad) return ladder(ds.lad, t);
     if (ds.chg) { const o = S.chg?.[+ds.chg]; if (!o) return; if (o.widen) { const cur = Number(S.settings?.radius_mi || 2), next = [5, 10, 25].find(m => m > cur) || 25; S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { radius_mi: next } }); toast(`Looking within ${next} miles now.`); } return startSession(o.deck, o.filters, o.label); }
@@ -809,6 +826,8 @@ document.addEventListener('click', async e => {
       case 'geo': { if (!navigator.geolocation) return toast('This phone will not share its location with WeLike.'); navigator.geolocation.getCurrentPosition(async pos => { try { S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { lat: pos.coords.latitude, lng: pos.coords.longitude } }); document.querySelectorAll('#geonote').forEach(n => n.textContent = 'Location saved'); toast('Location saved.'); } catch { toast('Could not save your location.'); } }, () => toast('Location is turned off for WeLike in your phone settings.'), { timeout: 10000 }); return; }
       case 'wishlist': return startSession('movie', { wishlist: true }, null);
       case 'tonight': return tonightSheet();
+      case 'search': return searchSheet();
+      case 'searchgo': return searchGo();
       case 'shortlist': return shortlistSheet();
       case 'guess': return startGuess();
       case 'unlock': S.unlock = true; S.view = 'home'; S.tab = 'home'; await refresh(); return render();
@@ -822,7 +841,8 @@ document.addEventListener('click', async e => {
     }
   } catch (er) { console.error(er); toast(errMsg(er)); }
 });
-document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'p_q') { e.preventDefault(); e.target.blur(); document.querySelector('[data-act="psearch"]')?.click(); } });
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'sq') { e.preventDefault(); searchGo(); return; }
+  if (e.key === 'Enter' && e.target.id === 'p_q') { e.preventDefault(); e.target.blur(); document.querySelector('[data-act="psearch"]')?.click(); } });
 document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && S.code && S.me) { try { await refresh(); if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) render(); else if (S.view === 'swipe' && S.sess) { const d = await rpc('get_session', { p_code: S.code, p_session: S.sess.id, p_member: S.me }); S.theirLeft = d.their_left; S.total = d.total; if (d.matches.length !== S.matches.length) { S.matches = d.matches; } if (d.deck.length !== S.deck.length && !busy) { S.deck = d.deck; drawStack(); } else updateBar(); } } catch {} } });
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); navigator.serviceWorker.addEventListener('message', e => { const u = e.data?.open; if (u) { const s = new URL(u).searchParams.get('s'); if (s && S.me) openSession(s); } }); }
 
