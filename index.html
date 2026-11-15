@@ -1030,6 +1030,11 @@ async function lateFill(deck, sid, look, bg, res) {
 async function loadBite() {
   const deck = S.homeDeck, extra = !!S.unlock; S.unlock = false;
   const here = () => S.view === 'home' && S.tab === 'home' && S.homeDeck === deck && document.getElementById('stack');
+  // No movies until the streaming services are chosen: a handful dealt before that ignores them.
+  if (deck === 'movie' && !S.settings?.services?.length && !S.settings?.setup && !ls.get('setupskip')) {
+    const st = document.getElementById('stack'); if (st) st.innerHTML = `<div class="done"><div class="badge">${ic('film')}</div><h3>First, your streaming services</h3><p class="muted">Pick the ones you have and your movies will only be things you can actually watch.</p><div style="height:12px"></div><button class="btn" data-act="opensetup">Choose services</button></div>`;
+    return;
+  }
   try {
     const away = S.away && (deck === 'dinner' || deck === 'event') ? S.away.city : '';
     // Eat and Go out: with a good stock of saved places the cards are dealt at once and the Google lookup runs
@@ -2104,7 +2109,8 @@ document.addEventListener('click', async e => {
       case 'invshare': { inviteAsked(); try { if (navigator.share) await navigator.share({ title: 'Let’s Together', text: inviteMsg(), url: inviteLink() }); else { await navigator.clipboard.writeText(`${inviteMsg()}\n${inviteLink()}`); toast('Invite and code copied.'); } } catch {} closeSheet(); return nextOnboard(); }
       case 'invlater': inviteAsked(); closeSheet(); toast('You can send it any time from the home screen.', 3500); return nextOnboard();
       case 'a2hsdone': ls.set('a2hs', String(Date.now())); closeSheet(); return nextOnboard();
-      case 'skipsetup': ls.set('setupskip', '1'); closeSheet(); if (S.settings.zip || S.settings.lat) nextOnboard(); return;
+      case 'opensetup': return setupSheet();
+      case 'skipsetup': ls.set('setupskip', '1'); closeSheet(); if (S.view === 'home' && S.tab === 'home') render(); if (S.settings.zip || S.settings.lat) nextOnboard(); return;
       case 'locon': return locAsk();
       case 'locskip': ls.set('askedloc', '1'); closeSheet(); return nextOnboard();
       case 'locdone': closeSheet(); nextOnboard(); return checkTravel();
