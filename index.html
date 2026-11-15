@@ -1007,16 +1007,38 @@ function homeHTML() {
     <button class="btn" data-act="tonight" style="margin-top:10px">What should we do tonight?</button>
   </div>`;
 }
+// What the last lookup said is saved on this phone, so the next open knows whether it can deal first and look later.
+const stocked = d => { try { const x = JSON.parse(ls.get('stock_' + d) || 'null'); return !!x && x.c === S.code && x.n >= 20 && Date.now() - x.at < 3 * 864e5; } catch { return false; } };
+const noteStock = (d, r) => { if (r?.ok && !r.busy) ls.set('stock_' + d, JSON.stringify({ c: S.code, n: r.ready ?? r.fresh ?? r.unswiped ?? 0, at: Date.now() })); };
+// After the cards are on screen: wait for a lookup still running behind them, come back once if it was busy or the
+// stack came up short, and add whatever new places arrived to the end of today's handful.
+async function lateFill(deck, sid, look, bg, res) {
+  try {
+    if (bg) res = await bg;
+    noteStock(deck, res);
+    const short = () => S.sess?.id === sid && S.bite && (S.total || 0) < (S.sess?.filters?.extra ? 20 : 10);
+    if (!short() && !res?.busy) return;
+    if (res?.busy || !res?.added) { await new Promise(r => setTimeout(r, 3500)); res = await look(12000); noteStock(deck, res); }
+    if (!short()) return;
+    const n = await rpc('bite_topup', { p_code: S.code, p_member: S.me, p_session: sid });
+    if (n > 0 && S.sess?.id === sid && S.view === 'home' && S.tab === 'home' && S.homeDeck === deck && document.getElementById('stack') && !$layer.innerHTML) { await loadSession(sid); if (S.sess?.id === sid && S.homeDeck === deck && document.getElementById('stack')) drawStack(); }
+  } catch {}
+}
 // The main screen deals one small solo stack per deck per day. Likes are saved quietly and feed the next round.
 async function loadBite() {
   const deck = S.homeDeck, extra = !!S.unlock; S.unlock = false;
   const here = () => S.view === 'home' && S.tab === 'home' && S.homeDeck === deck && document.getElementById('stack');
   try {
-    if (deck === 'dinner') await nearby(6000);
     const away = S.away && (deck === 'dinner' || deck === 'event') ? S.away.city : '';
-    const og = deck === 'event' && !away ? outings(6000) : null;
+    // Eat and Go out: with a good stock of saved places the cards are dealt at once and the Google lookup runs
+    // behind them; with little or nothing saved (first open, running low) the lookup comes first, as before.
+    const look = !away && (deck === 'dinner' || deck === 'event') ? (ms => deck === 'dinner' ? nearby(ms) : outings(ms)) : null;
+    const quick = look && stocked(deck); let bg = null, res = null;
+    if (deck === 'dinner' && !look) await nearby(6000);
+    else if (quick) bg = look(12000);
+    const og = look && !quick ? look(6000).then(x => (res = x)) : null;
     if (deck === 'event' && away) await Promise.race([sb.functions.invoke('trips', { body: { action: 'local', code: S.code, city: away } }).catch(() => {}), new Promise(r => setTimeout(r, 7000))]);
-    else if (deck === 'event' && S.settings.zip && ls.get('lexp') !== new Date().toDateString()) { ls.set('lexp', new Date().toDateString()); await Promise.race([sb.functions.invoke('trips', { body: { action: 'local', code: S.code } }).catch(() => {}), new Promise(r => setTimeout(r, 5000))]); }
+    else if (deck === 'event' && S.settings.zip && ls.get('lexp') !== new Date().toDateString()) { ls.set('lexp', new Date().toDateString()); const lx = Promise.race([sb.functions.invoke('trips', { body: { action: 'local', code: S.code } }).catch(() => {}), new Promise(r => setTimeout(r, 5000))]); if (quick) bg = Promise.all([bg, lx]).then(a => a[0]); else await lx; }
     if (og) await og;
     const r = deck === 'art' ? await rpc('start_art', { p_code: S.code, p_member: S.me, p_extra: extra })
       : deck === 'trip' ? await rpc('start_trips', { p_code: S.code, p_member: S.me, p_city: S.tripCity || '', p_extra: extra })
@@ -1025,6 +1047,7 @@ async function loadBite() {
     if (!here()) return;
     await loadSession(r.id); if (!here()) return;
     drawStack();
+    if (look) lateFill(deck, r.id, look, bg, res);
   } catch (e) { const st = document.getElementById('stack'); if (st && here()) st.innerHTML = '<div class="done"><p class="muted">Could not load today’s cards. Reopen the app to try again.</p></div>'; }
 }
 function biteDoneHTML() {
