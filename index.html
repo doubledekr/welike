@@ -160,6 +160,46 @@ h1,h2,h3,p{margin:0}
 .match .btn{max-width:320px}
 .toast{position:fixed;left:50%;top:calc(var(--st) + 12px);transform:translateX(-50%);z-index:40;background:var(--text);color:var(--bg);border-radius:14px;padding:11px 16px;font-size:14px;font-weight:600;max-width:88%;box-shadow:0 10px 30px rgba(0,0,0,.4);animation:drop .25s}
 .center{flex:1;display:flex;flex-direction:column;justify-content:center;padding:30px 26px calc(var(--sb) + 30px)}
+/* polish */
+.ic{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-.14em}
+body::before{content:"";position:fixed;inset:-20% -10% auto -10%;height:60%;background:radial-gradient(60% 60% at 30% 20%,rgba(255,106,77,.13),transparent 70%),radial-gradient(50% 50% at 85% 10%,rgba(226,61,110,.12),transparent 70%);pointer-events:none;z-index:0}
+#app,#layer{position:absolute;z-index:1}#layer{position:static}
+.brand i{background:linear-gradient(100deg,#ff6a4d 20%,#ffd0a8 45%,#ff5c8a 70%,#ff6a4d 95%);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:sheen 5s linear infinite}
+.btn{position:relative;overflow:hidden;background:linear-gradient(135deg,#ff7a4d,#ff4d7e);color:#fff;letter-spacing:.2px;border-radius:16px;
+  box-shadow:0 8px 24px -8px rgba(255,90,100,.65),inset 0 1px 0 rgba(255,255,255,.35),inset 0 -2px 0 rgba(0,0,0,.12);transition:transform .12s}
+.btn::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.28) 50%,transparent 65%);transform:translateX(-120%);animation:sweep 4.5s ease-in-out infinite}
+.btn:active{transform:scale(.975)}
+.btn.ghost{background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));color:var(--text);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12),inset 0 1px 0 rgba(255,255,255,.1)}
+.btn.ghost::after{display:none}
+.btn.sm{border-radius:12px}
+.chip{background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.12);color:#d9d0dc;font-weight:500;transition:all .15s}
+.chip.on,.sheet .chip.on{background:linear-gradient(135deg,#ff7a4d,#ff4d7e);border-color:transparent;color:#fff;font-weight:600;box-shadow:0 6px 18px -6px rgba(255,90,100,.7),inset 0 1px 0 rgba(255,255,255,.35)}
+.seg{background:rgba(255,255,255,.05);box-shadow:inset 0 0 0 1px rgba(255,255,255,.07);border-radius:14px}
+.seg button{border-radius:11px;font-weight:500;transition:all .15s}
+.seg button.on{background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.07));box-shadow:0 4px 14px -6px rgba(255,106,77,.6),inset 0 1px 0 rgba(255,255,255,.2)}
+.pill.hot{background:linear-gradient(135deg,#ff7a4d,#ff4d7e);color:#fff;box-shadow:0 0 18px -2px rgba(255,90,100,.7)}
+.ib{background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,.04));box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);font-size:18px}
+.card{box-shadow:0 18px 40px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.07),0 0 60px -20px rgba(255,90,100,.35)}
+.card .art{animation:bob 3.6s ease-in-out infinite}
+.act{background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,.03));border:0;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12),0 8px 20px -10px rgba(0,0,0,.8);font-size:24px;color:#d9d0dc}
+.act.sm{font-size:19px}
+.act.no{color:#ff9a9a;box-shadow:inset 0 0 0 1px rgba(255,140,140,.35),0 0 22px -8px rgba(255,120,120,.6)}
+.act.love{color:var(--gold);box-shadow:inset 0 0 0 1px rgba(255,198,92,.4),0 0 22px -8px rgba(255,198,92,.7)}
+.act.yes{background:linear-gradient(135deg,#ff7a4d,#ff4d7e);color:#fff;font-size:29px;box-shadow:0 10px 28px -8px rgba(255,90,100,.8),inset 0 1px 0 rgba(255,255,255,.4);animation:pulse 2.8s ease-in-out infinite}
+.tile{background:linear-gradient(160deg,rgba(255,255,255,.08),rgba(255,255,255,.02))!important;border:0;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.tic{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:22px;color:#fff;flex:none;background:linear-gradient(135deg,#ff7a4d,#ff4d7e);box-shadow:0 8px 20px -8px rgba(255,90,100,.8),inset 0 1px 0 rgba(255,255,255,.35)}
+.sess .tic{width:40px;height:40px;font-size:19px;background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.04));box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);color:#ffb39c}
+.badge{width:84px;height:84px;border-radius:28px;display:grid;place-items:center;font-size:40px;color:#fff;background:linear-gradient(135deg,#ff7a4d,#ff4d7e);box-shadow:0 0 50px -6px rgba(255,90,100,.8),inset 0 1px 0 rgba(255,255,255,.4)}
+.nudge{box-shadow:0 10px 30px -12px rgba(226,61,110,.8),inset 0 1px 0 rgba(255,255,255,.25)}
+.sheet{background:linear-gradient(180deg,#221c26,#1a161d);box-shadow:0 -1px 0 rgba(255,255,255,.1),0 -30px 80px -20px rgba(0,0,0,.8)}
+.field input:focus,.field textarea:focus,.field select:focus{box-shadow:0 0 0 3px rgba(255,106,77,.22)}
+.steps{display:flex;flex-direction:column;gap:12px;margin:18px 0}
+.step{display:flex;align-items:center;gap:12px;font-size:15.5px;line-height:1.35}
+.step .num{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;flex:none;font-weight:700;font-size:14px;color:#fff;background:linear-gradient(135deg,#ff7a4d,#ff4d7e);box-shadow:0 0 16px -4px rgba(255,90,100,.8)}
+@keyframes sheen{to{background-position:-220% 0}}
+@keyframes sweep{0%,55%{transform:translateX(-120%)}80%,100%{transform:translateX(120%)}}
+@keyframes pulse{0%,100%{box-shadow:0 10px 28px -8px rgba(255,90,100,.8),inset 0 1px 0 rgba(255,255,255,.4)}50%{box-shadow:0 10px 36px -4px rgba(255,90,100,1),inset 0 1px 0 rgba(255,255,255,.4)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 @keyframes fade{from{opacity:0}} @keyframes up{from{transform:translateY(40px);opacity:.4}}
 @keyframes pop{from{transform:scale(.6) rotate(-10deg);opacity:0}} @keyframes drop{from{transform:translate(-50%,-20px);opacity:0}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -185,6 +225,23 @@ const DECKS = {
   event:    { label: 'Out tonight',  em: '🎟️', hint: 'What is on around Detroit', nudge: 'Want to go out?' },
   mix:      { label: 'Surprise me',  em: '🎲', hint: 'A bit of everything',       nudge: 'Surprise me' },
 };
+const ICONS = {
+  x: 'M6 6l12 12M18 6L6 18', heart: 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z',
+  star: 'M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8-5.3-2.8-5.3 2.8 1-5.8-4.2-4.1 5.9-.9z',
+  eye: 'M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12zM12 9.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z',
+  undo: 'M9 14L4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11',
+  film: 'M4 5h16v14H4zM8 5v14M16 5v14M4 9.5h4M4 14.5h4M16 9.5h4M16 14.5h4',
+  dine: 'M6 3v6a2.5 2.5 0 0 0 5 0V3M8.5 11.5V21M17 3c-2 1.6-3 4.3-3 8h3M17 3v18',
+  spark: 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.7 2.3L22 19l-2.3.7L19 22l-.7-2.3L16 19l2.3-.7z',
+  ticket: 'M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4zM14 6v12',
+  shuffle: 'M3 7h4l10 10h4M17 7h4M3 17h4l3-3M14 10l3-3M19 5l2 2-2 2M19 15l2 2-2 2',
+  list: 'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01', sliders: 'M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M16 4v4M10 10v4M18 16v4',
+  mail: 'M3 6h18v12H3zM3 7l9 6 9-6', repeat: 'M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3',
+  target: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z',
+  share: 'M12 15V3M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7', plus: 'M4 4h16v16H4zM12 8v8M8 12h8',
+};
+const ic = n => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[n] || ''}"/></svg>`;
+const DIC = { movie: 'film', dinner: 'dine', activity: 'spark', event: 'ticket', mix: 'shuffle' };
 const KINDS = { cook: ['Cook at home', '🍳'], restaurant: ['Restaurant', '🍷'], orderin: ['Order in', '🥡'] };
 const EVENT_EM = { 'Music': '🎶', 'Comedy': '🎤', 'Trivia': '🧠', 'Arts and Film': '🎞️', 'Sports and Games': '🏟️', 'Brunch': '🥞', 'Happy Hour': '🍻', 'Seasonal': '🍂', 'Special Event': '✨' };
 const SVC_DOT = { 'Netflix': '#e50914', 'Hulu': '#1ce783', 'Prime Video': '#00a8e1', 'Disney+': '#5b8cff', 'Peacock': '#ffd23f', 'Shudder': '#ff3b3b',
@@ -316,6 +373,7 @@ function renderJoin() {
   $app.innerHTML = `<div class="center">
     <div class="brand" style="font-size:56px">We<i>Like</i></div>
     <p class="muted" style="margin:10px 0 22px;font-size:16px;line-height:1.45">Swipe on movies, dinner and things to do. See what you both said yes to.</p>
+    ${standalone() ? '' : `<div class="note" style="margin:0 0 6px"><b>On a phone?</b> Add WeLike to your Home Screen first (Share ${ic('share')} then Add to Home Screen) and sign in from that icon, so you only do this once.</div>`}
     <label class="field"><span>Your name</span><input id="jn" autocomplete="given-name" maxlength="24" placeholder="First name"></label>
     <label class="field"><span>Couple code, if your other half sent you one</span><input id="jc" autocapitalize="characters" autocomplete="off" maxlength="12" value="${esc(pre)}" placeholder="8 letters and numbers"></label>
     <div style="height:18px"></div><button class="btn" id="jgo">Join with this code</button>
@@ -329,15 +387,15 @@ function homeHTML() {
   return `<div class="home">
     <div class="row"><div class="brand grow" style="font-size:28px">We<i>Like</i></div>
       <button class="pill ${st.counts.shortlist ? 'hot' : ''}" data-act="shortlist" aria-label="Shortlist">♥ ${st.counts.shortlist || 0}</button>
-      <button class="ib" data-tab="lists" aria-label="Lists">☰</button><button class="ib" data-tab="you" aria-label="You and settings">⚙</button></div>
+      <button class="ib" data-tab="lists" aria-label="Lists">${ic('list')}</button><button class="ib" data-tab="you" aria-label="You and settings">${ic('sliders')}</button></div>
     ${!p ? `<button class="nudge slim" data-act="invite"><span class="grow"><b>Invite your other half</b></span><span class="go">Send link</span></button>` : ''}
     ${incoming.slice(0, 2).map(s => `<button class="nudge slim" data-open="${s.id}"><span class="grow"><b>${esc(s.from)} ${s.filters?.wishlist ? 'shared a wishlist' : 'nudged you'}</b><small> · ${esc(s.filters?.wishlist ? 'movies to pick from' : s.note || DECKS[s.deck].label)} · ${s.my_left} to swipe</small></span><span class="go">Swipe</span></button>`).join('')}
     <div class="seg" style="margin:8px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="${S.homeDeck === k ? 'on' : ''}">${l}</button>`).join('')}</div>
     <small class="muted" id="prog" style="min-height:16px;text-align:center;font-size:12px"></small>
     <div class="stack" id="stack" style="margin:6px 0 10px"><div class="done"><p class="muted">Dealing today's handful…</p></div></div>
-    <div class="actions" id="acts" style="visibility:hidden"><button class="act sm" data-sw="undo" aria-label="Undo">↩</button><button class="act no" data-sw="no" aria-label="No">✕</button>
-      <button class="act sm" data-sw="seen" id="seenb" aria-label="Seen it" style="display:none">👁</button>
-      <button class="act love" data-sw="love" aria-label="Love it">★</button><button class="act yes" data-sw="yes" aria-label="Yes">♥</button></div>
+    <div class="actions" id="acts" style="visibility:hidden"><button class="act sm" data-sw="undo" aria-label="Undo">${ic('undo')}</button><button class="act no" data-sw="no" aria-label="No">${ic('x')}</button>
+      <button class="act sm" data-sw="seen" id="seenb" aria-label="Seen it" style="display:none">${ic('eye')}</button>
+      <button class="act love" data-sw="love" aria-label="Love it">${ic('star')}</button><button class="act yes" data-sw="yes" aria-label="Yes">${ic('heart')}</button></div>
     <button class="btn" data-act="tonight" style="margin-top:10px">What should we do tonight?</button>
   </div>`;
 }
@@ -355,21 +413,21 @@ async function loadBite() {
 }
 function biteDoneHTML() {
   const names = { movie: 'movies', dinner: 'places to eat', event: 'events' }, extra = !!S.sess?.filters?.extra, none = !S.total, p = partner();
-  return `<div class="done"><div style="font-size:46px">${none ? '🌙' : '🍿'}</div><h3>${none ? 'Nothing new here today' : `That is today’s handful of ${names[S.sess.deck] || 'cards'}`}</h3>
+  return `<div class="done"><div class="badge">${ic(DIC[S.sess.deck] || 'film')}</div><h3>${none ? 'Nothing new here today' : `That is today’s handful of ${names[S.sess.deck] || 'cards'}`}</h3>
     <p class="muted">${none ? (S.sess.deck === 'dinner' ? 'Add your ZIP code in settings to load restaurants near you, or add your own under Lists.' : 'Check back tomorrow, or add your own under Lists.') : 'A fresh handful arrives tomorrow.'}${!extra && p && !none ? ' Play a quick guessing round to unlock a few more now.' : ''}</p>
     ${p ? `<button class="btn ghost" data-act="guess">How well do you know ${esc(p)}?</button>` : ''}${S.hist.length ? '<button class="btn ghost" data-sw="undo">Undo last swipe</button>' : ''}</div>`;
 }
 function tonightSheet() {
   const st = S.state, p = partner(), rest = (st.sessions || []).filter(s => !(s.from !== S.me && s.my_left > 0));
   let h = `<div class="grab"></div><h2>What should we do tonight?</h2><p class="muted" style="margin-top:6px;font-size:14.5px">${p ? `Pick one. ${esc(p)} gets a nudge and the same cards, and you keep going until something lands.` : 'Pick one to start a round.'}</p>
-    <div class="grid" style="margin-top:14px">` + ['movie', 'dinner', 'activity', 'event'].map(d => `<button class="tile" data-nudge="${d}" style="background:var(--bg)"><span class="em">${DECKS[d].em}</span><span><b>${DECKS[d].label}</b><small>${DECKS[d].hint}</small></span></button>`).join('') +
-    `<button class="tile wide" data-nudge="mix" style="background:var(--bg)"><span class="em">${DECKS.mix.em}</span><span><b>${DECKS.mix.label}</b><small>${DECKS.mix.hint}</small></span></button></div>`;
-  if (st.counts.liked && p) h += `<div style="height:10px"></div><button class="tile wide" data-act="wishlist" style="width:100%;background:var(--bg)"><span class="em">💌</span><span><b>Share my wishlist</b><small>Send ${esc(p)} the movies you have liked and let them pick</small></span></button>`;
-  if (st.counts.rewatch) h += `<div style="height:10px"></div><button class="tile wide" data-act="rewatch" style="width:100%;background:var(--bg)"><span class="em">🔁</span><span><b>Watch it again?</b><small>${st.counts.rewatch} you have already seen</small></span></button>`;
+    <div class="grid" style="margin-top:14px">` + ['movie', 'dinner', 'activity', 'event'].map(d => `<button class="tile" data-nudge="${d}" style="background:var(--bg)"><span class="tic">${ic(DIC[d])}</span><span><b>${DECKS[d].label}</b><small>${DECKS[d].hint}</small></span></button>`).join('') +
+    `<button class="tile wide" data-nudge="mix" style="background:var(--bg)"><span class="tic">${ic('shuffle')}</span><span><b>${DECKS.mix.label}</b><small>${DECKS.mix.hint}</small></span></button></div>`;
+  if (st.counts.liked && p) h += `<div style="height:10px"></div><button class="tile wide" data-act="wishlist" style="width:100%;background:var(--bg)"><span class="tic">${ic('mail')}</span><span><b>Share my wishlist</b><small>Send ${esc(p)} the movies you have liked and let them pick</small></span></button>`;
+  if (st.counts.rewatch) h += `<div style="height:10px"></div><button class="tile wide" data-act="rewatch" style="width:100%;background:var(--bg)"><span class="tic">${ic('repeat')}</span><span><b>Watch it again?</b><small>${st.counts.rewatch} you have already seen</small></span></button>`;
   if (rest.length) h += `<div class="sect">Recent rounds</div>` + rest.map(s => {
     const status = s.my_left > 0 ? `${s.my_left} left for you` : s.their_left > 0 ? `Waiting on ${esc(them())}` : 'Both done';
     const name = s.filters?.wishlist ? (s.from === S.me ? 'Your wishlist' : esc(s.from) + "'s wishlist") : s.filters?.rewatch ? 'Watch again?' : s.filters?.second ? 'Second look' : DECKS[s.deck].label;
-    return `<button class="sess" data-open="${s.id}"><span class="em" style="background:var(--bg)">${DECKS[s.deck].em}</span><span class="grow"><b>${name}</b><small>${s.from === S.me ? 'You' : esc(s.from)} · ${ago(s.created_at)} · ${status}</small></span>${s.matches ? `<span class="pill hot">${s.matches} match${s.matches > 1 ? 'es' : ''}</span>` : ''}</button>`;
+    return `<button class="sess" data-open="${s.id}"><span class="tic">${ic(DIC[s.deck])}</span><span class="grow"><b>${name}</b><small>${s.from === S.me ? 'You' : esc(s.from)} · ${ago(s.created_at)} · ${status}</small></span>${s.matches ? `<span class="pill hot">${s.matches} match${s.matches > 1 ? 'es' : ''}</span>` : ''}</button>`;
   }).join('');
   sheet(h);
 }
@@ -466,7 +524,7 @@ async function startGuess() {
 }
 function renderGuess() {
   if (S.gres) { const r = S.gres;
-    $app.innerHTML = `<div class="center"><div style="font-size:54px">🎯</div><h2 class="serif" style="font-size:42px;line-height:1.05">You got ${r.score} of ${r.total}</h2><p class="muted" style="margin:10px 0 22px;font-size:15.5px;line-height:1.45">Which ones stay secret.${r.overall != null ? ` So far you read ${esc(them())} right ${r.overall}% of the time.` : ''}</p><button class="btn" data-act="unlock">Unlock a few more cards</button><div style="height:10px"></div><button class="btn ghost" data-act="home">Done</button></div>`;
+    $app.innerHTML = `<div class="center"><div class="badge" style="margin:0 0 18px">${ic('target')}</div><h2 class="serif" style="font-size:42px;line-height:1.05">You got ${r.score} of ${r.total}</h2><p class="muted" style="margin:10px 0 22px;font-size:15.5px;line-height:1.45">Which ones stay secret.${r.overall != null ? ` So far you read ${esc(them())} right ${r.overall}% of the time.` : ''}</p><button class="btn" data-act="unlock">Unlock a few more cards</button><div style="height:10px"></div><button class="btn ghost" data-act="home">Done</button></div>`;
     return; }
   $app.innerHTML = `<div class="swipe"><div class="topbar"><button class="back" data-act="home" aria-label="Back">‹</button><div class="grow"><h2>What did ${esc(them())} say?</h2><small>${S.gi + 1} of ${S.gq.length} · you only see your score</small></div></div>
     <div class="stack">${cardHTML(S.gq[S.gi])}</div><div class="actions" style="gap:10px"><button class="btn ghost" data-g="0">Passed</button><button class="btn" data-g="1">Said yes</button></div></div>`;
@@ -483,6 +541,16 @@ function settingsForm() {
     <label class="field"><span>How far to look for restaurants</span><select id="s_rad">${[1, 2, 5, 10].map(m => `<option value="${m}" ${Number(st.radius_mi || 2) === m ? 'selected' : ''}>Within ${m} mile${m > 1 ? 's' : ''}</option>`).join('')}</select></label>
     <div class="kv">Streaming services you have</div><div class="chips">${all.map(x => `<button class="chip ${on.includes(x) ? 'on' : ''}" data-svc="${esc(x)}">${esc(x)}</button>`).join('')}</div>
     <div style="height:16px"></div><button class="btn" data-act="savesettings">Save</button>`;
+}
+function installSheet() {
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  sheet(`<div class="grab"></div><h2>Put WeLike on your Home Screen</h2><p class="muted" style="margin-top:6px;font-size:14.5px">It opens full screen like an app, and nudges can reach you as notifications.</p>
+    <div class="steps">${ios
+      ? `<div class="step"><span class="num">1</span><span>Tap the <b>Share</b> button ${ic('share')} in Safari’s toolbar</span></div><div class="step"><span class="num">2</span><span>Scroll down and tap <b>Add to Home Screen</b> ${ic('plus')}</span></div>`
+      : `<div class="step"><span class="num">1</span><span>Open your browser’s menu</span></div><div class="step"><span class="num">2</span><span>Choose <b>Install app</b> or <b>Add to Home screen</b></span></div>`}
+      <div class="step"><span class="num">3</span><span>Open WeLike from the new icon and sign in there with the same name and code</span></div></div>
+    <div class="note" style="margin:0 0 16px">Your couple code is <b>${esc(S.code)}</b>. You will type it once more inside the app.</div>
+    <button class="btn" data-act="a2hsdone">Got it</button>`);
 }
 function setupSheet() { sheet(`<div class="grab"></div><h2>Set up your couple</h2><p class="muted" style="margin-top:6px;font-size:14.5px">These apply to both of you. Either of you can change them later on the You tab.</p>${settingsForm()}<div style="height:10px"></div><button class="btn ghost" data-act="skipsetup">Not now</button>`); }
 function youHTML() {
@@ -548,9 +616,9 @@ function renderSwipe() {
   $app.innerHTML = `<div class="swipe"><div class="topbar"><button class="back" data-act="home" aria-label="Back">‹</button>
       <div class="grow"><h2>${d.label}</h2><small id="prog"></small></div><button class="pill" id="mcount" data-act="matches"></button></div>
     <div class="stack" id="stack"></div>
-    <div class="actions" id="acts"><button class="act sm" data-sw="undo" aria-label="Undo">↩</button><button class="act no" data-sw="no" aria-label="No">✕</button>
-      <button class="act sm" data-sw="seen" id="seenb" aria-label="Seen it" style="${movie ? '' : 'display:none'}">👁</button>
-      <button class="act love" data-sw="love" aria-label="Love it">★</button><button class="act yes" data-sw="yes" aria-label="Yes">♥</button></div></div>`;
+    <div class="actions" id="acts"><button class="act sm" data-sw="undo" aria-label="Undo">${ic('undo')}</button><button class="act no" data-sw="no" aria-label="No">${ic('x')}</button>
+      <button class="act sm" data-sw="seen" id="seenb" aria-label="Seen it" style="${movie ? '' : 'display:none'}">${ic('eye')}</button>
+      <button class="act love" data-sw="love" aria-label="Love it">${ic('star')}</button><button class="act yes" data-sw="yes" aria-label="Yes">${ic('heart')}</button></div></div>`;
   drawStack();
 }
 function drawStack() {
@@ -560,7 +628,7 @@ function drawStack() {
     acts.style.visibility = 'hidden';
     if (S.bite) { st.innerHTML = biteDoneHTML(); return; }
     const waiting = !S.solo && S.theirLeft > 0;
-    st.innerHTML = `<div class="done"><div style="font-size:54px">${S.matches.length ? '🎉' : '👀'}</div><h3>${S.matches.length ? `${S.matches.length} match${S.matches.length > 1 ? 'es' : ''} so far` : 'You are through the deck'}</h3>
+    st.innerHTML = `<div class="done"><div class="badge">${ic(S.matches.length ? 'heart' : 'eye')}</div><h3>${S.matches.length ? `${S.matches.length} match${S.matches.length > 1 ? 'es' : ''} so far` : 'You are through the deck'}</h3>
       <p class="muted">${S.solo ? 'Your likes are saved. They count toward the next round, and you match the moment you both like the same one.' : waiting ? `${esc(them())} still has ${S.theirLeft} to swipe. You will both see matches as they land.` : 'You have both been through all of these.'}</p>
       ${S.matches.length ? `<button class="btn" data-act="matches">See matches</button>${S.matches.length > 1 && !S.solo ? '<button class="btn ghost" data-lad="pick">Pick one for us</button>' : ''}` : ladderHTML(waiting)}
       <button class="btn ghost" data-act="more">Deal more cards</button>${S.hist.length ? '<button class="btn ghost" data-sw="undo">Undo last swipe</button>' : ''}</div>`;
@@ -650,9 +718,9 @@ function nudgeSheet(deck) {
   const d = DECKS[deck], st = S.state; F.services.clear(); F.genres.clear(); F.kinds.clear(); F.days = 2; let f = '';
   if (deck === 'movie') f = `<div class="kv">Where</div><div class="chips">${(st.services || []).map(s => `<button class="chip" data-f="services" data-v="${esc(s)}">${esc(s)}</button>`).join('')}</div>
     <div class="kv">Mood</div><div class="chips">${(st.genres || []).map(s => `<button class="chip" data-f="genres" data-v="${esc(s)}">${esc(s)}</button>`).join('')}</div><p class="muted" style="font-size:12.5px;margin-top:8px">Leave everything off for anything goes.</p>`;
-  if (deck === 'dinner') f = `<div class="kv">Kind of dinner</div><div class="chips">${Object.entries(KINDS).map(([k, v]) => `<button class="chip" data-f="kinds" data-v="${k}">${v[1]} ${v[0]}</button>`).join('')}</div>`;
+  if (deck === 'dinner') f = `<div class="kv">Kind of dinner</div><div class="chips">${Object.entries(KINDS).map(([k, v]) => `<button class="chip" data-f="kinds" data-v="${k}">${v[0]}</button>`).join('')}</div>`;
   if (deck === 'event') f = `<div class="kv">When</div><div class="chips"><button class="chip" data-days="0">Today only</button><button class="chip on" data-days="2">Next 3 days</button><button class="chip" data-days="6">This week</button></div>`;
-  sheet(`<div class="grab"></div><h2>${d.em} ${d.label}</h2><p class="muted" style="margin-top:6px;font-size:14.5px">${partner() ? `${esc(them())} gets a nudge and the same cards. You each swipe, then see what you both picked.` : 'Swipe now. Your other half sees this round when they join.'}</p>
+  sheet(`<div class="grab"></div><h2>${d.label}</h2><p class="muted" style="margin-top:6px;font-size:14.5px">${partner() ? `${esc(them())} gets a nudge and the same cards. You each swipe, then see what you both picked.` : 'Swipe now. Your other half sees this round when they join.'}</p>
     ${f}<label class="field"><span>Add a note (optional)</span><input id="nnote" maxlength="80" placeholder="${esc(d.nudge)}"></label>
     <div style="height:16px"></div><button class="btn" data-go="${deck}">${partner() ? `Nudge ${esc(them())} and start` : 'Start swiping'}</button>`);
 }
@@ -737,6 +805,7 @@ document.addEventListener('click', async e => {
       case 'newcouple': { const name = document.getElementById('jn').value.trim(); if (!name) return toast('Enter your name first.'); t.disabled = true; try { const r = await rpc('create_couple', { p_name: name }); S.code = r.code; S.me = r.name; ls.set('code', r.code); ls.set('name', r.name); history.replaceState(null, '', location.pathname); await boot(); toast('You are set up. Send the invite link to your other half.', 4500); } catch (er) { t.disabled = false; toast(errMsg(er)); } return; }
       case 'savesettings': { const root = t.closest('.sheet') || document; const services = [...root.querySelectorAll('[data-svc].on')].map(x => x.dataset.svc); if (!services.length) return toast('Pick at least one streaming service.'); S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { zip: root.querySelector('#s_zip').value.trim(), services, radius_mi: Number(root.querySelector('#s_rad')?.value || 2), setup: true } }); closeSheet(); toast('Saved for both of you.'); send({ type: 'joined' }); return render(); }
       case 'psearch': return placeSearch(t);
+      case 'a2hsdone': ls.set('a2hs', '1'); closeSheet(); if (!S.settings.setup && !ls.get('setupskip')) setupSheet(); return;
       case 'skipsetup': ls.set('setupskip', '1'); return closeSheet();
       case 'geo': { if (!navigator.geolocation) return toast('This phone will not share its location with WeLike.'); navigator.geolocation.getCurrentPosition(async pos => { try { S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { lat: pos.coords.latitude, lng: pos.coords.longitude } }); document.querySelectorAll('#geonote').forEach(n => n.textContent = 'Location saved'); toast('Location saved.'); } catch { toast('Could not save your location.'); } }, () => toast('Location is turned off for WeLike in your phone settings.'), { timeout: 10000 }); return; }
       case 'wishlist': return startSession('movie', { wishlist: true }, null);
@@ -765,7 +834,7 @@ async function boot() {
   const s = new URLSearchParams(location.search).get('s');
   if (s) { history.replaceState(null, '', location.pathname); return openSession(s); }
   render();
-  if (!S.settings.setup && !ls.get('setupskip')) setupSheet();
+  if (!standalone() && !ls.get('a2hs')) installSheet(); else if (!S.settings.setup && !ls.get('setupskip')) setupSheet();
 }
 boot();
 </script>
