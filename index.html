@@ -588,6 +588,10 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .tcard.art{flex-basis:min(40vw,160px);aspect-ratio:3/4;border-radius:4px;box-shadow:0 0 0 5px #241c14,0 0 0 7px #7d6136,0 12px 22px -8px rgba(0,0,0,.9);margin:6px 8px}
 .tcard.art.both{box-shadow:0 0 0 5px #241c14,0 0 0 7px #d9a85a,0 0 24px 0 rgba(255,150,120,.4)}
 .getaway{margin-top:12px;width:100%}
+.hsb .go.alt{background:rgba(255,255,255,.14);color:#fff}
+.casetag.plan{background:linear-gradient(135deg,#ff7a4d,#ff4d7e)}
+.wb{position:absolute;top:8px;left:8px;z-index:1;padding:3px 8px;border-radius:99px;font-size:11px;font-weight:700;color:#fff;background:rgba(10,8,12,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.wb.them{background:linear-gradient(135deg,rgba(77,155,255,.9),rgba(45,212,191,.85));box-shadow:none}
 .casetag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;padding:4px 10px;border-radius:99px;margin-bottom:6px;color:#fff;background:linear-gradient(135deg,#4d9bff,#2dd4bf)}
 .case{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 10px 10px 12px;border-radius:16px;background:linear-gradient(135deg,rgba(77,155,255,.24),rgba(45,212,191,.12));box-shadow:inset 0 0 0 1px rgba(120,190,255,.36)}
 .case .tic{width:34px;height:34px;border-radius:11px;font-size:17px;background:linear-gradient(135deg,#4d9bff,#2dd4bf)}
@@ -697,7 +701,8 @@ async function onEvent(p) {
   else if (p.type === 'rec') { try { navigator.vibrate?.(40); } catch {} recSheet(p.card, p.from, p.keen); }
   else if (p.type === 'recreply') recReply(p);
   else if (p.type === 'getaway') { try { navigator.vibrate?.(40); } catch {} openGetaway(p.city, p.from); }
-  else if (p.type === 'getreply') toast(p.yes ? `${p.from} is in for a weekend in ${p.city}. Time to plan it.` : `${p.from} said not yet on ${p.city}.`, 5000);
+  else if (p.type === 'plan') { await refresh().catch(() => {}); if (S.view === 'trips') openTrips(); else if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) render(); }
+  else if (p.type === 'getreply') { toast(p.yes ? `${p.from} is in for a weekend in ${p.city}. You can now see each other’s picks there.` : `${p.from} said not yet on ${p.city}.`, 5000); if (p.yes) { await refresh().catch(() => {}); if (S.view === 'trips') openTrips(); } }
   else if (p.type === 'joined') { await refresh(); if (S.view === 'home') render(); }
 }
 const b64u = s => { const p = '='.repeat((4 - s.length % 4) % 4); const r = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...r].map(c => c.charCodeAt(0))); };
@@ -946,7 +951,7 @@ function homeHTML() {
     <div class="row"><div class="brand grow hb">${MARK}<span>${BRAND}</span></div>
       <button class="pill ${st.counts.shortlist ? 'hot' : ''}" data-act="shortlist" aria-label="Shortlist">♥ ${st.counts.shortlist || 0}</button>
       <button class="ib" data-act="search" aria-label="Search movies">${ic('search')}</button>
-      <button class="ib" data-tab="lists" aria-label="Lists">${ic('list')}</button><button class="ib" data-tab="you" aria-label="You and settings">${ic('sliders')}</button></div>${hsBanner()}${S.evPend && ls.get('evno') !== evKey() ? `<div class="hsb"><span class="tic">${ic('ticket')}</span><span class="grow"><b>You liked ${S.evPend.count > 1 ? S.evPend.count + ' events' : 'an event'} this week</b><small>Send to ${esc(them())} before ${S.evPend.count > 1 ? 'they pass' : 'it passes'}?</small></span><button class="go" data-act="evask">Share</button><button class="x" data-act="evx" aria-label="Dismiss">×</button></div>` : ''}
+      <button class="ib" data-tab="lists" aria-label="Lists">${ic('list')}</button><button class="ib" data-tab="you" aria-label="You and settings">${ic('sliders')}</button></div>${hsBanner()}${planBanner()}${S.evPend && ls.get('evno') !== evKey() ? `<div class="hsb"><span class="tic">${ic('ticket')}</span><span class="grow"><b>You liked ${S.evPend.count > 1 ? S.evPend.count + ' events' : 'an event'} this week</b><small>Send to ${esc(them())} before ${S.evPend.count > 1 ? 'they pass' : 'it passes'}?</small></span><button class="go" data-act="evask">Share</button><button class="x" data-act="evx" aria-label="Dismiss">×</button></div>` : ''}
     ${!p ? `<button class="nudge slim" data-act="invite"><span class="grow"><b>Invite your other half</b></span><span class="go">Send link</span></button>` : ''}
     ${incoming.slice(0, 1).map(s => `<button class="nudge slim" data-open="${s.id}"><span class="grow"><b>${esc(s.from)} ${s.filters?.evshare ? 'liked events this week' : s.filters?.wishlist ? 'shared a wishlist' : 'nudged you'}</b><small> · ${esc(s.filters?.evshare ? 'before they pass' : s.filters?.wishlist ? 'movies to pick from' : s.note || DECKS[s.deck].label)} · ${s.my_left} to swipe</small></span><span class="go">Swipe</span></button>`).join('')}
     <div class="seg" style="margin:8px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="${S.homeDeck === k ? 'on' : ''}">${l}${heartTag(k)}</button>`).join('')}</div>${scratchShow() && !S.awayOffer ? `<button class="scratch-pill" data-act="scratch">${ic('spark')}<span><b>A scratch card is waiting</b><small>One thing ${esc(p)} is in on</small></span><i>Scratch</i></button>` : ''}${S.awayOffer ? `<div class="trav"><span class="tic">${ic('pin')}</span><span class="grow"><b>Looks like you’re in ${esc(S.awayOffer.city)}</b><small>Show places to eat and things to do here?</small></span><button class="go" data-act="awayyes">Show</button><button class="x" data-act="awayno" aria-label="Not now">×</button></div>` : ''}${S.away && (S.homeDeck === 'dinner' || S.homeDeck === 'event') ? `<div class="row" style="justify-content:space-between;margin:6px 2px 0"><small class="muted" style="font-size:12.5px">${ic('pin')} Showing ${esc(S.away.city)} on this phone</small><button class="chip" data-act="awayoff" style="padding:5px 12px;font-size:13px">Back to home</button></div>` : ''}${S.homeDeck === 'movie' ? `<div class="row" style="margin:6px 2px 0"><button class="chip" data-act="movielib" style="padding:5px 12px;font-size:13px">${ic('film')} Movie library</button></div>` : ''}${S.homeDeck === 'art' ? `<div class="row" style="justify-content:space-between;margin:6px 2px 0"><button class="chip" data-act="gallery" style="padding:5px 12px;font-size:13px">${ic('frame')} Our gallery</button><small class="muted" style="font-size:12.5px">No nudges, just likes</small></div>` : ''}${S.homeDeck === 'trip' ? `<div class="row" style="justify-content:space-between;margin:6px 2px 0"><button class="chip" data-act="trips" style="padding:5px 12px;font-size:13px">${ic('heart')} Saved trips</button><button class="chip ${S.tripCity ? 'on' : ''}" data-act="tripcity" style="padding:5px 12px;font-size:13px">${esc(S.tripCity || 'Anywhere')} ▾</button></div>` : ''}
@@ -1048,7 +1053,7 @@ async function shortlistSheet() {
 /* ---------- shared gallery ---------- */
 async function openGallery() {
   closeSheet(); document.querySelector('.lfront')?.remove();
-  S.lib = await rpc('library', { p_code: S.code, p_member: S.me }); S.libSel = null; S.view = 'gallery'; render();
+  await loadLib(); S.libSel = null; S.view = 'gallery'; render();
 }
 S.stackOpen = new Set();
 const frameHTML = c => `<button class="gframe ${c.who === 'both' ? 'both' : ''}" data-lib="${c.id}"><img src="${esc(c.image)}" alt="${esc(c.title)}">${c.who === 'both' ? `<span class="hb">${ic('heart')}</span>` : ''}<span class="gcap"><b>${esc(c.title)}</b><small>${esc(c.data?.artist || '')}</small></span></button>`;
@@ -1081,18 +1086,30 @@ function sendGetaway(city) {
 }
 async function openGetaway(city, from) {
   if (!city || !S.code || !S.me) return;
-  try { S.lib = await rpc('library', { p_code: S.code, p_member: S.me }); } catch { return; }
+  try { await loadLib(); } catch { return; }
   const g = cityShared(city), all = [...g.t, ...g.a]; S.getaway = city; S.listCards = S.lib;
   sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('plane')}</span><p class="muted" style="font-size:13px;letter-spacing:1.5px;text-transform:uppercase;margin-top:6px">${esc(from || them())} is thinking weekend getaway</p><h2 style="margin-top:4px">${esc(city)}?</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">${all.length ? `You already have ${cityLine(g.t.length, g.a.length)} there.` : 'You have both been saving things there.'}</p></div></div>
     ${all.length ? `<div class="trow" style="margin-top:14px">${all.slice(0, 8).map(c => `<div class="tcard both ${c.deck === 'art' ? 'art' : ''}">${c.image ? `<img src="${esc(c.image)}" alt="">` : ''}<span class="tt"><b>${esc(c.title)}</b><small>${esc(c.deck === 'art' ? (c.data?.museum || '') : (c.data?.price ? 'from $' + c.data.price : ''))}</small></span></div>`).join('')}</div>` : ''}
     <div style="height:16px"></div><button class="btn" data-act="getyes">Let’s plan it</button><div style="height:10px"></div><button class="btn ghost" data-act="getno">Not yet</button>`);
 }
+// The library call can include my partner's own likes, but only for cities we both agreed to plan; they stay out of every other screen
+// A planned city gets a few "booked yet?" check-ins, three days apart; after three, locking it back up is offered
+const planMeta = c => S.settings?.plan_meta?.[c] || {};
+const planDue = () => (S.settings?.plans || []).find(c => { const m = planMeta(c); return !m.booked && Date.now() - new Date(m.last || m.at || 0) > 3 * 864e5; });
+const planCanLock = c => { const m = planMeta(c); return !m.booked && (m.nudges || 0) >= 3; };
+async function planAct(city, action) { try { S.settings = await rpc('plan_city', { p_code: S.code, p_member: S.me, p_city: city, p_action: action }); send({ type: 'plan', city, action }); } catch { toast('Could not save that. Try again in a moment.'); } }
+function planBanner() {
+  const c = planDue(); if (!c) return ''; const lock = planCanLock(c);
+  return `<div class="hsb"><span class="tic">${ic('plane')}</span><span class="grow"><b>${lock ? `Still planning ${esc(c)}?` : `Weekend in ${esc(c)}: booked yet?`}</b><small>${lock ? 'Keep it open, or lock your picks back up.' : 'Your picks there are open to each other.'}</small></span><button class="go" data-planact="${esc(c)}|booked">Booked</button><button class="go alt" data-planact="${esc(c)}|${lock ? 'lock' : 'nudge'}">${lock ? 'Lock it' : 'Not yet'}</button>${lock ? `<button class="x" data-planact="${esc(c)}|nudge" aria-label="Keep it open">×</button>` : ''}</div>`;
+}
+async function loadLib() { const all = await rpc('library', { p_code: S.code, p_member: S.me }); S.libThem = all.filter(c => c.who === 'them'); S.lib = all.filter(c => c.who !== 'them'); }
 async function openTrips() {
   closeSheet(); document.querySelector('.lfront')?.remove();
-  S.lib = await rpc('library', { p_code: S.code, p_member: S.me }); S.libSel = null; S.view = 'trips'; render();
+  await loadLib(); S.libSel = null; S.view = 'trips'; render();
 }
 function renderTrips() {
-  const trips = (S.lib || []).filter(c => c.deck === 'trip'), art = (S.lib || []).filter(c => c.deck === 'art' && c.data?.city), p = partner(), by = {}; S.listCards = S.lib || [];
+  const plans = S.settings?.plans || [], th = S.libThem || [], trips = [...(S.lib || []).filter(c => c.deck === 'trip'), ...th.filter(c => c.deck === 'trip' && plans.includes(c.kind))], art = [...(S.lib || []).filter(c => c.deck === 'art' && c.data?.city), ...th.filter(c => c.deck === 'art' && plans.includes(c.data?.city))], p = partner(), by = {}; S.listCards = [...(S.lib || []), ...th]; S.planF ||= {};
+  const wb = (c, planned) => planned && c.who !== 'both' ? `<span class="wb ${c.who}">${c.who === 'them' ? esc(p || 'Partner') + ' likes this' : 'Your pick'}</span>` : '';
   trips.forEach(c => ((by[c.kind || 'Elsewhere'] ||= { t: [], a: [] }).t.push(c)));
   art.forEach(c => ((by[c.data.city] ||= { t: [], a: [] }).a.push(c)));
   const srt = cs => cs.sort((x, y) => (y.who === 'both') - (x.who === 'both'));
@@ -1104,11 +1121,13 @@ function renderTrips() {
     if (g.t.length) bits.push(g.tb ? `${g.tb} thing${g.tb > 1 ? 's' : ''} you both want to do` : `${g.t.length} thing${g.t.length > 1 ? 's' : ''} to do saved`);
     return bits.join(' · '); };
   $app.innerHTML = `<div class="view"><div class="topbar"><button class="back" data-act="home" aria-label="Back">‹</button><div class="grow"><h2>Saved trips</h2><small>${nb} you both want to do · ${trips.length} saved${art.length ? ` · ${art.length} art piece${art.length > 1 ? 's' : ''}` : ''}</small></div></div>
-    ${cities.length ? cities.map(g => { const key = 't:' + g.city, both = g.a.length && g.t.length, open = S.stackOpen.has(key);
-      return `<div class="tcity"><div class="tc-h">${both ? '<span class="casetag">The case for going</span>' : ''}<b>${esc(g.city)}</b><small class="${g.tb || g.ab ? 'hot' : ''}">${line(g)}</small></div>
-      <div class="trow">${g.a.length ? (open ? g.a.map(c => `<button class="tcard art ${c.who === 'both' ? 'both' : ''}" data-lib="${c.id}"><img src="${esc(c.image)}" alt="">${c.who === 'both' ? `<span class="hb">${ic('heart')}</span>` : ''}<span class="tt"><b>${esc(c.title)}</b><small>${esc(c.data?.museum || '')}</small></span></button>`).join('') : artStack(g.a, key, 'art to see')) : ''}${g.t.map(c => `<button class="tcard ${c.who === 'both' ? 'both' : ''}" data-lib="${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="">` : ''}${c.who === 'both' ? `<span class="hb">${ic('heart')}</span>` : ''}<span class="tt"><b>${esc(c.title)}</b><small>${[c.data?.price ? 'from $' + c.data.price : '', c.data?.rating ? '★ ' + c.data.rating : ''].filter(Boolean).join(' · ')}</small></span></button>`).join('')}</div>
+    ${cities.length ? cities.map(g => { const key = 't:' + g.city, both = g.a.length && g.t.length, open = S.stackOpen.has(key), planned = plans.includes(g.city), f = planned ? (S.planF[g.city] || 'all') : 'all', ft = g.t.filter(c => f === 'all' || c.who === f), fa = g.a.filter(c => f === 'all' || c.who === f);
+      return `<div class="tcity"><div class="tc-h">${planned ? `<span class="casetag plan">${planMeta(g.city).booked ? 'Booked' : 'Planning it'}</span>` : both ? '<span class="casetag">The case for going</span>' : ''}<b>${esc(g.city)}</b><small class="${g.tb || g.ab ? 'hot' : ''}">${line(g)}</small></div>
+      ${planned ? `<div class="chips" style="margin:10px 0 2px">${[['all', 'All'], ['both', 'Both of us'], ['me', 'Mine'], ['them', (p || 'Partner') + '’s']].map(([k, l]) => `<button class="chip ${f === k ? 'on' : ''}" data-planf="${esc(g.city)}|${k}">${esc(l)}</button>`).join('')}</div>` : ''}
+      <div class="trow">${!ft.length && !fa.length ? '<p class="muted" style="font-size:14px;padding:10px 2px">Nothing in this group yet.</p>' : ''}${fa.length ? (open ? fa.map(c => `<button class="tcard art ${c.who === 'both' ? 'both' : ''}" data-lib="${c.id}"><img src="${esc(c.image)}" alt="">${c.who === 'both' ? `<span class="hb">${ic('heart')}</span>` : ''}${wb(c, planned)}<span class="tt"><b>${esc(c.title)}</b><small>${esc(c.data?.museum || '')}</small></span></button>`).join('') : artStack(fa, key, 'art to see')) : ''}${ft.map(c => `<button class="tcard ${c.who === 'both' ? 'both' : ''}" data-lib="${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="">` : ''}${c.who === 'both' ? `<span class="hb">${ic('heart')}</span>` : ''}${wb(c, planned)}<span class="tt"><b>${esc(c.title)}</b><small>${[c.data?.price ? 'from $' + c.data.price : '', c.data?.rating ? '★ ' + c.data.rating : ''].filter(Boolean).join(' · ')}</small></span></button>`).join('')}</div>
       ${g.a.length && !g.t.length ? `<button class="btn ghost sm" data-gcity="${esc(g.city)}">${ic('plane')} Find things to do in ${esc(g.city)}</button>` : ''}
-      ${p && g.tb + g.ab >= 2 ? `<button class="btn sm getaway" data-getaway="${esc(g.city)}">${ic('plane')} Nudge ${esc(p)} about a weekend in ${esc(g.city)}</button>` : ''}</div>`; }).join('')
+      ${planned && !planMeta(g.city).booked ? `<div class="row" style="gap:10px;margin-top:12px"><button class="btn sm" data-planact="${esc(g.city)}|booked" style="flex:1">We booked it</button>${planCanLock(g.city) ? `<button class="btn ghost sm" data-planact="${esc(g.city)}|lock" style="flex:1">Lock it back up</button>` : ''}</div>` : ''}
+      ${p && !planned && g.tb + g.ab >= 2 ? `<button class="btn sm getaway" data-getaway="${esc(g.city)}">${ic('plane')} Nudge ${esc(p)} about a weekend in ${esc(g.city)}</button>` : ''}</div>`; }).join('')
       : `<div class="note" style="margin-top:16px"><b>No trips saved yet.</b> Swipe “Like it” on the Trips tab and they collect here, grouped by city. Art you like in the same city stacks up alongside, so you can see the case for going.</div>`}
     <p class="muted" style="font-size:11.5px;text-align:center;margin:22px 0 6px">Experiences from Viator. Let’s Together may earn a commission if you book.</p></div>`;
 }
@@ -1134,7 +1153,7 @@ async function tripAdd(btn) {
 async function openLibrary(mode) {   // 'all' = everything we like (the heart), 'movie' = the movie library
   closeSheet(); document.querySelector('.lfront')?.remove();
   const fresh = S.view !== 'library' || (mode && mode !== S.libMode); if (mode) S.libMode = mode; S.libMode ||= 'all'; if (fresh) S.libC = '';
-  S.lib = await rpc('library', { p_code: S.code, p_member: S.me });
+  await loadLib();
   if (!S.libF || S.libF === 'trip' || fresh) S.libF = libBase().some(c => c.who === 'both') ? 'both' : 'all';
   S.libSel = null; S.view = 'library'; render();
 }
@@ -1159,7 +1178,8 @@ function libFront(c, from) {
   const meta = c.deck === 'movie' ? [d.year, d.runtime ? d.runtime + ' min' : '', (d.services || [])[0]].filter(Boolean).join(' · ') : (c.subtitle || '');
   const both = c.deck === 'trip' ? ' · you both want to do this' : c.deck === 'art' ? ' · you both love this' : ' · you both like it';
   el.innerHTML = `<button class="lf-card" data-act="libdetail" aria-label="Details">${c.image ? `<img src="${esc(c.image)}" alt="">` : emojiFor(c)}</button>
-    <h3>${esc(c.title)}</h3><p class="muted" style="font-size:13.5px">${esc(meta)}${c.who === 'both' ? both : ' · your like'}</p>
+    <h3>${esc(c.title)}</h3><p class="muted" style="font-size:13.5px">${esc(meta)}${c.who === 'both' ? both : c.who === 'them' ? ` · ${esc(p || 'your partner')} likes this` : ' · your like'}</p>
+    ${c.who === 'them' ? `<button class="btn" data-act="liketoo">${ic('heart')} Like it too</button>` : ''}
     ${c.deck === 'art' ? `${d.url ? `<a class="btn" style="display:block;text-decoration:none" href="${esc(d.url)}" target="_blank" rel="noopener">View at ${esc(d.museum || 'the museum')}</a>` : ''}` : c.deck === 'trip' ? `${d.url ? `<a class="btn" style="display:block;text-decoration:none" href="${esc(d.url)}" target="_blank" rel="noopener">View on Viator</a>` : ''}` : `<button class="btn" data-act="libfinal">${c.deck === 'movie' ? 'Watch this tonight' : 'Do this tonight'}</button>
     ${p ? `<button class="btn ghost" data-act="sendrec">${ic('play')} Ask ${esc(p)} first</button>` : ''}`}
     <div class="row" style="gap:10px;width:100%;max-width:320px"><button class="btn ghost sm" data-act="libdetail" style="flex:1">Details</button>${c.deck === 'movie' ? `<button class="btn ghost sm" data-seenany="${c.id}" style="flex:1">Watched</button>` : ''}</div>`;
@@ -1704,7 +1724,7 @@ async function saveAdd(t) {
 
 /* ---------- events ---------- */
 document.addEventListener('click', async e => {
-  const t = e.target.closest('[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-hdeck],[data-like],[data-final],[data-lad],[data-chg],[data-tbpick],[data-g],[data-seenany],[data-padd],[data-lib],[data-libf],[data-tripc],[data-who],[data-gcity],[data-getaway],[data-libc],[data-astack],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
+  const t = e.target.closest('[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-hdeck],[data-like],[data-final],[data-lad],[data-chg],[data-tbpick],[data-g],[data-seenany],[data-padd],[data-lib],[data-libf],[data-tripc],[data-who],[data-gcity],[data-getaway],[data-libc],[data-planf],[data-planact],[data-astack],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
   if (!t) return; const ds = t.dataset;
   try {
     if (ds.who) { const jn = document.getElementById('jn'); if (jn) jn.value = ds.who; return document.getElementById('jgo')?.click(); }
@@ -1723,6 +1743,12 @@ document.addEventListener('click', async e => {
     if (ds.getaway) return sendGetaway(ds.getaway);
     if (ds.gcity) { t.disabled = true; t.textContent = 'Finding things to do…'; const { data } = await sb.functions.invoke('trips', { body: { action: 'city', code: S.code, city: ds.gcity } }).catch(() => ({})); S.tripCity = data?.city || ds.gcity; ls.set('tripcity', S.tripCity); S.homeDeck = 'trip'; ls.set('deck', 'trip'); S.view = 'home'; S.tab = 'home'; return render(); }
     if (ds.tripc != null) { S.tripCity = ds.tripc; ls.set('tripcity', ds.tripc); closeSheet(); return render(); }
+    if (ds.planact) { const i = ds.planact.lastIndexOf('|'), city = ds.planact.slice(0, i), act = ds.planact.slice(i + 1); t.disabled = true; await planAct(city, act);
+      if (act === 'booked') { toast(`${city} is booked. Have a great trip.`, 4000); push(`${city} is booked ✈️`, `${S.me} marked the trip as booked.`, './'); }
+      else if (act === 'lock') { toast(`${city} is locked back up. Your own picks are private again.`, 4500); push(`${city} is locked back up`, `${S.me} closed the plan for now. Keep liking things there and float it again any time.`, './'); }
+      else toast('Okay, it stays open. We will check in again in a few days.', 3500);
+      return S.view === 'trips' ? openTrips() : render(); }
+    if (ds.planf) { const i = ds.planf.lastIndexOf('|'); S.planF ||= {}; S.planF[ds.planf.slice(0, i)] = ds.planf.slice(i + 1); return renderTrips(); }
     if ('libc' in ds) { S.libC = ds.libc; S.libSel = null; return renderLibrary(); }
     if (ds.libf) { S.libF = ds.libf; S.libSel = null; return renderLibrary(); }
     if (ds.lib) { const c = (S.lib || []).find(x => x.id === ds.lib); if (!S.libSel) return libFront(c, t);
@@ -1757,8 +1783,9 @@ document.addEventListener('click', async e => {
       case 'evask': return evSheet();
       case 'evsend': t.disabled = true; await evSend(); closeSheet(); return S.view === 'home' ? render() : null;
       case 'evlater': case 'evx': ls.set('evno', evKey()); closeSheet(); return S.view === 'home' ? render() : null;
-      case 'getyes': { const c = S.getaway; send({ type: 'getreply', yes: true, city: c }); push(`${S.me} is in ✈️`, `A weekend in ${c}. Time to plan it.`, `./`); return openTrips(); }
+      case 'getyes': { const c = S.getaway; t.disabled = true; try { S.settings = await rpc('plan_city', { p_code: S.code, p_member: S.me, p_city: c, p_action: 'start' }); } catch {} send({ type: 'getreply', yes: true, city: c }); push(`${S.me} is in ✈️`, `A weekend in ${c}. Time to plan it.`, `./`); return openTrips(); }
       case 'getno': { const c = S.getaway; send({ type: 'getreply', yes: false, city: c }); push(`${S.me}: not yet`, `Holding off on ${c} for now.`, './'); closeSheet(); return toast(`Told ${them()} not yet.`); }
+      case 'liketoo': { const c = S.detailCard; if (!c) return; t.disabled = true; try { const r = await rpc('like_card', { p_code: S.code, p_member: S.me, p_card: c.id }); document.querySelector('.lfront')?.remove(); if (r.match) { toast(`You both like ${c.title} now.`, 3500); send({ type: 'shortlist' }); push(`It's a match ${emojiFor(c)}`, `You and ${S.me} both like ${c.title}.`, './'); } refresh().catch(() => {}); } catch { toast('Could not save that like.'); } return S.view === 'trips' ? openTrips() : null; }
       case 'scolater': document.querySelector('.sco')?.remove(); return;
       case 'scratchdone': document.querySelector('.scr')?.remove(); return render();
       case 'travelon': return checkTravel(true);
