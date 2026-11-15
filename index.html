@@ -835,7 +835,7 @@ async function checkTravel(ask = false) {
 async function nearby(ms = 9000) {
   if (S.away) { try { const call = sb.functions.invoke('places', { body: { code: S.code, action: 'away', lat: S.away.lat, lng: S.away.lng, city: S.away.city } }).then(r => r.data).catch(() => null); return await Promise.race([call, new Promise(r => setTimeout(() => r(null), Math.max(ms, 10000)))]); } catch { return null; } }
   try {
-    const call = sb.functions.invoke('places', { body: { code: S.code, action: 'nearby' } }).then(async r => { if (!r.error) return r.data; try { return await r.error.context.json(); } catch { return null; } }).catch(() => null);
+    const call = sb.functions.invoke('places', { body: { code: S.code, action: 'nearby', member: S.me } }).then(async r => { if (!r.error) return r.data; try { return await r.error.context.json(); } catch { return null; } }).catch(() => null);
     return await Promise.race([call, new Promise(r => setTimeout(() => r(null), ms))]);
   } catch { return null; }
 }
@@ -1603,7 +1603,7 @@ const emojiFor = c => c.data?.emoji || (c.deck === 'dinner' ? KINDS[c.kind]?.[1]
 function cardHTML(c, cls = '') {
   const tags = [];
   if (c.deck === 'movie') { (c.data.services || []).slice(0, 2).forEach(s => tags.push(svcTag(s))); (c.data.genres || []).slice(0, 2).forEach(g => tags.push(`<span class="tag">${esc(g)}</span>`)); if (c.data.user_rating) tags.push(`<span class="tag">★ ${c.data.user_rating}</span>`); }
-  if (c.deck === 'dinner') { tags.push(`<span class="tag">${KINDS[c.kind]?.[0] || 'Dinner'}</span>`); if (c.data.rating) tags.push(`<span class="tag">★ ${c.data.rating}</span>`); if (c.data.price) tags.push(`<span class="tag">${esc(c.data.price)}</span>`); if (c.data.delivery) tags.push('<span class="tag">Delivers</span>'); if (c.data.miles != null) tags.push(`<span class="tag">${c.data.miles} mi</span>`); const oh = onHand(c); if (oh) tags.push(`<span class="tag">${oh.have === oh.total ? 'You have everything' : `${oh.have} of ${oh.total} on hand`}</span>`); }
+  if (c.deck === 'dinner') { tags.push(`<span class="tag">${KINDS[c.kind]?.[0] || 'Dinner'}</span>`); if (c.data.rating) tags.push(`<span class="tag">★ ${c.data.rating}</span>`); if (c.data.price) tags.push(`<span class="tag">${esc(c.data.price)}</span>`); if (c.data.delivery) tags.push('<span class="tag">Delivers</span>'); if (c.data.miles != null) tags.push(`<span class="tag">${c.data.away ? c.data.miles + ' mi' : c.data.miles > 3 ? (c.data.miles >= 10 ? Math.round(c.data.miles) : c.data.miles) + ' mi from home' : 'Local'}</span>`); const oh = onHand(c); if (oh) tags.push(`<span class="tag">${oh.have === oh.total ? 'You have everything' : `${oh.have} of ${oh.total} on hand`}</span>`); }
   if (c.deck === 'art') { if (c.kind) tags.push(`<span class="tag">${esc(c.kind)}</span>`); if (c.data.on_view) tags.push('<span class="tag">On view now</span>'); }
   if (c.deck === 'trip') { if (c.kind) tags.push(`<span class="tag">${esc(c.kind)}</span>`); if (c.data.rating) tags.push(`<span class="tag">★ ${c.data.rating}</span>`); if (c.data.minutes) tags.push(`<span class="tag">${fmtMins(c.data.minutes)}</span>`); if (c.data.price) tags.push(`<span class="tag">from $${c.data.price}</span>`); }
   if (c.deck === 'event') { tags.push(`<span class="tag">${c.data.flex ? 'This week' : fmtDate(c.event_date)}</span>`); if (c.kind) tags.push(`<span class="tag">${esc(c.kind)}</span>`); if (c.data.area) tags.push(`<span class="tag">${esc(c.data.area)}</span>`); }
