@@ -219,6 +219,7 @@ async function onEvent(p) {
   else if (p.type === 'match') { if (S.view === 'swipe' && S.sess?.id === p.session) { S.matches.unshift(p.card); showMatch(p.card); } else toast(`Match with ${p.from}: ${p.card.title}`, 4000); refresh().then(() => S.view === 'home' && render()); }
   else if (p.type === 'more' && S.view === 'swipe' && S.sess?.id === p.session) { await loadSession(p.session); renderSwipe(); }
   else if (p.type === 'swipe') { if (S.view === 'swipe' && S.sess?.id === p.session) { S.theirLeft = p.left; updateBar(); } }
+  else if (p.type === 'narrow') { toast(`${p.from} picked what they are in the mood for. Open the round and tap Narrow it down to add yours.`, 6000); if (S.view === 'swipe' && S.sess?.id === p.session) { try { await loadSession(p.session); S.view = 'swipe'; drawStack(); } catch {} } }
   else if (p.type === 'shortlist') { await refresh(); const pill = document.querySelector('[data-act=shortlist]'); if (pill) { pill.textContent = '♥ ' + (S.state.counts.shortlist || 0); pill.classList.toggle('hot', !!S.state.counts.shortlist); } }
   else if (p.type === 'game') { if (S.view === 'swipe' && S.sess?.id === p.session) { S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); S.view = 'game'; render(); } else toast(`${p.from} wants to play for tonight’s pick. Open the round to join.`, 5000); }
   else if (p.type === 'tb') { if (S.view === 'game' && S.tb?.id === p.id) { S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); render(); } }
@@ -387,7 +388,7 @@ function ladderHTML(waiting) {
   const canNarrow = ['movie', 'dinner', 'event'].includes(S.sess.deck);
   return `<div class="kv" style="margin:6px 0 0">No match yet. Try one of these</div>
     ${waiting ? '' : '<button class="btn" data-lad="second">Second look at each other’s picks</button>'}
-    ${canNarrow ? '<button class="btn ghost" data-lad="narrow">Narrow it down</button>' : ''}
+    ${canNarrow ? (() => { const nar = S.sess.filters?.narrow || {}, mine = S.me in nar, theirs = Object.keys(nar).some(k => k !== S.me); return `<button class="btn ghost" data-lad="narrow">${mine ? `Narrowing: waiting on ${esc(them())}’s picks` : theirs ? `Narrow it down (${esc(them())} has picked)` : 'Narrow it down'}</button>`; })() : ''}
     <button class="btn ghost" data-lad="change">Change the question</button>
     <button class="btn ghost" data-lad="game">Play for it</button><button class="btn ghost" data-lad="pick">Just pick for us</button>`;
 }
@@ -402,12 +403,20 @@ async function ladder(kind, btn) {
   if (kind === 'narrow') {
     F.genres.clear(); F.q.clear(); F.types.clear();
     const chips = deck === 'movie' ? (S.state.genres || []).map(g => ['genres', g]) : deck === 'dinner' ? CUISINES.map(g => ['q', g]) : EVTYPES.map(g => ['types', g]);
-    return sheet(`<div class="grab"></div><h2>Narrow it down</h2><p class="muted" style="margin-top:6px;font-size:14.5px">Pick two or three. ${esc(them())} gets a fresh, smaller round built from them.</p><div class="chips" style="margin-top:14px">${chips.map(([f, g]) => `<button class="chip" data-f="${f}" data-v="${esc(g)}">${esc(g)}</button>`).join('')}</div><div style="height:16px"></div><button class="btn" data-lad="narrowgo">Deal the narrowed round</button>`);
+    return sheet(`<div class="grab"></div><h2>Narrow it down</h2><p class="muted" style="margin-top:6px;font-size:14.5px">Pick two or three. ${esc(them())} picks too, and a smaller round is dealt from what you both chose.</p><div class="chips" style="margin-top:14px">${chips.map(([f, g]) => `<button class="chip" data-f="${f}" data-v="${esc(g)}">${esc(g)}</button>`).join('')}</div><div style="height:16px"></div><button class="btn" data-lad="narrowgo">Lock in my picks</button>`);
   }
   if (kind === 'narrowgo') {
-    const f = deck === 'movie' ? { genres: [...F.genres] } : deck === 'dinner' ? { q: [...F.q] } : { types: [...F.types] }, picked = Object.values(f)[0];
+    const picked = deck === 'movie' ? [...F.genres] : deck === 'dinner' ? [...F.q] : [...F.types];
     if (!picked.length) return toast('Pick at least one.');
-    return startSession(deck, f, `Narrowed to ${picked.join(', ')}`.slice(0, 80));
+    btn.disabled = true; const r = await rpc('narrow_pick', { p_code: S.code, p_member: S.me, p_session: sess.id, p_picks: picked }); btn.disabled = false;
+    if (r.waiting) {
+      closeSheet(); S.sess.filters = { ...(S.sess.filters || {}), narrow: { ...(S.sess.filters?.narrow || {}), [S.me]: picked } }; if (S.view === 'swipe') drawStack();
+      send({ type: 'narrow', session: sess.id }); push(`${S.me} wants to narrow it down`, 'Pick two or three. A smaller round is dealt from what you both chose.', `./?s=${sess.id}`);
+      return toast(`Your picks are in. The round is dealt as soon as ${them()} picks.`, 4500);
+    }
+    if (!r.id) { closeSheet(); return toast('Nothing left that fits those picks. Try different ones, or change the question.', 4500); }
+    if (!r.existing) { send({ type: 'nudge', deck, session: r.id }); push(`Narrowed to ${(r.used || []).join(', ')}`.slice(0, 80), r.overlap ? 'You both picked these. A smaller round is ready.' : 'No overlap, so this round covers both your picks.', `./?s=${r.id}`); }
+    closeSheet(); return openSession(r.id);
   }
   if (kind === 'change') {
     S.chg = deck === 'movie' ? [{ label: 'Something light', deck: 'movie', filters: { genres: ['Comedy', 'Romance', 'Animation', 'Family'] } }, { label: 'Something intense', deck: 'movie', filters: { genres: ['Thriller', 'Horror', 'Crime', 'Action'] } }, { label: 'An old favorite to rewatch', deck: 'movie', filters: { rewatch: true } }]
