@@ -389,7 +389,7 @@ function homeHTML() {
       <button class="pill ${st.counts.shortlist ? 'hot' : ''}" data-act="shortlist" aria-label="Shortlist">♥ ${st.counts.shortlist || 0}</button>
       <button class="ib" data-tab="lists" aria-label="Lists">${ic('list')}</button><button class="ib" data-tab="you" aria-label="You and settings">${ic('sliders')}</button></div>
     ${!p ? `<button class="nudge slim" data-act="invite"><span class="grow"><b>Invite your other half</b></span><span class="go">Send link</span></button>` : ''}
-    ${incoming.slice(0, 2).map(s => `<button class="nudge slim" data-open="${s.id}"><span class="grow"><b>${esc(s.from)} ${s.filters?.wishlist ? 'shared a wishlist' : 'nudged you'}</b><small> · ${esc(s.filters?.wishlist ? 'movies to pick from' : s.note || DECKS[s.deck].label)} · ${s.my_left} to swipe</small></span><span class="go">Swipe</span></button>`).join('')}
+    ${incoming.slice(0, 1).map(s => `<button class="nudge slim" data-open="${s.id}"><span class="grow"><b>${esc(s.from)} ${s.filters?.wishlist ? 'shared a wishlist' : 'nudged you'}</b><small> · ${esc(s.filters?.wishlist ? 'movies to pick from' : s.note || DECKS[s.deck].label)} · ${s.my_left} to swipe</small></span><span class="go">Swipe</span></button>`).join('')}
     <div class="seg" style="margin:8px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="${S.homeDeck === k ? 'on' : ''}">${l}</button>`).join('')}</div>
     <small class="muted" id="prog" style="min-height:16px;text-align:center;font-size:12px"></small>
     <div class="stack" id="stack" style="margin:6px 0 10px"><div class="done"><p class="muted">Dealing today's handful…</p></div></div>
@@ -418,14 +418,14 @@ function biteDoneHTML() {
     ${p ? `<button class="btn ghost" data-act="guess">How well do you know ${esc(p)}?</button>` : ''}${S.hist.length ? '<button class="btn ghost" data-sw="undo">Undo last swipe</button>' : ''}</div>`;
 }
 function tonightSheet() {
-  const st = S.state, p = partner(), rest = (st.sessions || []).filter(s => !(s.from !== S.me && s.my_left > 0));
+  const st = S.state, p = partner(), latest = (st.sessions || []).find(s => s.from !== S.me && s.my_left > 0), rest = (st.sessions || []).filter(s => s !== latest);
   let h = `<div class="grab"></div><h2>What should we do tonight?</h2><p class="muted" style="margin-top:6px;font-size:14.5px">${p ? `Pick one. ${esc(p)} gets a nudge and the same cards, and you keep going until something lands.` : 'Pick one to start a round.'}</p>
     <div class="grid" style="margin-top:14px">` + ['movie', 'dinner', 'activity', 'event'].map(d => `<button class="tile" data-nudge="${d}" style="background:var(--bg)"><span class="tic">${ic(DIC[d])}</span><span><b>${DECKS[d].label}</b><small>${DECKS[d].hint}</small></span></button>`).join('') +
     `<button class="tile wide" data-nudge="mix" style="background:var(--bg)"><span class="tic">${ic('shuffle')}</span><span><b>${DECKS.mix.label}</b><small>${DECKS.mix.hint}</small></span></button></div>`;
   if (st.counts.liked && p) h += `<div style="height:10px"></div><button class="tile wide" data-act="wishlist" style="width:100%;background:var(--bg)"><span class="tic">${ic('mail')}</span><span><b>Share my wishlist</b><small>Send ${esc(p)} the movies you have liked and let them pick</small></span></button>`;
   if (st.counts.rewatch) h += `<div style="height:10px"></div><button class="tile wide" data-act="rewatch" style="width:100%;background:var(--bg)"><span class="tic">${ic('repeat')}</span><span><b>Watch it again?</b><small>${st.counts.rewatch} you have already seen</small></span></button>`;
   if (rest.length) h += `<div class="sect">Recent rounds</div>` + rest.map(s => {
-    const status = s.my_left > 0 ? `${s.my_left} left for you` : s.their_left > 0 ? `Waiting on ${esc(them())}` : 'Both done';
+    const status = s.from !== S.me && s.my_left > 0 ? 'Replaced by a newer nudge' : s.my_left > 0 ? `${s.my_left} left for you` : s.their_left > 0 ? `Waiting on ${esc(them())}` : 'Both done';
     const name = s.filters?.wishlist ? (s.from === S.me ? 'Your wishlist' : esc(s.from) + "'s wishlist") : s.filters?.rewatch ? 'Watch again?' : s.filters?.second ? 'Second look' : DECKS[s.deck].label;
     return `<button class="sess" data-open="${s.id}"><span class="tic">${ic(DIC[s.deck])}</span><span class="grow"><b>${name}</b><small>${s.from === S.me ? 'You' : esc(s.from)} · ${ago(s.created_at)} · ${status}</small></span>${s.matches ? `<span class="pill hot">${s.matches} match${s.matches > 1 ? 'es' : ''}</span>` : ''}</button>`;
   }).join('');
