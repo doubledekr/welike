@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="WeLike">
+<meta name="theme-color" content="#100d12">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<title>WeLike</title>
+<style>
+:root{
+  --bg:#100d12; --surface:#1b171e; --surface2:#262029; --line:#342c38;
+  --text:#f5efe8; --muted:#a39aa8; --accent:#ff6a4d; --accent-ink:#1c0b06;
+  --gold:#ffc65c; --no:#8d8494; --ok:#59d39a;
+  --serif:"Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --sans:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  --st:env(safe-area-inset-top, 0px); --sb:env(safe-area-inset-bottom, 0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;overscroll-behavior:none}
+body{position:fixed;inset:0;overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0}
+h1,h2,h3,p{margin:0}
+#app{position:absolute;inset:0;display:flex;flex-direction:column;max-width:520px;margin:0 auto}
+.view{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(var(--st) + 14px) 18px 24px}
+.serif{font-family:var(--serif);font-weight:400;letter-spacing:.2px}
+.muted{color:var(--muted)}
+.row{display:flex;align-items:center;gap:10px}
+.grow{flex:1;min-width:0}
+
+/* tab bar */
+.tabs{display:flex;border-top:1px solid var(--line);background:rgba(16,13,18,.94);padding-bottom:var(--sb)}
+.tabs button{flex:1;padding:10px 0 9px;font-size:11px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;letter-spacing:.3px}
+.tabs button .ico{font-size:20px;filter:grayscale(1) opacity(.7)}
+.tabs button.on{color:var(--text)} .tabs button.on .ico{filter:none}
+
+/* home */
+.brand{font-family:var(--serif);font-size:34px;line-height:1}
+.brand i{color:var(--accent);font-style:italic}
+.hello{font-family:var(--serif);font-size:30px;line-height:1.1;margin:22px 0 4px}
+.sect{font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);margin:26px 0 10px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px 14px;text-align:left;min-height:104px;display:flex;flex-direction:column;justify-content:space-between}
+.tile:active{transform:scale(.98)}
+.tile .em{font-size:28px}
+.tile b{font-family:var(--serif);font-weight:400;font-size:21px;display:block}
+.tile small{color:var(--muted);font-size:12px}
+.tile.wide{grid-column:1/-1;min-height:0;flex-direction:row;align-items:center;gap:12px;justify-content:flex-start}
+.nudge{background:linear-gradient(135deg,#ff6a4d,#e23d6e);color:#fff;border-radius:20px;padding:16px;margin-top:14px;display:flex;align-items:center;gap:12px;width:100%;text-align:left}
+.nudge .em{font-size:30px}
+.nudge b{font-family:var(--serif);font-weight:400;font-size:22px;display:block;line-height:1.15}
+.nudge small{opacity:.9;font-size:13px}
+.nudge .go{margin-left:auto;background:#fff;color:#c2274a;border-radius:999px;padding:8px 14px;font-weight:600;font-size:14px;white-space:nowrap}
+.sess{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);width:100%;text-align:left}
+.sess .em{width:42px;height:42px;border-radius:12px;background:var(--surface);display:grid;place-items:center;font-size:20px;flex:none}
+.sess b{font-weight:600;font-size:15px;display:block}
+.sess small{color:var(--muted);font-size:12.5px}
+.pill{border-radius:999px;padding:5px 10px;font-size:12px;font-weight:600;background:var(--surface2);color:var(--text);white-space:nowrap}
+.pill.hot{background:var(--accent);color:var(--accent-ink)}
+.note{background:var(--surface);border:1px dashed var(--line);border-radius:16px;padding:14px;font-size:14px;color:var(--muted);margin-top:14px;line-height:1.45}
+.note b{color:var(--text)}
+
+/* buttons / forms */
+.btn{background:var(--accent);color:var(--accent-ink);font-weight:700;border-radius:14px;padding:14px 18px;width:100%;font-size:16px}
+.btn:disabled{opacity:.5}
+.btn.ghost{background:var(--surface2);color:var(--text);font-weight:600}
+.btn.sm{width:auto;padding:9px 14px;font-size:14px;border-radius:12px}
+.field{display:block;margin-top:12px}
+.field span{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;letter-spacing:.3px}
+.field input,.field select,.field textarea{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:16px;outline:none}
+.field textarea{min-height:150px;resize:vertical;line-height:1.4}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 13px;font-size:14px;color:var(--muted)}
+.chip.on{background:var(--text);color:var(--bg);border-color:var(--text);font-weight:600}
+.seg{display:flex;background:var(--surface);border-radius:12px;padding:3px;margin:14px 0}
+.seg button{flex:1;padding:9px 4px;border-radius:10px;font-size:13.5px;color:var(--muted)}
+.seg button.on{background:var(--surface2);color:var(--text);font-weight:600}
+.item{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.item .em{font-size:22px;width:30px;text-align:center;flex:none}
+.item b{font-weight:600;font-size:15px;display:block}
+.item small{color:var(--muted);font-size:12.5px;display:block}
+.item .x{color:var(--muted);font-size:20px;padding:6px 8px}
+
+/* swipe */
+.swipe{flex:1;min-height:0;display:flex;flex-direction:column;padding:calc(var(--st) + 8px) 14px calc(var(--sb) + 10px)}
+.topbar{display:flex;align-items:center;gap:10px;min-height:44px}
+.topbar .back{font-size:26px;width:40px;height:40px;border-radius:50%;background:var(--surface);line-height:1}
+.topbar h2{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1}
+.topbar small{color:var(--muted);font-size:12px;display:block;margin-top:3px}
+.stack{flex:1;min-height:0;position:relative;margin:10px 0 12px}
+.card{position:absolute;inset:0;border-radius:26px;overflow:hidden;background:var(--surface);box-shadow:0 18px 40px rgba(0,0,0,.5);
+  touch-action:none;user-select:none;-webkit-user-select:none;will-change:transform}
+.card.under{transform:scale(.955) translateY(12px);filter:brightness(.6)}
+.card img.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.card .art{position:absolute;inset:0;display:grid;place-items:center;font-size:110px;padding-bottom:22%}
+.art.activity{background:radial-gradient(120% 90% at 20% 10%,#5b2a86,#1b1030 70%)}
+.art.dinner{background:radial-gradient(120% 90% at 80% 10%,#a8431f,#2a1209 70%)}
+.art.event{background:radial-gradient(120% 90% at 20% 10%,#12697a,#0a1f2b 70%)}
+.art.movie{background:radial-gradient(120% 90% at 50% 10%,#3b3140,#141016 70%)}
+.card .shade{position:absolute;inset:auto 0 0 0;padding:90px 20px 20px;background:linear-gradient(transparent,rgba(8,6,10,.82) 45%,rgba(8,6,10,.96))}
+.card h3{font-family:var(--serif);font-weight:400;font-size:34px;line-height:1.02}
+.card .sub{color:#e6dde2;font-size:14.5px;margin-top:6px;line-height:1.35}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.tag{font-size:11.5px;font-weight:600;border-radius:999px;padding:4px 9px;background:rgba(255,255,255,.14);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.tag.svc::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--dot,#fff);margin-right:6px}
+.info{position:absolute;right:14px;top:14px;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.45);font-family:var(--serif);font-style:italic;font-size:20px;display:grid;place-items:center;pointer-events:none}
+.stamp{position:absolute;top:26px;font-family:var(--serif);font-size:40px;padding:2px 14px;border:3px solid;border-radius:12px;opacity:0;pointer-events:none;background:rgba(0,0,0,.25)}
+.stamp.yes{left:20px;color:var(--ok);transform:rotate(-12deg)}
+.stamp.no{right:20px;color:#ff8a8a;transform:rotate(12deg)}
+.stamp.love{left:50%;top:auto;bottom:38%;color:var(--gold);transform:translateX(-50%)}
+.actions{display:flex;justify-content:center;align-items:center;gap:14px}
+.act{width:58px;height:58px;border-radius:50%;background:var(--surface);border:1px solid var(--line);font-size:24px;display:grid;place-items:center}
+.act:active{transform:scale(.92)}
+.act.sm{width:46px;height:46px;font-size:18px}
+.act.yes{background:var(--accent);border-color:var(--accent);width:66px;height:66px;font-size:28px}
+.act.love{color:var(--gold)} .act.no{color:#ff9d9d}
+.act small{font-size:9px;display:block;margin-top:-4px;color:var(--muted);letter-spacing:.5px}
+.done{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;padding:20px}
+.done h3{font-family:var(--serif);font-weight:400;font-size:32px}
+.done .btn{max-width:300px}
+
+/* sheets and overlays */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:20;display:flex;align-items:flex-end;justify-content:center;animation:fade .18s}
+.sheet{background:var(--surface);width:100%;max-width:520px;max-height:92dvh;overflow-y:auto;border-radius:26px 26px 0 0;padding:10px 18px calc(var(--sb) + 20px);animation:up .24s cubic-bezier(.2,.8,.2,1)}
+.sheet .grab{width:38px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 14px}
+.sheet h2{font-family:var(--serif);font-weight:400;font-size:30px;line-height:1.05}
+.sheet .field input,.sheet .field select,.sheet .field textarea,.sheet .chip{background:var(--bg)}
+.sheet .chip.on{background:var(--text)}
+.hero{margin:-10px -18px 14px;height:240px;position:relative;background:var(--surface2)}
+.hero img{width:100%;height:100%;object-fit:cover;display:block}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 40%,var(--surface))}
+.hero .close{position:absolute;right:12px;top:12px;z-index:2;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.55);font-size:20px}
+.body p{font-size:15px;line-height:1.5;color:#e4dbe0;margin-top:12px}
+.kv{font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin:18px 0 6px}
+.cast{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;font-size:14px}
+.cast span{display:block;color:var(--muted);font-size:12px}
+.match{position:fixed;inset:0;z-index:30;background:radial-gradient(120% 80% at 50% 0%,#e23d6e,#3a0f24 60%,#100d12);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px 26px calc(var(--sb) + 26px);gap:14px;animation:fade .2s}
+.match h1{font-family:var(--serif);font-weight:400;font-style:italic;font-size:54px;line-height:.95}
+.match .pic{width:170px;height:240px;border-radius:20px;overflow:hidden;background:var(--surface);box-shadow:0 20px 50px rgba(0,0,0,.5);display:grid;place-items:center;font-size:80px;transform:rotate(-3deg);animation:pop .4s cubic-bezier(.2,1.4,.4,1)}
+.match .pic img{width:100%;height:100%;object-fit:cover}
+.match h3{font-family:var(--serif);font-weight:400;font-size:28px}
+.match .btn{max-width:320px}
+.toast{position:fixed;left:50%;top:calc(var(--st) + 12px);transform:translateX(-50%);z-index:40;background:var(--text);color:var(--bg);border-radius:14px;padding:11px 16px;font-size:14px;font-weight:600;max-width:88%;box-shadow:0 10px 30px rgba(0,0,0,.4);animation:drop .25s}
+.center{flex:1;display:flex;flex-direction:column;justify-content:center;padding:30px 26px calc(var(--sb) + 30px)}
+@keyframes fade{from{opacity:0}} @keyframes up{from{transform:translateY(40px);opacity:.4}}
+@keyframes pop{from{transform:scale(.6) rotate(-10deg);opacity:0}} @keyframes drop{from{transform:translate(-50%,-20px);opacity:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="layer"></div>
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+const CFG = {
+  url: 'https://gbzximehndzlsbojoqgj.supabase.co',
+  key: 'sb_publishable_2kr1KUhUST6dUy7JdL-5rA_ERVJaCgI',
+  vapid: 'BDclxM1Msm3Z4OLK8q5Zro-Z2PjFemslqgIIWK6sCxk3nSn9eJZrbhZ3R0_b5Gm6yurB6AjOgBvjIwjdek7wG-Q',
+};
+const sb = createClient(CFG.url, CFG.key, { auth: { persistSession: false, autoRefreshToken: false } });
+
+const DECKS = {
+  movie:    { label: 'Movie night',  em: '🎬', hint: 'Something to watch',        nudge: 'Movie night?' },
+  dinner:   { label: 'Dinner',       em: '🍽️', hint: 'Cook, go out or order in',  nudge: 'What are we eating?' },
+  activity: { label: 'Do something', em: '✨', hint: 'How to spend the time',     nudge: 'Want to do something?' },
+  event:    { label: 'Out tonight',  em: '🎟️', hint: 'What is on around Detroit', nudge: 'Want to go out?' },
+  mix:      { label: 'Surprise me',  em: '🎲', hint: 'A bit of everything',       nudge: 'Surprise me' },
+};
+const KINDS = { cook: ['Cook at home', '🍳'], restaurant: ['Restaurant', '🍷'], orderin: ['Order in', '🥡'] };
+const EVENT_EM = { 'Music': '🎶', 'Comedy': '🎤', 'Trivia': '🧠', 'Arts and Film': '🎞️', 'Sports and Games': '🏟️', 'Brunch': '🥞', 'Happy Hour': '🍻', 'Seasonal': '🍂', 'Special Event': '✨' };
+const SVC_DOT = { 'Netflix': '#e50914', 'Hulu': '#1ce783', 'Prime Video': '#00a8e1', 'Disney+': '#5b8cff', 'Peacock': '#ffd23f', 'Shudder': '#ff3b3b' };
+
+const ls = { get: k => { try { return localStorage.getItem('wl_' + k) } catch { return null } }, set: (k, v) => { try { localStorage.setItem('wl_' + k, v) } catch {} }, del: k => { try { localStorage.removeItem('wl_' + k) } catch {} } };
+const S = { code: ls.get('code'), me: ls.get('name'), state: null, pantry: [], tab: 'home', view: 'home', sess: null, deck: [], hist: [], matches: [], listTab: 'activity', chan: null };
+const $app = document.getElementById('app'), $layer = document.getElementById('layer');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const rpc = async (fn, args) => { const { data, error } = await sb.rpc(fn, args); if (error) throw error; return data; };
+const partner = () => (S.state?.members || []).find(m => m !== S.me) || null;
+const them = () => partner() || 'your person';
+const ago = t => { const m = Math.round((Date.now() - new Date(t)) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' hr ago' : Math.round(m / 1440) + ' d ago'; };
+const fmtDate = d => { if (!d) return ''; const x = new Date(d + 'T12:00:00'); const t = new Date(); t.setHours(12, 0, 0, 0); const diff = Math.round((x - t) / 864e5); return diff === 0 ? 'Today' : diff === 1 ? 'Tomorrow' : x.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); };
+
+let toastT;
+function toast(msg, ms = 2600) { clearTimeout(toastT); document.querySelector('.toast')?.remove(); const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); toastT = setTimeout(() => t.remove(), ms); }
+function errMsg(e) { const m = (e?.message || String(e)); if (m.includes('bad_code')) return 'That code is not right.'; if (m.includes('couple_full')) return 'Two people have already joined with this code.'; if (m.includes('bad_name')) return 'Enter a name.'; return 'Something went wrong. Try again.'; }
+
+/* ---------- realtime + push ---------- */
+function connect() {
+  if (S.chan) sb.removeChannel(S.chan);
+  S.chan = sb.channel('wl-' + S.code, { config: { broadcast: { self: false } } });
+  S.chan.on('broadcast', { event: 'ev' }, ({ payload }) => onEvent(payload)).subscribe();
+}
+function send(p) { try { S.chan?.send({ type: 'broadcast', event: 'ev', payload: { ...p, from: S.me } }); } catch {} }
+function push(title, body, url) { sb.functions.invoke('nudge', { body: { code: S.code, member: S.me, title, body, url } }).catch(() => {}); }
+async function onEvent(p) {
+  if (!p || p.from === S.me) return;
+  if (p.type === 'nudge') { toast(`${p.from} nudged you: ${DECKS[p.deck]?.label || 'something'}`, 4000); await refresh(); if (S.view === 'home') render(); }
+  else if (p.type === 'match') { if (S.view === 'swipe' && S.sess?.id === p.session) { S.matches.unshift(p.card); showMatch(p.card); } else toast(`Match with ${p.from}: ${p.card.title}`, 4000); refresh().then(() => S.view === 'home' && render()); }
+  else if (p.type === 'more' && S.view === 'swipe' && S.sess?.id === p.session) { await loadSession(p.session); renderSwipe(); }
+  else if (p.type === 'swipe') { if (S.view === 'swipe' && S.sess?.id === p.session) { S.theirs = p.count; updateBar(); } }
+  else if (p.type === 'joined') { await refresh(); if (S.view === 'home') render(); }
+}
+const b64u = s => { const p = '='.repeat((4 - s.length % 4) % 4); const r = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...r].map(c => c.charCodeAt(0))); };
+const standalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const pushState = () => !('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window) ? 'unsupported' : Notification.permission;
+async function enablePush() {
+  if (pushState() === 'unsupported') return toast('Add WeLike to your Home Screen first, then open it from there.', 4500);
+  const perm = await Notification.requestPermission();
+  if (perm !== 'granted') return toast('Notifications are off for WeLike in your phone settings.', 4000);
+  const reg = await navigator.serviceWorker.ready;
+  const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64u(CFG.vapid) });
+  await rpc('save_push_sub', { p_code: S.code, p_member: S.me, p_sub: sub.toJSON() });
+  toast('Nudges will now reach this phone.'); render();
+}
+async function resavePush() { try { if (pushState() !== 'granted') return; const reg = await navigator.serviceWorker.ready; const sub = await reg.pushManager.getSubscription(); if (sub) await rpc('save_push_sub', { p_code: S.code, p_member: S.me, p_sub: sub.toJSON() }); } catch {} }
+
+/* ---------- data ---------- */
+async function refresh() {
+  const [st, pantry] = await Promise.all([rpc('get_state', { p_code: S.code, p_member: S.me }), rpc('get_pantry', { p_code: S.code })]);
+  S.state = st; S.pantry = pantry || [];
+}
+async function loadSession(id) {
+  const d = await rpc('get_session', { p_code: S.code, p_session: id, p_member: S.me });
+  S.sess = d.session; S.deck = d.deck; S.matches = d.matches; S.total = d.total; S.mine = d.mine; S.theirs = d.theirs; S.hist = [];
+}
+async function openSession(id) {
+  try { await loadSession(id); S.view = 'swipe'; if (!S.deck.length && S.matches.length) { S.view = 'matches'; } render(); }
+  catch (e) { toast('That round is no longer available.'); S.view = 'home'; render(); }
+}
+async function startSession(deck, filters, note, announce = true) {
+  const r = await rpc('start_session', { p_code: S.code, p_member: S.me, p_deck: deck, p_note: note || null, p_filters: filters || {} });
+  if (!r.id) { toast(emptyMsg(deck)); return; }
+  if (announce) {
+    send({ type: 'nudge', deck, session: r.id });
+    push(`${S.me} nudged you ${DECKS[deck].em}`, note || `${DECKS[deck].nudge} Swipe and see what you both like.`, `./?s=${r.id}`);
+  }
+  closeSheet(); await openSession(r.id);
+}
+const emptyMsg = d => d === 'dinner' ? 'No dinner ideas yet. Add some under Lists.' : d === 'event' ? 'No upcoming events loaded yet.' : d === 'movie' ? 'No movies match those filters.' : 'Nothing to swipe yet. Add some under Lists.';
+function onHand(card) { const ing = card.data?.ingredients || []; if (!ing.length || !S.pantry.length) return null; const have = ing.filter(i => S.pantry.some(p => { const a = p.item.toLowerCase(), b = i.toLowerCase(); return a.includes(b) || b.includes(a); })); return { have: have.length, total: ing.length, missing: ing.filter(i => !have.includes(i)) }; }
+
+/* ---------- views ---------- */
+function render() {
+  if (!S.code || !S.me) return renderJoin();
+  if (S.view === 'swipe') return renderSwipe();
+  if (S.view === 'matches') return renderMatches();
+  const body = S.tab === 'lists' ? listsHTML() : S.tab === 'you' ? youHTML() : homeHTML();
+  $app.innerHTML = `<div class="view">${body}</div>
+    <nav class="tabs">${[['home', '🔥', 'Tonight'], ['lists', '📝', 'Lists'], ['you', '👤', 'You']].map(([k, i, l]) => `<button data-tab="${k}" class="${S.tab === k ? 'on' : ''}"><span class="ico">${i}</span>${l}</button>`).join('')}</nav>`;
+  if (S.tab === 'lists') loadList();
+}
+function renderJoin() {
+  const pre = new URLSearchParams(location.search).get('c') || S.code || '';
+  $app.innerHTML = `<div class="center">
+    <div class="brand" style="font-size:56px">We<i>Like</i></div>
+    <p class="muted" style="margin:10px 0 22px;font-size:16px;line-height:1.45">Swipe on movies, dinner and things to do. See what you both said yes to.</p>
+    <label class="field"><span>Your name</span><input id="jn" autocomplete="given-name" maxlength="24" placeholder="First name"></label>
+    <label class="field"><span>Couple code</span><input id="jc" autocapitalize="characters" autocomplete="off" maxlength="12" value="${esc(pre)}" placeholder="8 letters and numbers"></label>
+    <div style="height:18px"></div><button class="btn" id="jgo">Let's go</button></div>`;
+}
+function homeHTML() {
+  const st = S.state, ss = st.sessions || [], p = partner();
+  const incoming = ss.filter(s => s.from !== S.me && s.mine < s.total);
+  const hour = new Date().getHours();
+  const when = hour < 11 ? 'this morning' : hour < 16 ? 'today' : 'tonight';
+  let h = `<div class="row"><div class="brand grow">We<i>Like</i></div>${p ? `<span class="pill">with ${esc(p)}</span>` : ''}</div>
+    <h1 class="hello">What are we doing ${when}, ${esc(S.me)}?</h1>`;
+  if (!p) h += `<div class="note"><b>Waiting for your other half.</b> Send them the invite link, they enter their name, and you are connected.<div style="height:10px"></div><button class="btn sm" data-act="invite">Copy invite link</button></div>`;
+  incoming.forEach(s => { h += `<button class="nudge" data-open="${s.id}"><span class="em">${DECKS[s.deck].em}</span><span class="grow"><b>${esc(s.from)} nudged you</b><small>${esc(s.note || DECKS[s.deck].nudge)} · ${s.total - s.mine} to swipe</small></span><span class="go">Swipe</span></button>`; });
+  h += `<div class="sect">Send a nudge</div><div class="grid">` +
+    ['movie', 'dinner', 'activity', 'event'].map(d => `<button class="tile" data-nudge="${d}"><span class="em">${DECKS[d].em}</span><span><b>${DECKS[d].label}</b><small>${DECKS[d].hint}</small></span></button>`).join('') +
+    `<button class="tile wide" data-nudge="mix"><span class="em">${DECKS.mix.em}</span><span><b>${DECKS.mix.label}</b><small>${DECKS.mix.hint}</small></span></button></div>`;
+  const rest = ss.filter(s => !incoming.includes(s));
+  if (rest.length) h += `<div class="sect">Recent rounds</div>` + rest.map(s => {
+    const status = s.mine < s.total ? `${s.total - s.mine} left for you` : s.theirs < s.total ? `Waiting on ${esc(them())}` : 'Both done';
+    return `<button class="sess" data-open="${s.id}"><span class="em">${DECKS[s.deck].em}</span><span class="grow"><b>${DECKS[s.deck].label}</b><small>${s.from === S.me ? 'You' : esc(s.from)} · ${ago(s.created_at)} · ${status}</small></span>${s.matches ? `<span class="pill hot">${s.matches} match${s.matches > 1 ? 'es' : ''}</span>` : ''}</button>`;
+  }).join('');
+  return h;
+}
+function youHTML() {
+  const ps = pushState(), p = partner();
+  const pushBlock = ps === 'granted' ? `<div class="note"><b>Nudges are on for this phone.</b> You will get a notification when ${esc(them())} nudges you or you match.</div>`
+    : ps === 'unsupported' || !standalone() ? `<div class="note"><b>To get nudges as notifications:</b> in Safari tap Share, then "Add to Home Screen". Open WeLike from the Home Screen icon and come back to this tab to switch them on.${ps !== 'unsupported' ? '<div style="height:10px"></div><button class="btn sm" data-act="push">Turn on anyway</button>' : ''}</div>`
+    : `<div class="note"><b>Nudges are off.</b> Turn them on so a nudge reaches you when the app is closed.<div style="height:10px"></div><button class="btn sm" data-act="push">Turn on nudges</button></div>`;
+  return `<div class="brand">You</div>
+    <div class="sect">Signed in</div>
+    <div class="item"><span class="em">👤</span><span class="grow"><b>${esc(S.me)}</b><small>${p ? 'Paired with ' + esc(p) : 'Not paired yet'}</small></span></div>
+    <div class="item"><span class="em">🔑</span><span class="grow"><b>${esc(S.code)}</b><small>Your couple code</small></span><button class="btn ghost sm" data-act="invite">Copy invite</button></div>
+    <div class="sect">Notifications</div>${pushBlock}
+    <div class="sect">What is in the decks</div>
+    <div class="item"><span class="em">🎬</span><span class="grow"><b>${S.state.counts.movie} movies</b><small>${(S.state.services || []).join(', ') || 'Loading the catalog'}</small></span></div>
+    <div class="item"><span class="em">🎟️</span><span class="grow"><b>${S.state.counts.event} upcoming events</b><small>Next three days</small></span></div>
+    <div class="item"><span class="em">🧺</span><span class="grow"><b>${S.state.counts.pantry} pantry items</b><small>Used to flag dinners you can cook now</small></span></div>
+    <div style="height:22px"></div><button class="btn ghost" data-act="signout">Sign out on this phone</button>
+    <p class="muted" style="font-size:11.5px;text-align:center;margin-top:18px">Streaming data powered by Watchmode.com</p>`;
+}
+function listsHTML() {
+  const tabs = [['activity', 'Activities'], ['dinner', 'Dinner'], ['event', 'Events'], ['pantry', 'Pantry']];
+  return `<div class="row"><div class="brand grow">Lists</div><button class="btn sm" data-act="add">+ Add</button></div>
+    <div class="seg">${tabs.map(([k, l]) => `<button data-list="${k}" class="${S.listTab === k ? 'on' : ''}">${l}</button>`).join('')}</div><div id="list"><p class="muted">Loading…</p></div>`;
+}
+async function loadList() {
+  const el = document.getElementById('list'); if (!el) return; const tab = S.listTab;
+  if (tab === 'pantry') {
+    el.innerHTML = `<p class="muted" style="font-size:14px;line-height:1.45">One item per line. Paste a grocery order or type what is in the fridge. Dinners you add with ingredients show how much of it you already have.</p>
+      <label class="field"><span>${S.pantry.length} items</span><textarea id="pt" placeholder="chicken thighs&#10;spinach&#10;eggs">${esc(S.pantry.map(p => p.item).join('\n'))}</textarea></label><div style="height:12px"></div><button class="btn" data-act="savepantry">Save pantry</button>`;
+    return;
+  }
+  const cards = await rpc('list_cards', { p_code: S.code, p_deck: tab }); if (S.listTab !== tab || !document.getElementById('list')) return;
+  S.listCards = cards;
+  if (!cards.length) { el.innerHTML = `<div class="note">${tab === 'dinner' ? '<b>No dinner ideas yet.</b> Add meals you cook, restaurants you like and your delivery go-tos.' : tab === 'event' ? '<b>No upcoming events loaded.</b> Add one yourself, or they arrive daily once the events feed is on.' : '<b>Nothing here yet.</b>'}</div>`; return; }
+  el.innerHTML = cards.map(c => { const sub = tab === 'dinner' ? [KINDS[c.kind]?.[0], c.subtitle].filter(Boolean).join(' · ') : tab === 'event' ? [fmtDate(c.event_date), c.subtitle].filter(Boolean).join(' · ') : c.subtitle; return `<div class="item"><span class="em">${emojiFor(c)}</span><button class="grow" style="text-align:left" data-detail="${c.id}"><b>${esc(c.title)}</b><small>${esc(sub || '')}</small></button><button class="x" data-del="${c.id}" aria-label="Remove">×</button></div>`; }).join('');
+}
+const emojiFor = c => c.data?.emoji || (c.deck === 'dinner' ? KINDS[c.kind]?.[1] : c.deck === 'event' ? EVENT_EM[c.kind] || '🎟️' : c.deck === 'movie' ? '🎬' : '✨') || '✨';
+
+/* ---------- cards ---------- */
+function cardHTML(c, cls = '') {
+  const tags = [];
+  if (c.deck === 'movie') { (c.data.services || []).slice(0, 2).forEach(s => tags.push(`<span class="tag svc" style="--dot:${SVC_DOT[s] || '#fff'}">${esc(s)}</span>`)); (c.data.genres || []).slice(0, 2).forEach(g => tags.push(`<span class="tag">${esc(g)}</span>`)); if (c.data.user_rating) tags.push(`<span class="tag">★ ${c.data.user_rating}</span>`); }
+  if (c.deck === 'dinner') { tags.push(`<span class="tag">${KINDS[c.kind]?.[0] || 'Dinner'}</span>`); const oh = onHand(c); if (oh) tags.push(`<span class="tag">${oh.have === oh.total ? 'You have everything' : `${oh.have} of ${oh.total} on hand`}</span>`); }
+  if (c.deck === 'event') { tags.push(`<span class="tag">${fmtDate(c.event_date)}</span>`); if (c.kind) tags.push(`<span class="tag">${esc(c.kind)}</span>`); if (c.data.area) tags.push(`<span class="tag">${esc(c.data.area)}</span>`); }
+  if (c.deck === 'activity' && c.data.chain) tags.push(`<span class="tag">Then pick ${c.data.chain.deck === 'movie' ? 'a movie' : c.data.chain.deck === 'event' ? 'an event' : 'the food'}</span>`);
+  const art = c.image ? `<img class="bg" src="${esc(c.image)}" alt="" draggable="false" onerror="this.remove()">` : '';
+  return `<div class="card ${cls}" data-id="${c.id}"><div class="art ${c.deck}">${emojiFor(c)}</div>${art}
+    <div class="shade"><h3>${esc(c.title)}</h3>${c.subtitle ? `<div class="sub">${esc(c.subtitle)}</div>` : ''}<div class="tags">${tags.join('')}</div></div>
+    <div class="info">i</div><div class="stamp yes">Yes</div><div class="stamp no">Nope</div><div class="stamp love">Love it</div></div>`;
+}
+function updateBar() { const el = document.getElementById('prog'); if (el) el.textContent = `${S.deck.length} left · ${esc(them())} has done ${Math.min(S.theirs, S.total)} of ${S.total}`; const m = document.getElementById('mcount'); if (m) { m.textContent = S.matches.length ? `${S.matches.length} match${S.matches.length > 1 ? 'es' : ''}` : 'No matches yet'; m.className = 'pill' + (S.matches.length ? ' hot' : ''); } }
+function renderSwipe() {
+  const d = DECKS[S.sess.deck], movie = S.deck[0]?.deck === 'movie';
+  $app.innerHTML = `<div class="swipe"><div class="topbar"><button class="back" data-act="home" aria-label="Back">‹</button>
+      <div class="grow"><h2>${d.label}</h2><small id="prog"></small></div><button class="pill" id="mcount" data-act="matches"></button></div>
+    <div class="stack" id="stack"></div>
+    <div class="actions" id="acts"><button class="act sm" data-sw="undo" aria-label="Undo">↩</button><button class="act no" data-sw="no" aria-label="No">✕</button>
+      <button class="act sm" data-sw="seen" id="seenb" aria-label="Seen it" style="${movie ? '' : 'display:none'}">👁</button>
+      <button class="act love" data-sw="love" aria-label="Love it">★</button><button class="act yes" data-sw="yes" aria-label="Yes">♥</button></div></div>`;
+  drawStack();
+}
+function drawStack() {
+  const st = document.getElementById('stack'); if (!st) return; updateBar();
+  const acts = document.getElementById('acts'), seen = document.getElementById('seenb');
+  if (!S.deck.length) {
+    acts.style.visibility = 'hidden';
+    const waiting = S.theirs < S.total;
+    st.innerHTML = `<div class="done"><div style="font-size:54px">${S.matches.length ? '🎉' : '👀'}</div><h3>${S.matches.length ? `${S.matches.length} match${S.matches.length > 1 ? 'es' : ''} so far` : 'You are through the deck'}</h3>
+      <p class="muted">${waiting ? `${esc(them())} still has ${S.total - S.theirs} to swipe. You will both see matches as they land.` : 'You have both been through all of these.'}</p>
+      ${S.matches.length ? '<button class="btn" data-act="matches">See matches</button>' : ''}<button class="btn ghost" data-act="more">Deal more cards</button>${S.hist.length ? '<button class="btn ghost" data-sw="undo">Undo last swipe</button>' : ''}</div>`;
+    return;
+  }
+  acts.style.visibility = ''; if (seen) seen.style.display = S.deck[0].deck === 'movie' ? '' : 'none';
+  st.innerHTML = (S.deck[1] ? cardHTML(S.deck[1], 'under') : '') + cardHTML(S.deck[0]);
+  attachDrag(st.lastElementChild);
+}
+function attachDrag(el) {
+  let sx = 0, sy = 0, dx = 0, dy = 0, t0 = 0, on = false;
+  const stamp = k => el.querySelector('.stamp.' + k);
+  const down = e => { on = true; sx = e.clientX; sy = e.clientY; dx = dy = 0; t0 = Date.now(); el.style.transition = 'none'; try { el.setPointerCapture(e.pointerId); } catch {} };
+  const move = e => { if (!on) return; dx = e.clientX - sx; dy = e.clientY - sy; el.style.transform = `translate(${dx}px,${dy}px) rotate(${dx / 18}deg)`;
+    const up = dy < -60 && Math.abs(dx) < 70; stamp('yes').style.opacity = up ? 0 : Math.max(0, Math.min(1, dx / 90)); stamp('no').style.opacity = up ? 0 : Math.max(0, Math.min(1, -dx / 90)); stamp('love').style.opacity = up ? Math.min(1, (-dy - 40) / 70) : 0; };
+  const up = () => { if (!on) return; on = false; const dist = Math.hypot(dx, dy);
+    if (dist < 8 && Date.now() - t0 < 350) { el.style.transform = ''; return showDetail(S.deck[0]); }
+    if (dy < -110 && Math.abs(dx) < 90) return commit('love'); if (dx > 95) return commit('yes'); if (dx < -95) return commit('no');
+    el.style.transition = 'transform .25s cubic-bezier(.2,.8,.2,1)'; el.style.transform = ''; el.querySelectorAll('.stamp').forEach(s => s.style.opacity = 0); };
+  el.addEventListener('pointerdown', down); el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+}
+let busy = false;
+async function commit(verdict) {
+  if (busy || !S.deck.length) return; busy = true;
+  const card = S.deck[0], el = document.querySelector('#stack .card:last-child'), sess = S.sess.id;
+  if (el) { const to = verdict === 'no' ? 'translate(-140%,30px) rotate(-24deg)' : verdict === 'love' ? 'translate(0,-140%)' : verdict === 'seen' ? 'translate(0,140%) scale(.8)' : 'translate(140%,30px) rotate(24deg)'; el.style.transition = 'transform .28s ease-in, opacity .28s'; el.style.transform = to; el.style.opacity = '.3'; const k = verdict === 'no' ? 'no' : verdict === 'love' ? 'love' : verdict === 'yes' ? 'yes' : null; if (k) el.querySelector('.stamp.' + k).style.opacity = 1; }
+  S.deck.shift(); S.hist.push({ card, verdict }); S.mine++;
+  setTimeout(() => { busy = false; if (S.view === 'swipe' && S.sess?.id === sess) drawStack(); }, 230);
+  try {
+    const r = await rpc('swipe', { p_code: S.code, p_session: sess, p_member: S.me, p_card: card.id, p_verdict: verdict });
+    send({ type: 'swipe', session: sess, count: S.mine });
+    if (r.match) { const m = { ...card, loves: verdict === 'love' ? 1 : 0 }; S.matches.unshift(m); updateBar(); send({ type: 'match', session: sess, card: m }); push(`It's a match ${emojiFor(card)}`, `You and ${S.me} both said yes to ${card.title}.`, `./?s=${sess}`); showMatch(m); }
+  } catch (e) { toast('That swipe did not save. Check your connection.'); S.deck.unshift(card); S.hist.pop(); S.mine--; drawStack(); }
+}
+async function undo() {
+  const h = S.hist.pop(); if (!h) return toast('Nothing to undo.');
+  try { await rpc('unswipe', { p_code: S.code, p_session: S.sess.id, p_member: S.me, p_card: h.card.id }); S.deck.unshift(h.card); S.mine--; S.matches = S.matches.filter(m => m.id !== h.card.id); if (S.view !== 'swipe') { S.view = 'swipe'; renderSwipe(); } else drawStack(); } catch { S.hist.push(h); toast('Could not undo.'); }
+}
+const chainLabel = c => c.data?.chain ? (c.data.chain.deck === 'movie' ? 'Pick the movie' : c.data.chain.deck === 'event' ? 'Pick an event' : c.data.chain.filters?.kinds?.[0] === 'cook' ? 'Pick what to cook' : c.data.chain.filters?.kinds?.[0] === 'orderin' ? 'Pick where to order from' : 'Pick a place') : null;
+function showMatch(c) {
+  document.querySelector('.match')?.remove();
+  const m = document.createElement('div'); m.className = 'match'; const cl = chainLabel(c);
+  m.innerHTML = `<h1>You both<br>like this</h1><div class="pic">${c.image ? `<img src="${esc(c.image)}" alt="">` : emojiFor(c)}</div><h3>${esc(c.title)}</h3>
+    ${cl ? `<button class="btn" data-chain="${c.id}">${cl} →</button>` : ''}<button class="btn ${cl ? 'ghost' : ''}" data-act="closematch">Keep swiping</button><button class="btn ghost" data-act="matches">See all matches</button>`;
+  m._card = c; document.body.appendChild(m); if (navigator.vibrate) navigator.vibrate([30, 40, 60]);
+}
+function renderMatches() {
+  const d = DECKS[S.sess.deck];
+  $app.innerHTML = `<div class="view"><div class="topbar"><button class="back" data-act="${S.deck.length ? 'swipe' : 'home'}" aria-label="Back">‹</button><div class="grow"><h2>Matches</h2><small>${d.label} · ${ago(S.sess.created_at)}</small></div></div>
+    ${S.matches.length ? S.matches.map(c => { const cl = chainLabel(c); return `<div class="item"><button data-detail="${c.id}" style="width:54px;height:76px;border-radius:10px;overflow:hidden;background:var(--surface);flex:none;display:grid;place-items:center;font-size:26px">${c.image ? `<img src="${esc(c.image)}" alt="" style="width:100%;height:100%;object-fit:cover">` : emojiFor(c)}</button>
+      <button class="grow" style="text-align:left" data-detail="${c.id}"><b>${esc(c.title)}</b><small>${esc(c.subtitle || '')}</small>${c.loves >= 2 ? '<small style="color:var(--gold)">★ You both loved this</small>' : c.loves === 1 ? '<small style="color:var(--gold)">★ One of you loved this</small>' : ''}</button>${cl ? `<button class="btn sm" data-chain="${c.id}">Next →</button>` : ''}</div>`; }).join('')
+      : `<div class="note"><b>No matches yet.</b> They show up here the moment you have both said yes to the same card.</div>`}
+    <div style="height:18px"></div>${S.deck.length ? '<button class="btn" data-act="swipe">Keep swiping</button>' : '<button class="btn ghost" data-act="more">Deal more cards</button>'}</div>`;
+}
+
+/* ---------- sheets ---------- */
+function sheet(html) { $layer.innerHTML = `<div class="scrim" data-scrim><div class="sheet">${html}</div></div>`; }
+function closeSheet() { $layer.innerHTML = ''; }
+function showDetail(c) {
+  if (!c) return; const d = c.data || {}; let b = '';
+  if (c.deck === 'movie') {
+    b = `<div class="tags">${(d.services || []).map(s => `<span class="tag svc" style="--dot:${SVC_DOT[s] || '#fff'}">${esc(s)}</span>`).join('')}${(d.genres || []).map(g => `<span class="tag">${esc(g)}</span>`).join('')}</div>
+      <p class="muted" style="font-size:13.5px">${[d.user_rating ? `★ ${d.user_rating} / 10` : '', d.critic_score ? `Critics ${d.critic_score}%` : ''].filter(Boolean).join(' · ')}</p>
+      ${d.plot ? `<p>${esc(d.plot)}</p>` : ''}${d.directors?.length ? `<div class="kv">Directed by</div><p style="margin-top:0">${esc(d.directors.join(', '))}</p>` : ''}
+      ${d.cast?.length ? `<div class="kv">Cast</div><div class="cast">${d.cast.map(p => `<div>${esc(p.name)}<span>${esc(p.role || '')}</span></div>`).join('')}</div>` : ''}
+      ${d.trailer ? `<div style="height:18px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.trailer)}" target="_blank" rel="noopener">Watch the trailer</a>` : ''}
+      <p class="muted" style="font-size:11.5px;text-align:center">Streaming data powered by Watchmode.com</p>`;
+  } else if (c.deck === 'dinner') {
+    const oh = onHand(c);
+    b = `<div class="tags"><span class="tag">${KINDS[c.kind]?.[0] || 'Dinner'}</span></div>${d.notes ? `<p>${esc(d.notes)}</p>` : ''}
+      ${d.ingredients?.length ? `<div class="kv">Ingredients</div><p style="margin-top:0">${d.ingredients.map(i => { const miss = oh && oh.missing.includes(i); return `<span style="${miss ? 'color:var(--muted)' : ''}">${oh ? (miss ? '○ ' : '● ') : ''}${esc(i)}</span>`; }).join('<br>')}</p>${oh ? `<p class="muted" style="font-size:13px">${oh.have} of ${oh.total} in your pantry</p>` : ''}` : ''}
+      ${d.url ? `<div style="height:18px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.url)}" target="_blank" rel="noopener">Open website</a>` : ''}`;
+  } else if (c.deck === 'event') {
+    b = `<div class="tags"><span class="tag">${fmtDate(c.event_date)}</span>${c.kind ? `<span class="tag">${esc(c.kind)}</span>` : ''}</div>
+      ${d.time ? `<div class="kv">When</div><p style="margin-top:0">${esc(d.time)}</p>` : ''}${d.venue ? `<div class="kv">Where</div><p style="margin-top:0">${esc(d.venue)}${d.area ? ` (${esc(d.area)})` : ''}</p>` : ''}${d.notes ? `<p>${esc(d.notes)}</p>` : ''}
+      ${d.url ? `<div style="height:18px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.url)}" target="_blank" rel="noopener">View event page</a>` : ''}`;
+  } else b = c.data?.chain ? `<p>If you both say yes, you go straight into picking ${c.data.chain.deck === 'movie' ? 'a movie' : c.data.chain.deck === 'event' ? 'an event' : 'the food'}.</p>` : '';
+  const img = d.backdrop || c.image;
+  sheet(`${img ? `<div class="hero"><button class="close" data-act="closesheet" aria-label="Close">×</button><img src="${esc(img)}" alt=""></div>` : '<div class="grab"></div>'}
+    <div class="body"><h2>${img ? '' : emojiFor(c) + ' '}${esc(c.title)}</h2>${c.subtitle ? `<p class="muted" style="margin-top:6px">${esc(c.subtitle)}</p>` : ''}<div style="height:10px"></div>${b}</div>`);
+}
+const F = { services: new Set(), genres: new Set(), kinds: new Set(), days: 2 };
+function nudgeSheet(deck) {
+  const d = DECKS[deck], st = S.state; F.services.clear(); F.genres.clear(); F.kinds.clear(); F.days = 2; let f = '';
+  if (deck === 'movie') f = `<div class="kv">Where</div><div class="chips">${(st.services || []).map(s => `<button class="chip" data-f="services" data-v="${esc(s)}">${esc(s)}</button>`).join('')}</div>
+    <div class="kv">Mood</div><div class="chips">${(st.genres || []).map(s => `<button class="chip" data-f="genres" data-v="${esc(s)}">${esc(s)}</button>`).join('')}</div><p class="muted" style="font-size:12.5px;margin-top:8px">Leave everything off for anything goes.</p>`;
+  if (deck === 'dinner') f = `<div class="kv">Kind of dinner</div><div class="chips">${Object.entries(KINDS).map(([k, v]) => `<button class="chip" data-f="kinds" data-v="${k}">${v[1]} ${v[0]}</button>`).join('')}</div>`;
+  if (deck === 'event') f = `<div class="kv">When</div><div class="chips"><button class="chip" data-days="0">Today only</button><button class="chip on" data-days="2">Next 3 days</button><button class="chip" data-days="6">This week</button></div>`;
+  sheet(`<div class="grab"></div><h2>${d.em} ${d.label}</h2><p class="muted" style="margin-top:6px;font-size:14.5px">${partner() ? `${esc(them())} gets a nudge and the same cards. You each swipe, then see what you both picked.` : 'Swipe now. Your other half sees this round when they join.'}</p>
+    ${f}<label class="field"><span>Add a note (optional)</span><input id="nnote" maxlength="80" placeholder="${esc(d.nudge)}"></label>
+    <div style="height:16px"></div><button class="btn" data-go="${deck}">${partner() ? `Nudge ${esc(them())} and start` : 'Start swiping'}</button>`);
+}
+function addSheet() {
+  const t = S.listTab === 'pantry' ? 'dinner' : S.listTab; let f = '';
+  if (t === 'activity') f = `<label class="field"><span>What is it?</span><input id="a_title" maxlength="60" placeholder="Bowling"></label><label class="field"><span>One line about it (optional)</span><input id="a_sub" maxlength="90"></label><label class="field"><span>Emoji (optional)</span><input id="a_emoji" maxlength="4" placeholder="🎳"></label>`;
+  if (t === 'dinner') f = `<label class="field"><span>Kind</span><select id="a_kind"><option value="cook">Cook at home</option><option value="restaurant">Restaurant</option><option value="orderin">Order in</option></select></label>
+    <label class="field"><span>Name</span><input id="a_title" maxlength="60" placeholder="Sheet-pan chicken, or the restaurant's name"></label><label class="field"><span>One line about it (optional)</span><input id="a_sub" maxlength="90" placeholder="Thai · Corktown"></label>
+    <label class="field"><span>Ingredients, comma separated (cook at home)</span><input id="a_ing" placeholder="chicken thighs, broccoli, lemon"></label><label class="field"><span>Website or menu link (optional)</span><input id="a_url" inputmode="url" placeholder="https://"></label><label class="field"><span>Photo link (optional)</span><input id="a_img" inputmode="url" placeholder="https://"></label>`;
+  if (t === 'event') f = `<label class="field"><span>Event</span><input id="a_title" maxlength="80"></label><label class="field"><span>Date</span><input id="a_date" type="date" value="${new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10)}"></label><label class="field"><span>Time (optional)</span><input id="a_time" placeholder="8:00 pm"></label><label class="field"><span>Venue (optional)</span><input id="a_venue"></label><label class="field"><span>Link (optional)</span><input id="a_url" inputmode="url" placeholder="https://"></label>`;
+  sheet(`<div class="grab"></div><h2>Add ${t === 'activity' ? 'an activity' : t === 'dinner' ? 'a dinner idea' : 'an event'}</h2>${f}<div style="height:16px"></div><button class="btn" data-save="${t}">Save</button>`);
+}
+async function saveAdd(t) {
+  const v = id => document.getElementById(id)?.value.trim() || ''; const title = v('a_title'); if (!title) return toast('Give it a name.');
+  const url = u => /^https?:\/\//i.test(u) ? u : ''; let kind = null, sub = v('a_sub'), img = '', data = {};
+  if (t === 'activity') { if (v('a_emoji')) data.emoji = v('a_emoji'); }
+  if (t === 'dinner') { kind = v('a_kind'); const ing = v('a_ing').split(',').map(s => s.trim()).filter(Boolean); if (ing.length) data.ingredients = ing; if (url(v('a_url'))) data.url = url(v('a_url')); img = url(v('a_img')); }
+  if (t === 'event') { data = { date: v('a_date'), time: v('a_time'), venue: v('a_venue') }; if (url(v('a_url'))) data.url = url(v('a_url')); sub = [v('a_time'), v('a_venue')].filter(Boolean).join(' · '); }
+  try { await rpc('add_card', { p_code: S.code, p_member: S.me, p_deck: t, p_kind: kind, p_title: title, p_subtitle: sub, p_image: img, p_data: data }); closeSheet(); S.listTab = t; toast('Added.'); await refresh(); render(); } catch (e) { toast(errMsg(e)); }
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click', async e => {
+  const t = e.target.closest('[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
+  if (!t) return; const ds = t.dataset;
+  try {
+    if (t.id === 'jgo') { const name = document.getElementById('jn').value.trim(), code = document.getElementById('jc').value.trim().toUpperCase(); if (!name || !code) return toast('Enter your name and the couple code.'); t.disabled = true; try { const r = await rpc('join_couple', { p_code: code, p_name: name }); S.code = code; S.me = r.name; ls.set('code', code); ls.set('name', r.name); history.replaceState(null, '', location.pathname); await boot(); send({ type: 'joined' }); } catch (er) { t.disabled = false; toast(errMsg(er)); } return; }
+    if ('scrim' in ds) return closeSheet();
+    if (ds.tab) { S.tab = ds.tab; S.view = 'home'; if (ds.tab === 'home') await refresh(); return render(); }
+    if (ds.nudge) return nudgeSheet(ds.nudge);
+    if (ds.f) { const set = F[ds.f]; set.has(ds.v) ? set.delete(ds.v) : set.add(ds.v); return t.classList.toggle('on'); }
+    if (ds.days) { F.days = +ds.days; t.parentElement.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c === t)); return; }
+    if (ds.go) { t.disabled = true; const filters = ds.go === 'movie' ? { services: [...F.services], genres: [...F.genres] } : ds.go === 'dinner' ? { kinds: [...F.kinds] } : ds.go === 'event' ? { days: F.days } : {}; try { await startSession(ds.go, filters, document.getElementById('nnote').value.trim()); } finally { t.disabled = false; } return; }
+    if (ds.open) return openSession(ds.open);
+    if (ds.sw) return ds.sw === 'undo' ? undo() : commit(ds.sw);
+    if (ds.list) { S.listTab = ds.list; return render(); }
+    if (ds.del) { await rpc('delete_card', { p_code: S.code, p_id: ds.del }); await refresh(); return loadList(); }
+    if (ds.detail) { const c = (S.view === 'matches' ? S.matches : S.listCards || []).find(x => x.id === ds.detail); return showDetail(c); }
+    if (ds.save) return saveAdd(ds.save);
+    if (ds.chain) { const c = S.matches.find(x => x.id === ds.chain) || document.querySelector('.match')?._card; document.querySelector('.match')?.remove(); if (c?.data?.chain) await startSession(c.data.chain.deck, c.data.chain.filters || {}, `Since we both said ${c.title}`); return; }
+    switch (ds.act) {
+      case 'home': S.view = 'home'; S.tab = 'home'; await refresh(); return render();
+      case 'swipe': S.view = 'swipe'; return render();
+      case 'matches': document.querySelector('.match')?.remove(); try { const d = await rpc('get_session', { p_code: S.code, p_session: S.sess.id, p_member: S.me }); S.matches = d.matches; S.theirs = d.theirs; } catch {} S.view = 'matches'; return render();
+      case 'closematch': return document.querySelector('.match')?.remove();
+      case 'closesheet': return closeSheet();
+      case 'more': { const n = await rpc('more_cards', { p_code: S.code, p_session: S.sess.id }); if (!n) return toast('That is everything for now.'); send({ type: 'more', session: S.sess.id }); await loadSession(S.sess.id); S.view = 'swipe'; return render(); }
+      case 'add': return addSheet();
+      case 'savepantry': { const items = document.getElementById('pt').value.split(/\n|,/).map(s => s.replace(/^[\s\-•*\d.x×]+(?=\D)/i, '').replace(/\$\s?\d+(\.\d+)?/g, '').trim()).filter(s => s.length > 1).map(item => ({ item })); const n = await rpc('set_pantry', { p_code: S.code, p_items: items }); await refresh(); toast(`${n} pantry items saved.`); return loadList(); }
+      case 'invite': { const link = `${location.origin}${location.pathname}?c=${S.code}`; try { if (navigator.share) await navigator.share({ title: 'WeLike', text: 'Join me on WeLike', url: link }); else { await navigator.clipboard.writeText(link); toast('Invite link copied.'); } } catch {} return; }
+      case 'push': return enablePush();
+      case 'signout': ls.del('name'); S.me = null; if (S.chan) sb.removeChannel(S.chan); return render();
+    }
+  } catch (er) { console.error(er); toast(errMsg(er)); }
+});
+document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && S.code && S.me) { try { await refresh(); if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) render(); else if (S.view === 'swipe' && S.sess) { const d = await rpc('get_session', { p_code: S.code, p_session: S.sess.id, p_member: S.me }); S.theirs = d.theirs; S.total = d.total; if (d.matches.length !== S.matches.length) { S.matches = d.matches; } if (d.deck.length !== S.deck.length && !busy) { S.deck = d.deck; drawStack(); } else updateBar(); } } catch {} } });
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); navigator.serviceWorker.addEventListener('message', e => { const u = e.data?.open; if (u) { const s = new URL(u).searchParams.get('s'); if (s && S.me) openSession(s); } }); }
+
+async function boot() {
+  if (!S.code || !S.me) return render();
+  try { await refresh(); } catch (e) { if (String(e.message).includes('bad_code')) { ls.del('code'); ls.del('name'); S.code = S.me = null; return render(); } $app.innerHTML = `<div class="center"><div class="brand">We<i>Like</i></div><p class="muted" style="margin:12px 0 18px">Could not reach the server. Check your connection.</p><button class="btn" onclick="location.reload()">Try again</button></div>`; return; }
+  connect(); resavePush();
+  const s = new URLSearchParams(location.search).get('s');
+  if (s) { history.replaceState(null, '', location.pathname); return openSession(s); }
+  render();
+}
+boot();
+</script>
+</body>
+</html>
