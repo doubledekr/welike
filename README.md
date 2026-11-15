@@ -9,3 +9,5 @@ A two-person swipe app for picking movies, dinner, activities and local events. 
 Backend: Supabase project `welike` (database functions, a nightly movie-catalog sync from Watchmode, and a push "nudge" function). No API secrets live in this repo; the Supabase key in `index.html` is the publishable client key.
 
 Streaming data powered by Watchmode.com.
+
+Hosted on Cloudflare Pages at https://letstogether.app (deploys from the main branch).
