@@ -587,6 +587,7 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .astack .acount{position:absolute;left:50%;bottom:0;transform:translateX(-50%);white-space:nowrap;font-size:12px;font-weight:700;padding:5px 11px;border-radius:99px;color:#3a2400;background:linear-gradient(135deg,#ffd68a,#d9a85a);box-shadow:0 6px 14px -6px rgba(0,0,0,.8)}
 .tcard.art{flex-basis:min(40vw,160px);aspect-ratio:3/4;border-radius:4px;box-shadow:0 0 0 5px #241c14,0 0 0 7px #7d6136,0 12px 22px -8px rgba(0,0,0,.9);margin:6px 8px}
 .tcard.art.both{box-shadow:0 0 0 5px #241c14,0 0 0 7px #d9a85a,0 0 24px 0 rgba(255,150,120,.4)}
+.getaway{margin-top:12px;width:100%}
 .casetag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;padding:4px 10px;border-radius:99px;margin-bottom:6px;color:#fff;background:linear-gradient(135deg,#4d9bff,#2dd4bf)}
 .case{display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 10px 10px 12px;border-radius:16px;background:linear-gradient(135deg,rgba(77,155,255,.24),rgba(45,212,191,.12));box-shadow:inset 0 0 0 1px rgba(120,190,255,.36)}
 .case .tic{width:34px;height:34px;border-radius:11px;font-size:17px;background:linear-gradient(135deg,#4d9bff,#2dd4bf)}
@@ -695,6 +696,8 @@ async function onEvent(p) {
   else if (p.type === 'final') { if (S.view !== 'game') showFinal(p.card, !!p.shuffle && S.sess?.id === p.session); }
   else if (p.type === 'rec') { try { navigator.vibrate?.(40); } catch {} recSheet(p.card, p.from, p.keen); }
   else if (p.type === 'recreply') recReply(p);
+  else if (p.type === 'getaway') { try { navigator.vibrate?.(40); } catch {} openGetaway(p.city, p.from); }
+  else if (p.type === 'getreply') toast(p.yes ? `${p.from} is in for a weekend in ${p.city}. Time to plan it.` : `${p.from} said not yet on ${p.city}.`, 5000);
   else if (p.type === 'joined') { await refresh(); if (S.view === 'home') render(); }
 }
 const b64u = s => { const p = '='.repeat((4 - s.length % 4) % 4); const r = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...r].map(c => c.charCodeAt(0))); };
@@ -1067,6 +1070,23 @@ function renderGallery() {
 }
 
 /* ---------- saved trips ---------- */
+// Weekend getaway nudge: once a city has things we both want, either of us can float the trip
+const cityShared = city => { const L = S.lib || [], t = L.filter(c => c.deck === 'trip' && c.kind === city && c.who === 'both'), a = L.filter(c => c.deck === 'art' && c.data?.city === city && c.who === 'both'); return { t, a }; };
+const cityLine = (t, a) => [t ? `${t} thing${t > 1 ? 's' : ''} you both want to do` : '', a ? `${a} piece${a > 1 ? 's' : ''} of art you both love` : ''].filter(Boolean).join(' and ');
+function sendGetaway(city) {
+  const g = cityShared(city); if (!partner() || g.t.length + g.a.length < 1) return;
+  send({ type: 'getaway', city });
+  push(`${S.me}: weekend in ${city}? ✈️`, `${cityLine(g.t.length, g.a.length)}. Take a look.`, `./?trip=${encodeURIComponent(city)}`);
+  toast(`Sent ${them()} the idea of a weekend in ${city}.`, 3500);
+}
+async function openGetaway(city, from) {
+  if (!city || !S.code || !S.me) return;
+  try { S.lib = await rpc('library', { p_code: S.code, p_member: S.me }); } catch { return; }
+  const g = cityShared(city), all = [...g.t, ...g.a]; S.getaway = city; S.listCards = S.lib;
+  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('plane')}</span><p class="muted" style="font-size:13px;letter-spacing:1.5px;text-transform:uppercase;margin-top:6px">${esc(from || them())} is thinking weekend getaway</p><h2 style="margin-top:4px">${esc(city)}?</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">${all.length ? `You already have ${cityLine(g.t.length, g.a.length)} there.` : 'You have both been saving things there.'}</p></div></div>
+    ${all.length ? `<div class="trow" style="margin-top:14px">${all.slice(0, 8).map(c => `<div class="tcard both ${c.deck === 'art' ? 'art' : ''}">${c.image ? `<img src="${esc(c.image)}" alt="">` : ''}<span class="tt"><b>${esc(c.title)}</b><small>${esc(c.deck === 'art' ? (c.data?.museum || '') : (c.data?.price ? 'from $' + c.data.price : ''))}</small></span></div>`).join('')}</div>` : ''}
+    <div style="height:16px"></div><button class="btn" data-act="getyes">Let’s plan it</button><div style="height:10px"></div><button class="btn ghost" data-act="getno">Not yet</button>`);
+}
 async function openTrips() {
   closeSheet(); document.querySelector('.lfront')?.remove();
   S.lib = await rpc('library', { p_code: S.code, p_member: S.me }); S.libSel = null; S.view = 'trips'; render();
@@ -1087,7 +1107,8 @@ function renderTrips() {
     ${cities.length ? cities.map(g => { const key = 't:' + g.city, both = g.a.length && g.t.length, open = S.stackOpen.has(key);
       return `<div class="tcity"><div class="tc-h">${both ? '<span class="casetag">The case for going</span>' : ''}<b>${esc(g.city)}</b><small class="${g.tb || g.ab ? 'hot' : ''}">${line(g)}</small></div>
       <div class="trow">${g.a.length ? (open ? g.a.map(c => `<button class="tcard art ${c.who === 'both' ? 'both' : ''}" data-lib="${c.id}"><img src="${esc(c.image)}" alt="">${c.who === 'both' ? `<span class="hb">${ic('heart')}</span>` : ''}<span class="tt"><b>${esc(c.title)}</b><small>${esc(c.data?.museum || '')}</small></span></button>`).join('') : artStack(g.a, key, 'art to see')) : ''}${g.t.map(c => `<button class="tcard ${c.who === 'both' ? 'both' : ''}" data-lib="${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="">` : ''}${c.who === 'both' ? `<span class="hb">${ic('heart')}</span>` : ''}<span class="tt"><b>${esc(c.title)}</b><small>${[c.data?.price ? 'from $' + c.data.price : '', c.data?.rating ? '★ ' + c.data.rating : ''].filter(Boolean).join(' · ')}</small></span></button>`).join('')}</div>
-      ${g.a.length && !g.t.length ? `<button class="btn ghost sm" data-gcity="${esc(g.city)}">${ic('plane')} Find things to do in ${esc(g.city)}</button>` : ''}</div>`; }).join('')
+      ${g.a.length && !g.t.length ? `<button class="btn ghost sm" data-gcity="${esc(g.city)}">${ic('plane')} Find things to do in ${esc(g.city)}</button>` : ''}
+      ${p && g.tb + g.ab >= 2 ? `<button class="btn sm getaway" data-getaway="${esc(g.city)}">${ic('plane')} Nudge ${esc(p)} about a weekend in ${esc(g.city)}</button>` : ''}</div>`; }).join('')
       : `<div class="note" style="margin-top:16px"><b>No trips saved yet.</b> Swipe “Like it” on the Trips tab and they collect here, grouped by city. Art you like in the same city stacks up alongside, so you can see the case for going.</div>`}
     <p class="muted" style="font-size:11.5px;text-align:center;margin:22px 0 6px">Experiences from Viator. Let’s Together may earn a commission if you book.</p></div>`;
 }
@@ -1679,7 +1700,7 @@ async function saveAdd(t) {
 
 /* ---------- events ---------- */
 document.addEventListener('click', async e => {
-  const t = e.target.closest('[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-hdeck],[data-like],[data-final],[data-lad],[data-chg],[data-tbpick],[data-g],[data-seenany],[data-padd],[data-lib],[data-libf],[data-tripc],[data-who],[data-gcity],[data-astack],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
+  const t = e.target.closest('[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-hdeck],[data-like],[data-final],[data-lad],[data-chg],[data-tbpick],[data-g],[data-seenany],[data-padd],[data-lib],[data-libf],[data-tripc],[data-who],[data-gcity],[data-getaway],[data-astack],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
   if (!t) return; const ds = t.dataset;
   try {
     if (ds.who) { const jn = document.getElementById('jn'); if (jn) jn.value = ds.who; return document.getElementById('jgo')?.click(); }
@@ -1695,6 +1716,7 @@ document.addEventListener('click', async e => {
     if (ds.g) return guessAnswer(ds.g === '1');
     if (ds.seenany) { await rpc('mark_seen_any', { p_code: S.code, p_card: ds.seenany }); await refresh(); toast('Moved to your Seen folder for both of you.'); return openLibrary(); }
     if (ds.astack) { S.stackOpen.has(ds.astack) ? S.stackOpen.delete(ds.astack) : S.stackOpen.add(ds.astack); return render(); }
+    if (ds.getaway) return sendGetaway(ds.getaway);
     if (ds.gcity) { t.disabled = true; t.textContent = 'Finding things to do…'; const { data } = await sb.functions.invoke('trips', { body: { action: 'city', code: S.code, city: ds.gcity } }).catch(() => ({})); S.tripCity = data?.city || ds.gcity; ls.set('tripcity', S.tripCity); S.homeDeck = 'trip'; ls.set('deck', 'trip'); S.view = 'home'; S.tab = 'home'; return render(); }
     if (ds.tripc != null) { S.tripCity = ds.tripc; ls.set('tripcity', ds.tripc); closeSheet(); return render(); }
     if (ds.libf) { S.libF = ds.libf; S.libSel = null; return renderLibrary(); }
@@ -1730,6 +1752,8 @@ document.addEventListener('click', async e => {
       case 'evask': return evSheet();
       case 'evsend': t.disabled = true; await evSend(); closeSheet(); return S.view === 'home' ? render() : null;
       case 'evlater': case 'evx': ls.set('evno', evKey()); closeSheet(); return S.view === 'home' ? render() : null;
+      case 'getyes': { const c = S.getaway; send({ type: 'getreply', yes: true, city: c }); push(`${S.me} is in ✈️`, `A weekend in ${c}. Time to plan it.`, `./`); return openTrips(); }
+      case 'getno': { const c = S.getaway; send({ type: 'getreply', yes: false, city: c }); push(`${S.me}: not yet`, `Holding off on ${c} for now.`, './'); closeSheet(); return toast(`Told ${them()} not yet.`); }
       case 'scolater': document.querySelector('.sco')?.remove(); return;
       case 'scratchdone': document.querySelector('.scr')?.remove(); return render();
       case 'travelon': return checkTravel(true);
@@ -1836,7 +1860,7 @@ async function checkVersion() {
 checkVersion();
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { evPeek(); checkVersion(); checkTravel(); S.peekTried = false; scratchCheck(); } });
 document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && S.code && S.me) { try { await refresh(); if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) render(); else if (S.view === 'swipe' && S.sess) { const d = await rpc('get_session', { p_code: S.code, p_session: S.sess.id, p_member: S.me }); S.theirLeft = d.their_left; S.total = d.total; if (d.matches.length !== S.matches.length) { S.matches = d.matches; } if (d.deck.length !== S.deck.length && !busy) { S.deck = d.deck; drawStack(); } else updateBar(); } } catch {} } });
-if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); navigator.serviceWorker.addEventListener('message', e => { const u = e.data?.open; if (u) { const q = new URL(u).searchParams, s = q.get('s'), r = q.get('rec'), g = q.get('tb'); if (s && S.me) openSession(s); else if (r && S.me) openRec(r, q.get('keen')); else if (g && S.me) openGame(g); } }); }
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); navigator.serviceWorker.addEventListener('message', e => { const u = e.data?.open; if (u) { const q = new URL(u).searchParams, s = q.get('s'), r = q.get('rec'), g = q.get('tb'); if (s && S.me) openSession(s); else if (r && S.me) openRec(r, q.get('keen')); else if (g && S.me) openGame(g); else if (q.get('trip') && S.me) openGetaway(q.get('trip'), partner()); } }); }
 
 async function boot() {
   if (!S.code || !S.me) return render();
@@ -1846,7 +1870,8 @@ async function boot() {
   if (s) { history.replaceState(null, '', location.pathname); return openSession(s); }
   const rc = new URLSearchParams(location.search).get('rec'), rk = new URLSearchParams(location.search).get('keen'); if (rc) history.replaceState(null, '', location.pathname);
   const tg = new URLSearchParams(location.search).get('tb'); if (tg) { history.replaceState(null, '', location.pathname); return openGame(tg); }
-  render(); if (rc) return openRec(rc, rk);
+  const tp = new URLSearchParams(location.search).get('trip'); if (tp) history.replaceState(null, '', location.pathname);
+  render(); if (rc) return openRec(rc, rk); if (tp) return openGetaway(tp, partner());
   nextOnboard(); checkTravel(); scratchCheck(); installCheck(); evPeek();
 }
 boot();
