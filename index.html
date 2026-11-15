@@ -863,6 +863,11 @@ async function nearby(ms = 9000) {
     return await Promise.race([call, new Promise(r => setTimeout(() => r(null), ms))]);
   } catch { return null; }
 }
+// Places to go (museums, arcades, bookstores...) for the Go out deck. The backend decides whether a new look is needed.
+async function outings(ms = 6000) {
+  if (!S.code || S.away || !(S.settings?.zip || S.settings?.lat != null)) return null;
+  try { const call = nbShare('outings', () => sb.functions.invoke('outings', { body: { code: S.code, member: S.me } }).then(r => r.data).catch(() => null)); return await Promise.race([call, new Promise(r => setTimeout(() => r(null), ms))]); } catch { return null; }
+}
 
 /* ---------- data ---------- */
 async function refresh() {
@@ -882,6 +887,7 @@ async function startSession(deck, filters, note, announce = true) {
     const nb = await nearby();
     if (nb?.error === 'no_location' && deck === 'dinner') toast('Add your ZIP code on the You tab to get restaurants near you.', 4500);
   }
+  if (deck === 'event' && !S.away) await outings(6000);
   if (S.away && (deck === 'dinner' || deck === 'event')) { filters = { ...(filters || {}), away: S.away.city }; if (deck === 'event') { filters.days = 7; await Promise.race([sb.functions.invoke('trips', { body: { action: 'local', code: S.code, city: S.away.city } }).catch(() => {}), new Promise(r => setTimeout(r, 7000))]); } }
   const r = await rpc('start_session', { p_code: S.code, p_member: S.me, p_deck: deck, p_note: note || null, p_filters: filters || {} });
   if (!r.id) { toast(emptyMsg(deck, filters)); return; }
@@ -981,7 +987,7 @@ function paintHearts() {   // header total plus the small per-category counts
   if (pill) { pill.textContent = '♥ ' + (c.shortlist || 0); pill.classList.toggle('hot', !!c.shortlist); }
   document.querySelectorAll('[data-hdeck]').forEach(b => { b.querySelector('.hc')?.remove(); b.insertAdjacentHTML('beforeend', heartTag(b.dataset.hdeck)); });
 }
-const HDECKS = [['movie', 'Movies'], ['dinner', 'Eat'], ['event', 'Events'], ['trip', 'Trips'], ['art', 'Art']];
+const HDECKS = [['movie', 'Movies'], ['dinner', 'Eat'], ['event', 'Go out'], ['trip', 'Trips'], ['art', 'Art']];
 function homeHTML() {
   const st = S.state, p = partner(), incoming = (st.sessions || []).filter(s => s.from !== S.me && s.my_left > 0 && !(s.filters?.evshare && s.created_at && Date.now() - new Date(s.created_at) > 8 * 864e5)).sort((a, b) => (a.filters?.share || a.filters?.evshare ? 1 : 0) - (b.filters?.share || b.filters?.evshare ? 1 : 0));   // a nudge for right now takes the one slot ahead of a some-time-soon list
   if (!HDECKS.some(d => d[0] === S.homeDeck)) S.homeDeck = 'movie';
@@ -1008,8 +1014,10 @@ async function loadBite() {
   try {
     if (deck === 'dinner') await nearby(6000);
     const away = S.away && (deck === 'dinner' || deck === 'event') ? S.away.city : '';
+    const og = deck === 'event' && !away ? outings(6000) : null;
     if (deck === 'event' && away) await Promise.race([sb.functions.invoke('trips', { body: { action: 'local', code: S.code, city: away } }).catch(() => {}), new Promise(r => setTimeout(r, 7000))]);
     else if (deck === 'event' && S.settings.zip && ls.get('lexp') !== new Date().toDateString()) { ls.set('lexp', new Date().toDateString()); await Promise.race([sb.functions.invoke('trips', { body: { action: 'local', code: S.code } }).catch(() => {}), new Promise(r => setTimeout(r, 5000))]); }
+    if (og) await og;
     const r = deck === 'art' ? await rpc('start_art', { p_code: S.code, p_member: S.me, p_extra: extra })
       : deck === 'trip' ? await rpc('start_trips', { p_code: S.code, p_member: S.me, p_city: S.tripCity || '', p_extra: extra })
       : away ? await rpc('start_bite_at', { p_code: S.code, p_member: S.me, p_deck: deck, p_extra: extra, p_away: away })
@@ -1020,7 +1028,7 @@ async function loadBite() {
   } catch (e) { const st = document.getElementById('stack'); if (st && here()) st.innerHTML = '<div class="done"><p class="muted">Could not load today’s cards. Reopen the app to try again.</p></div>'; }
 }
 function biteDoneHTML() {
-  const names = { movie: 'movies', dinner: 'places to eat', event: 'events', trip: 'trip ideas', art: 'artworks' }, extra = !!S.sess?.filters?.extra, none = !S.total, p = partner();
+  const names = { movie: 'movies', dinner: 'places to eat', event: 'things to do', trip: 'trip ideas', art: 'artworks' }, extra = !!S.sess?.filters?.extra, none = !S.total, p = partner();
   return `<div class="done"><div class="badge">${ic(DIC[S.sess.deck] || 'film')}</div><h3>${none ? 'Nothing new here today' : `That is today’s handful of ${names[S.sess.deck] || 'cards'}`}</h3>
     <p class="muted">${none ? (S.sess.deck === 'dinner' ? 'Add your ZIP code in settings to load restaurants near you, or add your own under Lists.' : 'Check back tomorrow, or add your own under Lists.') : 'A fresh handful arrives tomorrow.'}${!extra && p && !none ? ' Play a quick guessing round to unlock a few more now.' : ''}</p>
     ${p ? `<button class="btn ghost" data-act="guess">How well do you know ${esc(p)}?</button>` : ''}${S.hist.length ? '<button class="btn ghost" data-sw="undo">Undo last swipe</button>' : ''}</div>`;
@@ -1294,7 +1302,7 @@ const libBase = () => (S.lib || []).filter(c => S.libMode === 'movie' ? c.deck =
 const libItems = () => S.libMode === 'movie' && S.libF === 'seen' ? (S.libSeen || []) : libBase().filter(c => (S.libMode === 'movie' || !S.libC || c.deck === S.libC) && (S.libF === 'all' || c.who === S.libF));
 const milesTag = d => d.miles == null ? '' : `<span class="tag">${d.away ? d.miles + ' mi' : d.miles > 3 ? (d.miles >= 10 ? Math.round(d.miles) : d.miles) + ' mi from home' : 'Local'}</span>`;
 const FEEL = { love: 'Loved it', ok: 'It was fine', no: 'Not for me' };
-const LIBC = [['movie', 'Movies'], ['dinner', 'Eat'], ['event', 'Events'], ['trip', 'Trips'], ['art', 'Art']];
+const LIBC = [['movie', 'Movies'], ['dinner', 'Eat'], ['event', 'Go out'], ['trip', 'Trips'], ['art', 'Art']];
 function renderLibrary() {
   const all = S.lib || [], base = libBase(), items = libItems(), p = partner(), trips = false, mv = S.libMode === 'movie', nb = base.filter(c => c.who === 'both').length, sel = S.libSel, play = mv || ['movie', 'dinner', 'event'].includes(S.libC), mdeck = mv ? 'movie' : play ? S.libC : ''; S.listCards = all;
   const seenF = mv && S.libF === 'seen', chips = mv ? [['both', 'Both of us'], ['me', 'Mine'], ['seen', 'Watched']] : [['both', 'Both of us'], ['me', 'Mine'], ['all', 'Everything']];
@@ -1647,7 +1655,7 @@ async function loadList() {
   const cards = await rpc('list_cards', { p_code: S.code, p_deck: tab }); if (S.listTab !== tab || !document.getElementById('list')) return;
   S.listCards = cards;
   if (!cards.length) { el.innerHTML = `<div class="note">${tab === 'dinner' ? '<b>No dinner ideas yet.</b> Add meals you cook, restaurants you like and your delivery go-tos.' : tab === 'event' ? '<b>No upcoming events loaded.</b> Add one yourself, or they arrive daily once the events feed is on.' : '<b>Nothing here yet.</b>'}</div>`; return; }
-  el.innerHTML = cards.map(c => { const sub = tab === 'dinner' ? [KINDS[c.kind]?.[0], c.subtitle].filter(Boolean).join(' · ') : tab === 'event' ? [fmtDate(c.event_date), c.subtitle].filter(Boolean).join(' · ') : c.subtitle; return `<div class="item"><span class="em">${emojiFor(c)}</span><button class="grow" style="text-align:left" data-detail="${c.id}"><b>${esc(c.title)}</b><small>${esc(sub || '')}</small></button><button class="x" data-del="${c.id}" aria-label="Remove">×</button></div>`; }).join('');
+  el.innerHTML = cards.map(c => { const sub = tab === 'dinner' ? [KINDS[c.kind]?.[0], c.subtitle].filter(Boolean).join(' · ') : tab === 'event' ? [c.data?.place ? c.kind : fmtDate(c.event_date), c.subtitle].filter(Boolean).join(' · ') : c.subtitle; return `<div class="item"><span class="em">${emojiFor(c)}</span><button class="grow" style="text-align:left" data-detail="${c.id}"><b>${esc(c.title)}</b><small>${esc(sub || '')}</small></button><button class="x" data-del="${c.id}" aria-label="Remove">×</button></div>`; }).join('');
 }
 const emojiFor = c => c.data?.emoji || (c.deck === 'dinner' ? KINDS[c.kind]?.[1] : c.deck === 'event' ? EVENT_EM[c.kind] || '🎟️' : c.deck === 'movie' ? '🎬' : c.deck === 'trip' ? '🧭' : c.deck === 'art' ? '🖼️' : '✨') || '✨';
 
@@ -1658,7 +1666,8 @@ function cardHTML(c, cls = '') {
   if (c.deck === 'dinner') { tags.push(`<span class="tag">${KINDS[c.kind]?.[0] || 'Dinner'}</span>`); if (c.data.rating) tags.push(`<span class="tag">★ ${c.data.rating}</span>`); if (c.data.price) tags.push(`<span class="tag">${esc(c.data.price)}</span>`); if (c.data.delivery) tags.push('<span class="tag">Delivers</span>'); if (c.data.miles != null) tags.push(`<span class="tag">${c.data.away ? c.data.miles + ' mi' : c.data.miles > 3 ? (c.data.miles >= 10 ? Math.round(c.data.miles) : c.data.miles) + ' mi from home' : 'Local'}</span>`); const oh = onHand(c); if (oh) tags.push(`<span class="tag">${oh.have === oh.total ? 'You have everything' : `${oh.have} of ${oh.total} on hand`}</span>`); }
   if (c.deck === 'art') { if (c.kind) tags.push(`<span class="tag">${esc(c.kind)}</span>`); if (c.data.on_view) tags.push('<span class="tag">On view now</span>'); }
   if (c.deck === 'trip') { if (c.kind) tags.push(`<span class="tag">${esc(c.kind)}</span>`); if (c.data.rating) tags.push(`<span class="tag">★ ${c.data.rating}</span>`); if (c.data.minutes) tags.push(`<span class="tag">${fmtMins(c.data.minutes)}</span>`); if (c.data.price) tags.push(`<span class="tag">from $${c.data.price}</span>`); }
-  if (c.deck === 'event') { tags.push(`<span class="tag">${c.data.flex ? 'This week' : fmtDate(c.event_date)}</span>`); if (c.kind) tags.push(`<span class="tag">${esc(c.kind)}</span>`); if (c.data.area) tags.push(`<span class="tag">${esc(c.data.area)}</span>`); }
+  if (c.deck === 'event' && c.data.place) { if (c.kind) tags.push(`<span class="tag">${esc(c.kind)}</span>`); if (c.data.rating) tags.push(`<span class="tag">★ ${c.data.rating}</span>`); tags.push(milesTag(c.data)); }
+  else if (c.deck === 'event') { tags.push(`<span class="tag">${c.data.flex ? 'This week' : fmtDate(c.event_date)}</span>`); if (c.kind) tags.push(`<span class="tag">${esc(c.kind)}</span>`); if (c.data.area) tags.push(`<span class="tag">${esc(c.data.area)}</span>`); }
   if (c.deck === 'activity' && c.data.chain) tags.push(`<span class="tag">Then pick ${c.data.chain.deck === 'movie' ? 'a movie' : c.data.chain.deck === 'event' ? 'an event' : 'the food'}</span>`);
   const art = c.image ? `<img class="bg" src="${esc(c.image)}" alt="" draggable="false" onerror="this.remove()">` : '';
   return `<div class="card ${cls}" data-id="${c.id}"><div class="art ${c.deck}">${emojiFor(c)}</div>${art}
@@ -1752,7 +1761,7 @@ function keenNudge(c, w) {   // the same event liked three different weeks: tell
   toast(`You have liked this ${w} weeks now, so ${them()} got a nudge about it.`, 4500);
 }
 /* ---------- share menu: events and places I liked, sent to my partner for some time soon ---------- */
-const SHW = { event: ['events', 'an event', 'Events you liked', 'ticket', 'Share events'], dinner: ['places', 'a place', 'Places you liked', 'dine', 'Share places'] };
+const SHW = { event: ['things to do', 'something to do', 'Things to do you liked', 'ticket', 'Share picks'], dinner: ['places', 'a place', 'Places you liked', 'dine', 'Share places'] };
 const shN = (d, n) => n > 1 ? n + ' ' + SHW[d][0] : SHW[d][1];
 function shareChip() {
   const d = S.homeDeck; if ((d !== 'event' && d !== 'dinner') || !partner()) return '';
@@ -1790,8 +1799,8 @@ const shGoLabel = () => { const n = S.shSel.size, all = shFresh().length; return
 function shareSheet() {
   const d = S.shDeck, L = S.shList || { mine: [], incoming: [] }, w = SHW[d], p = esc(them());
   const fresh = shFresh(), sent = L.mine.filter(c => c.sent), wait = sent.filter(c => !c.answered).length, inc = L.incoming || [];
-  const row = (c, i) => { const cd = c.data || {}, sub = d === 'event' ? (cd.price ? 'from $' + cd.price : (c.subtitle || '')) : (c.subtitle || '').split(' · ')[0];
-    const top = d === 'event' ? `<span class="tag">${esc(cd.flex ? 'This week' : fmtDate(c.event_date))}</span>` : `${cd.rating ? `<span class="tag">★ ${cd.rating}</span>` : ''}${milesTag(cd)}`;
+  const row = (c, i) => { const cd = c.data || {}, sub = d === 'event' && !cd.place ? (cd.price ? 'from $' + cd.price : (c.subtitle || '')) : (c.subtitle || '').split(' · ')[0];
+    const top = d === 'event' && !cd.place ? `<span class="tag">${esc(cd.flex ? 'This week' : fmtDate(c.event_date))}</span>` : `${cd.rating ? `<span class="tag">★ ${cd.rating}</span>` : ''}${milesTag(cd)}`;
     return `<button class="shc ${c.sent ? 'sent' : ''}" style="animation-delay:${Math.min(i, 10) * 35}ms" ${c.sent ? 'disabled' : `data-shpick="${c.id}"`} aria-label="${esc(c.title)}">${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy">` : `<span class="shem">${emojiFor({ ...c, deck: d })}</span>`}<span class="shtop">${c.sent ? `<span class="tag">${c.answered ? 'Answered' : 'Sent'}</span>` : c.love ? '<span class="tag">Love it</span>' : ''}${top}</span><span class="shck">${ic('heart')}</span><span class="shcap"><b>${esc(c.title)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</span></button>`; };
   sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic(w[3])}</span><h2>${w[2]}</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">${fresh.length ? `Send ${p} the ones you would love to do. It does not have to be tonight, just some time soon. Tap to pick a few, or send them all.` : sent.length ? `Everything you liked is already with ${p} until Monday.` : `Nothing to send yet. Like a few ${w[0]} while you browse and they will show up here.`}</p></div></div>
     ${inc.map(s => `<button class="nudge slim" data-open="${s.id}" style="margin-top:14px"><span class="grow"><b>${esc(s.from)} sent you ${shN(d, s.left)}</b><small> · here until Monday</small></span><span class="go">Swipe</span></button>`).join('')}
@@ -1892,6 +1901,11 @@ function showDetail(c) {
     b = `<div class="tags">${c.kind ? `<span class="tag">${esc(c.kind)}</span>` : ''}${d.rating ? `<span class="tag">★ ${d.rating}${d.reviews ? ` (${Number(d.reviews).toLocaleString()})` : ''}</span>` : ''}${d.minutes ? `<span class="tag">${fmtMins(d.minutes)}</span>` : ''}${d.price ? `<span class="tag">from $${d.price}</span>` : ''}</div>
       ${d.notes ? `<p>${esc(d.notes)}</p>` : ''}${d.url ? `<div style="height:18px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.url)}" target="_blank" rel="noopener">View on Viator</a>` : ''}
       <p class="muted" style="font-size:11.5px;text-align:center">Experiences from Viator. Let’s Together may earn a commission if you book.</p>`;
+  } else if (c.deck === 'event' && d.place) {
+    b = `<div class="tags">${c.kind ? `<span class="tag">${esc(c.kind)}</span>` : ''}${d.rating ? `<span class="tag">★ ${d.rating}${d.ratings ? ' (' + d.ratings + ')' : ''}</span>` : ''}${milesTag(d)}</div>
+      ${d.address ? `<div class="kv">Where</div><p style="margin-top:0">${esc(d.address)}</p>` : ''}${d.notes ? `<p>${esc(d.notes)}</p>` : ''}
+      ${d.url ? `<div style="height:18px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.url)}" target="_blank" rel="noopener">Visit website</a>` : ''}
+      ${d.maps ? `<div style="height:10px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.maps)}" target="_blank" rel="noopener">Open in Google Maps</a>` : ''}${d.photo_credit ? `<p class="muted" style="font-size:11.5px;text-align:center">Photo: ${esc(d.photo_credit)} on Google</p>` : ''}`;
   } else if (c.deck === 'event') {
     b = `<div class="tags"><span class="tag">${d.flex ? 'This week' : fmtDate(c.event_date)}</span>${c.kind ? `<span class="tag">${esc(c.kind)}</span>` : ''}</div>
       ${d.time ? `<div class="kv">When</div><p style="margin-top:0">${esc(d.time)}</p>` : ''}${d.venue ? `<div class="kv">Where</div><p style="margin-top:0">${esc(d.venue)}${d.area ? ` (${esc(d.area)})` : ''}</p>` : ''}${d.notes ? `<p>${esc(d.notes)}</p>` : ''}
