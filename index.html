@@ -243,6 +243,20 @@ body::before{content:"";position:fixed;inset:-20% -10% auto -10%;height:60%;back
 .lfront h3{font-family:var(--serif);font-weight:400;font-size:26px;line-height:1.1;margin-top:6px}
 .lfront .btn{max-width:320px}
 .sheet{overscroll-behavior:contain;touch-action:pan-y}.grab{padding:0;position:relative}.grab::before{content:"";position:absolute;inset:-12px -80px}
+/* keep serif and gradient headings from being cut off (italics and descenders, mostly on iPhone) */
+.brand i,.tn-head h2{display:inline-block;padding:.1em .16em .18em .06em;margin:-.1em -.16em -.18em -.06em;line-height:1.2}
+.tn-head h2{display:block;margin:6px 0 0;padding:.05em .1em .15em}
+.brand{line-height:1.2;overflow:visible}
+.topbar h2{line-height:1.2;padding-bottom:1px;overflow-wrap:anywhere}
+.sheet h2{line-height:1.15;padding-bottom:2px;overflow-wrap:anywhere}
+.card h3{line-height:1.08;padding-bottom:3px;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.match h1{line-height:1.08;padding:0 .1em .08em}
+.match h3,.lfront h3,.done h2{line-height:1.18;padding-bottom:2px;overflow-wrap:anywhere}
+.tile b,.nudge b,.mcard b,.rec-from b{line-height:1.2;padding-bottom:1px}
+.mcard b{overflow-wrap:anywhere}
+.mrow.two .mcard{flex:1 1 0;min-width:0}
+.topbar small,.item small,.sess small{line-height:1.3}
+.seg button{white-space:nowrap}
 @keyframes celein{from{transform:translate(-50%,-30px) scale(.7);opacity:0}}
 @keyframes celeout{to{transform:translate(-50%,-20px);opacity:0}}
 @keyframes beat{50%{transform:scale(1.25)}}
@@ -835,7 +849,7 @@ function showMatch(c) {
 }
 function endMatchesHTML() {
   const ms = S.matches, many = ms.length > 1; S.listCards = ms;
-  return `<div class="mrow ${many ? '' : 'one'}">${ms.map((c, i) => { const cl = chainLabel(c); return `<div class="mcard"><button class="mimg" data-detail="${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="">` : emojiFor(c)}</button><b>${esc(c.title)}</b>${c.deck === 'movie' && i < 3 ? `<small data-why="${c.id}" style="display:none"></small>` : ''}<button class="btn sm" data-final="${c.id}">${many ? 'Choose this' : 'Lock it in'}</button>${cl ? `<button class="btn ghost sm" data-chain="${c.id}">${cl} →</button>` : ''}</div>`; }).join('')}</div>
+  return `<div class="mrow ${many ? (ms.length === 2 ? 'two' : '') : 'one'}">${ms.map((c, i) => { const cl = chainLabel(c); return `<div class="mcard"><button class="mimg" data-detail="${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="">` : emojiFor(c)}</button><b>${esc(c.title)}</b>${c.deck === 'movie' && i < 3 ? `<small data-why="${c.id}" style="display:none"></small>` : ''}<button class="btn sm" data-final="${c.id}">${many ? 'Choose this' : 'Lock it in'}</button>${cl ? `<button class="btn ghost sm" data-chain="${c.id}">${cl} →</button>` : ''}</div>`; }).join('')}</div>
     ${many && !S.solo ? '<button class="btn ghost" data-lad="game">Play for it</button><button class="btn ghost" data-lad="pick">Pick one at random</button>' : ''}`;
 }
 async function pickNext() {
