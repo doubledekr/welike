@@ -2149,7 +2149,7 @@ document.addEventListener('click', async e => {
       case 'savepantry': { const items = document.getElementById('pt').value.split(/\n|,/).map(s => s.replace(/^[\s\-•*\d.x×]+(?=\D)/i, '').replace(/\$\s?\d+(\.\d+)?/g, '').trim()).filter(s => s.length > 1).map(item => ({ item })); const n = await rpc('set_pantry', { p_code: S.code, p_items: items }); await refresh(); toast(`${n} pantry items saved.`); return loadList(); }
       case 'invite': { const link = `${location.origin}${location.pathname}?c=${S.code}`; try { const msg = `Join me on Let’s Together so we can stop asking “what do you want to do?” Open the link, save it to your Home Screen, then enter our couple code: ${S.code}`; if (navigator.share) await navigator.share({ title: 'Let’s Together', text: msg, url: link }); else { await navigator.clipboard.writeText(`${msg}\n${link}`); toast('Invite and code copied.'); } } catch {} return; }
       case 'push': return enablePush();
-      case 'signout': ls.del('name'); S.me = null; if (S.chan) sb.removeChannel(S.chan); return render();
+      case 'signout': ls.del('name'); authCookie.clear(); S.me = null; if (S.chan) sb.removeChannel(S.chan); return render();
     }
   } catch (er) { console.error(er); toast(errMsg(er)); }
 });
@@ -2197,7 +2197,13 @@ if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').ca
 // icon used to mean signing in a second time with the couple code. While someone is signed in in the browser, the
 // page address and the app manifest both carry their couple code and name, so the icon they save opens signed in.
 const IOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+// A second route for the same thing: iPhone copies the browser's cookies into a new Home Screen app, so the
+// sign-in also rides along in a cookie.
+const authCookie = { set() { try { if (S.code && S.me) document.cookie = 'wl_auth=' + encodeURIComponent(S.code + '|' + S.me) + '; max-age=31536000; path=/; Secure; SameSite=Lax'; } catch {} },
+  get() { try { const m = document.cookie.match(/(?:^|;\s*)wl_auth=([^;]+)/); if (!m) return null; const [c, n] = decodeURIComponent(m[1]).split('|'); return c && n ? { c: c.toUpperCase(), n } : null; } catch { return null; } },
+  clear() { try { document.cookie = 'wl_auth=; max-age=0; path=/; Secure; SameSite=Lax'; } catch {} } };
 function carrySignIn() {
+  authCookie.set();
   if (!IOS || standalone() || !S.code || !S.me) return;
   const q = `?c=${encodeURIComponent(S.code)}&n=${encodeURIComponent(S.me)}`, base = location.origin + location.pathname.replace(/[^/]*$/, '');
   try { if (location.search !== q) history.replaceState(null, '', location.pathname + q); } catch {}
@@ -2214,9 +2220,11 @@ async function boot() {
       // and removed, so a link passed to someone else can never sign them in as the sender.
       if (standalone()) { try { const r = await rpc('join_couple', { p_code: c, p_name: n }); S.code = c; S.me = r.name; ls.set('code', c); ls.set('name', r.name); } catch {} }
       else { try { history.replaceState(null, '', location.pathname + '?c=' + encodeURIComponent(c)); } catch {} }
-    } }
+    }
+    // Home Screen app with nothing saved yet: use the sign-in cookie copied over from the browser, if there is one.
+    if ((!S.code || !S.me) && standalone()) { const a = authCookie.get(); if (a) { try { const ms = await rpc('couple_members', { p_code: a.c }); if (ms.includes(a.n)) { S.code = a.c; S.me = a.n; ls.set('code', a.c); ls.set('name', a.n); } } catch {} } } }
   if (!S.code || !S.me) return render();
-  try { await refresh(); } catch (e) { if (String(e.message).includes('bad_code')) { ls.del('code'); ls.del('name'); S.code = S.me = null; return render(); } $app.innerHTML = `<div class="center"><div class="brand">${BRAND}</div><p class="muted" style="margin:12px 0 18px">Could not reach the server. Check your connection.</p><button class="btn" onclick="location.reload()">Try again</button></div>`; return; }
+  try { await refresh(); } catch (e) { if (String(e.message).includes('bad_code')) { ls.del('code'); ls.del('name'); authCookie.clear(); S.code = S.me = null; return render(); } $app.innerHTML = `<div class="center"><div class="brand">${BRAND}</div><p class="muted" style="margin:12px 0 18px">Could not reach the server. Check your connection.</p><button class="btn" onclick="location.reload()">Try again</button></div>`; return; }
   connect(); resavePush();
   const s = new URLSearchParams(location.search).get('s');
   if (s) { history.replaceState(null, '', location.pathname); return openSession(s); }
