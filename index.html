@@ -494,6 +494,7 @@ html.ios-app .coach{position:absolute}
 .grev div{padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.03);box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);text-align:left}
 .grev small{display:block;color:var(--muted);font-size:12px;line-height:1.35}.grev b{display:block;font-size:14.5px;margin:3px 0 2px}.grev span{display:block;font-size:12.5px;color:#d9d0dc}
 @keyframes ghit{50%{transform:scale(.94)}}
+.mcard .lv{color:var(--gold);font-size:12px;padding:0 2px}
 @keyframes celein{from{transform:translate(-50%,-30px) scale(.7);opacity:0}}
 @keyframes celeout{to{transform:translate(-50%,-20px);opacity:0}}
 @keyframes beat{50%{transform:scale(1.25)}}
@@ -1257,8 +1258,8 @@ function showMatch(c) {
   try { navigator.vibrate?.([30, 40, 60]); } catch {}
 }
 function endMatchesHTML() {
-  const ms = S.matches, many = ms.length > 1; S.listCards = ms;
-  return `<div class="mrow ${many ? (ms.length === 2 ? 'two' : '') : 'one'}">${ms.map((c, i) => { const cl = chainLabel(c); return `<div class="mcard"><button class="mimg" data-detail="${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="">` : emojiFor(c)}</button><b>${esc(c.title)}</b>${c.deck === 'movie' && i < 3 ? `<small data-why="${c.id}" style="display:none"></small>` : ''}<button class="btn sm" data-final="${c.id}">${many ? 'Choose this' : 'Lock it in'}</button>${cl ? `<button class="btn ghost sm" data-chain="${c.id}">${cl} →</button>` : ''}</div>`; }).join('')}</div>
+  const ms = [...S.matches].sort((x, y) => (y.loves || 0) - (x.loves || 0)), many = ms.length > 1; S.listCards = ms;
+  return `<div class="mrow ${many ? (ms.length === 2 ? 'two' : '') : 'one'}">${ms.map((c, i) => { const cl = chainLabel(c); return `<div class="mcard"><button class="mimg" data-detail="${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="">` : emojiFor(c)}</button><b>${esc(c.title)}</b>${c.loves >= 2 ? '<small class="lv">★ You both loved it</small>' : c.loves === 1 ? '<small class="lv">★ One of you loved it</small>' : ''}${c.deck === 'movie' && i < 3 ? `<small data-why="${c.id}" style="display:none"></small>` : ''}<button class="btn sm" data-final="${c.id}">${many ? 'Choose this' : 'Lock it in'}</button>${cl ? `<button class="btn ghost sm" data-chain="${c.id}">${cl} →</button>` : ''}</div>`; }).join('')}</div>
     ${many && !S.solo ? '<button class="btn ghost" data-lad="game">Play for it</button><button class="btn ghost" data-lad="pick">Pick one at random</button>' : ''}`;
 }
 async function pickNext() {
