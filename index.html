@@ -844,7 +844,7 @@ function renderLanding() {
   const slide = (art, h, p, extra = '') => `<section class="ob-slide"><div class="ob-card">${art}<h2>${h}</h2><p>${p}</p>${extra}</div></section>`;
   const slides = [
     slide(`${MARK}<div class="brand">${BRAND}</div>`, 'Stop asking “what do you want to do?”', 'A swipe app for two. Swipe this way to see how it works.', `<div class="ob-hint">${ic('undo')} swipe</div>`),
-    slide(`<div class="ob-art"><span class="mini no">${ic('x')}</span><span class="mini yes">${ic('heart')}</span></div>`, 'Swipe separately', 'Movies, places to eat, local events and someday trips. No thanks, like it, or love it. Your swipes stay private unless you both say yes, apart from a rare scratch-card hint.'),
+    slide(`<div class="ob-art"><span class="mini no">${ic('x')}</span><span class="mini yes">${ic('heart')}</span></div>`, 'Swipe separately', 'Movies, places to eat, local events and someday trips. No thanks, like it, or love it. Your swipes stay private unless you both like something, apart from a rare scratch-card hint.'),
     slide(`<div class="ob-art"><span class="mini a"></span><span class="mini b"></span><span class="badge" style="position:absolute">${ic('heart')}</span></div>`, 'See what you both like', 'When you have both said yes to the same thing, it is a match. Matches collect in a shared library you can open any time.'),
     slide(`<div class="ob-art"><span class="badge">${ic('shuffle')}</span></div>`, 'Decide tonight', 'Pick a match, shuffle one at random, send a trailer for a quick yes or no, or play a tie-breaker and let the winner choose.'),
     ...(standalone() ? [] : [slide(`<div class="ob-art"><span class="badge">${ic('share')}</span></div>`, 'First, save it to your Home Screen', 'Do this before you sign up. Let’s Together is used from the icon on your Home Screen, not from the browser. That is how it opens full screen and how nudges reach you.',
@@ -1303,13 +1303,13 @@ function installSheet() {
     <button class="btn" data-act="a2hsdone">Got it</button>`);
 }
 const COACH = [
-  ['Like it', 'Swipe right to like it', 'You would be up for this. Your other half only sees it if they say yes too, or as a rare scratch-card hint.'],
+  ['Like it', 'Swipe right to like it', 'You would be up for this. Your other half only sees it if they like it too, or as a rare scratch-card hint.'],
   ['No thanks', 'Swipe left for no thanks', 'Not this time. It stays out of the way for a while, then can come back another day.'],
-  ['Love it', 'Swipe up to love it', 'A yes with extra weight. If you both say yes, you will see who loved it.'],
+  ['Love it', 'Swipe up to love it', 'A like with extra weight. If you both like something, you will see who loved it.'],
   ['Seen it', 'Swipe down if you have seen it', 'Movies only. It goes to your Seen folder so it stops coming up, and can return later as a watch-again.'],
   ['', 'Tap a card for the details', 'Cast, trailer, where it is streaming, menus and maps. The buttons under the card do the same as swiping.'],
   ['', 'Add your own ideas', 'Tap the list button at the top to add your own activities, restaurants and home-cooked dinners. Whatever you add gets dealt to both of you.'],
-  ['', 'Both say yes and it is a match', 'Matches collect in your library behind the heart at the top. Open it any time to pick one, shuffle, or play for it.'],
+  ['', 'Both like it and it is a match', 'Matches collect in your library behind the heart at the top. Open it any time to pick one, shuffle, or play for it.'],
 ];
 function coach(i = 0) {
   document.querySelector('.coach')?.remove(); if (i >= COACH.length) { ls.set('coach', '1'); return; }
@@ -1478,7 +1478,7 @@ function renderMatches() {
   $app.innerHTML = `<div class="view"><div class="topbar"><button class="back" data-act="${S.deck.length ? 'swipe' : 'home'}" aria-label="Back">‹</button><div class="grow"><h2>Matches</h2><small>${d.label} · ${ago(S.sess.created_at)}</small></div></div>
     ${S.matches.length ? S.matches.map(c => { const cl = chainLabel(c); return `<div class="item"><button data-detail="${c.id}" style="width:54px;height:76px;border-radius:10px;overflow:hidden;background:var(--surface);flex:none;display:grid;place-items:center;font-size:26px">${c.image ? `<img src="${esc(c.image)}" alt="" style="width:100%;height:100%;object-fit:cover">` : emojiFor(c)}</button>
       <button class="grow" style="text-align:left" data-detail="${c.id}"><b>${esc(c.title)}</b><small>${esc(c.subtitle || '')}</small>${c.loves >= 2 ? '<small style="color:var(--gold)">★ You both loved this</small>' : c.loves === 1 ? '<small style="color:var(--gold)">★ One of you loved this</small>' : ''}</button>${cl ? `<button class="btn sm" data-chain="${c.id}">Next →</button>` : ''}${c.deck === 'movie' && !S.rewatch ? `<button class="btn ghost sm" data-watched="${c.id}">Watched</button>` : ''}</div>`; }).join('')
-      : `<div class="note"><b>No matches yet.</b> They show up here the moment you have both said yes to the same card.</div>`}
+      : `<div class="note"><b>No matches yet.</b> They show up here the moment you have both liked the same card.</div>`}
     <div style="height:18px"></div>${S.deck.length ? '<button class="btn" data-act="swipe">Keep swiping</button>' : '<button class="btn ghost" data-act="more">Deal more cards</button>'}</div>`;
 }
 
