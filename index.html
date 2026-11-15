@@ -2191,7 +2191,7 @@ async function checkVersion() {
 checkVersion();
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && S.bookCity && S.bookTouched && document.querySelector('.bookframe')) S.bookLeft = true; if (document.visibilityState === 'visible' && S.bookLeft) setTimeout(bookBack, 400); if (document.visibilityState === 'visible') { evPeek(); checkVersion(); checkTravel(); S.peekTried = false; scratchCheck(); } });
 document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && S.code && S.me) { try { await refresh(); if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) render(); else if (S.view === 'swipe' && S.sess) { const d = await rpc('get_session', { p_code: S.code, p_session: S.sess.id, p_member: S.me }); S.theirLeft = d.their_left; S.total = d.total; if (d.matches.length !== S.matches.length) { S.matches = d.matches; } if (d.deck.length !== S.deck.length && !busy) { S.deck = d.deck; drawStack(); } else updateBar(); } } catch {} } });
-if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); navigator.serviceWorker.addEventListener('message', e => { const u = e.data?.open; if (u) { const q = new URL(u).searchParams, s = q.get('s'), r = q.get('rec'), g = q.get('tb'); if (s && S.me) openSession(s); else if (r && S.me) openRec(r, q.get('keen')); else if (g && S.me) openGame(g); else if (q.get('trip') && S.me) openGetaway(q.get('trip'), partner()); else if (SHW[q.get('share')] && S.me) openShareTab(q.get('share')); } }); }
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); navigator.serviceWorker.addEventListener('message', e => { const u = e.data?.open; if (u) { const q = new URL(u).searchParams, s = q.get('s'), r = q.get('rec'), g = q.get('tb'); if (s && S.me) openSession(s); else if (r && S.me) openRec(r, q.get('keen')); else if (g && S.me) openGame(g); else if (q.get('invite') && S.me) { if (!partner()) inviteSheet(); } else if (q.get('trip') && S.me) openGetaway(q.get('trip'), partner()); else if (SHW[q.get('share')] && S.me) openShareTab(q.get('share')); } }); }
 
 // iPhone keeps a Home Screen app's storage apart from the browser's, so signing up in Safari and then opening the
 // icon used to mean signing in a second time with the couple code. While someone is signed in in the browser, the
@@ -2232,7 +2232,9 @@ async function boot() {
   const tg = new URLSearchParams(location.search).get('tb'); if (tg) { history.replaceState(null, '', location.pathname); return openGame(tg); }
   const tp = new URLSearchParams(location.search).get('trip'); if (tp) history.replaceState(null, '', location.pathname);
   const shq = new URLSearchParams(location.search).get('share'); if (shq) history.replaceState(null, '', location.pathname);
+  const invq = new URLSearchParams(location.search).get('invite'); if (invq) history.replaceState(null, '', location.pathname);
   render(); if (rc) return openRec(rc, rk); if (tp) return openGetaway(tp, partner()); if (SHW[shq]) return openShareTab(shq);
+  if (invq && !partner()) { carrySignIn(); return inviteSheet(); }
   nextOnboard(); checkTravel(); scratchCheck(); installCheck(); evPeek(); carrySignIn();
 }
 boot();
