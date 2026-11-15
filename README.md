@@ -11,3 +11,5 @@ Backend: Supabase project `welike` (database functions, a nightly movie-catalog 
 Streaming data powered by Watchmode.com.
 
 Hosted on Cloudflare Pages at https://letstogether.app (deploys from the main branch).
+
+Pushes to main deploy automatically.
