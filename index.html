@@ -495,6 +495,24 @@ html.ios-app .coach{position:absolute}
 .grev small{display:block;color:var(--muted);font-size:12px;line-height:1.35}.grev b{display:block;font-size:14.5px;margin:3px 0 2px}.grev span{display:block;font-size:12.5px;color:#d9d0dc}
 @keyframes ghit{50%{transform:scale(.94)}}
 .mcard .lv{color:var(--gold);font-size:12px;padding:0 2px}
+/* sign-in / invite screen: roomy, scrolls instead of squeezing */
+.center{min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;justify-content:safe center}
+.center>*{flex:none}
+.jinv{padding:calc(var(--st) + 22px) 24px calc(var(--sb) + 26px);justify-content:flex-start}
+.jtop{display:flex;align-items:center;gap:10px}
+.jtop .mark{width:38px;height:38px}
+.jtop .brand{font-size:26px}
+.jinv h1{font-family:var(--serif);font-weight:400;font-size:clamp(32px,9.5vw,40px);line-height:1.12;margin-top:22px;overflow-wrap:anywhere}
+.jlead{font-size:15.5px;line-height:1.5;margin:8px 0 16px}
+.jinv .field{margin-top:14px}
+.jhome{border-radius:16px;background:linear-gradient(160deg,rgba(255,122,77,.18),rgba(255,77,126,.07));box-shadow:inset 0 0 0 1px rgba(255,170,150,.26);margin-bottom:4px}
+.jhome summary{display:flex;align-items:center;gap:11px;padding:11px 13px;list-style:none;cursor:pointer}
+.jhome summary::-webkit-details-marker{display:none}
+.jhome summary .ic{font-size:20px;color:#ff9db8;flex:none}
+.jhome summary b{display:block;font-size:14.5px;line-height:1.25}.jhome summary small{display:block;font-size:12.5px;color:var(--muted);line-height:1.3}
+.jhome>div{padding:0 13px 13px;font-size:14px;line-height:1.5;color:#d9d0dc}
+.jwho{margin-top:14px}.jwho small{display:block;color:var(--muted);font-size:13px;margin-bottom:8px}
+.jlink{display:block;width:100%;text-align:center;color:var(--muted);font-size:14px;padding:16px 8px 4px;text-decoration:underline;text-underline-offset:3px}
 @keyframes celein{from{transform:translate(-50%,-30px) scale(.7);opacity:0}}
 @keyframes celeout{to{transform:translate(-50%,-20px);opacity:0}}
 @keyframes beat{50%{transform:scale(1.25)}}
@@ -713,22 +731,36 @@ async function joinWho() {
   const el = document.getElementById('jwho'), code = (document.getElementById('jc')?.value || '').trim().toUpperCase(); if (!el) return;
   if (code.length !== 8) { el.innerHTML = ''; return; }
   try { const ms = await rpc('couple_members', { p_code: code }); if ((document.getElementById('jc')?.value || '').trim().toUpperCase() !== code) return;
-    el.innerHTML = ms.length ? `<div class="note" style="margin:12px 0 0"><b>${ms.length >= 2 ? 'Which one are you?' : 'Already part of this couple?'}</b><div class="chips" style="margin-top:10px">${ms.map(n => `<button class="chip on" data-who="${esc(n)}">I’m ${esc(n)}</button>`).join('')}</div>${ms.length >= 2 ? '' : `<p class="muted" style="font-size:13px;margin-top:10px">If you are ${esc(ms[0])}’s other half, type your own first name above and tap join.</p>`}</div>` : '';
+    const hd = document.getElementById('jhead'), ld = document.getElementById('jlead');
+    if (hd && ms.length === 1) { hd.textContent = `${ms[0]} invited you`; if (ld) ld.textContent = `Enter your first name to pair up with ${ms[0]} and start swiping together.`; }
+    if (hd && ms.length >= 2) { hd.textContent = 'Welcome back'; if (ld) ld.textContent = 'This couple is already paired. Tap your name to log back in.'; }
+    el.innerHTML = ms.length ? `<div class="jwho"><small>${ms.length >= 2 ? 'Which one are you?' : `Or, if you are ${esc(ms[0])} logging back in:`}</small><div class="chips">${ms.map(n => `<button class="chip on" data-who="${esc(n)}">I’m ${esc(n)}</button>`).join('')}</div></div>` : '';
   } catch { el.innerHTML = '<p class="muted" style="font-size:13px;margin-top:8px">That code does not match a couple yet. Check it and try again.</p>'; }
 }
 function renderJoin() {
-  const pre = new URLSearchParams(location.search).get('c') || S.code || '';
+  const pre = (new URLSearchParams(location.search).get('c') || S.code || '').toUpperCase(), ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
   if (!pre && !S.joinForm) return renderLanding();
-  $app.innerHTML = `<div class="center">${pre ? '' : '<button class="btn ghost sm" data-act="landing" style="width:auto;align-self:flex-start;margin-bottom:18px">‹ How it works</button>'}
-    <div class="brand" style="font-size:44px">${BRAND}</div>
-    <p class="muted" style="margin:10px 0 22px;font-size:16px;line-height:1.45">${S.joinMode === 'new' && !pre ? 'Enter your first name to start. You will get an invite link to send to your better half.' : 'Already set up? Enter the same first name and couple code to log back in. New here with an invite? Enter your name and the code you were sent.'}</p>
-    ${standalone() ? '' : `<div class="note" style="margin:0 0 6px"><b>On a phone?</b> Add Let’s Together to your Home Screen first (Share ${ic('share')} then Add to Home Screen) and sign in from that icon, so you only do this once.</div>`}
-    <label class="field"><span>Your name</span><input id="jn" autocomplete="given-name" maxlength="24" placeholder="First name"></label>
-    <label class="field"><span>${S.joinMode === 'new' && !pre ? 'Couple code (leave blank to start a new couple)' : 'Your couple code'}</span><input id="jc" autocapitalize="characters" autocomplete="off" maxlength="12" value="${esc(pre)}" placeholder="8 letters and numbers"></label><div id="jwho"></div>
-    ${S.joinMode === 'new' && !pre ? `<label class="field"><span>Home ZIP code, for restaurants and events near you</span><input id="jz" inputmode="numeric" autocomplete="postal-code" maxlength="5" placeholder="48201"></label>` : ''}
-    <div style="height:18px"></div>${S.joinMode === 'new' && !pre ? `<button class="btn" data-act="newcouple">Start a new couple</button><div style="height:10px"></div><button class="btn ghost" id="jgo">I have a code, join with it</button>`
-      : `<button class="btn" id="jgo">${pre ? 'Join with this code' : 'Log in or join'}</button><div style="height:10px"></div><button class="btn ghost" data-act="newcouple">No code? Start a new couple</button>`}
-    <p class="muted" style="font-size:12.5px;text-align:center;margin-top:12px;line-height:1.4">Starting a new couple gives you a code and an invite link to send to your other half.</p></div>`;
+  const home = standalone() ? '' : `<details class="jhome"><summary>${ic('share')}<span><b>Best from your Home Screen</b><small>Tap to see how. It takes ten seconds</small></span></summary><div>${ios ? 'In Safari tap <b>Share</b>, then <b>Add to Home Screen</b>.' : 'In Chrome open the <b>menu</b>, then <b>Add to Home screen</b>.'} Open Let’s Together from the new icon${pre ? ` and enter the couple code <b>${esc(pre)}</b>` : ''}. You only sign in once that way, and nudges can reach you.</div></details>`;
+  if (pre) {   // arrived from an invite link
+    $app.innerHTML = `<div class="center jinv"><div class="jtop">${MARK}<div class="brand">${BRAND}</div></div>
+      <h1 id="jhead">You’re invited</h1><p class="muted jlead" id="jlead">Enter your first name to pair up and start swiping together.</p>
+      ${home}
+      <label class="field"><span>Your first name</span><input id="jn" autocomplete="given-name" maxlength="24" placeholder="First name"></label>
+      <label class="field"><span>Couple code</span><input id="jc" autocapitalize="characters" autocomplete="off" maxlength="12" value="${esc(pre)}" placeholder="8 letters and numbers"></label><div id="jwho"></div>
+      <div style="height:18px"></div><button class="btn" id="jgo">Join</button>
+      <button class="jlink" data-act="newcouple">Not your invite? Start a new couple instead</button></div>`;
+  } else {
+    const isNew = S.joinMode === 'new';
+    $app.innerHTML = `<div class="center jinv"><button class="btn ghost sm" data-act="landing" style="width:auto;align-self:flex-start;margin-bottom:14px">‹ How it works</button>
+      <div class="jtop">${MARK}<div class="brand">${BRAND}</div></div>
+      <h1>${isNew ? 'Start your couple' : 'Welcome back'}</h1><p class="muted jlead">${isNew ? 'Enter your first name and home ZIP. You will get an invite link to send to your better half.' : 'Enter your couple code, then tap your name. New here with an invite? Enter your name and the code you were sent.'}</p>
+      ${home}
+      <label class="field"><span>Your first name</span><input id="jn" autocomplete="given-name" maxlength="24" placeholder="First name"></label>
+      ${isNew ? `<label class="field"><span>Home ZIP code, for restaurants and events near you</span><input id="jz" inputmode="numeric" autocomplete="postal-code" maxlength="5" placeholder="48201"></label><input id="jc" type="hidden" value="">`
+        : `<label class="field"><span>Your couple code</span><input id="jc" autocapitalize="characters" autocomplete="off" maxlength="12" placeholder="8 letters and numbers"></label>`}<div id="jwho"></div>
+      <div style="height:18px"></div>${isNew ? `<button class="btn" data-act="newcouple">Start a new couple</button><button class="jlink" data-act="getstarted" data-mode="code">I have a code already</button>`
+        : `<button class="btn" id="jgo">Log in or join</button><button class="jlink" data-act="newcouple">No code? Start a new couple</button>`}</div>`;
+  }
   joinWho();
 }
 const HDECKS = [['movie', 'Movies'], ['dinner', 'Eat'], ['event', 'Events'], ['trip', 'Trips']];
@@ -1453,7 +1485,7 @@ document.addEventListener('click', async e => {
       case 'tbrefresh': S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: S.tb.id }); return render();
       case 'add': return addSheet();
       case 'savepantry': { const items = document.getElementById('pt').value.split(/\n|,/).map(s => s.replace(/^[\s\-•*\d.x×]+(?=\D)/i, '').replace(/\$\s?\d+(\.\d+)?/g, '').trim()).filter(s => s.length > 1).map(item => ({ item })); const n = await rpc('set_pantry', { p_code: S.code, p_items: items }); await refresh(); toast(`${n} pantry items saved.`); return loadList(); }
-      case 'invite': { const link = `${location.origin}${location.pathname}?c=${S.code}`; try { if (navigator.share) await navigator.share({ title: 'Let’s Together', text: 'Join me on Let’s Together', url: link }); else { await navigator.clipboard.writeText(link); toast('Invite link copied.'); } } catch {} return; }
+      case 'invite': { const link = `${location.origin}${location.pathname}?c=${S.code}`; try { const msg = `Join me on Let’s Together so we can stop asking “what do you want to do?” Open the link, save it to your Home Screen, then enter our couple code: ${S.code}`; if (navigator.share) await navigator.share({ title: 'Let’s Together', text: msg, url: link }); else { await navigator.clipboard.writeText(`${msg}\n${link}`); toast('Invite and code copied.'); } } catch {} return; }
       case 'push': return enablePush();
       case 'signout': ls.del('name'); S.me = null; if (S.chan) sb.removeChannel(S.chan); return render();
     }
