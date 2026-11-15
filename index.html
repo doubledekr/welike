@@ -181,7 +181,8 @@ const DECKS = {
 };
 const KINDS = { cook: ['Cook at home', '🍳'], restaurant: ['Restaurant', '🍷'], orderin: ['Order in', '🥡'] };
 const EVENT_EM = { 'Music': '🎶', 'Comedy': '🎤', 'Trivia': '🧠', 'Arts and Film': '🎞️', 'Sports and Games': '🏟️', 'Brunch': '🥞', 'Happy Hour': '🍻', 'Seasonal': '🍂', 'Special Event': '✨' };
-const SVC_DOT = { 'Netflix': '#e50914', 'Hulu': '#1ce783', 'Prime Video': '#00a8e1', 'Disney+': '#5b8cff', 'Peacock': '#ffd23f', 'Shudder': '#ff3b3b' };
+const SVC_DOT = { 'Netflix': '#e50914', 'Hulu': '#1ce783', 'Prime Video': '#00a8e1', 'Disney+': '#5b8cff', 'Peacock': '#ffd23f', 'Shudder': '#ff3b3b',
+  'HBO Max': '#a56bff', 'Paramount+': '#2f6bff', 'Paramount+ with Showtime': '#e0344b', 'Apple TV+': '#d8d8d8', 'Crunchyroll': '#ff7a1a', 'Pluto TV': '#ffe600', 'Tubi': '#ff5a36', 'Starz': '#7fd4d4', 'AMC+': '#c9a24a', 'MGM+': '#d4af37' };
 
 const ls = { get: k => { try { return localStorage.getItem('wl_' + k) } catch { return null } }, set: (k, v) => { try { localStorage.setItem('wl_' + k, v) } catch {} }, del: k => { try { localStorage.removeItem('wl_' + k) } catch {} } };
 const S = { code: ls.get('code'), me: ls.get('name'), state: null, pantry: [], tab: 'home', view: 'home', sess: null, deck: [], hist: [], matches: [], listTab: 'activity', chan: null };
