@@ -391,6 +391,19 @@ button{touch-action:manipulation}
 html.ios-app,html.ios-app body{height:var(--appH,100lvh)}
 html.ios-app body{bottom:auto}
 html.ios-app .match,html.ios-app .lfront,html.ios-app .scrim,html.ios-app .lbar{position:absolute}
+/* end-of-round match cards: nothing shrinks or clips */
+.done{overflow-y:auto;justify-content:safe center;-webkit-overflow-scrolling:touch}
+.done>*{flex:none}
+.mrow{flex:none;align-items:stretch;padding:16px 14px 18px;margin:0 -14px;width:calc(100% + 28px);scroll-padding:0 14px}
+.mrow.one,.mrow.two{overflow:visible;margin:0;width:100%;padding:12px 0 14px}
+.mcard{flex-shrink:0;gap:9px;padding:10px}
+.mcard>*{flex:none}
+.mcard .mimg{height:auto;aspect-ratio:3/4}
+.mrow.one .mimg{height:auto;aspect-ratio:2/3}
+.mcard b{padding:2px 2px 0}
+.mcard .btn{width:100%;white-space:normal;line-height:1.2;padding:10px 8px;font-size:14px;min-height:40px}
+.mcard .btn.ghost{font-size:13px;font-weight:600}
+.done .btn{flex:none}
 @keyframes celein{from{transform:translate(-50%,-30px) scale(.7);opacity:0}}
 @keyframes celeout{to{transform:translate(-50%,-20px);opacity:0}}
 @keyframes beat{50%{transform:scale(1.25)}}
