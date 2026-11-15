@@ -227,6 +227,20 @@ async function enablePush() {
 }
 async function resavePush() { try { if (pushState() !== 'granted') return; const reg = await navigator.serviceWorker.ready; const sub = await reg.pushManager.getSubscription(); if (sub) await rpc('save_push_sub', { p_code: S.code, p_member: S.me, p_sub: sub.toJSON() }); } catch {} }
 
+/* ---------- taste (Claude API, optional) ---------- */
+// Both calls are best-effort: any failure or slow answer leaves the normal deck order and shows no line.
+async function taste(body, ms) {
+  try {
+    const call = sb.functions.invoke('taste', { body: { code: S.code, ...body } }).then(r => r.error ? null : r.data).catch(() => null);
+    return await Promise.race([call, new Promise(r => setTimeout(() => r(null), ms))]);
+  } catch { return null; }
+}
+async function whyLine(c, el) {
+  if (!el || c.deck !== 'movie' || S.rewatch || !S.sess) return;
+  const r = await taste({ action: 'why', session: S.sess.id, card: c.id }, 12000);
+  if (r?.ok && r.note && el.isConnected) { el.textContent = r.note; el.style.display = ''; }
+}
+
 /* ---------- data ---------- */
 async function refresh() {
   const [st, pantry, settings] = await Promise.all([rpc('get_state', { p_code: S.code, p_member: S.me }), rpc('get_pantry', { p_code: S.code }), rpc('get_settings', { p_code: S.code })]);
@@ -243,6 +257,7 @@ async function openSession(id) {
 async function startSession(deck, filters, note, announce = true) {
   const r = await rpc('start_session', { p_code: S.code, p_member: S.me, p_deck: deck, p_note: note || null, p_filters: filters || {} });
   if (!r.id) { toast(emptyMsg(deck, filters)); return; }
+  if ((deck === 'movie' || deck === 'mix') && !filters?.rewatch && !filters?.wishlist) await taste({ action: 'rank', session: r.id }, 7000);
   if (announce) {
     send({ type: 'nudge', deck, session: r.id, wishlist: !!filters?.wishlist });
     if (filters?.wishlist) push(`${S.me} shared a wishlist 💌`, `${r.count} movie${r.count > 1 ? 's' : ''} they want to watch. Swipe the ones you would watch too.`, `./?s=${r.id}`);
@@ -422,9 +437,9 @@ const chainLabel = c => c.data?.chain ? (c.data.chain.deck === 'movie' ? 'Pick t
 function showMatch(c) {
   document.querySelector('.match')?.remove();
   const m = document.createElement('div'); m.className = 'match'; const cl = chainLabel(c);
-  m.innerHTML = `<h1>You both<br>like this</h1><div class="pic">${c.image ? `<img src="${esc(c.image)}" alt="">` : emojiFor(c)}</div><h3>${esc(c.title)}</h3>
+  m.innerHTML = `<h1>You both<br>like this</h1><div class="pic">${c.image ? `<img src="${esc(c.image)}" alt="">` : emojiFor(c)}</div><h3>${esc(c.title)}</h3><p id="why" style="display:none;font-size:15px;line-height:1.4;color:#f3dfe6;max-width:320px;font-style:italic"></p>
     ${cl ? `<button class="btn" data-chain="${c.id}">${cl} →</button>` : ''}<button class="btn ${cl ? 'ghost' : ''}" data-act="closematch">Keep swiping</button><button class="btn ghost" data-act="matches">See all matches</button>`;
-  m._card = c; document.body.appendChild(m); if (navigator.vibrate) navigator.vibrate([30, 40, 60]);
+  m._card = c; document.body.appendChild(m); whyLine(c, m.querySelector('#why')); if (navigator.vibrate) navigator.vibrate([30, 40, 60]);
 }
 function renderMatches() {
   const d = DECKS[S.sess.deck];
