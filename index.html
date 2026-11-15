@@ -225,6 +225,23 @@ body::before{content:"";position:fixed;inset:-20% -10% auto -10%;height:60%;back
 .trailer{margin:0 -18px 14px;aspect-ratio:16/9;background:#000;position:relative}
 .trailer iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .rec-btns{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.lgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 0 120px}
+.lcard{position:relative;aspect-ratio:2/3;border-radius:14px;overflow:hidden;background:var(--surface2);display:grid;place-items:center;font-size:40px;box-shadow:0 10px 22px -12px rgba(0,0,0,.9),inset 0 0 0 1px rgba(255,255,255,.08);transition:transform .15s;animation:pop .35s both}
+.lcard img{width:100%;height:100%;object-fit:cover;display:block}
+.lcard:active{transform:scale(.95)}
+.lcard.both{box-shadow:0 0 0 1.5px rgba(255,120,130,.85),0 10px 26px -10px rgba(255,90,100,.85)}
+.lcard .hb{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#ff7a4d,#ff4d7e);display:grid;place-items:center;font-size:12px;color:#fff;box-shadow:0 4px 10px -2px rgba(255,90,100,.9)}
+.lcard .ttl{position:absolute;left:0;right:0;bottom:0;padding:18px 7px 7px;font-size:11.5px;line-height:1.2;background:linear-gradient(transparent,rgba(0,0,0,.88));text-align:left;font-weight:600}
+.lcard.sel{transform:scale(.93);box-shadow:0 0 0 3px #ff5c8a,0 0 26px -2px rgba(255,90,110,.9)}
+.lcard.sel::after{content:"✓";position:absolute;inset:0;background:rgba(255,77,126,.38);display:grid;place-items:center;font-size:34px;color:#fff;font-weight:700}
+.lbar{position:fixed;left:0;right:0;bottom:0;max-width:520px;margin:0 auto;padding:26px 14px calc(var(--sb) + 12px);display:flex;gap:10px;background:linear-gradient(transparent,rgba(16,13,18,.97) 40%);z-index:5}
+.lbar .btn{font-size:14.5px;padding:13px 10px}
+.lfront{position:fixed;inset:0;z-index:25;background:rgba(8,6,10,.8);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 26px calc(var(--sb) + 20px);gap:10px;animation:fade .2s;text-align:center}
+.lf-card{width:min(58vw,230px);aspect-ratio:2/3;flex:none;border-radius:22px;overflow:hidden;background:var(--surface2);display:grid;place-items:center;font-size:90px;position:relative;box-shadow:0 30px 70px -10px rgba(0,0,0,.9),0 0 70px -10px rgba(255,90,110,.65),inset 0 0 0 1px rgba(255,255,255,.18);transition:transform .45s cubic-bezier(.2,1.15,.3,1)}
+.lf-card img{width:100%;height:100%;object-fit:cover;display:block}
+.lf-card::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.2) 50%,transparent 65%);transform:translateX(-120%);animation:sweep 3.6s .4s ease-in-out infinite}
+.lfront h3{font-family:var(--serif);font-weight:400;font-size:26px;line-height:1.1;margin-top:6px}
+.lfront .btn{max-width:320px}
 @keyframes celein{from{transform:translate(-50%,-30px) scale(.7);opacity:0}}
 @keyframes celeout{to{transform:translate(-50%,-20px);opacity:0}}
 @keyframes beat{50%{transform:scale(1.25)}}
@@ -312,7 +329,7 @@ async function onEvent(p) {
   else if (p.type === 'swipe') { if (S.view === 'swipe' && S.sess?.id === p.session) { S.theirLeft = p.left; updateBar(); } }
   else if (p.type === 'narrow') { toast(`${p.from} picked what they are in the mood for. Open the round and tap Narrow it down to add yours.`, 6000); if (S.view === 'swipe' && S.sess?.id === p.session) { try { await loadSession(p.session); S.view = 'swipe'; drawStack(); } catch {} } }
   else if (p.type === 'shortlist') { await refresh(); const pill = document.querySelector('[data-act=shortlist]'); if (pill) { pill.textContent = '♥ ' + (S.state.counts.shortlist || 0); pill.classList.toggle('hot', !!S.state.counts.shortlist); } }
-  else if (p.type === 'game') { if (S.view === 'swipe' && S.sess?.id === p.session) { S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); S.view = 'game'; render(); } else toast(`${p.from} wants to play for tonight’s pick. Open the round to join.`, 5000); }
+  else if (p.type === 'game') { if (p.lib || (S.view === 'swipe' && S.sess?.id === p.session)) { closeSheet(); document.querySelector('.lfront')?.remove(); if (p.lib) toast(`${p.from} picked a few. Closest guess chooses tonight.`, 4500); S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); S.view = 'game'; render(); } else toast(`${p.from} wants to play for tonight’s pick. Open the round to join.`, 5000); }
   else if (p.type === 'tb') { if (S.view === 'game' && S.tb?.id === p.id) { S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); render(); } }
   else if (p.type === 'final') { if (S.view !== 'game') showFinal(p.card, !!p.shuffle && S.sess?.id === p.session); }
   else if (p.type === 'rec') { try { navigator.vibrate?.(40); } catch {} recSheet(p.card, p.from); }
@@ -394,6 +411,7 @@ function render() {
   if (S.view === 'swipe') return renderSwipe();
   if (S.view === 'matches') return renderMatches();
   if (S.view === 'game') return renderGame();
+  if (S.view === 'library') return renderLibrary();
   if (S.view === 'guess') return renderGuess();
   if (S.tab === 'lists' || S.tab === 'you') {
     $app.innerHTML = `<div class="view"><div class="topbar" style="margin-bottom:4px"><button class="back" data-tab="home" aria-label="Back">‹</button></div>${S.tab === 'lists' ? listsHTML() : youHTML()}</div>`;
@@ -457,7 +475,7 @@ function tonightSheet() {
   const st = S.state, p = partner(), latest = (st.sessions || []).find(s => s.from !== S.me && s.my_left > 0), rest = (st.sessions || []).filter(s => s !== latest);
   let h = `<div class="grab"></div><div class="tn"><div class="tn-head"><div class="brand">We<i>Like</i></div><h2>What should we<br>do tonight?</h2><p class="muted" style="margin-top:8px;font-size:14px">${p ? `Pick one. ${esc(p)} gets the same cards.` : 'Pick one to start a round.'}</p></div>
     <div class="grid" style="margin-top:14px">` + ['movie', 'dinner', 'activity', 'event'].map(d => `<button class="tile" data-nudge="${d}" style="background:var(--bg)"><span class="tic">${ic(DIC[d])}</span><span><b>${DECKS[d].label}</b><small>${DECKS[d].hint}</small></span></button>`).join('') +
-    `<button class="tile wide" data-nudge="mix" style="background:var(--bg)"><span class="tic">${ic('shuffle')}</span><span><b>${DECKS.mix.label}</b><small>${DECKS.mix.hint}</small></span></button>${p ? `<button class="tile wide star" data-act="search"><span class="tic">${ic('play')}</span><span><b>Send one pick</b><small>Find a movie and send ${esc(p)} the trailer for a yes or no</small></span></button>` : ''}</div>`;
+    `<button class="tile wide" data-nudge="mix" style="background:var(--bg)"><span class="tic">${ic('shuffle')}</span><span><b>${DECKS.mix.label}</b><small>${DECKS.mix.hint}</small></span></button>${p ? `<button class="tile wide star" data-act="search"><span class="tic">${ic('play')}</span><span><b>Send one pick</b><small>Find a movie and send ${esc(p)} the trailer for a yes or no</small></span></button>` : ''}<button class="tile wide" data-act="shortlist"><span class="tic">${ic('heart')}</span><span><b>Our library</b><small>Everything you have liked. Pick one, shuffle, or play for it</small></span></button></div>`;
   if (st.counts.liked && p) h += `<div style="height:10px"></div><button class="tile wide" data-act="wishlist" style="width:100%;background:var(--bg)"><span class="tic">${ic('mail')}</span><span><b>Share my wishlist</b><small>Send ${esc(p)} the movies you have liked and let them pick</small></span></button>`;
   if (st.counts.rewatch) h += `<div style="height:10px"></div><button class="tile wide" data-act="rewatch" style="width:100%;background:var(--bg)"><span class="tic">${ic('repeat')}</span><span><b>Watch it again?</b><small>${st.counts.rewatch} you have already seen</small></span></button>`;
   if (rest.length) h += `<div class="sect">Recent rounds</div>` + rest.map(s => {
@@ -475,7 +493,7 @@ async function sendRec(c) {
   try { await rpc('like_card', { p_code: S.code, p_member: S.me, p_card: c.id }); } catch {}
   send({ type: 'rec', card: c });
   push(`${S.me}: want to ${recVerb(c)} tonight?`, c.title + (c.deck === 'movie' ? ' · tap for the trailer' : ''), `./?rec=${c.id}`);
-  closeSheet(); toast(`Sent to ${them()}. You will hear back here.`, 3500);
+  closeSheet(); document.querySelector('.lfront')?.remove(); toast(`Sent to ${them()}. You will hear back here.`, 3500);
 }
 function recSheet(c, from) {
   if (!c) return; S.rec = c; const d = c.data || {}, y = ytId(d.trailer), img = d.backdrop || c.image;
@@ -490,6 +508,7 @@ function recSheet(c, from) {
 async function openRec(id) {
   try { const c = await rpc('get_card', { p_code: S.code, p_id: id }); if (c) recSheet(c, partner()); } catch {}
 }
+async function openGame(id) { try { S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: id }); S.view = 'game'; } catch { S.view = 'home'; } render(); }
 function recReply(p) {
   const c = p.card; if (!c) return;
   if (p.yes) { closeSheet(); showMatch(c); return showFinal(c); }
@@ -516,6 +535,39 @@ async function shortlistSheet() {
     (items.length ? items.map(c => `<div class="item"><button data-detail="${c.id}" style="width:44px;height:62px;border-radius:8px;overflow:hidden;background:var(--bg);flex:none;display:grid;place-items:center;font-size:22px">${c.image ? `<img src="${esc(c.image)}" alt="" style="width:100%;height:100%;object-fit:cover">` : emojiFor(c)}</button><button class="grow" style="text-align:left" data-detail="${c.id}"><b>${esc(c.title)}</b><small>${lab[c.deck] || ''}${c.subtitle ? ' · ' + esc(c.subtitle) : ''}</small></button>${c.deck === 'movie' ? `<button class="btn ghost sm" data-seenany="${c.id}">Watched</button>` : ''}</div>`).join('')
       : `<div class="note"><b>Nothing yet.</b> When you have both liked the same movie, place or event while browsing, it lands here quietly.</div>`));
 }
+
+/* ---------- shared library ---------- */
+async function openLibrary() {
+  closeSheet(); document.querySelector('.lfront')?.remove();
+  S.lib = await rpc('library', { p_code: S.code, p_member: S.me });
+  if (!S.libF || S.view !== 'library') S.libF = S.lib.some(c => c.who === 'both') ? 'both' : 'all';
+  S.libSel = null; S.view = 'library'; render();
+}
+const libItems = () => (S.lib || []).filter(c => S.libF === 'all' || c.who === S.libF);
+function renderLibrary() {
+  const all = S.lib || [], items = libItems(), p = partner(), nb = all.filter(c => c.who === 'both').length, sel = S.libSel; S.listCards = all;
+  const chips = [['both', 'Both of us'], ['me', 'Mine'], ...(p ? [['them', esc(p) + '’s']] : []), ['all', 'Everything']];
+  $app.innerHTML = `<div class="view"><div class="topbar"><button class="back" data-act="home" aria-label="Back">‹</button><div class="grow"><h2>Our library</h2><small>${sel ? 'Tap the ones you would be happy with, two to six' : `${nb} you both like · ${all.length} in all`}</small></div></div>
+    <div class="chips" style="margin-top:14px">${chips.map(([k, l]) => `<button class="chip ${S.libF === k ? 'on' : ''}" data-libf="${k}">${l}</button>`).join('')}</div>
+    ${items.length ? `<div class="lgrid">${items.map((c, i) => `<button class="lcard ${c.who === 'both' ? 'both' : ''} ${sel?.has(c.id) ? 'sel' : ''}" data-lib="${c.id}" style="animation-delay:${Math.min(i, 20) * 25}ms" aria-label="${esc(c.title)}">${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy">` : `${emojiFor(c)}<span class="ttl">${esc(c.title)}</span>`}${c.who === 'both' ? `<span class="hb">${ic('heart')}</span>` : ''}</button>`).join('')}</div>`
+      : `<div class="note" style="margin-top:16px"><b>Nothing here yet.</b> ${S.libF === 'both' ? 'When you have both liked the same thing, it lands here. Try Everything to see what each of you has liked so far.' : 'Swipe yes on a few movies, or use search to like the ones you already know you want.'}</div>`}
+    ${items.length ? `<div class="lbar">${sel ? `<button class="btn" id="lplay" data-act="libplay" ${sel.size < 2 ? 'disabled style="opacity:.5"' : ''}>Play for it (${sel.size})</button><button class="btn ghost" data-act="libcancel" style="flex:0 0 96px">Cancel</button>`
+      : `<button class="btn" data-act="libshuffle">${ic('shuffle')} Shuffle a pick</button>${p && items.length > 1 ? '<button class="btn ghost" data-act="libselect">Pick a few and play</button>' : ''}`}</div>` : ''}</div>`;
+}
+function libFront(c, from) {
+  if (!c) return; S.detailCard = c; document.querySelector('.lfront')?.remove();
+  const d = c.data || {}, p = partner(), el = document.createElement('div'); el.className = 'lfront'; el.dataset.act = 'libclose';
+  const meta = c.deck === 'movie' ? [d.year, d.runtime ? d.runtime + ' min' : '', (d.services || [])[0]].filter(Boolean).join(' · ') : (c.subtitle || '');
+  el.innerHTML = `<button class="lf-card" data-act="libdetail" aria-label="Details">${c.image ? `<img src="${esc(c.image)}" alt="">` : emojiFor(c)}</button>
+    <h3>${esc(c.title)}</h3><p class="muted" style="font-size:13.5px">${esc(meta)}${c.who === 'both' ? ' · you both like it' : c.who === 'me' ? ' · your like' : p ? ` · ${esc(p)}’s like` : ''}</p>
+    <button class="btn" data-act="libfinal">${c.deck === 'movie' ? 'Watch this tonight' : 'Do this tonight'}</button>
+    ${p ? `<button class="btn ghost" data-act="sendrec">${ic('play')} Ask ${esc(p)} first</button>` : ''}
+    <div class="row" style="gap:10px;width:100%;max-width:320px"><button class="btn ghost sm" data-act="libdetail" style="flex:1">Details</button>${c.deck === 'movie' ? `<button class="btn ghost sm" data-seenany="${c.id}" style="flex:1">Watched</button>` : ''}</div>`;
+  document.body.appendChild(el);
+  const card = el.querySelector('.lf-card'), a = from?.getBoundingClientRect(), b = card.getBoundingClientRect();
+  if (a && b.width) { card.style.transition = 'none'; card.style.transform = `translate(${a.left + a.width / 2 - b.left - b.width / 2}px,${a.top + a.height / 2 - b.top - b.height / 2}px) scale(${a.width / b.width})`; card.getBoundingClientRect(); card.style.transition = ''; card.style.transform = ''; }
+}
+function libPick(pool, not) { const o = pool.filter(c => c.id !== not); const a = o.length ? o : pool; return a[Math.floor(Math.random() * a.length)]; }
 
 /* ---------- landing ladder: what to do when a round ends with no match ---------- */
 const CUISINES = ['Pizza', 'Mexican', 'Thai', 'Chinese', 'Sushi', 'Burger', 'Italian', 'Indian', 'Mediterranean', 'Barbecue', 'Breakfast', 'Sandwich', 'Seafood', 'Steak'];
@@ -574,11 +626,11 @@ async function ladder(kind, btn) {
     return showFinal(c, true);
   }
 }
-function showFinal(c, canShuffle = false) {
-  document.querySelector('.match')?.remove(); closeSheet();
+function showFinal(c, canShuffle = false, pool = null) {
+  document.querySelector('.match')?.remove(); document.querySelector('.lfront')?.remove(); closeSheet();
   const m = document.createElement('div'); m.className = 'match';
-  m.innerHTML = `<h1>Tonight’s<br>pick</h1><div class="pic">${c.image ? `<img src="${esc(c.image)}" alt="">` : emojiFor(c)}</div><h3>${esc(c.title)}</h3>${c.subtitle ? `<p style="color:#f3dfe6;font-size:15px">${esc(c.subtitle)}</p>` : ''}<button class="btn" data-act="closematch">Sounds good</button>${canShuffle && S.sess ? `<button class="btn ghost" data-act="reshuffle">${ic('shuffle')} Not feeling it, shuffle</button>` : ''}`;
-  m._card = c; document.body.appendChild(m);
+  m.innerHTML = `<h1>Tonight’s<br>pick</h1><div class="pic">${c.image ? `<img src="${esc(c.image)}" alt="">` : emojiFor(c)}</div><h3>${esc(c.title)}</h3>${c.subtitle ? `<p style="color:#f3dfe6;font-size:15px">${esc(c.subtitle)}</p>` : ''}<button class="btn" data-act="closematch">Sounds good</button>${canShuffle && (S.sess || pool) ? `<button class="btn ghost" data-act="reshuffle">${ic('shuffle')} Not feeling it, shuffle</button>` : ''}`;
+  m._card = c; m._pool = pool; document.body.appendChild(m);
 }
 function renderGame() {
   const t = S.tb, row = c => `<div class="item"><span style="width:44px;height:62px;border-radius:8px;overflow:hidden;background:var(--surface);flex:none;display:grid;place-items:center;font-size:22px">${c.image ? `<img src="${esc(c.image)}" alt="" style="width:100%;height:100%;object-fit:cover">` : emojiFor(c)}</span><span class="grow"><b>${esc(c.title)}</b><small>${esc(c.subtitle || '')}</small></span>${t.winner === S.me && !t.pick ? `<button class="btn sm" data-tbpick="${c.id}">Pick</button>` : ''}</div>`;
@@ -591,7 +643,7 @@ function renderGame() {
       ? `<h3 class="serif" style="font-size:30px;margin:14px 0 4px">Tonight: ${esc(t.pick.title)}</h3><p class="muted">${t.winner === S.me ? 'Your pick.' : esc(t.winner) + ' picked it.'}</p><div style="height:14px"></div><button class="btn" data-act="home">Done</button>`
       : `<h3 class="serif" style="font-size:26px;margin:14px 0 6px">${t.winner === S.me ? 'You win. Pick one.' : esc(t.winner) + ' wins and is picking.'}</h3>${(t.cards || []).map(row).join('')}${t.winner === S.me ? '' : '<div style="height:12px"></div><button class="btn ghost" data-act="tbrefresh">Check again</button>'}`);
   }
-  $app.innerHTML = `<div class="view"><div class="topbar"><button class="back" data-act="swipe" aria-label="Back">‹</button><div class="grow"><h2>Play for it</h2><small>Closest guess wins and picks</small></div></div>
+  $app.innerHTML = `<div class="view"><div class="topbar"><button class="back" data-act="${S.tb.session ? 'swipe' : 'shortlist'}" aria-label="Back">‹</button><div class="grow"><h2>Play for it</h2><small>Closest guess wins and picks</small></div></div>
     <div class="note" style="border-style:solid"><b style="font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.15">${esc(t.question)}</b></div>${b}</div>`;
 }
 
@@ -857,7 +909,7 @@ async function saveAdd(t) {
 
 /* ---------- events ---------- */
 document.addEventListener('click', async e => {
-  const t = e.target.closest('[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-hdeck],[data-like],[data-final],[data-lad],[data-chg],[data-tbpick],[data-g],[data-seenany],[data-padd],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
+  const t = e.target.closest('[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-hdeck],[data-like],[data-final],[data-lad],[data-chg],[data-tbpick],[data-g],[data-seenany],[data-padd],[data-lib],[data-libf],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
   if (!t) return; const ds = t.dataset;
   try {
     if (t.id === 'jgo') { const name = document.getElementById('jn').value.trim(), code = document.getElementById('jc').value.trim().toUpperCase(); if (!name || !code) return toast('Enter your name and the couple code.'); t.disabled = true; try { const r = await rpc('join_couple', { p_code: code, p_name: name }); S.code = code; S.me = r.name; ls.set('code', code); ls.set('name', r.name); history.replaceState(null, '', location.pathname); await boot(); send({ type: 'joined' }); } catch (er) { t.disabled = false; toast(errMsg(er)); } return; }
@@ -870,7 +922,11 @@ document.addEventListener('click', async e => {
     if (ds.chg) { const o = S.chg?.[+ds.chg]; if (!o) return; if (o.widen) { const cur = Number(S.settings?.radius_mi || 2), next = [5, 10, 25].find(m => m > cur) || 25; S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { radius_mi: next } }); toast(`Looking within ${next} miles now.`); } return startSession(o.deck, o.filters, o.label); }
     if (ds.tbpick) { S.tb = await rpc('tiebreak_pick', { p_code: S.code, p_member: S.me, p_id: S.tb.id, p_card: ds.tbpick }); send({ type: 'tb', id: S.tb.id }); push(`Tonight: ${S.tb.pick.title}`, `${S.me} won the tie-breaker and picked it.`, './'); return render(); }
     if (ds.g) return guessAnswer(ds.g === '1');
-    if (ds.seenany) { await rpc('mark_seen_any', { p_code: S.code, p_card: ds.seenany }); await refresh(); toast('Moved to your Seen folder for both of you.'); return shortlistSheet(); }
+    if (ds.seenany) { await rpc('mark_seen_any', { p_code: S.code, p_card: ds.seenany }); await refresh(); toast('Moved to your Seen folder for both of you.'); return openLibrary(); }
+    if (ds.libf) { S.libF = ds.libf; S.libSel = null; return renderLibrary(); }
+    if (ds.lib) { const c = (S.lib || []).find(x => x.id === ds.lib); if (!S.libSel) return libFront(c, t);
+      if (S.libSel.has(c.id)) S.libSel.delete(c.id); else if (S.libSel.size >= 6) return toast('Six is plenty.'); else S.libSel.add(c.id);
+      t.classList.toggle('sel', S.libSel.has(c.id)); const b = document.getElementById('lplay'); if (b) { b.textContent = `Play for it (${S.libSel.size})`; b.disabled = S.libSel.size < 2; b.style.opacity = S.libSel.size < 2 ? .5 : 1; } return; }
     if (ds.nudge) return nudgeSheet(ds.nudge);
     if (ds.svc) return t.classList.toggle('on');
     if (ds.f) { const set = F[ds.f]; set.has(ds.v) ? set.delete(ds.v) : set.add(ds.v); return t.classList.toggle('on'); }
@@ -890,7 +946,7 @@ document.addEventListener('click', async e => {
       case 'home': S.view = 'home'; S.tab = 'home'; await refresh(); return render();
       case 'swipe': S.view = 'swipe'; return render();
       case 'matches': document.querySelector('.match')?.remove(); try { const d = await rpc('get_session', { p_code: S.code, p_session: S.sess.id, p_member: S.me }); S.matches = d.matches; S.theirLeft = d.their_left; } catch {} S.view = 'matches'; return render();
-      case 'reshuffle': { const c = await pickNext(); if (!c) return; send({ type: 'final', card: c, shuffle: true, session: S.sess.id }); return showFinal(c, true); }
+      case 'reshuffle': { const mm = document.querySelector('.match'); if (mm?._pool) { const c = libPick(mm._pool, mm._card?.id); send({ type: 'final', card: c }); return showFinal(c, true, mm._pool); } const c = await pickNext(); if (!c) return; send({ type: 'final', card: c, shuffle: true, session: S.sess.id }); return showFinal(c, true); }
       case 'closematch': return document.querySelector('.match')?.remove();
       case 'closesheet': return closeSheet();
       case 'sendrec': t.disabled = true; return sendRec(S.detailCard);
@@ -909,7 +965,14 @@ document.addEventListener('click', async e => {
       case 'tonight': return tonightSheet();
       case 'search': return searchSheet();
       case 'searchgo': return searchGo();
-      case 'shortlist': return shortlistSheet();
+      case 'shortlist': return openLibrary();
+      case 'libclose': if (e.target === t) t.remove(); return;
+      case 'libdetail': document.querySelector('.lfront')?.remove(); return showDetail(S.detailCard);
+      case 'libfinal': { const c = S.detailCard; if (!c) return; send({ type: 'final', card: c }); push(`Tonight: ${c.title}`, `${S.me} picked it from your library.`, './'); return showFinal(c); }
+      case 'libshuffle': { const pool = libItems(); if (!pool.length) return; const c = libPick(pool); send({ type: 'final', card: c }); push(`Tonight: ${c.title}`, 'Shuffled from your library.', './'); return showFinal(c, true, pool); }
+      case 'libselect': S.libSel = new Set(); return renderLibrary();
+      case 'libcancel': S.libSel = null; return renderLibrary();
+      case 'libplay': { if (!S.libSel || S.libSel.size < 2) return; t.disabled = true; S.tb = await rpc('tiebreak_lib', { p_code: S.code, p_member: S.me, p_cards: [...S.libSel] }); S.libSel = null; S.view = 'game'; send({ type: 'game', id: S.tb.id, lib: true }); push(`${S.me} wants to play for tonight’s pick`, 'Closest guess wins and chooses.', `./?tb=${S.tb.id}`); return render(); }
       case 'guess': return startGuess();
       case 'unlock': S.unlock = true; S.view = 'home'; S.tab = 'home'; await refresh(); return render();
       case 'tbguess': { const g = parseInt(document.getElementById('tbg').value, 10); if (!(g > 1880 && g < 2100)) return toast('Enter a year.'); S.tb = await rpc('tiebreak_guess', { p_code: S.code, p_member: S.me, p_id: S.tb.id, p_guess: g }); send({ type: 'tb', id: S.tb.id }); return render(); }
@@ -925,7 +988,7 @@ document.addEventListener('click', async e => {
 document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'sq') { e.preventDefault(); searchGo(); return; }
   if (e.key === 'Enter' && e.target.id === 'p_q') { e.preventDefault(); e.target.blur(); document.querySelector('[data-act="psearch"]')?.click(); } });
 document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && S.code && S.me) { try { await refresh(); if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) render(); else if (S.view === 'swipe' && S.sess) { const d = await rpc('get_session', { p_code: S.code, p_session: S.sess.id, p_member: S.me }); S.theirLeft = d.their_left; S.total = d.total; if (d.matches.length !== S.matches.length) { S.matches = d.matches; } if (d.deck.length !== S.deck.length && !busy) { S.deck = d.deck; drawStack(); } else updateBar(); } } catch {} } });
-if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); navigator.serviceWorker.addEventListener('message', e => { const u = e.data?.open; if (u) { const q = new URL(u).searchParams, s = q.get('s'), r = q.get('rec'); if (s && S.me) openSession(s); else if (r && S.me) openRec(r); } }); }
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); navigator.serviceWorker.addEventListener('message', e => { const u = e.data?.open; if (u) { const q = new URL(u).searchParams, s = q.get('s'), r = q.get('rec'), g = q.get('tb'); if (s && S.me) openSession(s); else if (r && S.me) openRec(r); else if (g && S.me) openGame(g); } }); }
 
 async function boot() {
   if (!S.code || !S.me) return render();
@@ -934,6 +997,7 @@ async function boot() {
   const s = new URLSearchParams(location.search).get('s');
   if (s) { history.replaceState(null, '', location.pathname); return openSession(s); }
   const rc = new URLSearchParams(location.search).get('rec'); if (rc) history.replaceState(null, '', location.pathname);
+  const tg = new URLSearchParams(location.search).get('tb'); if (tg) { history.replaceState(null, '', location.pathname); return openGame(tg); }
   render(); if (rc) return openRec(rc);
   if (!standalone() && !ls.get('a2hs')) installSheet(); else if (!S.settings.setup && !ls.get('setupskip')) setupSheet();
 }
