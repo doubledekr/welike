@@ -449,9 +449,10 @@ function showDetail(c) {
       <p class="muted" style="font-size:11.5px;text-align:center">Streaming data powered by Watchmode.com</p>`;
   } else if (c.deck === 'dinner') {
     const oh = onHand(c);
-    b = `<div class="tags"><span class="tag">${KINDS[c.kind]?.[0] || 'Dinner'}</span></div>${d.notes ? `<p>${esc(d.notes)}</p>` : ''}
+    b = `<div class="tags"><span class="tag">${KINDS[c.kind]?.[0] || 'Dinner'}</span>${d.rating ? `<span class="tag">★ ${d.rating}${d.ratings ? ` (${Number(d.ratings).toLocaleString()})` : ''}</span>` : ''}${d.price ? `<span class="tag">${esc(d.price)}</span>` : ''}</div>${d.notes ? `<p>${esc(d.notes)}</p>` : ''}${d.address ? `<p class="muted" style="font-size:14px">${esc(d.address)}</p>` : ''}
       ${d.ingredients?.length ? `<div class="kv">Ingredients</div><p style="margin-top:0">${d.ingredients.map(i => { const miss = oh && oh.missing.includes(i); return `<span style="${miss ? 'color:var(--muted)' : ''}">${oh ? (miss ? '○ ' : '● ') : ''}${esc(i)}</span>`; }).join('<br>')}</p>${oh ? `<p class="muted" style="font-size:13px">${oh.have} of ${oh.total} in your pantry</p>` : ''}` : ''}
-      ${d.url ? `<div style="height:18px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.url)}" target="_blank" rel="noopener">Open website</a>` : ''}`;
+      ${d.url ? `<div style="height:18px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.url)}" target="_blank" rel="noopener">Open website</a>` : ''}
+      ${d.maps ? `<div style="height:10px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.maps)}" target="_blank" rel="noopener">Open in Google Maps</a>${d.photo_credit ? `<p class="muted" style="font-size:11.5px;text-align:center">Photo: ${esc(d.photo_credit)} via Google</p>` : ''}` : ''}`;
   } else if (c.deck === 'event') {
     b = `<div class="tags"><span class="tag">${fmtDate(c.event_date)}</span>${c.kind ? `<span class="tag">${esc(c.kind)}</span>` : ''}</div>
       ${d.time ? `<div class="kv">When</div><p style="margin-top:0">${esc(d.time)}</p>` : ''}${d.venue ? `<div class="kv">Where</div><p style="margin-top:0">${esc(d.venue)}${d.area ? ` (${esc(d.area)})` : ''}</p>` : ''}${d.notes ? `<p>${esc(d.notes)}</p>` : ''}
@@ -475,11 +476,33 @@ function nudgeSheet(deck) {
 function addSheet() {
   const t = ['pantry', 'seen'].includes(S.listTab) ? 'dinner' : S.listTab; let f = '';
   if (t === 'activity') f = `<label class="field"><span>What is it?</span><input id="a_title" maxlength="60" placeholder="Bowling"></label><label class="field"><span>One line about it (optional)</span><input id="a_sub" maxlength="90"></label><label class="field"><span>Emoji (optional)</span><input id="a_emoji" maxlength="4" placeholder="🎳"></label>`;
-  if (t === 'dinner') f = `<label class="field"><span>Kind</span><select id="a_kind"><option value="cook">Cook at home</option><option value="restaurant">Restaurant</option><option value="orderin">Order in</option></select></label>
+  if (t === 'dinner') f = `<label class="field"><span>Find a nearby restaurant</span><input id="p_q" maxlength="80" enterkeyhint="search" placeholder="Thai, tacos, a name, or leave blank"></label>
+    <div style="height:10px"></div><button class="btn ghost sm" data-act="psearch">Search nearby</button><div id="p_res"></div>
+    <div class="sect">Or add your own</div><label class="field" style="margin-top:0"><span>Kind</span><select id="a_kind"><option value="cook">Cook at home</option><option value="restaurant">Restaurant</option><option value="orderin">Order in</option></select></label>
     <label class="field"><span>Name</span><input id="a_title" maxlength="60" placeholder="Sheet-pan chicken, or the restaurant's name"></label><label class="field"><span>One line about it (optional)</span><input id="a_sub" maxlength="90" placeholder="Thai · Corktown"></label>
     <label class="field"><span>Ingredients, comma separated (cook at home)</span><input id="a_ing" placeholder="chicken thighs, broccoli, lemon"></label><label class="field"><span>Website or menu link (optional)</span><input id="a_url" inputmode="url" placeholder="https://"></label><label class="field"><span>Photo link (optional)</span><input id="a_img" inputmode="url" placeholder="https://"></label>`;
   if (t === 'event') f = `<label class="field"><span>Event</span><input id="a_title" maxlength="80"></label><label class="field"><span>Date</span><input id="a_date" type="date" value="${new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 10)}"></label><label class="field"><span>Time (optional)</span><input id="a_time" placeholder="8:00 pm"></label><label class="field"><span>Venue (optional)</span><input id="a_venue"></label><label class="field"><span>Link (optional)</span><input id="a_url" inputmode="url" placeholder="https://"></label>`;
   sheet(`<div class="grab"></div><h2>Add ${t === 'activity' ? 'an activity' : t === 'dinner' ? 'a dinner idea' : 'an event'}</h2>${f}<div style="height:16px"></div><button class="btn" data-save="${t}">Save</button>`);
+}
+const placeLine = p => [p.rating ? `★ ${p.rating}${p.ratings ? ` (${p.ratings.toLocaleString()})` : ''}` : '', p.price, p.type].filter(Boolean).join(' · ');
+async function placeFn(body) { const { data, error } = await sb.functions.invoke('places', { body: { code: S.code, ...body } }); if (error) { let d = null; try { d = await error.context.json(); } catch {} throw new Error(d?.error || 'failed'); } return data; }
+async function placeSearch(btn) {
+  const el = document.getElementById('p_res'); if (!el) return; btn.disabled = true; el.innerHTML = '<p class="muted" style="font-size:14px;margin-top:12px">Searching…</p>';
+  try {
+    const { places } = await placeFn({ q: document.getElementById('p_q').value.trim() }); S.places = places || [];
+    el.innerHTML = S.places.length ? S.places.map((p, i) => `<div class="item"><span class="grow"><b>${esc(p.name)}</b><small>${esc(placeLine(p))}</small><small>${esc(p.address)}</small></span><button class="btn ghost sm" data-padd="${i}">Add</button></div>`).join('') + '<p class="muted" style="font-size:11.5px;margin-top:8px">Results from Google Maps</p>' : '<div class="note">Nothing found. Try a different search.</div>';
+  } catch (e) { el.innerHTML = `<div class="note">${e.message === 'no_location' ? '<b>No home area yet.</b> Add your ZIP code on the You tab, then search again.' : 'Nearby search is not working right now. You can still add a restaurant below.'}</div>`; }
+  btn.disabled = false;
+}
+async function addPlace(btn, p) {
+  if (!p) return; btn.disabled = true; btn.textContent = '…';
+  try {
+    let img = ''; if (p.photo) { try { img = (await placeFn({ action: 'photo', photo: p.photo })).url || ''; } catch {} }
+    const kind = document.getElementById('a_kind')?.value === 'orderin' ? 'orderin' : 'restaurant';
+    const data = { place_id: p.id, address: p.address, maps: p.maps, rating: p.rating, ratings: p.ratings, price: p.price }; if (p.website) data.url = p.website; if (p.credit) data.photo_credit = p.credit;
+    await rpc('add_card', { p_code: S.code, p_member: S.me, p_deck: 'dinner', p_kind: kind, p_title: p.name.slice(0, 60), p_subtitle: [p.type, p.address.split(',')[0]].filter(Boolean).join(' · ').slice(0, 90), p_image: img, p_data: data });
+    btn.textContent = 'Added'; S.listTab = 'dinner'; await refresh(); if (document.getElementById('list')) loadList();
+  } catch (e) { btn.disabled = false; btn.textContent = 'Add'; toast(errMsg(e)); }
 }
 async function saveAdd(t) {
   const v = id => document.getElementById(id)?.value.trim() || ''; const title = v('a_title'); if (!title) return toast('Give it a name.');
@@ -492,7 +515,7 @@ async function saveAdd(t) {
 
 /* ---------- events ---------- */
 document.addEventListener('click', async e => {
-  const t = e.target.closest('[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
+  const t = e.target.closest('[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-padd],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
   if (!t) return; const ds = t.dataset;
   try {
     if (t.id === 'jgo') { const name = document.getElementById('jn').value.trim(), code = document.getElementById('jc').value.trim().toUpperCase(); if (!name || !code) return toast('Enter your name and the couple code.'); t.disabled = true; try { const r = await rpc('join_couple', { p_code: code, p_name: name }); S.code = code; S.me = r.name; ls.set('code', code); ls.set('name', r.name); history.replaceState(null, '', location.pathname); await boot(); send({ type: 'joined' }); } catch (er) { t.disabled = false; toast(errMsg(er)); } return; }
@@ -501,6 +524,7 @@ document.addEventListener('click', async e => {
     if (ds.nudge) return nudgeSheet(ds.nudge);
     if (ds.svc) return t.classList.toggle('on');
     if (ds.f) { const set = F[ds.f]; set.has(ds.v) ? set.delete(ds.v) : set.add(ds.v); return t.classList.toggle('on'); }
+    if (ds.padd) return addPlace(t, S.places?.[+ds.padd]);
     if (ds.days) { F.days = +ds.days; t.parentElement.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c === t)); return; }
     if (ds.go) { t.disabled = true; const filters = ds.go === 'movie' ? { services: [...F.services], genres: [...F.genres] } : ds.go === 'dinner' ? { kinds: [...F.kinds] } : ds.go === 'event' ? { days: F.days } : {}; try { await startSession(ds.go, filters, document.getElementById('nnote').value.trim()); } finally { t.disabled = false; } return; }
     if (ds.open) return openSession(ds.open);
@@ -523,6 +547,7 @@ document.addEventListener('click', async e => {
       case 'rewatch': return startSession('movie', { rewatch: true }, 'Watch one again?');
       case 'newcouple': { const name = document.getElementById('jn').value.trim(); if (!name) return toast('Enter your name first.'); t.disabled = true; try { const r = await rpc('create_couple', { p_name: name }); S.code = r.code; S.me = r.name; ls.set('code', r.code); ls.set('name', r.name); history.replaceState(null, '', location.pathname); await boot(); toast('You are set up. Send the invite link to your other half.', 4500); } catch (er) { t.disabled = false; toast(errMsg(er)); } return; }
       case 'savesettings': { const root = t.closest('.sheet') || document; const services = [...root.querySelectorAll('[data-svc].on')].map(x => x.dataset.svc); if (!services.length) return toast('Pick at least one streaming service.'); S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { zip: root.querySelector('#s_zip').value.trim(), services, setup: true } }); closeSheet(); toast('Saved for both of you.'); send({ type: 'joined' }); return render(); }
+      case 'psearch': return placeSearch(t);
       case 'skipsetup': ls.set('setupskip', '1'); return closeSheet();
       case 'geo': { if (!navigator.geolocation) return toast('This phone will not share its location with WeLike.'); navigator.geolocation.getCurrentPosition(async pos => { try { S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { lat: pos.coords.latitude, lng: pos.coords.longitude } }); document.querySelectorAll('#geonote').forEach(n => n.textContent = 'Location saved'); toast('Location saved.'); } catch { toast('Could not save your location.'); } }, () => toast('Location is turned off for WeLike in your phone settings.'), { timeout: 10000 }); return; }
       case 'wishlist': return startSession('movie', { wishlist: true }, null);
@@ -534,6 +559,7 @@ document.addEventListener('click', async e => {
     }
   } catch (er) { console.error(er); toast(errMsg(er)); }
 });
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'p_q') { e.preventDefault(); e.target.blur(); document.querySelector('[data-act="psearch"]')?.click(); } });
 document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && S.code && S.me) { try { await refresh(); if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) render(); else if (S.view === 'swipe' && S.sess) { const d = await rpc('get_session', { p_code: S.code, p_session: S.sess.id, p_member: S.me }); S.theirLeft = d.their_left; S.total = d.total; if (d.matches.length !== S.matches.length) { S.matches = d.matches; } if (d.deck.length !== S.deck.length && !busy) { S.deck = d.deck; drawStack(); } else updateBar(); } } catch {} } });
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); navigator.serviceWorker.addEventListener('message', e => { const u = e.data?.open; if (u) { const s = new URL(u).searchParams.get('s'); if (s && S.me) openSession(s); } }); }
 
