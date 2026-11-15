@@ -917,7 +917,7 @@ function youHTML() {
     : `<div class="note"><b>Nudges are off.</b> Turn them on so a nudge reaches you when the app is closed.<div style="height:10px"></div><button class="btn sm" data-act="push">Turn on nudges</button></div>`;
   return `<div class="brand">You</div>
     <div class="sect">Signed in</div>
-    <div class="item"><span class="em">👤</span><span class="grow"><b>${esc(S.me)}</b><small>${p ? 'Paired with ' + esc(p) : 'Not paired yet'}</small></span></div>
+    <div class="item"><span class="em">👤</span><span class="grow"><b>${esc(S.me)}</b><small>${p ? 'Paired with ' + esc(p) : 'Not paired yet'}</small></span><button class="btn ghost sm" data-act="rename">Change name</button></div>
     <div class="item"><span class="em">🔑</span><span class="grow"><b>${esc(S.code)}</b><small>Your couple code</small></span><button class="btn ghost sm" data-act="invite">Copy invite</button></div>
     <div class="sect">Home and streaming</div>${settingsForm()}
     <div class="sect">Notifications</div>${pushBlock}
@@ -1182,6 +1182,10 @@ document.addEventListener('click', async e => {
       case 'reshuffle': { const mm = document.querySelector('.match'); if (mm?._pool) { const c = libPick(mm._pool, mm._card?.id); send({ type: 'final', card: c }); return showFinal(c, true, mm._pool); } const c = await pickNext(); if (!c) return; send({ type: 'final', card: c, shuffle: true, session: S.sess.id }); return showFinal(c, true); }
       case 'closematch': return document.querySelector('.match')?.remove();
       case 'closesheet': return closeSheet();
+      case 'rename': sheet(`<div class="grab"></div><h2>Change your name</h2><p class="muted" style="margin-top:6px;font-size:14.5px">This is the name ${esc(them())} sees. Your swipes, likes and matches stay with you.</p><label class="field"><span>Your name</span><input id="rn" maxlength="24" autocomplete="given-name" value="${esc(S.me)}"></label><div style="height:14px"></div><button class="btn" data-act="renamego">Save name</button>`); return;
+      case 'renamego': { const n = document.getElementById('rn').value.trim(); if (!n) return toast('Enter a name.'); if (n === S.me) return closeSheet(); t.disabled = true;
+        try { const r = await rpc('rename_member', { p_code: S.code, p_member: S.me, p_new: n }); S.me = r.name; ls.set('name', r.name); closeSheet(); await refresh(); send({ type: 'joined' }); toast(`You are now ${r.name}.`); return render(); }
+        catch (er) { t.disabled = false; return toast(String(er.message || er).includes('name_taken') ? 'Your other half already uses that name.' : 'Could not change the name. Try again.'); } }
       case 'getstarted': S.joinForm = true; S.joinMode = ds.mode || 'code'; return render();
       case 'obhome': { const pg = document.getElementById('obp'); if (pg) pg.scrollTo({ left: pg.clientWidth * (pg.children.length - 2), behavior: 'smooth' }); return; }
       case 'obnext': { const pg = document.getElementById('obp'); if (pg) pg.scrollBy({ left: pg.clientWidth, behavior: 'smooth' }); return; }
