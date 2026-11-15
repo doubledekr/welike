@@ -513,6 +513,13 @@ html.ios-app .coach{position:absolute}
 .jhome>div{padding:0 13px 13px;font-size:14px;line-height:1.5;color:#d9d0dc}
 .jwho{margin-top:14px}.jwho small{display:block;color:var(--muted);font-size:13px;margin-bottom:8px}
 .jlink{display:block;width:100%;text-align:center;color:var(--muted);font-size:14px;padding:16px 8px 4px;text-decoration:underline;text-underline-offset:3px}
+.hsb{display:flex;align-items:center;gap:10px;margin-top:8px;padding:9px 8px 9px 11px;border-radius:18px;background:linear-gradient(135deg,rgba(255,122,77,.3),rgba(255,77,126,.2));box-shadow:inset 0 0 0 1px rgba(255,150,130,.42),0 10px 26px -14px rgba(255,90,100,.9)}
+.hsb.has{background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.hsb .tic{flex:none;width:34px;height:34px;border-radius:12px;display:grid;place-items:center;font-size:18px;color:#fff;background:linear-gradient(135deg,#ff7a4d,#ff4d7e)}
+.hsb.has .tic{background:rgba(255,255,255,.1)}
+.hsb b{display:block;font-size:14.5px;line-height:1.25}.hsb small{display:block;font-size:12.5px;color:#f3dcd6;line-height:1.3}
+.hsb .go{flex:none;padding:8px 13px;border-radius:99px;font-weight:700;font-size:13.5px;color:#4a0f22;background:#fff;white-space:nowrap}
+.hsb .x{flex:none;width:30px;height:30px;border-radius:50%;font-size:19px;color:#f3dcd6}
 .trav{display:flex;align-items:center;gap:10px;margin-top:8px;padding:10px 10px 10px 12px;border-radius:18px;background:linear-gradient(135deg,rgba(77,155,255,.28),rgba(45,212,191,.16));box-shadow:inset 0 0 0 1px rgba(120,190,255,.4),0 10px 26px -14px rgba(77,155,255,.9)}
 .trav .tic{width:36px;height:36px;border-radius:12px;font-size:18px;background:linear-gradient(135deg,#4d9bff,#2dd4bf)}
 .trav b{display:block;font-size:14.5px;line-height:1.25}.trav small{display:block;font-size:12.5px;color:#d5e6f5;line-height:1.3}
@@ -929,7 +936,7 @@ function homeHTML() {
     <div class="row"><div class="brand grow hb">${MARK}<span>${BRAND}</span></div>
       <button class="pill ${st.counts.shortlist ? 'hot' : ''}" data-act="shortlist" aria-label="Shortlist">♥ ${st.counts.shortlist || 0}</button>
       <button class="ib" data-act="search" aria-label="Search movies">${ic('search')}</button>
-      <button class="ib" data-tab="lists" aria-label="Lists">${ic('list')}</button><button class="ib" data-tab="you" aria-label="You and settings">${ic('sliders')}</button></div>
+      <button class="ib" data-tab="lists" aria-label="Lists">${ic('list')}</button><button class="ib" data-tab="you" aria-label="You and settings">${ic('sliders')}</button></div>${hsBanner()}
     ${!p ? `<button class="nudge slim" data-act="invite"><span class="grow"><b>Invite your other half</b></span><span class="go">Send link</span></button>` : ''}
     ${incoming.slice(0, 1).map(s => `<button class="nudge slim" data-open="${s.id}"><span class="grow"><b>${esc(s.from)} ${s.filters?.wishlist ? 'shared a wishlist' : 'nudged you'}</b><small> · ${esc(s.filters?.wishlist ? 'movies to pick from' : s.note || DECKS[s.deck].label)} · ${s.my_left} to swipe</small></span><span class="go">Swipe</span></button>`).join('')}
     <div class="seg" style="margin:8px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="${S.homeDeck === k ? 'on' : ''}">${l}</button>`).join('')}</div>${scratchShow() && !S.awayOffer ? `<button class="scratch-pill" data-act="scratch">${ic('spark')}<span><b>A scratch card is waiting</b><small>One thing ${esc(p)} is in on</small></span><i>Scratch</i></button>` : ''}${S.awayOffer ? `<div class="trav"><span class="tic">${ic('pin')}</span><span class="grow"><b>Looks like you’re in ${esc(S.awayOffer.city)}</b><small>Show places to eat and things to do here?</small></span><button class="go" data-act="awayyes">Show</button><button class="x" data-act="awayno" aria-label="Not now">×</button></div>` : ''}${S.away && (S.homeDeck === 'dinner' || S.homeDeck === 'event') ? `<div class="row" style="justify-content:space-between;margin:6px 2px 0"><small class="muted" style="font-size:12.5px">${ic('pin')} Showing ${esc(S.away.city)} on this phone</small><button class="chip" data-act="awayoff" style="padding:5px 12px;font-size:13px">Back to home</button></div>` : ''}${S.homeDeck === 'art' ? `<div class="row" style="justify-content:space-between;margin:6px 2px 0"><button class="chip" data-act="gallery" style="padding:5px 12px;font-size:13px">${ic('frame')} Our gallery</button><small class="muted" style="font-size:12.5px">No nudges, just likes</small></div>` : ''}${S.homeDeck === 'trip' ? `<div class="row" style="justify-content:space-between;margin:6px 2px 0"><button class="chip" data-act="trips" style="padding:5px 12px;font-size:13px">${ic('heart')} Saved trips</button><button class="chip ${S.tripCity ? 'on' : ''}" data-act="tripcity" style="padding:5px 12px;font-size:13px">${esc(S.tripCity || 'Anywhere')} ▾</button></div>` : ''}
@@ -1314,6 +1321,20 @@ function settingsForm() {
     <div class="kv">Streaming services you have</div><div class="chips">${all.map(x => `<button class="chip lg ${on.includes(x) ? 'on' : ''}" data-svc="${esc(x)}">${svcLogo(x)}${esc(x)}</button>`).join('')}</div>
     <div style="height:16px"></div><button class="btn" data-act="savesettings">Save</button>`;
 }
+// Home Screen reminder: the account remembers whether this person has ever opened the installed app
+let bip = null; window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); bip = e; if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) render(); });
+window.addEventListener('appinstalled', () => { bip = null; S.installed = true; if (S.view === 'home') render(); });
+async function installCheck() {
+  if (!S.code || !S.me) return;
+  try { S.installed = await rpc('install_state', { p_code: S.code, p_member: S.me, p_here: standalone() }); } catch { return; }
+  if (!standalone() && S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) render();
+}
+function hsBanner() {
+  if (standalone() || !isPhone() || typeof S.installed !== 'boolean' || Date.now() < Number(ls.get('hsnz') || 0)) return '';
+  return S.installed
+    ? `<div class="hsb has"><span class="tic">${ic('heart')}</span><span class="grow"><b>You already have the app</b><small>Open Let’s Together from your Home Screen for full screen and nudges.</small></span><button class="x" data-act="hsx" aria-label="Dismiss">×</button></div>`
+    : `<div class="hsb"><span class="tic">${ic('plus')}</span><span class="grow"><b>Add it to your Home Screen</b><small>Full screen like an app, and nudges can reach you.</small></span><button class="go" data-act="hshow">${bip ? 'Install' : 'Show me how'}</button><button class="x" data-act="hsx" aria-label="Dismiss">×</button></div>`;
+}
 function installSheet() {
   const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
   sheet(`<div class="grab"></div><h2>Put Let’s Together on your Home Screen</h2><p class="muted" style="margin-top:6px;font-size:14.5px">It opens full screen like an app, and nudges can reach you as notifications.</p>
@@ -1668,6 +1689,8 @@ document.addEventListener('click', async e => {
       case 'finalsend': { const mm = document.querySelector('.match'), c = mm?._card; if (!c) return; send({ type: 'final', card: c }); push(`Tonight: ${c.title}`, `${S.me} picked it from your library.`, './'); mm.remove(); return toast(`Locked in. ${them()} has been told.`, 3500); }
       case 'closesheet': return closeSheet();
       case 'scratch': return openScratch();
+      case 'hsx': ls.set('hsnz', String(Date.now() + (S.installed ? 30 : 3) * 864e5)); return render();
+      case 'hshow': if (bip) { const e = bip; bip = null; try { e.prompt(); await e.userChoice; } catch {} return render(); } return installSheet();
       case 'scolater': document.querySelector('.sco')?.remove(); return;
       case 'scratchdone': document.querySelector('.scr')?.remove(); return render();
       case 'travelon': return checkTravel(true);
@@ -1785,7 +1808,7 @@ async function boot() {
   const rc = new URLSearchParams(location.search).get('rec'); if (rc) history.replaceState(null, '', location.pathname);
   const tg = new URLSearchParams(location.search).get('tb'); if (tg) { history.replaceState(null, '', location.pathname); return openGame(tg); }
   render(); if (rc) return openRec(rc);
-  nextOnboard(); checkTravel(); scratchCheck();
+  nextOnboard(); checkTravel(); scratchCheck(); installCheck();
 }
 boot();
 </script>
