@@ -119,6 +119,7 @@ h1,h2,h3,p{margin:0}
 .stamp.yes{left:20px;color:var(--ok);transform:rotate(-12deg)}
 .stamp.no{right:20px;color:#ff8a8a;transform:rotate(12deg)}
 .stamp.love{left:50%;top:auto;bottom:38%;color:var(--gold);transform:translateX(-50%)}
+.stamp.seen{left:50%;top:30%;color:#d9d2dc;transform:translateX(-50%);white-space:nowrap}
 .actions{display:flex;justify-content:center;align-items:center;gap:14px}
 .act{width:58px;height:58px;border-radius:50%;background:var(--surface);border:1px solid var(--line);font-size:24px;display:grid;place-items:center}
 .act:active{transform:scale(.92)}
@@ -335,7 +336,7 @@ function cardHTML(c, cls = '') {
   const art = c.image ? `<img class="bg" src="${esc(c.image)}" alt="" draggable="false" onerror="this.remove()">` : '';
   return `<div class="card ${cls}" data-id="${c.id}"><div class="art ${c.deck}">${emojiFor(c)}</div>${art}
     <div class="shade"><h3>${esc(c.title)}</h3>${c.subtitle ? `<div class="sub">${esc(c.subtitle)}</div>` : ''}<div class="tags">${tags.join('')}</div></div>
-    <div class="info">i</div><div class="stamp yes">Yes</div><div class="stamp no">Nope</div><div class="stamp love">Love it</div></div>`;
+    <div class="info">i</div><div class="stamp yes">Yes</div><div class="stamp no">Nope</div><div class="stamp love">Love it</div>${c.deck === 'movie' ? '<div class="stamp seen">Seen it</div>' : ''}</div>`;
 }
 function updateBar() { const el = document.getElementById('prog'); if (el) el.textContent = `${S.deck.length} left · ${esc(them())} has done ${Math.min(S.theirs, S.total)} of ${S.total}`; const m = document.getElementById('mcount'); if (m) { m.textContent = S.matches.length ? `${S.matches.length} match${S.matches.length > 1 ? 'es' : ''}` : 'No matches yet'; m.className = 'pill' + (S.matches.length ? ' hot' : ''); } }
 function renderSwipe() {
@@ -368,10 +369,10 @@ function attachDrag(el) {
   const stamp = k => el.querySelector('.stamp.' + k);
   const down = e => { on = true; sx = e.clientX; sy = e.clientY; dx = dy = 0; t0 = Date.now(); el.style.transition = 'none'; try { el.setPointerCapture(e.pointerId); } catch {} };
   const move = e => { if (!on) return; dx = e.clientX - sx; dy = e.clientY - sy; el.style.transform = `translate(${dx}px,${dy}px) rotate(${dx / 18}deg)`;
-    const up = dy < -60 && Math.abs(dx) < 70; stamp('yes').style.opacity = up ? 0 : Math.max(0, Math.min(1, dx / 90)); stamp('no').style.opacity = up ? 0 : Math.max(0, Math.min(1, -dx / 90)); stamp('love').style.opacity = up ? Math.min(1, (-dy - 40) / 70) : 0; };
+    const up = dy < -60 && Math.abs(dx) < 70, dn = !!stamp('seen') && dy > 60 && Math.abs(dx) < 70, v = up || dn; stamp('yes').style.opacity = v ? 0 : Math.max(0, Math.min(1, dx / 90)); stamp('no').style.opacity = v ? 0 : Math.max(0, Math.min(1, -dx / 90)); stamp('love').style.opacity = up ? Math.min(1, (-dy - 40) / 70) : 0; if (stamp('seen')) stamp('seen').style.opacity = dn ? Math.min(1, (dy - 40) / 70) : 0; };
   const up = () => { if (!on) return; on = false; const dist = Math.hypot(dx, dy);
     if (dist < 8 && Date.now() - t0 < 350) { el.style.transform = ''; return showDetail(S.deck[0]); }
-    if (dy < -110 && Math.abs(dx) < 90) return commit('love'); if (dx > 95) return commit('yes'); if (dx < -95) return commit('no');
+    if (dy < -110 && Math.abs(dx) < 90) return commit('love'); if (dy > 110 && Math.abs(dx) < 90 && S.deck[0]?.deck === 'movie') return commit('seen'); if (dx > 95) return commit('yes'); if (dx < -95) return commit('no');
     el.style.transition = 'transform .25s cubic-bezier(.2,.8,.2,1)'; el.style.transform = ''; el.querySelectorAll('.stamp').forEach(s => s.style.opacity = 0); };
   el.addEventListener('pointerdown', down); el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
 }
@@ -379,7 +380,7 @@ let busy = false;
 async function commit(verdict) {
   if (busy || !S.deck.length) return; busy = true;
   const card = S.deck[0], el = document.querySelector('#stack .card:last-child'), sess = S.sess.id;
-  if (el) { const to = verdict === 'no' ? 'translate(-140%,30px) rotate(-24deg)' : verdict === 'love' ? 'translate(0,-140%)' : verdict === 'seen' ? 'translate(0,140%) scale(.8)' : 'translate(140%,30px) rotate(24deg)'; el.style.transition = 'transform .28s ease-in, opacity .28s'; el.style.transform = to; el.style.opacity = '.3'; const k = verdict === 'no' ? 'no' : verdict === 'love' ? 'love' : verdict === 'yes' ? 'yes' : null; if (k) el.querySelector('.stamp.' + k).style.opacity = 1; }
+  if (el) { const to = verdict === 'no' ? 'translate(-140%,30px) rotate(-24deg)' : verdict === 'love' ? 'translate(0,-140%)' : verdict === 'seen' ? 'translate(0,140%) scale(.8)' : 'translate(140%,30px) rotate(24deg)'; el.style.transition = 'transform .28s ease-in, opacity .28s'; el.style.transform = to; el.style.opacity = '.3'; const st = el.querySelector('.stamp.' + verdict); if (st) st.style.opacity = 1; }
   S.deck.shift(); S.hist.push({ card, verdict }); S.mine++;
   setTimeout(() => { busy = false; if (S.view === 'swipe' && S.sess?.id === sess) drawStack(); }, 230);
   try {
