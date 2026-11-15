@@ -578,6 +578,13 @@ function renderLanding() {
     document.querySelectorAll('#obd i').forEach((d, k) => d.classList.toggle('on', k === i));
     const b = document.getElementById('obn'); if (b) b.style.visibility = i >= n - 1 ? 'hidden' : ''; }, { passive: true });
 }
+async function joinWho() {
+  const el = document.getElementById('jwho'), code = (document.getElementById('jc')?.value || '').trim().toUpperCase(); if (!el) return;
+  if (code.length !== 8) { el.innerHTML = ''; return; }
+  try { const ms = await rpc('couple_members', { p_code: code }); if ((document.getElementById('jc')?.value || '').trim().toUpperCase() !== code) return;
+    el.innerHTML = ms.length ? `<div class="note" style="margin:12px 0 0"><b>${ms.length >= 2 ? 'Which one are you?' : 'Already part of this couple?'}</b><div class="chips" style="margin-top:10px">${ms.map(n => `<button class="chip on" data-who="${esc(n)}">I’m ${esc(n)}</button>`).join('')}</div>${ms.length >= 2 ? '' : `<p class="muted" style="font-size:13px;margin-top:10px">If you are ${esc(ms[0])}’s other half, type your own first name above and tap join.</p>`}</div>` : '';
+  } catch { el.innerHTML = '<p class="muted" style="font-size:13px;margin-top:8px">That code does not match a couple yet. Check it and try again.</p>'; }
+}
 function renderJoin() {
   const pre = new URLSearchParams(location.search).get('c') || S.code || '';
   if (!pre && !S.joinForm) return renderLanding();
@@ -586,10 +593,11 @@ function renderJoin() {
     <p class="muted" style="margin:10px 0 22px;font-size:16px;line-height:1.45">${S.joinMode === 'new' && !pre ? 'Enter your first name to start. You will get an invite link to send to your better half.' : 'Already set up? Enter the same first name and couple code to log back in. New here with an invite? Enter your name and the code you were sent.'}</p>
     ${standalone() ? '' : `<div class="note" style="margin:0 0 6px"><b>On a phone?</b> Add Let’s Together to your Home Screen first (Share ${ic('share')} then Add to Home Screen) and sign in from that icon, so you only do this once.</div>`}
     <label class="field"><span>Your name</span><input id="jn" autocomplete="given-name" maxlength="24" placeholder="First name"></label>
-    <label class="field"><span>${S.joinMode === 'new' && !pre ? 'Couple code (leave blank to start a new couple)' : 'Your couple code'}</span><input id="jc" autocapitalize="characters" autocomplete="off" maxlength="12" value="${esc(pre)}" placeholder="8 letters and numbers"></label>
+    <label class="field"><span>${S.joinMode === 'new' && !pre ? 'Couple code (leave blank to start a new couple)' : 'Your couple code'}</span><input id="jc" autocapitalize="characters" autocomplete="off" maxlength="12" value="${esc(pre)}" placeholder="8 letters and numbers"></label><div id="jwho"></div>
     <div style="height:18px"></div>${S.joinMode === 'new' && !pre ? `<button class="btn" data-act="newcouple">Start a new couple</button><div style="height:10px"></div><button class="btn ghost" id="jgo">I have a code, join with it</button>`
       : `<button class="btn" id="jgo">${pre ? 'Join with this code' : 'Log in or join'}</button><div style="height:10px"></div><button class="btn ghost" data-act="newcouple">No code? Start a new couple</button>`}
     <p class="muted" style="font-size:12.5px;text-align:center;margin-top:12px;line-height:1.4">Starting a new couple gives you a code and an invite link to send to your other half.</p></div>`;
+  joinWho();
 }
 const HDECKS = [['movie', 'Movies'], ['dinner', 'Eat'], ['event', 'Events'], ['trip', 'Trips']];
 function homeHTML() {
@@ -1092,9 +1100,10 @@ async function saveAdd(t) {
 
 /* ---------- events ---------- */
 document.addEventListener('click', async e => {
-  const t = e.target.closest('[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-hdeck],[data-like],[data-final],[data-lad],[data-chg],[data-tbpick],[data-g],[data-seenany],[data-padd],[data-lib],[data-libf],[data-tripc],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
+  const t = e.target.closest('[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-hdeck],[data-like],[data-final],[data-lad],[data-chg],[data-tbpick],[data-g],[data-seenany],[data-padd],[data-lib],[data-libf],[data-tripc],[data-who],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
   if (!t) return; const ds = t.dataset;
   try {
+    if (ds.who) { const jn = document.getElementById('jn'); if (jn) jn.value = ds.who; return document.getElementById('jgo')?.click(); }
     if (t.id === 'jgo') { const name = document.getElementById('jn').value.trim(), code = document.getElementById('jc').value.trim().toUpperCase(); if (!name || !code) return toast('Enter your name and the couple code.'); t.disabled = true; try { const r = await rpc('join_couple', { p_code: code, p_name: name }); S.code = code; S.me = r.name; ls.set('code', code); ls.set('name', r.name); history.replaceState(null, '', location.pathname); await boot(); send({ type: 'joined' }); } catch (er) { t.disabled = false; toast(errMsg(er)); } return; }
     if ('scrim' in ds) return closeSheet();
     if (ds.tab) { S.tab = ds.tab; S.view = 'home'; if (ds.tab === 'home') await refresh(); return render(); }
@@ -1174,6 +1183,7 @@ document.addEventListener('click', async e => {
     }
   } catch (er) { console.error(er); toast(errMsg(er)); }
 });
+document.addEventListener('input', e => { if (e.target.id === 'jc') joinWho(); });
 document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'sq') { e.preventDefault(); searchGo(); return; }
   if (e.key === 'Enter' && e.target.id === 'tcq') { e.preventDefault(); e.target.blur(); document.querySelector('[data-act="tripadd"]')?.click(); return; }
   if (e.key === 'Enter' && e.target.id === 'p_q') { e.preventDefault(); e.target.blur(); document.querySelector('[data-act="psearch"]')?.click(); } });
