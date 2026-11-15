@@ -1679,6 +1679,8 @@ async function commit(verdict) {
     if (S.bite && card.deck === 'event') { if (r.match) push(`You matched on an event ${emojiFor(card)}`, `You and ${S.me} both want to go to ${card.title}.`, './'); else if (verdict === 'yes' || verdict === 'love') S.evLiked = true; if (r.keen && r.weeks === 3 && !r.match && partner()) keenNudge(card, r.weeks); if (!S.deck.length && S.evLiked) { S.evLiked = false; evPeek(true); } }
     if (r.match && S.bite) { S.state.counts.shortlist = (S.state.counts.shortlist || 0) + 1; const hm = S.state.counts.hearts ||= {}; hm[card.deck] = (hm[card.deck] || 0) + 1; paintHearts(); toast(`You have both liked ${card.title}. It will come up first next round.`, 3500); send({ type: 'shortlist' }); }
     else if (r.match) { const m = { ...card, loves: verdict === 'love' ? 1 : 0 }; S.matches.unshift(m); updateBar(); send({ type: 'match', session: sess, card: m }); push(`It's a match ${emojiFor(card)}`, `You and ${S.me} both said yes to ${card.title}.`, `./?s=${sess}`); showMatch(m); }
+    if (card.deck === 'movie' && r.seen_by?.length) toast(verdict === 'seen' ? `${r.seen_by.join(' and ')} has seen ${card.title} too. It is in Watched for you both. Worth a rewatch?` : `Heads up: ${r.seen_by.join(' and ')} has already seen ${card.title}. Ask how it was.`, 5500);
+    else if (card.deck === 'movie' && verdict === 'seen' && r.liked_by?.length) toast(`${r.liked_by.join(' and ')} wants to watch ${card.title}. You will find it under Watch it again.`, 5500);
   } catch (e) { toast('That swipe did not save. Check your connection.'); S.deck.unshift(card); S.hist.pop(); drawStack(); }
 }
 // Events are time sensitive: after liking some, I get asked whether to pass them to my partner before they pass
