@@ -1026,7 +1026,7 @@ async function openGame(id) { try { S.tb = await rpc('tiebreak_get', { p_code: S
 function recReply(p) {
   const c = p.card; if (!c) return;
   if (p.yes) { closeSheet(); showMatch(c); return showFinal(c); }
-  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><h2>Try again, babe</h2><p class="muted" style="margin-top:8px;font-size:14.5px">${esc(p.from)} passed on <b style="color:var(--text)">${esc(c.title)}</b>.</p></div></div>
+  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><h2>Try again, babe.</h2><p class="muted" style="margin-top:8px;font-size:14.5px">${esc(p.from)} passed on <b style="color:var(--text)">${esc(c.title)}</b>.</p></div></div>
     <div style="height:16px"></div><button class="btn" data-act="search">Send another pick</button><div style="height:10px"></div><button class="btn ghost" data-act="closesheet">Leave it for now</button>`);
 }
 function searchSheet() {
@@ -1803,7 +1803,7 @@ document.addEventListener('click', async e => {
       case 'landing': S.joinForm = false; return render();
       case 'sendrec': t.disabled = true; return sendRec(S.detailCard);
       case 'recyes': { const c = S.rec; if (!c) return; t.disabled = true; try { await rpc('like_card', { p_code: S.code, p_member: S.me, p_card: c.id }); } catch {} send({ type: 'recreply', yes: true, card: c }); if (S.recKeen) { push(`${S.me} is in 🎟️`, `Let’s check out ${c.title}.`, './'); closeSheet(); return showMatch(c); } push(`${S.me} said yes`, `Tonight: ${c.title}`, './'); closeSheet(); showMatch(c); return showFinal(c); }
-      case 'recno': { const c = S.rec; if (!c) return; send({ type: 'recreply', yes: false, card: c, keen: S.recKeen }); if (S.recKeen) { push(`${S.me}: not for me`, `Not feeling ${c.title}.`, './'); closeSheet(); return toast(`Told ${them()} it is not for you.`); } push(`${S.me}: try again, babe`, `Not feeling ${c.title} tonight.`, './'); closeSheet(); return toast(`Told ${them()} to try again.`); }
+      case 'recno': { const c = S.rec; if (!c) return; send({ type: 'recreply', yes: false, card: c, keen: S.recKeen }); if (S.recKeen) { push(`${S.me}: not for me`, `Not feeling ${c.title}.`, './'); closeSheet(); return toast(`Told ${them()} it is not for you.`); } push(`${S.me}: Try again, babe.`, `Not feeling ${c.title} tonight.`, './'); closeSheet(); return toast(`Told ${them()} to try again.`); }
       case 'more': { const n = await rpc('more_cards', { p_code: S.code, p_session: S.sess.id }); if (!n) return toast('That is everything for now.'); send({ type: 'more', session: S.sess.id }); await loadSession(S.sess.id); S.view = 'swipe'; return render(); }
       case 'solo': { const mine = (S.state.sessions || []).find(x => x.solo && x.my_left > 0); if (mine) return openSession(mine.id); return startSession('movie', { solo: true }, null, false); }
       case 'rewatch': return startSession('movie', { rewatch: true }, 'Watch one again?');
