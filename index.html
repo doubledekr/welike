@@ -371,6 +371,22 @@ button{touch-action:manipulation}
 .ob-dots i.on{width:22px;background:linear-gradient(135deg,#ff7a4d,#ff4d7e)}
 .ob-foot{padding:0 18px}
 @media (max-height:640px){.ob-art{height:110px}.ob-art .mini{width:70px;height:98px}.ob-card{padding:18px 18px;gap:9px}.ob-card>.mark{width:60px;height:60px}.ob-card p{font-size:15px}}
+.ob{padding-top:calc(var(--st) + 14px);padding-bottom:calc(var(--sb) + 18px)}
+.ob-top{padding:0 20px 10px}
+.ob-slide{padding:8px 20px 6px}
+.ob-card{padding:34px 28px;gap:16px;justify-content:safe center}
+.ob-card h2{margin-top:2px}
+.ob-card p{max-width:320px;margin:0 auto}
+.ob-card .steps{margin:6px 0 0;gap:14px;width:100%;max-width:320px}
+.ob-card .note{width:100%;max-width:320px}
+.ob-card .btn+.btn{margin-top:-4px}
+.ob-dots{margin:14px 0 14px}
+.ob-foot{padding:0 20px}
+.ob-ban{display:flex;align-items:center;gap:11px;margin:0 20px 8px;padding:10px 12px;border-radius:16px;text-align:left;color:#fff;background:linear-gradient(135deg,#ff7a4d,#ff4d7e);box-shadow:0 10px 26px -12px rgba(255,90,100,.95),inset 0 1px 0 rgba(255,255,255,.35)}
+.ob-ban .ic{font-size:20px;flex:none}
+.ob-ban span{flex:1;min-width:0}.ob-ban b{display:block;font-size:14.5px;line-height:1.25}.ob-ban small{display:block;font-size:12.5px;opacity:.92;line-height:1.3}
+.ob-ban i{font-style:normal;font-weight:700;font-size:12.5px;background:rgba(255,255,255,.22);border-radius:99px;padding:5px 11px;flex:none}
+@media (max-height:700px){.ob-card{padding:20px 20px;gap:10px}.ob-ban small{display:none}}
 @keyframes nudgeL{0%,100%{transform:translateX(0)}50%{transform:translateX(-10px)}}
 html.ios-app,html.ios-app body{height:var(--appH,100lvh)}
 html.ios-app body{bottom:auto}
@@ -572,13 +588,14 @@ function renderLanding() {
     slide(`<div class="ob-art"><span class="mini no">${ic('x')}</span><span class="mini yes">${ic('heart')}</span></div>`, 'Swipe separately', 'Movies, places to eat, local events and someday trips. Yes, no, or love it. Nobody sees your swipes, so you can be honest.'),
     slide(`<div class="ob-art"><span class="mini a"></span><span class="mini b"></span><span class="badge" style="position:absolute">${ic('heart')}</span></div>`, 'See what you both like', 'When you have both said yes to the same thing, it is a match. Matches collect in a shared library you can open any time.'),
     slide(`<div class="ob-art"><span class="badge">${ic('shuffle')}</span></div>`, 'Decide tonight', 'Pick a match, shuffle one at random, send a trailer for a quick yes or no, or play a tie-breaker and let the winner choose.'),
-    ...(standalone() ? [] : [slide(`<div class="ob-art"><span class="badge">${ic('share')}</span></div>`, 'Put it on your Home Screen', 'It opens full screen like any app and can send you a notification when your other half nudges you.',
+    ...(standalone() ? [] : [slide(`<div class="ob-art"><span class="badge">${ic('share')}</span></div>`, 'First, save it to your Home Screen', 'Do this before you sign up. Let’s Together is used from the icon on your Home Screen, not from the browser. That is how it opens full screen and how nudges reach you.',
       `<div class="steps" style="text-align:left;margin:4px 0 0">${ios ? st(1, `Tap <b>Share</b> ${ic('share')} at the bottom of Safari`) + st(2, 'Scroll down and tap <b>Add to Home Screen</b>') + st(3, 'Open Let’s Together from the new icon')
         : st(1, 'Tap the <b>menu</b> (three dots) in Chrome') + st(2, 'Tap <b>Add to Home screen</b> or <b>Install app</b>') + st(3, 'Open Let’s Together from the new icon')}</div><small class="muted" style="font-size:12.5px">${ios ? 'On Android: Chrome menu, then Add to Home screen.' : 'On iPhone: Safari, Share, then Add to Home Screen.'}</small>`)]),
     slide(`${MARK}`, 'Ready when you are', 'Start a new couple to get an invite link for your better half. No email or password, just your first name.',
-      `<button class="btn" data-act="getstarted" data-mode="new">Start a new couple</button><button class="btn ghost" data-act="getstarted" data-mode="code">Log in or join with a code</button>`),
+      `${standalone() ? '' : `<div class="note" style="margin:0;text-align:left;font-size:14px"><b>Still in your browser?</b> Save Let’s Together to your Home Screen and open it from the icon before you sign up, so you only sign in once.<div style="height:10px"></div><button class="btn ghost sm" data-act="obhome">Show me how</button></div>`}<button class="btn" data-act="getstarted" data-mode="new">Start a new couple</button><button class="btn ghost" data-act="getstarted" data-mode="code">Log in or join with a code</button>`),
   ];
   $app.innerHTML = `<div class="ob"><div class="ob-top"><div class="brand hb">${MARK}<span>${BRAND}</span></div><button class="btn ghost sm" data-act="getstarted" data-mode="code">Log in</button></div>
+    ${standalone() ? '' : `<button class="ob-ban" data-act="obhome">${ic('share')}<span><b>Save to your Home Screen first</b><small>Then open it from the icon to sign up</small></span><i>How</i></button>`}
     <div class="ob-pager" id="obp">${slides.join('')}</div>
     <div class="ob-dots" id="obd">${slides.map((_, i) => `<i class="${i ? '' : 'on'}"></i>`).join('')}</div>
     <div class="ob-foot"><button class="btn" data-act="obnext" id="obn">Next</button></div></div>`;
@@ -1166,6 +1183,7 @@ document.addEventListener('click', async e => {
       case 'closematch': return document.querySelector('.match')?.remove();
       case 'closesheet': return closeSheet();
       case 'getstarted': S.joinForm = true; S.joinMode = ds.mode || 'code'; return render();
+      case 'obhome': { const pg = document.getElementById('obp'); if (pg) pg.scrollTo({ left: pg.clientWidth * (pg.children.length - 2), behavior: 'smooth' }); return; }
       case 'obnext': { const pg = document.getElementById('obp'); if (pg) pg.scrollBy({ left: pg.clientWidth, behavior: 'smooth' }); return; }
       case 'landing': S.joinForm = false; return render();
       case 'sendrec': t.disabled = true; return sendRec(S.detailCard);
