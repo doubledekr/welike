@@ -1125,8 +1125,10 @@ function bookSheet(city) {
     <p class="muted" style="font-size:13px;line-height:1.45;margin-top:10px">Searching opens Expedia, where you see prices and pay. Book in the page that opens so the trip stays linked to your plan.</p>
     <div class="row" style="gap:10px;margin-top:12px"><button class="btn ghost sm ${it.flights ? 'on' : ''}" data-tripitem="${esc(city)}|flights" style="flex:1">${it.flights ? ic('heart') + ' Flights booked' : 'Flights are booked'}</button><button class="btn ghost sm ${it.stay ? 'on' : ''}" data-tripitem="${esc(city)}|stay" style="flex:1">${it.stay ? ic('heart') + ' Stay booked' : 'Stay is booked'}</button></div>
     <p class="muted" style="font-size:11.5px;text-align:center;margin-top:12px">Let’s Together may earn a commission when you book through Expedia. It never changes what you see.</p>`);
-  S.bookAt = Date.now();
+  S.bookTouched = false;
 }
+// the search box is another site's frame, so the only sign someone used it is focus moving into it
+window.addEventListener('blur', () => { if (document.activeElement?.closest?.('.bookframe')) S.bookTouched = true; });
 function bookBack() {   // came back to the app after looking at Expedia
   const city = S.bookCity; if (!city || !S.bookLeft || !(S.settings?.plans || []).includes(city)) return; S.bookLeft = false;
   const it = planItems(city);
@@ -1932,7 +1934,7 @@ async function checkVersion() {
     if (tag !== buildTag && S.view === 'home' && !$layer.innerHTML && !document.querySelector('.match,.lfront,.coach')) location.reload(); } catch {}
 }
 checkVersion();
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && S.bookCity && document.querySelector('.bookframe')) S.bookLeft = true; if (document.visibilityState === 'visible' && S.bookLeft) setTimeout(bookBack, 400); if (document.visibilityState === 'visible') { evPeek(); checkVersion(); checkTravel(); S.peekTried = false; scratchCheck(); } });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && S.bookCity && S.bookTouched && document.querySelector('.bookframe')) S.bookLeft = true; if (document.visibilityState === 'visible' && S.bookLeft) setTimeout(bookBack, 400); if (document.visibilityState === 'visible') { evPeek(); checkVersion(); checkTravel(); S.peekTried = false; scratchCheck(); } });
 document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && S.code && S.me) { try { await refresh(); if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) render(); else if (S.view === 'swipe' && S.sess) { const d = await rpc('get_session', { p_code: S.code, p_session: S.sess.id, p_member: S.me }); S.theirLeft = d.their_left; S.total = d.total; if (d.matches.length !== S.matches.length) { S.matches = d.matches; } if (d.deck.length !== S.deck.length && !busy) { S.deck = d.deck; drawStack(); } else updateBar(); } } catch {} } });
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); navigator.serviceWorker.addEventListener('message', e => { const u = e.data?.open; if (u) { const q = new URL(u).searchParams, s = q.get('s'), r = q.get('rec'), g = q.get('tb'); if (s && S.me) openSession(s); else if (r && S.me) openRec(r, q.get('keen')); else if (g && S.me) openGame(g); else if (q.get('trip') && S.me) openGetaway(q.get('trip'), partner()); } }); }
 
