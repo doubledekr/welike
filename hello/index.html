@@ -77,10 +77,14 @@ footer{margin-top:56px;font-size:13px;color:var(--muted);text-align:center}
 <section id="install"><div class="k">One important step</div><h2>Add it to your Home Screen</h2>
 <p>This is what makes it run full screen like a normal app, and it is the <b>only way it can send you a notification</b> when your person picks something. In a browser tab it can’t reach you at all.</p>
 <div id="guides">
-<div class="card" data-g="ios-safari"><div class="hd"><span class="tag">iPhone</span><b>Safari</b></div><ol>
+<div class="card" data-g="ios-safari"><div class="hd"><span class="tag">iPhone</span><b>Safari</b><small>iOS 18 and earlier</small></div><ol>
 <li><span class="n">1</span><span>Open <b>letstogether.app</b> and tap the Share button at the bottom (a square with an arrow pointing up).</span></li>
 <li><span class="n">2</span><span>Scroll down and tap <b>Add to Home Screen</b>.</span></li>
 <li><span class="n">3</span><span>Tap <b>Add</b>, then open the app from the new icon.</span></li></ol></div>
+<div class="card" data-g="ios26"><div class="hd"><span class="tag">iPhone</span><b>Safari on iOS 26</b><small>the newest iPhone software</small></div><ol>
+<li><span class="n">1</span><span>Open <b>letstogether.app</b> and tap the <b>•••</b> button next to the address bar at the bottom. (If you see a Share button instead, tap that.)</span></li>
+<li><span class="n">2</span><span>Tap <b>Share</b>, then scroll down and tap <b>Add to Home Screen</b>.</span></li>
+<li><span class="n">3</span><span>Leave <b>Open as Web App</b> on, tap <b>Add</b>, then open the app from the new icon.</span></li></ol></div>
 <div class="card" data-g="ios-chrome"><div class="hd"><span class="tag">iPhone</span><b>Chrome</b><small>needs iOS 16.4 or later</small></div><ol>
 <li><span class="n">1</span><span>Open <b>letstogether.app</b> and tap the Share button at the top right, in the address bar.</span></li>
 <li><span class="n">2</span><span>Scroll down and tap <b>Add to Home Screen</b>.</span></li>
@@ -139,8 +143,8 @@ const code = get('wl_code'), me = get('wl_name'); let kind = 'bug', filt = 'all'
 // someone already signed in on this phone: "open the app" is really "back to the app"
 if (code && me) { $('#openapp').textContent = 'Back to the app'; $('#fn').value = me; }
 // show this phone's install steps first
-(() => { const ua = navigator.userAgent, ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1), g = /Android/.test(ua) ? 'android' : ios ? (/CriOS/.test(ua) ? 'ios-chrome' : 'ios-safari') : null;
-  if (!g) return; const el = document.querySelector(`[data-g="${g}"]`), box = $('#guides'); el.classList.add('me'); el.querySelector('.hd').insertAdjacentHTML('beforeend', g === 'ios-chrome' ? '' : '<small>your phone</small>'); box.prepend(el); })();
+(() => { const ua = navigator.userAgent, ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1), v = Math.max(Number((ua.match(/OS (\d+)_/) || [])[1] || 0), Number((ua.match(/Version\/(\d+)/) || [])[1] || 0)), g = /Android/.test(ua) ? 'android' : ios ? (/CriOS/.test(ua) ? 'ios-chrome' : v >= 26 ? 'ios26' : 'ios-safari') : null;
+  if (!g) return; const el = document.querySelector(`[data-g="${g}"]`), box = $('#guides'); el.classList.add('me'); el.querySelector('.hd').insertAdjacentHTML('beforeend', g === 'android' || g === 'ios-safari' ? '<small>your phone</small>' : ''); box.prepend(el); })();
 const ago = t => { const m = Math.round((Date.now() - new Date(t)) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' hr ago' : Math.round(m / 1440) + (Math.round(m / 1440) === 1 ? ' day ago' : ' days ago'); };
 function draw() {
   const show = items.filter(i => filt === 'all' ? true : filt === 'fixed' ? i.status === 'fixed' : i.kind === filt && i.status !== 'fixed');
