@@ -670,18 +670,26 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .swr.sw>.swa{opacity:1}
 .sheet p.inhint{font-size:12.5px;color:var(--muted);margin:4px 0 8px}.inrow.new b::after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff6a5e;margin-left:7px;vertical-align:middle}
 .inrow.p2{animation:rowp 2.4s ease-in-out infinite}.inrow.p3{animation:rowp 1.2s ease-in-out infinite}
-.inrow.pl.p1,.inrow.pl.p2{animation:rowpb 2.4s ease-in-out infinite}.inrow.pl.p3{animation:rowpb 1.2s ease-in-out infinite}
-.inrow.pl .tic{color:#fff;background:linear-gradient(135deg,#4d9bff,#2dd4bf)}
-.inrow.pl .pill.hot{background:linear-gradient(135deg,#4d9bff,#2dd4bf);color:#fff;box-shadow:0 4px 14px -4px rgba(77,155,255,.85)}
-.tripbar .go.blink{animation:goblue 2.4s ease-in-out infinite}
-@keyframes goblue{0%,100%{background:#fff;box-shadow:0 0 0 0 rgba(77,155,255,0)}50%{background:#d3e8ff;box-shadow:0 0 16px 3px rgba(77,155,255,.75)}}
-.hdr .ib.bell.plan.lv1,.hdr .ib.bell.plan.lv2,.hdr .ib.bell.plan.lv3{background:linear-gradient(135deg,#4d9bff,#2dd4bf)}
-.hdr .ib.bell.plan.lv1 .ic,.hdr .ib.bell.plan.lv2 .ic,.hdr .ib.bell.plan.lv3 .ic{filter:drop-shadow(0 1px 1.5px rgba(10,60,120,.55))}
-.hdr .ib.bell.plan.lv1{animation:bellgb 2.4s ease-in-out infinite}.hdr .ib.bell.plan.lv2{animation:bellgb 1.5s ease-in-out infinite}.hdr .ib.bell.plan.lv3{animation:bellhb 1s ease-in-out infinite}
-@keyframes bellgb{0%,100%{box-shadow:0 0 12px 2px rgba(77,155,255,.55)}50%{box-shadow:0 0 30px 9px rgba(77,155,255,.95)}}
-@keyframes bellhb{0%,100%{box-shadow:0 0 14px 3px rgba(77,155,255,.7);transform:scale(1)}50%{box-shadow:0 0 36px 12px rgba(60,150,255,1);transform:scale(1.08)}}
 @keyframes rowp{0%,100%{box-shadow:0 0 0 0 rgba(255,90,110,0);background:rgba(255,110,100,.07)}50%{box-shadow:0 0 18px -2px rgba(255,90,110,.55);background:rgba(255,110,100,.15)}}
-@keyframes rowpb{0%,100%{box-shadow:0 0 0 0 rgba(77,155,255,0);background:rgba(77,155,255,.08)}50%{box-shadow:0 0 18px -2px rgba(77,155,255,.6);background:rgba(77,155,255,.17)}}
+/* Message colors (Option A): Friday night violet, Saturday amber, partner asks brand pink, booking and heads-ups teal,
+   matches gold. A kind sets --ka/--kb (gradient), --kg (glow), --kt/--kt2 (banner tint), --kl (light blink). */
+.k-fri{--ka:#6b5cff;--kb:#b04dff;--kg:rgba(176,77,255,.7);--kt:rgba(107,92,255,.3);--kt2:rgba(176,77,255,.16);--kl:#e6dcff}
+.k-sat{--ka:#ffb547;--kb:#ff7a4d;--kg:rgba(255,150,60,.7);--kt:rgba(255,181,71,.28);--kt2:rgba(255,122,77,.14);--kl:#ffe7c7}
+.k-ask{--ka:#ff7a4d;--kb:#ff4d7e;--kg:rgba(255,77,126,.7);--kt:rgba(255,122,77,.3);--kt2:rgba(255,77,126,.16);--kl:#ffd6e0}
+.k-book{--ka:#2dd4bf;--kb:#4d9bff;--kg:rgba(77,155,255,.7);--kt:rgba(45,212,191,.24);--kt2:rgba(77,155,255,.14);--kl:#d3e8ff}
+.k-match{--ka:#ffd23f;--kb:#ffa514;--kg:rgba(255,180,40,.75);--kt:rgba(255,210,63,.24);--kt2:rgba(255,165,20,.12);--kl:#fff0c2}
+.inrow.kc .tic{color:#fff;background:linear-gradient(135deg,var(--ka),var(--kb))}
+.inrow.kc.p1,.inrow.kc.p2{animation:rowk 2.4s ease-in-out infinite}.inrow.kc.p3{animation:rowk 1.2s ease-in-out infinite}
+.inrow.kc .pill.hot{background:linear-gradient(135deg,var(--ka),var(--kb));color:#fff;box-shadow:0 4px 14px -4px var(--kg)}
+@keyframes rowk{0%,100%{box-shadow:0 0 0 0 transparent;background:var(--kt2)}50%{box-shadow:0 0 18px -2px var(--kg);background:var(--kt)}}
+.tripbar.kc{background:linear-gradient(135deg,var(--kt),var(--kt2));box-shadow:0 10px 26px -16px var(--kg)}
+.tripbar.kc .tic{background:linear-gradient(135deg,var(--ka),var(--kb))}
+.tripbar .go.blink{animation:gok 2.4s ease-in-out infinite}
+@keyframes gok{0%,100%{background:#fff;box-shadow:0 0 0 0 transparent}50%{background:var(--kl);box-shadow:0 0 16px 3px var(--kg)}}
+.hdr .ib.bell.kc.lv1,.hdr .ib.bell.kc.lv2,.hdr .ib.bell.kc.lv3{background:linear-gradient(135deg,var(--ka),var(--kb))}
+.hdr .ib.bell.kc.lv1{animation:bellk 2.4s ease-in-out infinite}.hdr .ib.bell.kc.lv2{animation:bellk 1.5s ease-in-out infinite}.hdr .ib.bell.kc.lv3{animation:bellkh 1s ease-in-out infinite}
+@keyframes bellk{0%,100%{box-shadow:0 0 12px 2px var(--kg)}50%{box-shadow:0 0 30px 9px var(--kg)}}
+@keyframes bellkh{0%,100%{box-shadow:0 0 14px 3px var(--kg);transform:scale(1)}50%{box-shadow:0 0 36px 12px var(--kg);transform:scale(1.08)}}
 .ptip{display:flex;gap:10px;align-items:flex-start;margin-top:12px;padding:10px 8px 10px 12px;border-radius:14px;font-size:13px;line-height:1.45;color:#f3dcd6;background:rgba(255,122,77,.14)}.ptip button{flex:none;width:26px;height:26px;font-size:18px;color:var(--muted)}
 .wn{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:rgba(10,7,12,.82);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);animation:fade .25s}
 .wn-in{width:min(92vw,400px)}.wn-top{display:flex;justify-content:space-between;align-items:center;padding:0 6px 10px}.wn-top small{letter-spacing:1.6px;text-transform:uppercase;font-size:12px;color:#ffb39c}.wn-top button{color:var(--muted);font-size:14px;padding:6px 8px}
@@ -759,7 +767,7 @@ const DECKS = {
   mix:      { label: 'Surprise me',  em: '🎲', hint: 'A bit of everything',       nudge: 'Surprise me' },
 };
 const ICONS = {
-  x: 'M6 6l12 12M18 6L6 18', gear: 'M18.93 9.39 L21.41 10.09 L21.41 13.91 L18.93 14.61 L18.74 15.05 L20.00 17.30 L17.30 20.00 L15.05 18.74 L14.61 18.93 L13.91 21.41 L10.09 21.41 L9.39 18.93 L8.95 18.74 L6.70 20.00 L4.00 17.30 L5.26 15.05 L5.07 14.61 L2.59 13.91 L2.59 10.09 L5.07 9.39 L5.26 8.95 L4.00 6.70 L6.70 4.00 L8.95 5.26 L9.39 5.07 L10.09 2.59 L13.91 2.59 L14.61 5.07 L15.05 5.26 L17.30 4.00 L20.00 6.70 L18.74 8.95Z M15.10 12a3.1 3.1 0 1 0 -6.20 0a3.1 3.1 0 1 0 6.20 0z', heart: 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z',
+  x: 'M6 6l12 12M18 6L6 18', moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z', sun: 'M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4', gear: 'M18.93 9.39 L21.41 10.09 L21.41 13.91 L18.93 14.61 L18.74 15.05 L20.00 17.30 L17.30 20.00 L15.05 18.74 L14.61 18.93 L13.91 21.41 L10.09 21.41 L9.39 18.93 L8.95 18.74 L6.70 20.00 L4.00 17.30 L5.26 15.05 L5.07 14.61 L2.59 13.91 L2.59 10.09 L5.07 9.39 L5.26 8.95 L4.00 6.70 L6.70 4.00 L8.95 5.26 L9.39 5.07 L10.09 2.59 L13.91 2.59 L14.61 5.07 L15.05 5.26 L17.30 4.00 L20.00 6.70 L18.74 8.95Z M15.10 12a3.1 3.1 0 1 0 -6.20 0a3.1 3.1 0 1 0 6.20 0z', heart: 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z',
   star: 'M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8-5.3-2.8-5.3 2.8 1-5.8-4.2-4.1 5.9-.9z',
   eye: 'M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12zM12 9.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z',
   undo: 'M9 14L4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11',
@@ -1507,12 +1515,14 @@ async function sidePick(cardId, t) {
   await refresh(); daySheet(planId); toast(r.filled ? 'It’s in the plan.' : `Sent to ${them()}. They can go with it or pick their own.`, 3500);
 }
 // One line on Home: yesterday's plan ("did you go?"), a plan waiting on my answer, or the next one coming up.
+const pKind = p => !p ? 'sat' : p.auto === 'fri' || (!p.auto && new Date(p.day + 'T12:00').getDay() === 5) ? 'fri' : 'sat';
+const pIcon = p => pKind(p) === 'fri' ? 'moon' : 'sun';
 function dayHome() {
   const ps = S.plans || [], t = pToday(); if (!ps.length) return '';
   const p = ps.find(x => x.day < t && x.status === 'agreed' && !x.auto) || ps.find(x => x.day >= t && x.status === 'sent' && !x.ok?.[S.me]) || ps.filter(x => x.day >= t && (x.status === 'agreed' || x.status === 'sent')).sort((a, b) => a.day.localeCompare(b.day))[0];
   if (!p) return '';
   const past = p.day < t, ask = !past && !p.ok?.[S.me];
-  return `<button class="tripbar" data-pl="view|${p.id}" style="width:100%;text-align:left"><span class="tic">${ic('list')}</span><span class="grow"><b>${past ? `Yesterday’s plan: did you go?` : ask ? (p.by === 'auto' ? `${pAutoName(p)}: your plan is ready` : `${esc(p.by)} planned ${pDayLow(p.day)}`) : `${pDayName(p.day)}: ${p.mode === 'in' ? 'night in' : 'your plan'}`}</b><small>${past ? pSum(p) : pSum(p) + ' · ' + pStatus(p)}</small></span><span class="go ${ask ? 'blink' : ''}">${past ? 'Answer' : ask ? 'Look' : 'Open'}</span></button>`;
+  return `<button class="tripbar kc k-${pKind(p)}" data-pl="view|${p.id}" style="width:100%;text-align:left"><span class="tic">${ic(pIcon(p))}</span><span class="grow"><b>${past ? `Yesterday’s plan: did you go?` : ask ? (p.by === 'auto' ? `${pAutoName(p)}: your plan is ready` : `${esc(p.by)} planned ${pDayLow(p.day)}`) : `${pDayName(p.day)}: ${p.mode === 'in' ? 'night in' : 'your plan'}`}</b><small>${past ? pSum(p) : pSum(p) + ' · ' + pStatus(p)}</small></span><span class="go ${ask ? 'blink' : ''}">${past ? 'Answer' : ask ? 'Look' : 'Open'}</span></button>`;
 }
 document.addEventListener('change', e => { const s = e.target?.dataset?.pltime; if (s && S.pl?.items[s] && e.target.value) { S.pl.items[s].time = e.target.value; dayEdit(); } });
 /* ---------- one slot on Home, the bell and the inbox ---------- */
@@ -1569,8 +1579,15 @@ function waiting() {
   const ti = Object.entries(planInvites()).find(([, v]) => v?.by && v.by !== S.me);
   if (ti) out.push({ k: 'ti' + ti[0], lv: 2, ic: 'plane', t: `${ti[1].by} wants to plan ${ti[0]}`, s: 'Say yes or not yet.', a: `data-tripinvite="${esc(ti[0])}"`, go: 'Look' });
   if (!standalone() && isPhone() && S.installed === false) out.push({ k: 'hs', lv: 1, ic: 'plus', t: 'Add to Home Screen', s: 'Full screen, with nudges.', a: 'data-act="hshow"', go: 'How' });
-  out.forEach(x => { if (/^p[abctw]/.test(x.k) || x.t === 'Swipe to fill your plan') x.plan = true; });
-  if (S.evPend && ls.get('evno') !== evKey()) out.push({ k: 'ev' + evKey(), lv: 2, ic: 'ticket', t: `You liked ${S.evPend.count > 1 ? S.evPend.count + ' events' : 'an event'} this week`, s: `Send to ${them()} before ${S.evPend.count > 1 ? 'they pass' : 'it passes'}.`, a: 'data-act="evask"', go: 'Share' });
+  const byId = id => (S.plans || []).find(p => p.id === id);
+  out.forEach(x => {
+    const pid = (/view\|([\w-]+)/.exec(x.a || '') || [])[1], pl = pid && byId(pid);
+    if (/^p[bc]/.test(x.k)) x.kind = 'book';
+    else if (/^p[atw]/.test(x.k) && pl) { x.kind = pKind(pl); x.ic = pIcon(pl); }
+    else if (x.k.startsWith('s')) { const s = (st.sessions || []).find(z => 's' + z.id === x.k); x.kind = s?.from === 'Let’s Together' ? pKind(byId(s.filters?.plan)) : 'ask'; if (s?.from === 'Let’s Together') x.ic = pIcon(byId(s.filters?.plan)); }
+    else if (x.k.startsWith('ti') || x.k === 'invite') x.kind = 'ask';
+  });
+  if (S.evPend && ls.get('evno') !== evKey()) out.push({ k: 'ev' + evKey(), kind: 'book', lv: 2, ic: 'ticket', t: `You liked ${S.evPend.count > 1 ? S.evPend.count + ' events' : 'an event'} this week`, s: `Send to ${them()} before ${S.evPend.count > 1 ? 'they pass' : 'it passes'}.`, a: 'data-act="evask"', go: 'Share' });
   return out;
 }
 const inHidden = () => { try { return JSON.parse(ls.get('inhide') || '[]'); } catch { return []; } };
@@ -1578,13 +1595,13 @@ const waitingShown = () => { const h = inHidden(); return waiting().filter(x => 
 function bellHTML() {
   const w = waitingShown(), seen = ls.get('bellseen') || '', news = (S.inbox?.items || []).filter(i => !i.seen).length;
   const fresh = w.filter(x => !seen.includes('|' + x.k + '|') || x.k === 'invite'), lv = Math.max(0, ...fresh.map(x => x.lv), news ? 1 : 0), n = w.filter(x => x.lv >= 2).length;
-  const top = fresh.filter(x => x.lv === lv), blue = top.length && top.every(x => x.plan);
-  return `<button class="ib bell ${lv ? 'lv' + lv : ''} ${blue ? 'plan' : ''}" data-act="inbox" aria-label="Inbox${n ? ', ' + n + ' waiting' : ''}">${ic('bell')}${n ? `<i>${n}</i>` : ''}</button>`;
+  const RANK = ['fri', 'sat', 'ask', 'book', 'match'], top = fresh.filter(x => x.lv === lv && x.kind).sort((a, b) => RANK.indexOf(a.kind) - RANK.indexOf(b.kind))[0];
+  return `<button class="ib bell ${lv ? 'lv' + lv : ''} ${top ? 'kc k-' + top.kind : ''}" data-act="inbox" aria-label="Inbox${n ? ', ' + n + ' waiting' : ''}">${ic('bell')}${n ? `<i>${n}</i>` : ''}</button>`;
 }
 // Redraw just the bell, wherever the person is, so it glows as soon as something new arrives.
 function bellSync() { document.querySelectorAll('.ib.bell').forEach(b => { const t = document.createElement('div'); t.innerHTML = bellHTML(); b.replaceWith(t.firstElementChild); }); }
 async function inboxPoll() { if (!S.code || !S.me) return; try { const b = await rpc('inbox_list', { p_code: S.code, p_member: S.me }); if (b) { S.inbox = b; bellSync(); } } catch {} }
-const inRow = (x, hot) => `<button class="sess inrow ${hot ? 'p' + x.lv : ''} ${x.plan ? 'pl' : ''}" ${x.a}><span class="tic">${ic(x.ic)}</span><span class="grow"><b>${esc(x.t)}</b><small>${esc(x.s || '')}</small></span>${x.go ? `<span class="pill ${hot && x.lv >= 2 ? 'hot' : ''}">${x.go}</span>` : ''}</button>`;
+const inRow = (x, hot) => `<button class="sess inrow ${hot ? 'p' + x.lv : ''} ${x.kind ? 'kc k-' + x.kind : ''}" ${x.a}><span class="tic">${ic(x.ic)}</span><span class="grow"><b>${esc(x.t)}</b><small>${esc(x.s || '')}</small></span>${x.go ? `<span class="pill ${hot && x.lv >= 2 ? 'hot' : ''}">${x.go}</span>` : ''}</button>`;
 async function inboxSheet() {
   try { S.inbox = await rpc('inbox_list', { p_code: S.code, p_member: S.me }); } catch {}
   const w = waitingShown().sort((a, b) => b.lv - a.lv);
@@ -1592,12 +1609,14 @@ async function inboxSheet() {
   const open = w.map(x => x.a || '').join(' '), dup = i => { const m = /[?&](?:plan|s|planfor|rec|tb|trip)=([\w-]+)/.exec(i.url || ''); return !!m && open.includes(m[1]); };
   const items = (S.inbox?.items || []).filter(i => !dup(i));
   const sw = (id, inner, label) => `<div class="swr" data-swid="${esc(id)}"><span class="swa ${label === 'Remove' ? 'del' : 'hid'}">${label}</span><div class="swf">${inner}</div></div>`;
-  const kic = i => /plan=|planfor=/.test(i.url || '') ? 'list' : /match/i.test(i.title) ? 'heart' : /rec=/.test(i.url || '') ? 'play' : /trip=/.test(i.url || '') ? 'plane' : /share=/.test(i.url || '') ? 'ticket' : 'spark';
+  const lpl = i => { const m = /[?&]plan=([\w-]+)/.exec(i.url || ''); return m && (S.plans || []).find(p => p.id === m[1]); };
+  const lkind = i => /[?&]plan=/.test(i.url || '') ? pKind(lpl(i) || (/friday/i.test(i.title) ? { auto: 'fri' } : null)) : /match/i.test(i.title) ? 'match' : /[?&]s=/.test(i.url || '') ? 'ask' : /book|closed|tomorrow/i.test(i.title) ? 'book' : '';
+  const kic = i => /[?&]plan=/.test(i.url || '') ? (lkind(i) === 'fri' ? 'moon' : 'sun') : /planfor=/.test(i.url || '') ? 'list' : /match/i.test(i.title) ? 'heart' : /rec=/.test(i.url || '') ? 'play' : /trip=/.test(i.url || '') ? 'plane' : /share=/.test(i.url || '') ? 'ticket' : 'spark';
   sheet(`<div class="grab"></div><div class="body"><h2>Inbox</h2>
     ${w.length ? `<div class="sect" style="margin-top:16px">Waiting on you</div>${w.map(x => x.k === 'invite' ? inRow(x, true) : sw('w:' + x.k, inRow(x, true), 'Hide')).join('')}` : ''}
     <div class="inhead" style="margin-top:${w.length ? 22 : 16}px"><div class="sect" style="margin:0">Lately</div>${items.length ? `<button class="inclear" data-act="inclear">Clear all</button>` : ''}</div>
     ${items.length && !ls.get('inswiped') ? `<p class="inhint">Swipe a row left to remove it.</p>` : ''}
-    <div id="inlately">${items.length ? items.map(i => sw('i:' + i.id, `<button class="sess inrow ${i.seen ? '' : 'new'}" data-inurl="${esc(i.url || './')}"><span class="tic">${ic(kic(i))}</span><span class="grow"><b>${esc(i.title)}</b><small>${esc(i.body || '')}${i.body ? ' · ' : ''}${ago(i.at)}</small></span></button>`, 'Remove')).join('') : `<p class="muted" style="font-size:14px;padding:6px 0 4px">${w.length ? 'Nothing else for now.' : `All quiet. Matches and anything ${esc(them())} sends will show up here for a week.`}</p>`}
+    <div id="inlately">${items.length ? items.map(i => sw('i:' + i.id, `<button class="sess inrow ${i.seen ? '' : 'new'} ${lkind(i) ? 'kc k-' + lkind(i) : ''}" data-inurl="${esc(i.url || './')}"><span class="tic">${ic(kic(i))}</span><span class="grow"><b>${esc(i.title)}</b><small>${esc(i.body || '')}${i.body ? ' · ' : ''}${ago(i.at)}</small></span></button>`, 'Remove')).join('') : `<p class="muted" style="font-size:14px;padding:6px 0 4px">${w.length ? 'Nothing else for now.' : `All quiet. Matches and anything ${esc(them())} sends will show up here for a week.`}</p>`}
     </div>
     <a class="sess inrow" href="./hello/#board" style="text-decoration:none;color:inherit"><span class="tic">${ic('heart')}</span><span class="grow"><b>Report a bug or suggest something</b><small>A public board. Vote on what you want most</small></span></a>
     <button class="sess inrow" data-act="whatsnew"><span class="tic">${ic('spark')}</span><span class="grow"><b>What’s new</b><small>Plan a day, bars in Go out, and this inbox</small></span></button>
