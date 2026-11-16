@@ -2758,12 +2758,19 @@ const sdEnd = () => {
   else { sh.style.transform = ''; sh.style.opacity = ''; const sc = sh.parentElement; if (sc && sh.classList.contains('sheet')) sc.style.background = ''; }
 };
 document.addEventListener('touchend', sdEnd); document.addEventListener('touchcancel', sdEnd);
-let buildTag = null, lastVerCheck = 0;
-async function checkVersion() {
-  if (Date.now() - lastVerCheck < 120000) return; lastVerCheck = Date.now();
-  try { const r = await fetch('./?vc=' + Date.now(), { method: 'HEAD', cache: 'no-store' }); const tag = r.headers.get('etag') || r.headers.get('last-modified'); if (!tag) return;
-    if (!buildTag) { buildTag = tag; return; }
-    if (tag !== buildTag) { updReady = true; tryUpdate(); } } catch {}
+// Is there a newer version? The host sends no version marker (no ETag or Last-Modified), so compare a fingerprint
+// of the page itself: about 100 KB, fetched when the app comes back to the front and every 5 minutes while it is
+// open on screen, never in the background. The first fingerprint is taken a few seconds after start-up.
+let buildTag = null, lastVerCheck = 0, returnAt = 0;
+async function checkVersion(soon) {
+  if (Date.now() - lastVerCheck < (soon ? 20000 : 300000)) return; lastVerCheck = Date.now();
+  try {
+    const r = await fetch('./?vc=' + Date.now(), { cache: 'no-store' }); if (!r.ok) return;
+    const t = await r.text(); if (t.length < 5000 || !t.includes('<script type="module">')) return;
+    const h = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t))).slice(0, 12)).map(b => b.toString(16).padStart(2, '0')).join('');
+    if (!buildTag) { buildTag = h; return; }
+    if (h !== buildTag) { updReady = true; tryUpdate(Date.now() - returnAt < 6000 && lastTouch < returnAt); }
+  } catch {}
 }
 // A newer version is waiting. Reload where nobody sees it: when they leave the app, or the moment they come back
 // to it. If the app just sits open, only after 3 minutes with no taps on Home (nothing open, not typing), so a
@@ -2779,8 +2786,8 @@ function tryUpdate(now) {
   location.reload();
 }
 setInterval(() => { if (document.visibilityState === 'visible') { checkVersion(); tryUpdate(); } }, 15000);
-checkVersion();
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && S.bookCity && S.bookTouched && document.querySelector('.bookframe')) S.bookLeft = true; if (document.visibilityState === 'visible' && S.bookLeft) setTimeout(bookBack, 400); if (document.visibilityState === 'hidden' && updReady && S.view === 'home' && !$layer.innerHTML && !document.querySelector('.match,.lfront,.coach,.wn,.scr,.sco,.bookframe')) location.reload(); if (document.visibilityState === 'visible') { tryUpdate(true); evPeek(); checkVersion(); checkTravel(); S.peekTried = false; scratchCheck(); } });
+setTimeout(checkVersion, 4000);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && S.bookCity && S.bookTouched && document.querySelector('.bookframe')) S.bookLeft = true; if (document.visibilityState === 'visible' && S.bookLeft) setTimeout(bookBack, 400); if (document.visibilityState === 'hidden' && updReady && S.view === 'home' && !$layer.innerHTML && !document.querySelector('.match,.lfront,.coach,.wn,.scr,.sco,.bookframe')) location.reload(); if (document.visibilityState === 'visible') { returnAt = Date.now(); tryUpdate(true); evPeek(); checkVersion(true); checkTravel(); S.peekTried = false; scratchCheck(); } });
 document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && S.code && S.me) { try { await refresh(); bellSync(); if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) render(); else if (S.view === 'swipe' && S.sess) { const d = await rpc('get_session', { p_code: S.code, p_session: S.sess.id, p_member: S.me }); S.theirLeft = d.their_left; S.total = d.total; if (d.matches.length !== S.matches.length) { S.matches = d.matches; } if (d.deck.length !== S.deck.length && !busy) { S.deck = d.deck; drawStack(); } else updateBar(); } } catch {} } });
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); navigator.serviceWorker.addEventListener('message', e => { if (e.data?.pushed) return inboxPoll(); const u = e.data?.open; if (u) { const q = new URL(u).searchParams, s = q.get('s'), r = q.get('rec'), g = q.get('tb'); if (s && S.me) openSession(s); else if (r && S.me) openRec(r, q.get('keen')); else if (g && S.me) openGame(g); else if (q.get('plan') && S.me) { S.favAsk = q.get('fav') ? q.get('plan') : null; dayAct('view', q.get('plan')).catch(() => {}); } else if (q.get('planfor') && S.me) dayAct('around', q.get('planfor')).catch(() => {}); else if (q.get('invite') && S.me) { if (!partner()) inviteSheet(); } else if (q.get('trip') && S.me) openGetaway(q.get('trip'), partner()); else if (SHW[q.get('share')] && S.me) openShareTab(q.get('share')); } }); }
 
