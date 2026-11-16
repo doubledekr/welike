@@ -4,6 +4,8 @@ self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
 self.addEventListener('push', e => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch (_) {}
+  // tell an open copy of the app, so its bell lights up straight away
+  self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(cs => cs.forEach(c => c.postMessage({ pushed: true }))).catch(() => {});
   e.waitUntil(self.registration.showNotification(d.title || 'Let’s Together', {
     body: d.body || '', icon: 'icon-192.png', badge: 'icon-192.png', data: { url: d.url || './' },
     ...(d.tag ? { tag: d.tag } : {}),   // the same message landing twice on one device shows once
