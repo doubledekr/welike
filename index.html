@@ -791,16 +791,18 @@ function fitScreen() {
 fitScreen(); addEventListener('resize', fitScreen); addEventListener('orientationchange', () => setTimeout(fitScreen, 250));
 const standalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 const pushState = () => !('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window) ? 'unsupported' : Notification.permission;
+// What kind of device this is, so each person keeps one notification address per kind (the newest one opened).
+const devKind = () => { const u = navigator.userAgent; return /iPhone|iPod/.test(u) ? 'iPhone' : /iPad/.test(u) || (/Macintosh/.test(u) && navigator.maxTouchPoints > 1) ? 'iPad' : /Android/.test(u) ? 'Android' : /Macintosh/.test(u) ? 'Mac' : /Windows/.test(u) ? 'Windows' : 'Other'; };
 async function enablePush() {
   if (pushState() === 'unsupported') return toast('Add Let’s Together to your Home Screen first, then open it from there.', 4500);
   const perm = await Notification.requestPermission();
   if (perm !== 'granted') return toast('Notifications are off for Let’s Together in your phone settings.', 4000);
   const reg = await navigator.serviceWorker.ready;
   const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64u(CFG.vapid) });
-  await rpc('save_push_sub', { p_code: S.code, p_member: S.me, p_sub: sub.toJSON() });
+  await rpc('save_push_sub', { p_code: S.code, p_member: S.me, p_sub: sub.toJSON(), p_kind: devKind() });
   toast('Nudges will now reach this phone.'); render();
 }
-async function resavePush() { try { if (pushState() !== 'granted') return; const reg = await navigator.serviceWorker.ready; const sub = await reg.pushManager.getSubscription(); if (sub) await rpc('save_push_sub', { p_code: S.code, p_member: S.me, p_sub: sub.toJSON() }); } catch {} }
+async function resavePush() { try { if (pushState() !== 'granted') return; const reg = await navigator.serviceWorker.ready; const sub = await reg.pushManager.getSubscription(); if (sub) await rpc('save_push_sub', { p_code: S.code, p_member: S.me, p_sub: sub.toJSON(), p_kind: devKind() }); } catch {} }
 
 /* ---------- taste (Claude API, optional) ---------- */
 // Both calls are best-effort: any failure or slow answer leaves the normal deck order and shows no line.

@@ -6,6 +6,7 @@ self.addEventListener('push', e => {
   try { d = e.data ? e.data.json() : {}; } catch (_) {}
   e.waitUntil(self.registration.showNotification(d.title || 'Let’s Together', {
     body: d.body || '', icon: 'icon-192.png', badge: 'icon-192.png', data: { url: d.url || './' },
+    ...(d.tag ? { tag: d.tag } : {}),   // the same message landing twice on one device shows once
   }));
 });
 self.addEventListener('notificationclick', e => {
