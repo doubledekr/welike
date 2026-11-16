@@ -626,6 +626,16 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .hdr{gap:7px}.hdr .pill{height:30px;padding:0 12px;display:inline-flex;align-items:center;font-size:13px}
 .hdr .ib{width:40px;height:30px;border-radius:999px;font-size:16px;color:#ffe3da;background:linear-gradient(135deg,rgba(255,122,77,.42),rgba(255,77,126,.34));box-shadow:0 0 14px -6px rgba(255,90,100,.7)}
 .hdr .ib:active{transform:scale(.95)}
+.splash{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(90% 60% at 50% 0%,#2a1422,#100d12 60%);transition:opacity .38s ease;pointer-events:none}
+.splash.gone{opacity:0}
+.splash .mark{width:88px;height:88px;border-radius:27%;box-shadow:0 0 60px -6px rgba(255,90,100,.9);animation:splb 1.6s ease-in-out infinite}
+.splash .brand{font-size:clamp(34px,10vw,42px);line-height:1.2;margin-top:18px;white-space:nowrap}
+.splash .spd{display:flex;gap:7px;margin-top:14px}
+.splash .spd span{width:6px;height:6px;border-radius:50%;background:#ff7a8a;opacity:.3;animation:spld 1.2s ease-in-out infinite}
+.splash .spd span:nth-child(2){animation-delay:.18s}.splash .spd span:nth-child(3){animation-delay:.36s}
+@keyframes splb{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
+@keyframes spld{0%,100%{opacity:.3}40%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.splash .mark,.splash .spd span{animation:none}}
 /* Header icons are solid, like the heart: bell and gear filled, the search lens filled in. */
 .hdr .ib .ic path{fill:currentColor;fill-rule:evenodd}
 .hdr .ib[data-act="search"] .ic{stroke-width:2.3}
@@ -703,6 +713,8 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 </style>
 </head>
 <body>
+<!-- Splash: shown from the first paint (app open, or reloading for an update) until Home is ready, then fades. -->
+<div id="splash" class="splash" aria-hidden="true"><svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="mkgs" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8050"/><stop offset="1" stop-color="#ff4080"/></linearGradient></defs><rect width="48" height="48" rx="12" fill="url(#mkgs)"/><rect x="10.3" y="10.3" width="19.2" height="19.2" rx="4.6" fill="#fff" opacity=".42"/><rect x="18.5" y="18.5" width="19.2" height="19.2" rx="4.6" fill="#fff" opacity=".42"/><path d="M23.1 18.5H29.5V24.9A4.6 4.6 0 0 1 24.9 29.5H18.5V23.1A4.6 4.6 0 0 1 23.1 18.5Z" fill="#fff"/><path transform="translate(20.25 20.2) scale(.3125)" d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" fill="url(#mkgs)"/></svg><div class="brand">Let’s <i>Together</i></div><div class="spd"><span></span><span></span><span></span></div></div>
 <div id="app"></div>
 <div id="layer"></div>
 <script type="module">
@@ -2781,16 +2793,38 @@ async function checkVersion(soon) {
 let updReady = false, lastTouch = Date.now();
 addEventListener('pointerdown', () => { lastTouch = Date.now(); }, { passive: true, capture: true });
 addEventListener('keydown', () => { lastTouch = Date.now(); }, { passive: true, capture: true });
+function reloadKeep() {
+  try { const r = document.querySelector('.slotrow'), a = r?.children[0], b = r?.children[1];
+    sessionStorage.setItem('wl_resume', JSON.stringify({ slot: r && a && b ? Math.round(r.scrollLeft / (b.offsetLeft - a.offsetLeft)) : 0, at: Date.now() })); } catch {}
+  location.reload();
+}
+// Fade the splash out once the first screen is drawn (on Home, once today's cards are in), and put the reminder
+// row back on the card that was showing before an update reload.
+(function splashOut() {
+  const el = document.getElementById('splash'); if (!el) return;
+  const t0 = performance.now(); let done = false;
+  const fin = () => { if (done) return; done = true;
+    try { const k = JSON.parse(sessionStorage.getItem('wl_resume') || 'null'); sessionStorage.removeItem('wl_resume');
+      const r = document.querySelector('.slotrow');
+      if (k && Date.now() - k.at < 60000 && r && k.slot > 0 && r.children[k.slot]) { r.style.scrollBehavior = 'auto'; r.scrollLeft = r.children[k.slot].offsetLeft - r.children[0].offsetLeft; r.style.scrollBehavior = ''; }
+    } catch {}
+    setTimeout(() => { el.classList.add('gone'); setTimeout(() => el.remove(), 450); }, Math.max(0, 300 - (performance.now() - t0)));
+  };
+  const ready = () => { const a = document.getElementById('app'); if (!a || !a.children.length) return false;
+    return !a.querySelector('#stack') || !!a.querySelector('#stack > *'); };
+  const iv = setInterval(() => { if (ready()) { clearInterval(iv); requestAnimationFrame(() => requestAnimationFrame(fin)); } }, 50);
+  setTimeout(() => { clearInterval(iv); fin(); }, 4000);   // never hold anyone behind it
+})();
 function tryUpdate(now) {
   if (!updReady || document.visibilityState !== 'visible') return;
   const a = document.activeElement, typing = a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName);
   if (S.view !== 'home' || $layer.innerHTML || typing || document.querySelector('.match,.lfront,.coach,.wn,.scr,.sco')) return;
   if (!now && Date.now() - lastTouch < 180000) return;
-  location.reload();
+  reloadKeep();
 }
 setInterval(() => { if (document.visibilityState === 'visible') { checkVersion(); tryUpdate(); } }, 15000);
 setTimeout(checkVersion, 4000);
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && S.bookCity && S.bookTouched && document.querySelector('.bookframe')) S.bookLeft = true; if (document.visibilityState === 'visible' && S.bookLeft) setTimeout(bookBack, 400); if (document.visibilityState === 'hidden' && updReady && S.view === 'home' && !$layer.innerHTML && !document.querySelector('.match,.lfront,.coach,.wn,.scr,.sco,.bookframe')) location.reload(); if (document.visibilityState === 'visible') { returnAt = Date.now(); tryUpdate(true); evPeek(); checkVersion(true); checkTravel(); S.peekTried = false; scratchCheck(); } });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && S.bookCity && S.bookTouched && document.querySelector('.bookframe')) S.bookLeft = true; if (document.visibilityState === 'visible' && S.bookLeft) setTimeout(bookBack, 400); if (document.visibilityState === 'hidden' && updReady && S.view === 'home' && !$layer.innerHTML && !document.querySelector('.match,.lfront,.coach,.wn,.scr,.sco,.bookframe')) reloadKeep(); if (document.visibilityState === 'visible') { returnAt = Date.now(); tryUpdate(true); evPeek(); checkVersion(true); checkTravel(); S.peekTried = false; scratchCheck(); } });
 document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && S.code && S.me) { try { const was = homeSig(); await refresh(); bellSync(); if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) { if (homeSig() !== was) render(); } else if (S.view === 'swipe' && S.sess) { const d = await rpc('get_session', { p_code: S.code, p_session: S.sess.id, p_member: S.me }); S.theirLeft = d.their_left; S.total = d.total; if (d.matches.length !== S.matches.length) { S.matches = d.matches; } if (d.deck.length !== S.deck.length && !busy) { S.deck = d.deck; drawStack(); } else updateBar(); } } catch {} } });
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); navigator.serviceWorker.addEventListener('message', e => { if (e.data?.pushed) return inboxPoll(); const u = e.data?.open; if (u) { const q = new URL(u).searchParams, s = q.get('s'), r = q.get('rec'), g = q.get('tb'); if (s && S.me) openSession(s); else if (r && S.me) openRec(r, q.get('keen')); else if (g && S.me) openGame(g); else if (q.get('plan') && S.me) { S.favAsk = q.get('fav') ? q.get('plan') : null; dayAct('view', q.get('plan')).catch(() => {}); } else if (q.get('planfor') && S.me) dayAct('around', q.get('planfor')).catch(() => {}); else if (q.get('invite') && S.me) { if (!partner()) inviteSheet(); } else if (q.get('trip') && S.me) openGetaway(q.get('trip'), partner()); else if (SHW[q.get('share')] && S.me) openShareTab(q.get('share')); } }); }
 
