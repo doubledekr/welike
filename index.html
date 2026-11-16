@@ -642,6 +642,8 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .wn-card{flex:none;width:100%;scroll-snap-align:center;padding:30px 24px 24px;min-height:330px;display:flex;flex-direction:column;align-items:flex-start;background:linear-gradient(160deg,#3a2230,#231a26);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);border-radius:26px}
 .wn-ic{width:54px;height:54px;border-radius:17px;display:grid;place-items:center;font-size:26px;color:#fff;background:linear-gradient(135deg,#ff7a4d,#ff4d7e);box-shadow:0 10px 26px -8px rgba(255,90,110,.8)}
 .wn-card h2{font-family:var(--serif);font-weight:400;font-size:30px;line-height:1.1;margin-top:20px}.wn-card p{color:#d9d0dc;font-size:15px;line-height:1.5;margin-top:10px;flex:1}.wn-card .btn{margin-top:18px}.wn .sld{margin-top:14px}
+.btn.shareapp{margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px;animation:shareglow 2.6s ease-in-out infinite}
+@keyframes shareglow{0%,100%{box-shadow:0 0 0 0 rgba(255,90,110,0),0 8px 22px -12px rgba(255,80,110,.8)}50%{box-shadow:0 0 0 3px rgba(255,140,120,.22),0 0 26px 2px rgba(255,90,110,.6)}}
 .pwarn{color:#ffb020}.plk a{color:#ffb39c;text-decoration:none;font-weight:600}
 .pdays{display:flex;gap:8px;overflow-x:auto;margin:12px -18px 0;padding:0 18px 4px;scrollbar-width:none}.pdays::-webkit-scrollbar{display:none}.pdays .chip{flex:none;white-space:nowrap}
 .cele .cgo{flex:none;margin-left:6px;padding:7px 12px;border-radius:99px;background:#fff;color:#4a0f22;font-weight:700;font-size:12.5px;white-space:nowrap}
@@ -1087,8 +1089,15 @@ async function loadBite() {
 function biteDoneHTML() {
   const names = { movie: 'movies', dinner: 'places to eat', event: 'things to do', trip: 'trip ideas', art: 'artworks' }, extra = !!S.sess?.filters?.extra, none = !S.total, p = partner();
   return `<div class="done"><div class="badge">${ic(DIC[S.sess.deck] || 'film')}</div><h3>${none ? 'Nothing new here today' : `That is today’s handful of ${names[S.sess.deck] || 'cards'}`}</h3>
-    <p class="muted">${none ? (S.sess.deck === 'dinner' ? 'Add your ZIP code in settings to load restaurants near you, or add your own under Lists.' : 'Check back tomorrow, or add your own under Lists.') : 'A fresh handful arrives tomorrow.'}${!extra && p && !none ? ' Play a quick guessing round to unlock a few more now.' : ''}</p>
-    ${p ? `<button class="btn ghost" data-act="guess">How well do you know ${esc(p)}?</button>` : ''}${S.hist.length ? '<button class="btn ghost" data-sw="undo">Undo last swipe</button>' : ''}</div>`;
+    <p class="muted">${none ? (S.sess.deck === 'dinner' ? 'Add your ZIP code in settings to load restaurants near you, or add your own there too.' : 'Check back tomorrow, or add your own in settings.') : 'A fresh handful arrives tomorrow.'}${!extra && p && !none ? ' Play a quick guessing round to unlock a few more now.' : ''}</p>
+    ${p ? `<button class="btn ghost" data-act="guess">How well do you know ${esc(p)}?</button>` : ''}<button class="btn shareapp" data-act="shareapp">${ic('share')} Share the app with friends</button>${S.hist.length ? '<button class="btn ghost" data-sw="undo">Undo last swipe</button>' : ''}</div>`;
+}
+// Invite another couple: the link opens the story page with this person's name on the invitation.
+async function shareApp() {
+  const n = String(S.me || '').trim().split(/\s+/)[0] || '', url = 'https://letstogether.app/hello/' + (n ? '?from=' + encodeURIComponent(n) : '');
+  const text = 'You’re invited to a brand-new app I’ve been using: Let’s Together. You and your person each swipe on movies, places to eat and things to do, and it only shows what you both said yes to. No more “what do you want to do?” It’s still in testing, so you’d be one of the first.';
+  if (navigator.share) { try { await navigator.share({ text, url }); } catch {} return; }
+  try { await navigator.clipboard.writeText(text + '\n' + url); toast('Invite copied. Paste it into a text.'); } catch { location.href = url + (n ? '&' : '?') + 'x=1#share'; }
 }
 function tonightSheet() {
   const st = S.state, p = partner(), latest = (st.sessions || []).find(s => s.from !== S.me && s.my_left > 0), rest = (st.sessions || []).filter(s => s !== latest);
@@ -2537,6 +2546,7 @@ document.addEventListener('click', async e => {
       case 'tonight': return tonightSheet();
       case 'planday': return dayStart();
       case 'inbox': return inboxSheet();
+      case 'shareapp': return shareApp();
       case 'whatsnew': return newsShow(true);
       case 'newsdone': document.querySelector('.wn')?.remove(); return S.view === 'home' && S.tab === 'home' ? render() : null;
       case 'newstry': document.querySelector('.wn')?.remove(); return dayStart();
