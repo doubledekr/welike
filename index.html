@@ -2629,7 +2629,19 @@ function carrySignIn() {
     const l = document.querySelector('link[rel="manifest"]'); if (l) l.href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(m));
   } catch {}
 }
+// A short note of how each open went (Home Screen or browser, signed in or not, and how), so a Home Screen icon
+// that opens signed out can be spotted and fixed. Only a short device summary is kept, never the full user agent.
+function logOpen(how, hadUrl, hadCookie) {
+  try {
+    let d = ls.get('dev'); if (!d) { d = crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now(); ls.set('dev', d); }
+    const ua = navigator.userAgent, ios = ua.match(/OS (\d+)_(\d+)/), and = ua.match(/Android (\d+)/);
+    const env = [/iPad/.test(ua) ? 'iPad' : /iPhone/.test(ua) ? 'iPhone' : and ? 'Android' : /Mac/.test(ua) ? 'Mac' : 'Other', ios ? 'iOS ' + ios[1] + '.' + ios[2] : and ? 'Android ' + and[1] : '',
+      /CriOS/.test(ua) ? 'Chrome' : /FxiOS/.test(ua) ? 'Firefox' : /EdgiOS|EdgA/.test(ua) ? 'Edge' : /SamsungBrowser/.test(ua) ? 'Samsung' : /Chrome/.test(ua) ? 'Chrome' : /Safari/.test(ua) ? 'Safari' : 'other'].filter(Boolean).join(' ');
+    rpc('log_open', { p_device: d, p_code: S.code || null, p_member: S.me || null, p_standalone: standalone(), p_env: env, p_signed_in: !!(S.code && S.me), p_how: how, p_had_url: !!hadUrl, p_had_cookie: !!hadCookie }).catch(() => {});
+  } catch {}
+}
 async function boot() {
+  const _had = !!(S.code && S.me), _q = new URLSearchParams(location.search), _url = !!(_q.get('c') && _q.get('n')), _ck = (() => { try { return !!authCookie.get(); } catch { return false; } })();
   { const q = new URLSearchParams(location.search), c = (q.get('c') || '').trim().toUpperCase(), n = (q.get('n') || '').trim();
     if ((!S.code || !S.me) && c && n) {
       // Opened from a Home Screen icon that carries a sign-in: use it. In a browser a name in the address is ignored
@@ -2639,6 +2651,7 @@ async function boot() {
     }
     // Home Screen app with nothing saved yet: use the sign-in cookie copied over from the browser, if there is one.
     if ((!S.code || !S.me) && standalone()) { const a = authCookie.get(); if (a) { try { const ms = await rpc('couple_members', { p_code: a.c }); if (ms.includes(a.n)) { S.code = a.c; S.me = a.n; ls.set('code', a.c); ls.set('name', a.n); } } catch {} } } }
+  logOpen(_had ? 'saved' : S.code && S.me ? (_url && standalone() ? 'url' : 'cookie') : 'none', _url, _ck);
   if (!S.code || !S.me) return render();
   try { await refresh(); } catch (e) { if (String(e.message).includes('bad_code')) { ls.del('code'); ls.del('name'); authCookie.clear(); S.code = S.me = null; return render(); } $app.innerHTML = `<div class="center"><div class="brand">${BRAND}</div><p class="muted" style="margin:12px 0 18px">Could not reach the server. Check your connection.</p><button class="btn" onclick="location.reload()">Try again</button></div>`; return; }
   connect(); resavePush();
