@@ -657,7 +657,18 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .bell.lv2{color:#fff;animation:bellp 2.4s ease-in-out infinite}.bell.lv3{color:#fff;animation:bellq 1.1s ease-in-out infinite}
 @keyframes bellp{0%,100%{box-shadow:inset 0 0 0 1px rgba(255,150,130,.6),0 0 8px 0 rgba(255,100,110,.4)}50%{box-shadow:inset 0 0 0 1px rgba(255,170,150,.9),0 0 20px 3px rgba(255,90,110,.75)}}
 @keyframes bellq{0%,100%{box-shadow:inset 0 0 0 1px rgba(255,170,150,.8),0 0 10px 1px rgba(255,90,110,.6);transform:scale(1)}50%{box-shadow:inset 0 0 0 1.5px #ffd0c0,0 0 26px 6px rgba(255,80,110,.95);transform:scale(1.07)}}
-.inrow{border-radius:14px;padding:11px 8px;border-bottom:0;margin-bottom:4px}.inrow.new b::after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff6a5e;margin-left:7px;vertical-align:middle}
+.inrow{border-radius:14px;padding:11px 8px;border-bottom:0;margin-bottom:4px}
+.swr{position:relative;margin-bottom:4px;border-radius:14px;overflow:hidden;touch-action:pan-y;-webkit-user-select:none;user-select:none}
+.swr>.swf{position:relative;z-index:1;background:#1f1a22;border-radius:14px;will-change:transform}
+.swr>.swf>.inrow{margin-bottom:0}
+.swr>.swa{position:absolute;inset:1px;opacity:0;display:flex;align-items:center;justify-content:flex-end;padding-right:20px;font-weight:700;font-size:14px;color:#fff;border-radius:14px}
+.swa.del{background:linear-gradient(90deg,rgba(255,77,94,.15),#ff4d5e)}
+.swa.hid{background:linear-gradient(90deg,rgba(255,170,40,.12),#e8920f)}
+.swr.out{transition:max-height .25s ease .12s,margin .25s ease .12s,opacity .2s ease .12s;max-height:0!important;margin-bottom:0;opacity:0}
+.inhead{display:flex;align-items:baseline;justify-content:space-between}
+.inclear{font-size:13px;font-weight:600;color:#ffb39c;padding:4px 2px}
+.swr.sw>.swa{opacity:1}
+.sheet p.inhint{font-size:12.5px;color:var(--muted);margin:4px 0 8px}.inrow.new b::after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff6a5e;margin-left:7px;vertical-align:middle}
 .inrow.p2{animation:rowp 2.4s ease-in-out infinite}.inrow.p3{animation:rowp 1.2s ease-in-out infinite}
 @keyframes rowp{0%,100%{box-shadow:inset 0 0 0 1px rgba(255,150,130,.25);background:rgba(255,110,100,.06)}50%{box-shadow:inset 0 0 0 1px rgba(255,160,140,.7),0 0 18px -2px rgba(255,90,110,.55);background:rgba(255,110,100,.13)}}
 .ptip{display:flex;gap:10px;align-items:flex-start;margin-top:12px;padding:10px 8px 10px 12px;border-radius:14px;font-size:13px;line-height:1.45;color:#f3dcd6;background:rgba(255,122,77,.12);box-shadow:inset 0 0 0 1px rgba(255,150,130,.3)}.ptip button{flex:none;width:26px;height:26px;font-size:18px;color:var(--muted)}
@@ -1548,8 +1559,10 @@ function waiting() {
   if (S.evPend && ls.get('evno') !== evKey()) out.push({ k: 'ev' + evKey(), lv: 2, ic: 'ticket', t: `You liked ${S.evPend.count > 1 ? S.evPend.count + ' events' : 'an event'} this week`, s: `Send to ${them()} before ${S.evPend.count > 1 ? 'they pass' : 'it passes'}.`, a: 'data-act="evask"', go: 'Share' });
   return out;
 }
+const inHidden = () => { try { return JSON.parse(ls.get('inhide') || '[]'); } catch { return []; } };
+const waitingShown = () => { const h = inHidden(); return waiting().filter(x => x.k === 'invite' || !h.includes(x.k)); };
 function bellHTML() {
-  const w = waiting(), seen = ls.get('bellseen') || '', news = (S.inbox?.items || []).filter(i => !i.seen).length;
+  const w = waitingShown(), seen = ls.get('bellseen') || '', news = (S.inbox?.items || []).filter(i => !i.seen).length;
   const fresh = w.filter(x => !seen.includes('|' + x.k + '|') || x.k === 'invite'), lv = Math.max(0, ...fresh.map(x => x.lv), news ? 1 : 0), n = w.filter(x => x.lv >= 2).length;
   return `<button class="ib bell ${lv ? 'lv' + lv : ''}" data-act="inbox" aria-label="Inbox${n ? ', ' + n + ' waiting' : ''}">${ic('bell')}${n ? `<i>${n}</i>` : ''}</button>`;
 }
@@ -1559,12 +1572,18 @@ async function inboxPoll() { if (!S.code || !S.me) return; try { const b = await
 const inRow = (x, hot) => `<button class="sess inrow ${hot ? 'p' + x.lv : ''}" ${x.a}><span class="tic">${ic(x.ic)}</span><span class="grow"><b>${esc(x.t)}</b><small>${esc(x.s || '')}</small></span>${x.go ? `<span class="pill ${hot && x.lv >= 2 ? 'hot' : ''}">${x.go}</span>` : ''}</button>`;
 async function inboxSheet() {
   try { S.inbox = await rpc('inbox_list', { p_code: S.code, p_member: S.me }); } catch {}
-  const w = waiting().sort((a, b) => b.lv - a.lv), items = S.inbox?.items || [];
+  const w = waitingShown().sort((a, b) => b.lv - a.lv);
+  // a notification whose to-do is still in "Waiting on you" isn't listed twice
+  const open = w.map(x => x.a || '').join(' '), dup = i => { const m = /[?&](?:plan|s|planfor|rec|tb|trip)=([\w-]+)/.exec(i.url || ''); return !!m && open.includes(m[1]); };
+  const items = (S.inbox?.items || []).filter(i => !dup(i));
+  const sw = (id, inner, label) => `<div class="swr" data-swid="${esc(id)}"><span class="swa ${label === 'Remove' ? 'del' : 'hid'}">${label}</span><div class="swf">${inner}</div></div>`;
   const kic = i => /plan=|planfor=/.test(i.url || '') ? 'list' : /match/i.test(i.title) ? 'heart' : /rec=/.test(i.url || '') ? 'play' : /trip=/.test(i.url || '') ? 'plane' : /share=/.test(i.url || '') ? 'ticket' : 'spark';
   sheet(`<div class="grab"></div><div class="body"><h2>Inbox</h2>
-    ${w.length ? `<div class="sect" style="margin-top:16px">Waiting on you</div>${w.map(x => inRow(x, true)).join('')}` : ''}
-    <div class="sect" style="margin-top:${w.length ? 22 : 16}px">Lately</div>
-    ${items.length ? items.map(i => `<button class="sess inrow ${i.seen ? '' : 'new'}" data-inurl="${esc(i.url || './')}"><span class="tic">${ic(kic(i))}</span><span class="grow"><b>${esc(i.title)}</b><small>${esc(i.body || '')}${i.body ? ' · ' : ''}${ago(i.at)}</small></span></button>`).join('') : `<p class="muted" style="font-size:14px;padding:6px 0 4px">${w.length ? 'Nothing else for now.' : `All quiet. Matches and anything ${esc(them())} sends will show up here for a week.`}</p>`}
+    ${w.length ? `<div class="sect" style="margin-top:16px">Waiting on you</div>${w.map(x => x.k === 'invite' ? inRow(x, true) : sw('w:' + x.k, inRow(x, true), 'Hide')).join('')}` : ''}
+    <div class="inhead" style="margin-top:${w.length ? 22 : 16}px"><div class="sect" style="margin:0">Lately</div>${items.length ? `<button class="inclear" data-act="inclear">Clear all</button>` : ''}</div>
+    ${items.length && !ls.get('inswiped') ? `<p class="inhint">Swipe a row left to remove it.</p>` : ''}
+    <div id="inlately">${items.length ? items.map(i => sw('i:' + i.id, `<button class="sess inrow ${i.seen ? '' : 'new'}" data-inurl="${esc(i.url || './')}"><span class="tic">${ic(kic(i))}</span><span class="grow"><b>${esc(i.title)}</b><small>${esc(i.body || '')}${i.body ? ' · ' : ''}${ago(i.at)}</small></span></button>`, 'Remove')).join('') : `<p class="muted" style="font-size:14px;padding:6px 0 4px">${w.length ? 'Nothing else for now.' : `All quiet. Matches and anything ${esc(them())} sends will show up here for a week.`}</p>`}
+    </div>
     <a class="sess inrow" href="./hello/#board" style="text-decoration:none;color:inherit"><span class="tic">${ic('heart')}</span><span class="grow"><b>Report a bug or suggest something</b><small>A public board. Vote on what you want most</small></span></a>
     <button class="sess inrow" data-act="whatsnew"><span class="tic">${ic('spark')}</span><span class="grow"><b>What’s new</b><small>Plan a day, bars in Go out, and this inbox</small></span></button>
   </div>`);
@@ -1572,6 +1591,27 @@ async function inboxSheet() {
   if (items.some(i => !i.seen)) { rpc('inbox_seen', { p_code: S.code, p_member: S.me }).catch(() => {}); items.forEach(i => i.seen = true); }
   document.querySelector('.bell')?.classList.remove('lv1', 'lv2', 'lv3');
 }
+// Swipe a row left to remove it (Lately) or hide it until it changes (Waiting on you).
+function inDismiss(row) {
+  const id = row.dataset.swid; row.style.maxHeight = row.offsetHeight + 'px'; row.offsetHeight; row.classList.add('out');
+  setTimeout(() => { row.remove(); if (!document.querySelector('#inlately .swr')) { const l = document.getElementById('inlately'); if (l) l.innerHTML = '<p class="muted" style="font-size:14px;padding:6px 0 4px">Nothing else for now.</p>'; document.querySelector('.inclear')?.remove(); } }, 420);
+  ls.set('inswiped', '1'); document.querySelector('.inhint')?.remove();
+  if (id.startsWith('i:')) { const k = id.slice(2); if (S.inbox) S.inbox.items = (S.inbox.items || []).filter(i => String(i.id) !== k); rpc('inbox_dismiss', { p_code: S.code, p_member: S.me, p_id: k }).catch(() => {}); }
+  else { const h = inHidden(); h.push(id.slice(2)); ls.set('inhide', JSON.stringify(h.slice(-60))); }
+  bellSync();
+}
+(function inSwipe() {
+  let row = null, f = null, x0 = 0, y0 = 0, dx = 0, on = false;
+  document.addEventListener('pointerdown', e => { const r = e.target.closest('.swr'); if (!r) return; row = r; f = r.querySelector('.swf'); r.classList.add('sw'); x0 = e.clientX; y0 = e.clientY; dx = 0; on = false; f.style.transition = 'none'; }, { passive: true });
+  document.addEventListener('pointermove', e => { if (!row) return; const mx = e.clientX - x0, my = e.clientY - y0;
+    if (!on) { if (Math.abs(mx) > 10 && Math.abs(mx) > Math.abs(my) * 1.3 && mx < 0) on = true; else if (Math.abs(my) > 10) { row.classList.remove('sw'); row = null; return; } else return; }
+    dx = Math.min(0, mx); f.style.transform = `translateX(${dx}px)`; }, { passive: true });
+  const end = () => { if (!row) return; const r = row; row = null;
+    if (!on) { r.classList.remove('sw'); return; } f.style.transition = 'transform .22s ease';
+    if (dx < -Math.min(110, r.offsetWidth * 0.32)) { f.style.transform = 'translateX(-110%)'; inDismiss(r); } else { f.style.transform = ''; setTimeout(() => r.classList.remove('sw'), 240); }
+    const blk = ev => { ev.stopPropagation(); ev.preventDefault(); }; r.addEventListener('click', blk, { capture: true, once: true }); setTimeout(() => r.removeEventListener('click', blk, { capture: true }), 400); };
+  document.addEventListener('pointerup', end); document.addEventListener('pointercancel', end);
+})();
 // A saved notification opens the same place the notification itself would have.
 function inboxGo(u) {
   let q; try { q = new URL(u, location.href).searchParams; } catch { return closeSheet(); }
@@ -2710,6 +2750,9 @@ document.addEventListener('click', async e => {
       case 'inbox': return inboxSheet();
       case 'shareapp': return shareApp();
       case 'whatsnew': return newsShow(true);
+      case 'inclear': { const rows = [...document.querySelectorAll('#inlately .swr')]; rows.forEach((r, i) => setTimeout(() => { r.style.maxHeight = r.offsetHeight + 'px'; r.offsetHeight; r.classList.add('sw'); r.querySelector('.swf').style.transition = 'transform .22s ease'; r.querySelector('.swf').style.transform = 'translateX(-110%)'; r.classList.add('out'); }, i * 70));
+        setTimeout(() => { const l = document.getElementById('inlately'); if (l) l.innerHTML = '<p class="muted" style="font-size:14px;padding:6px 0 4px">All clear.</p>'; t.remove(); document.querySelector('.inhint')?.remove(); }, rows.length * 70 + 420);
+        if (S.inbox) S.inbox.items = []; rpc('inbox_dismiss', { p_code: S.code, p_member: S.me, p_id: null }).catch(() => {}); bellSync(); return; }
       case 'saveplans': { const root = t.closest('.sheet') || document, pick = k => (root.querySelector(`[data-pset^="${k}|"].on`)?.dataset.pset || '|').split('|')[1];
         t.disabled = true; try { S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { friday_start: root.querySelector('#p_fs').value, friday_fav: pick('ff'), plan_price: pick('pr'), no_bars: pick('nb') === '1', plan_avoid: root.querySelector('#p_avoid').value.split(',').map(x => x.trim()).filter(Boolean) } }); } catch { t.disabled = false; return toast('Could not save. Try again.'); }
         toast('Saved for both of you.'); return render(); }
