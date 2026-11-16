@@ -1972,6 +1972,16 @@ async function installCheck() {
   if (!S.code || !S.me) return;
   try { S.installed = await rpc('install_state', { p_code: S.code, p_member: S.me, p_here: standalone() }); } catch { return; }
   if (!standalone() && S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) render();
+  if (S.installed === true && !standalone() && isPhone()) useIcon();
+}
+// They have the Home Screen app but opened the browser again. A browser cannot open the icon for them, so say so plainly,
+// once per visit, with a way to carry on here if they need to.
+function useIcon() {
+  try { if (sessionStorage.getItem('wl_useicon')) return; sessionStorage.setItem('wl_useicon', '1'); } catch {}
+  step('use_icon'); document.querySelector('.coach,.wn')?.remove(); closeSheet();
+  const el = document.createElement('div'); el.className = 'wn';
+  el.innerHTML = `<div class="wn-in"><div class="wn-card" style="min-height:0;align-items:center;text-align:center"><span class="wn-ic">${MARK}</span><h2>You have the app</h2><p>Open <b>Let’s Together</b> from its icon on your Home Screen. That’s where your nudges and notifications live.</p><p style="font-size:13.5px;color:var(--muted);flex:none">Close this browser tab, go to your Home Screen, and tap the icon. Can’t find it? Swipe down on your Home Screen and search for Let’s Together.</p><button class="btn ghost" data-act="useiconok">Keep going here this time</button><button class="btn ghost" data-act="useiconnot" style="margin-top:8px;font-size:14px">I deleted the icon</button></div></div>`;
+  document.body.appendChild(el);
 }
 function hsBanner() {
   if (standalone() || !isPhone() || typeof S.installed !== 'boolean' || Date.now() < Number(ls.get('hsnz') || 0)) return '';
@@ -2560,6 +2570,8 @@ document.addEventListener('click', async e => {
       case 'invtext': { inviteAsked(); closeSheet(); const body = encodeURIComponent(`${inviteMsg()}\n${inviteLink()}`); location.href = /iphone|ipad|ipod|macintosh/i.test(navigator.userAgent) ? `sms:&body=${body}` : `sms:?body=${body}`; return setTimeout(nextOnboard, 1200); }
       case 'invshare': { inviteAsked(); try { if (navigator.share) await navigator.share({ title: 'Let’s Together', text: inviteMsg(), url: inviteLink() }); else { await navigator.clipboard.writeText(`${inviteMsg()}\n${inviteLink()}`); toast('Invite and code copied.'); } } catch {} closeSheet(); return nextOnboard(); }
       case 'invlater': inviteAsked(); closeSheet(); toast('You can send it any time from the home screen.', 3500); return nextOnboard();
+      case 'useiconok': document.querySelector('.wn')?.remove(); step('use_icon_skip'); return;
+      case 'useiconnot': document.querySelector('.wn')?.remove(); step('use_icon_gone'); S.installed = false; ls.del('a2hs'); ls.set('a2ask', '0'); return installSheet();
       case 'a2hsdone': ls.set('a2hs', String(Date.now())); a2hsArrow(''); step('a2hs_done'); closeSheet(); return nextOnboard();
       case 'a2hslater': ls.set('a2ask', String(Date.now())); a2hsArrow(''); step('a2hs_later'); closeSheet(); return nextOnboard();
       case 'opensetup': return setupSheet();
