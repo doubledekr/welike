@@ -842,12 +842,12 @@ const scratchDue = () => !!partner() && Date.now() - Number(ls.get('scratchAt') 
 const scratchTest = () => { const t = S.settings?.scratchtest; return t && t.m === S.me && t.card ? { ...t.card, test: true } : null; };
 const scratchShow = () => !!S.peek && (S.peek.test || scratchDue());
 async function scratchCheck() {   // look once per visit; the card is only held in memory until it is scratched
-  const t = scratchTest();
+  const t = scratchTest(), was = JSON.stringify(S.peek ?? null);
   if (t) S.peek = t;
   else { if (!scratchDue() || S.peekTried) return; S.peekTried = true;
     try { S.peek = await rpc('partner_peek', { p_code: S.code, p_member: S.me }); } catch { S.peek = null; } }
   if (!S.peek || S.view !== 'home' || $layer.innerHTML || document.querySelector('.coach,.scr,.sco,.match,.lfront')) return;
-  if (!S.peekShown) scratchOffer(); else if (S.tab === 'home') render();
+  if (!S.peekShown) scratchOffer(); else if (S.tab === 'home' && JSON.stringify(S.peek ?? null) !== was) render();
 }
 function scratchOffer() {
   S.peekShown = true;
@@ -929,6 +929,8 @@ async function outings(ms = 6000) {
 }
 
 /* ---------- data ---------- */
+// What Home is drawn from. Coming back to the app only redraws Home when this changed, so the cards don't flicker.
+const homeSig = () => { try { return JSON.stringify([S.state, S.plans, S.share, S.settings, S.pantry, S.favs]); } catch { return String(Math.random()); } };
 async function refresh() {
   const [st, pantry, settings, share, plans, inbox, favs] = await Promise.all([rpc('get_state', { p_code: S.code, p_member: S.me }), rpc('get_pantry', { p_code: S.code }), rpc('get_settings', { p_code: S.code }), rpc('share_state', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('plan_list', { p_code: S.code }).catch(() => []), rpc('inbox_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('fav_list', { p_code: S.code }).catch(() => null)]);
   S.state = st; S.plans = plans || []; S.pool = null; if (inbox) S.inbox = inbox; if (favs) S.favs = favs; S.share = share; S.pantry = pantry || []; S.settings = settings || {};
@@ -2323,9 +2325,10 @@ async function commit(verdict) {
 const evKey = () => (S.evPend?.count || 0) + '|' + new Date().toDateString();
 async function evPeek(ask) {
   if (!partner() || !S.code || !S.me) return;
+  const was = JSON.stringify(S.evPend ?? null);
   try { const r = await rpc('event_share', { p_code: S.code, p_member: S.me, p_send: false }); S.evPend = r?.count ? r : null; } catch { return; }
   if ($layer.innerHTML) return;
-  if (S.evPend && ask) evSheet(); else if (S.view === 'home' && S.tab === 'home') render();
+  if (S.evPend && ask) evSheet(); else if (S.view === 'home' && S.tab === 'home' && JSON.stringify(S.evPend ?? null) !== was) render();   // redraw only if it changed
 }
 function evSheet() {
   const r = S.evPend; if (!r) return; const n = r.count, ts = r.titles || [r.title];
@@ -2788,7 +2791,7 @@ function tryUpdate(now) {
 setInterval(() => { if (document.visibilityState === 'visible') { checkVersion(); tryUpdate(); } }, 15000);
 setTimeout(checkVersion, 4000);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && S.bookCity && S.bookTouched && document.querySelector('.bookframe')) S.bookLeft = true; if (document.visibilityState === 'visible' && S.bookLeft) setTimeout(bookBack, 400); if (document.visibilityState === 'hidden' && updReady && S.view === 'home' && !$layer.innerHTML && !document.querySelector('.match,.lfront,.coach,.wn,.scr,.sco,.bookframe')) location.reload(); if (document.visibilityState === 'visible') { returnAt = Date.now(); tryUpdate(true); evPeek(); checkVersion(true); checkTravel(); S.peekTried = false; scratchCheck(); } });
-document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && S.code && S.me) { try { await refresh(); bellSync(); if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) render(); else if (S.view === 'swipe' && S.sess) { const d = await rpc('get_session', { p_code: S.code, p_session: S.sess.id, p_member: S.me }); S.theirLeft = d.their_left; S.total = d.total; if (d.matches.length !== S.matches.length) { S.matches = d.matches; } if (d.deck.length !== S.deck.length && !busy) { S.deck = d.deck; drawStack(); } else updateBar(); } } catch {} } });
+document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && S.code && S.me) { try { const was = homeSig(); await refresh(); bellSync(); if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) { if (homeSig() !== was) render(); } else if (S.view === 'swipe' && S.sess) { const d = await rpc('get_session', { p_code: S.code, p_session: S.sess.id, p_member: S.me }); S.theirLeft = d.their_left; S.total = d.total; if (d.matches.length !== S.matches.length) { S.matches = d.matches; } if (d.deck.length !== S.deck.length && !busy) { S.deck = d.deck; drawStack(); } else updateBar(); } } catch {} } });
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); navigator.serviceWorker.addEventListener('message', e => { if (e.data?.pushed) return inboxPoll(); const u = e.data?.open; if (u) { const q = new URL(u).searchParams, s = q.get('s'), r = q.get('rec'), g = q.get('tb'); if (s && S.me) openSession(s); else if (r && S.me) openRec(r, q.get('keen')); else if (g && S.me) openGame(g); else if (q.get('plan') && S.me) { S.favAsk = q.get('fav') ? q.get('plan') : null; dayAct('view', q.get('plan')).catch(() => {}); } else if (q.get('planfor') && S.me) dayAct('around', q.get('planfor')).catch(() => {}); else if (q.get('invite') && S.me) { if (!partner()) inviteSheet(); } else if (q.get('trip') && S.me) openGetaway(q.get('trip'), partner()); else if (SHW[q.get('share')] && S.me) openShareTab(q.get('share')); } }); }
 
 // iPhone keeps a Home Screen app's storage apart from the browser's, so signing up in Safari and then opening the
