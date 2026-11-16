@@ -628,7 +628,8 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .hdr .ib:active{transform:scale(.95)}
 /* Bell levels have to beat the header pill style above: 1 = something new to read (lit, steady),
    2 = something waiting on you (solid, slow pulse), 3 = waiting and soon (solid, quick pulse). */
-.hdr .ib.bell.lv1,.hdr .ib.bell.lv2,.hdr .ib.bell.lv3{color:#3d2600;background:linear-gradient(135deg,#ffe066,#ffb31f)}
+.hdr .ib.bell.lv1,.hdr .ib.bell.lv2,.hdr .ib.bell.lv3{color:#fff;background:linear-gradient(135deg,#ffd23f,#ffa514)}
+.hdr .ib.bell.lv1 .ic,.hdr .ib.bell.lv2 .ic,.hdr .ib.bell.lv3 .ic{filter:drop-shadow(0 1px 1.5px rgba(130,62,0,.6))}
 .hdr .ib.bell.lv1 .ic path,.hdr .ib.bell.lv2 .ic path,.hdr .ib.bell.lv3 .ic path{fill:currentColor}
 .hdr .ib.bell.lv1{animation:bellg 2.4s ease-in-out infinite}
 .hdr .ib.bell.lv2{animation:bellg 1.5s ease-in-out infinite}
@@ -2758,10 +2759,23 @@ async function checkVersion() {
   if (Date.now() - lastVerCheck < 120000) return; lastVerCheck = Date.now();
   try { const r = await fetch('./?vc=' + Date.now(), { method: 'HEAD', cache: 'no-store' }); const tag = r.headers.get('etag') || r.headers.get('last-modified'); if (!tag) return;
     if (!buildTag) { buildTag = tag; return; }
-    if (tag !== buildTag && S.view === 'home' && !$layer.innerHTML && !document.querySelector('.match,.lfront,.coach')) location.reload(); } catch {}
+    if (tag !== buildTag) { updReady = true; tryUpdate(); } } catch {}
 }
+// A newer version is waiting: reload at a calm moment (on Home, nothing open, not typing, no taps for a few
+// seconds), or straight away when the app comes back to the front, so people who keep it open still get updates.
+let updReady = false, lastTouch = Date.now();
+addEventListener('pointerdown', () => { lastTouch = Date.now(); }, { passive: true, capture: true });
+addEventListener('keydown', () => { lastTouch = Date.now(); }, { passive: true, capture: true });
+function tryUpdate(now) {
+  if (!updReady || document.visibilityState !== 'visible') return;
+  const a = document.activeElement, typing = a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName);
+  if (S.view !== 'home' || $layer.innerHTML || typing || document.querySelector('.match,.lfront,.coach,.wn,.scr,.sco')) return;
+  if (!now && Date.now() - lastTouch < 8000) return;
+  location.reload();
+}
+setInterval(() => { if (document.visibilityState === 'visible') { checkVersion(); tryUpdate(); } }, 15000);
 checkVersion();
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && S.bookCity && S.bookTouched && document.querySelector('.bookframe')) S.bookLeft = true; if (document.visibilityState === 'visible' && S.bookLeft) setTimeout(bookBack, 400); if (document.visibilityState === 'visible') { evPeek(); checkVersion(); checkTravel(); S.peekTried = false; scratchCheck(); } });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && S.bookCity && S.bookTouched && document.querySelector('.bookframe')) S.bookLeft = true; if (document.visibilityState === 'visible' && S.bookLeft) setTimeout(bookBack, 400); if (document.visibilityState === 'visible') { tryUpdate(true); evPeek(); checkVersion(); checkTravel(); S.peekTried = false; scratchCheck(); } });
 document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && S.code && S.me) { try { await refresh(); bellSync(); if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) render(); else if (S.view === 'swipe' && S.sess) { const d = await rpc('get_session', { p_code: S.code, p_session: S.sess.id, p_member: S.me }); S.theirLeft = d.their_left; S.total = d.total; if (d.matches.length !== S.matches.length) { S.matches = d.matches; } if (d.deck.length !== S.deck.length && !busy) { S.deck = d.deck; drawStack(); } else updateBar(); } } catch {} } });
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); navigator.serviceWorker.addEventListener('message', e => { if (e.data?.pushed) return inboxPoll(); const u = e.data?.open; if (u) { const q = new URL(u).searchParams, s = q.get('s'), r = q.get('rec'), g = q.get('tb'); if (s && S.me) openSession(s); else if (r && S.me) openRec(r, q.get('keen')); else if (g && S.me) openGame(g); else if (q.get('plan') && S.me) { S.favAsk = q.get('fav') ? q.get('plan') : null; dayAct('view', q.get('plan')).catch(() => {}); } else if (q.get('planfor') && S.me) dayAct('around', q.get('planfor')).catch(() => {}); else if (q.get('invite') && S.me) { if (!partner()) inviteSheet(); } else if (q.get('trip') && S.me) openGetaway(q.get('trip'), partner()); else if (SHW[q.get('share')] && S.me) openShareTab(q.get('share')); } }); }
 
