@@ -9,3 +9,5 @@
   Cache-Control: no-cache
 /manifest.webmanifest
   Cache-Control: no-cache
+/hello/*
+  Cache-Control: no-cache
