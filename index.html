@@ -1010,6 +1010,7 @@ function renderJoin() {
   if (!pre && !S.joinForm) return renderLanding();
   const home = standalone() ? '' : `<details class="jhome"><summary>${ic('share')}<span><b>Best from your Home Screen</b><small>Tap to see how. It takes ten seconds</small></span></summary><div class="steps" style="text-align:left">${a2hsSteps().html}</div></details>`;
   if (pre) {   // arrived from an invite link
+    if (!S.code) { carryInvite(pre); step('invite_page'); }
     $app.innerHTML = `<div class="center jinv"><div class="jtop">${MARK}<div class="brand">${BRAND}</div></div>
       <h1 id="jhead">You’re invited</h1><p class="muted jlead" id="jlead">Enter your first name to pair up and start swiping together.</p>
       <label class="field"><span>Your first name</span><input id="jn" autocomplete="given-name" maxlength="24" placeholder="First name"></label>
@@ -2473,7 +2474,7 @@ document.addEventListener('click', async e => {
   if (!t) return; const ds = t.dataset;
   try {
     if (ds.who) { const jn = document.getElementById('jn'); if (jn) jn.value = ds.who; return document.getElementById('jgo')?.click(); }
-    if (t.id === 'jgo') { const name = document.getElementById('jn').value.trim(), code = document.getElementById('jc').value.trim().toUpperCase(); if (!name || !code) return toast('Enter your name and the couple code.'); t.disabled = true; try { const r = await rpc('join_couple', { p_code: code, p_name: name }); step('joined'); S.code = code; S.me = r.name; ls.set('code', code); ls.set('name', r.name); history.replaceState(null, '', location.pathname); await boot(); send({ type: 'joined' }); } catch (er) { t.disabled = false; toast(errMsg(er)); } return; }
+    if (t.id === 'jgo') { const name = document.getElementById('jn').value.trim(), code = document.getElementById('jc').value.trim().toUpperCase(); if (!name || !code) return toast('Enter your name and the couple code.'); t.disabled = true; try { const r = await rpc('join_couple', { p_code: code, p_name: name }); step('joined'); try { document.cookie = 'wl_inv=; max-age=0; path=/; Secure; SameSite=Lax'; } catch {} S.code = code; S.me = r.name; ls.set('code', code); ls.set('name', r.name); history.replaceState(null, '', location.pathname); await boot(); send({ type: 'joined' }); } catch (er) { t.disabled = false; toast(errMsg(er)); } return; }
     if ('scrim' in ds) return closeSheet();
     if (ds.pl) { const [v, a, a2] = ds.pl.split('|'); if (v === 'side') return await sideLikes(a, a2); if (v === 'sidepick') return await sidePick(a, t); if (v === 'tip') { ls.set('pdtip', '1'); return dayEdit(); } return await dayAct(v, a, t); }
     if (ds.inurl) return inboxGo(ds.inurl);
@@ -2684,6 +2685,20 @@ const IOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform
 const authCookie = { set() { try { if (S.code && S.me) document.cookie = 'wl_auth=' + encodeURIComponent(S.code + '|' + S.me) + '; max-age=31536000; path=/; Secure; SameSite=Lax'; } catch {} },
   get() { try { const m = document.cookie.match(/(?:^|;\s*)wl_auth=([^;]+)/); if (!m) return null; const [c, n] = decodeURIComponent(m[1]).split('|'); return c && n ? { c: c.toUpperCase(), n } : null; } catch { return null; } },
   clear() { try { document.cookie = 'wl_auth=; max-age=0; path=/; Secure; SameSite=Lax'; } catch {} } };
+// Someone opened an invite link but has not joined yet. If they add the icon now, the couple code goes with it (in the
+// icon's own address on iPhone, and in a cookie the icon can read), so the icon opens on the invite with the code filled in.
+function carryInvite(code) {
+  if (standalone() || !/^[A-Z0-9]{6,12}$/.test(code)) return;
+  try { document.cookie = 'wl_inv=' + encodeURIComponent(code) + '; max-age=1209600; path=/; Secure; SameSite=Lax'; } catch {}
+  if (!IOS) return;
+  const q = `?c=${encodeURIComponent(code)}`, base = location.origin + location.pathname.replace(/[^/]*$/, '');
+  try {
+    const m = { name: 'Let’s Together', short_name: 'Together', start_url: base + q, scope: base, display: 'standalone', orientation: 'portrait', background_color: '#100d12', theme_color: '#100d12',
+      icons: [{ src: base + 'icon-192.png', sizes: '192x192', type: 'image/png' }, { src: base + 'icon-512.png', sizes: '512x512', type: 'image/png' }] };
+    const l = document.querySelector('link[rel="manifest"]'); if (l) l.href = 'data:application/manifest+json;charset=utf-8,' + encodeURIComponent(JSON.stringify(m));
+  } catch {}
+}
+const invCookie = () => { try { const m = document.cookie.match(/(?:^|;\s*)wl_inv=([^;]+)/); return m ? decodeURIComponent(m[1]).toUpperCase() : null; } catch { return null; } };
 function carrySignIn() {
   authCookie.set();
   if (!IOS || standalone() || !S.code || !S.me) return;
@@ -2718,6 +2733,8 @@ async function boot() {
       if (standalone()) { try { const r = await rpc('join_couple', { p_code: c, p_name: n }); S.code = c; S.me = r.name; ls.set('code', c); ls.set('name', r.name); } catch {} }
       else { try { history.replaceState(null, '', location.pathname + '?c=' + encodeURIComponent(c)); } catch {} }
     }
+    // Icon added from an invite page before joining: open on that invite, with the code filled in.
+    if ((!S.code || !S.me) && standalone() && !c) { const ic2 = invCookie(); if (ic2 && !authCookie.get()) { try { history.replaceState(null, '', location.pathname + '?c=' + encodeURIComponent(ic2)); } catch {} } }
     // Home Screen app with nothing saved yet: use the sign-in cookie copied over from the browser, if there is one.
     if ((!S.code || !S.me) && standalone()) { const a = authCookie.get(); if (a) { try { const ms = await rpc('couple_members', { p_code: a.c }); if (ms.includes(a.n)) { S.code = a.c; S.me = a.n; ls.set('code', a.c); ls.set('name', a.n); } } catch {} } } }
   logOpen(_had ? 'saved' : S.code && S.me ? (_url && standalone() ? 'url' : 'cookie') : 'none', _url, _ck);
