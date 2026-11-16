@@ -406,6 +406,16 @@ html.ios-app .match,html.ios-app .lfront,html.ios-app .scrim,html.ios-app .lbar{
 .mcard .btn{width:100%;white-space:normal;line-height:1.2;padding:10px 8px;font-size:14px;min-height:40px}
 .mcard .btn.ghost{font-size:13px;font-weight:600}
 .done .btn{flex:none}
+/* Empty deck: compact enough to fit under a reminder banner without scrolling, with room for the icon's glow, and
+   soft top and bottom edges (a fade, never a hard cut) if it ever does scroll. */
+.stack .done{gap:9px;padding:34px 20px 22px;-webkit-mask-image:linear-gradient(transparent,#000 22px,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(transparent,#000 22px,#000 calc(100% - 22px),transparent)}
+.stack .done .badge{width:64px;height:64px;border-radius:21px;font-size:30px;box-shadow:0 0 34px -8px rgba(255,90,100,.85)}
+.stack .done h3{font-size:clamp(23px,7vw,27px);line-height:1.15;max-width:310px}
+.stack .done p{font-size:14px;line-height:1.45;max-width:300px}
+.stack .done .btn{padding:12px 16px;font-size:15px;border-radius:13px}
+.stack{container-type:size}
+@container (max-height:400px){.stack .done{gap:7px;padding-top:26px}.stack .done .badge{width:50px;height:50px;border-radius:16px;font-size:23px}.stack .done h3{font-size:21px}.stack .done p{font-size:13px}.stack .done .btn{padding:10px 14px;font-size:14.5px}}
+@container (max-height:270px){.stack .done p{display:none}.stack .done{padding-top:22px}}
 /* big verdict stamps, centred on the card */
 .stamp{top:36%;left:50%;right:auto;bottom:auto;font-size:clamp(50px,17vw,80px);line-height:1.05;padding:6px 24px 10px;border-width:5px;border-radius:20px;white-space:nowrap;background:rgba(10,8,12,.55);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);text-shadow:0 2px 14px rgba(0,0,0,.6);z-index:3}
 .stamp.yes{left:50%;transform:translate(-50%,-50%) rotate(-10deg);box-shadow:0 0 40px -6px rgba(89,211,154,.7)}
