@@ -4,6 +4,9 @@
 <title>Let’s Together: the story, how to install it, and the bug board</title>
 <meta name="description" content="A swipe app for couples: stop asking “what do you want to do?” How it works, how to add it to your Home Screen, and where to report bugs or suggest ideas.">
 <meta name="theme-color" content="#100d12">
+<meta property="og:title" content="You’re invited to Let’s Together">
+<meta property="og:description" content="A brand-new swipe app for couples. Stop asking “what do you want to do?”">
+<meta property="og:image" content="https://letstogether.app/icon-512.png"><meta property="og:url" content="https://letstogether.app/hello/"><meta property="og:type" content="website">
 <link rel="icon" href="../icon-192.png"><link rel="apple-touch-icon" href="../icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
@@ -44,14 +47,19 @@ input,textarea{width:100%;font:inherit;color:#fff;background:rgba(0,0,0,.28);bor
 .chip{display:inline-block;padding:2px 9px;border-radius:99px;font-size:11.5px;font-weight:700;margin-right:6px;vertical-align:1px}.c-bug{background:rgba(255,120,120,.2);color:#ffb1b1}.c-idea{background:rgba(120,180,255,.2);color:#b6d6ff}.c-planned{background:rgba(255,200,90,.2);color:#ffd98a}.c-fixed{background:rgba(90,220,150,.2);color:#9af0c0}
 .adm{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.adm button{padding:5px 10px;border-radius:99px;font-size:12.5px;background:rgba(255,255,255,.1)}.adm button.on{background:#fff;color:#2a1620;font-weight:700}
 .filt{display:flex;gap:6px;margin-top:16px;flex-wrap:wrap}.filt button{padding:6px 12px;border-radius:99px;font-size:13.5px;color:var(--muted);background:rgba(255,255,255,.06)}.filt button.on{background:rgba(255,255,255,.16);color:#fff;font-weight:600}
+.inv{display:flex;gap:14px;align-items:flex-start;margin-top:26px;padding:18px;border-radius:22px;background:linear-gradient(135deg,rgba(255,122,77,.26),rgba(255,77,126,.2));box-shadow:inset 0 0 0 1.5px rgba(255,150,130,.55),0 0 34px -12px rgba(255,90,110,.8)}.inv[hidden]{display:none}
+.inv .iv{font-size:30px;line-height:1}.inv b{display:block;font-family:var(--serif);font-weight:400;font-size:26px;line-height:1.15}.inv span{display:block;margin-top:6px;font-size:15px;color:#f0e2e6}.inv .open{display:inline-block;margin-top:12px}
+.prev{margin-top:10px;padding:12px 13px;border-radius:13px;font-size:14.5px;line-height:1.45;color:#e9dfe4;background:rgba(0,0,0,.22);white-space:pre-wrap;overflow-wrap:anywhere}
+.btn.alt{background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
 .msg{font-size:14px;color:#ffd98a;margin-top:8px;min-height:20px}
 footer{margin-top:56px;font-size:13px;color:var(--muted);text-align:center}
 </style></head><body><div class="w">
 <div class="top"><div class="brand"><span class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M12 20s-7-4.4-7-9.500A4 4 0 0 1 12 8a4 4 0 0 1 7 2.500C19 15.600 12 20 12 20z"/></svg></span>Let’s <i>Together</i></div><a class="open" href="../" id="openapp">Open the app</a></div>
 
+<div class="inv" id="inv" hidden><span class="iv">💌</span><div><b id="invt"></b><span>It’s brand new and still in testing, so you’re among the first to try it. It takes about a minute to set up with your person.</span><a class="open" href="../">Start your couple</a></div></div>
 <h1>Stop asking <em>“what do you want to do?”</em></h1>
 <p class="lede">Let’s Together is a swipe app for two. You each say yes or no to movies, places to eat, things to do and trips. When you both say yes to the same thing, it’s a match, and the decision is made.</p>
-<nav><a href="#story">The story</a><a href="#how">How it works</a><a href="#install">Add to Home Screen</a><a href="#features">What it can do</a><a href="#board">Bugs and ideas</a></nav>
+<nav><a href="#story">The story</a><a href="#how">How it works</a><a href="#install">Add to Home Screen</a><a href="#features">What it can do</a><a href="#share">Invite friends</a><a href="#board">Bugs and ideas</a></nav>
 
 <section id="story"><div class="k">The story</div><h2>Why I built this</h2>
 <p>My partner and I kept having the same conversation. “What do you want to watch?” “I don’t know, what do you want to watch?” Forty minutes later we would still be scrolling, or we would give up and put on something neither of us picked.</p>
@@ -98,6 +106,12 @@ footer{margin-top:56px;font-size:13px;color:var(--muted);text-align:center}
 <div><b>Scratch card</b><span>Every so often, a peek at one thing your person liked that you have not matched on yet.</span></div>
 <div><b>Travel mode</b><span>Away from home? It offers places to eat and things to do where you are, on your phone only.</span></div>
 </div></section>
+
+<section id="share"><div class="k">Pass it on</div><h2>Know a couple who’d use this?</h2>
+<p>Every couple who tries it makes it better, and right now the only way in is an invite from someone already using it. Send yours: the link opens this page with <b>your name on the invitation</b>.</p>
+<div class="card"><input id="sn" maxlength="24" placeholder="Your first name" autocomplete="given-name">
+<div class="prev" id="sprev"></div>
+<button class="btn" id="sgo">Share your invite</button><button class="btn alt" id="scopy">Copy the link</button><div class="msg" id="smsg"></div></div></section>
 
 <section id="board"><div class="k">Help make it better</div><h2>Bugs and ideas</h2>
 <p>Found something broken or confusing? Wish it did something? Post it here. Tap the number on anything you agree with, and the most wanted rise to the top. I read every one and mark them as I fix them.</p>
@@ -148,5 +162,16 @@ $('#list').addEventListener('click', async e => {
   if (v) { const i = items.find(x => x.id === v.dataset.v); try { const r = await rpc('fb_vote', { p_id: i.id, p_device: dev }); i.voted = r.voted; i.votes = r.votes; draw(); } catch {} }
   if (a) { const [id, act] = a.dataset.a.split('|'); try { await rpc('fb_admin', { p_code: code, p_id: id, p_action: act }); await load(); } catch {} }
 });
+// invitations: ?from=Name puts that name on the top of the page; the share box makes such a link
+const clean = n => String(n || '').replace(/[^\p{L}\p{M}' .-]/gu, '').trim().split(/\s+/)[0]?.slice(0, 24) || '';
+const from = clean(new URLSearchParams(location.search).get('from'));
+if (from && !(code && me)) { $('#invt').textContent = `${from} invited you to Let’s Together`; $('#inv').hidden = false; document.title = `${from} invited you to Let’s Together`; }
+$('#sn').value = me || '';
+const sLink = () => { const n = clean($('#sn').value); return 'https://letstogether.app/hello/' + (n ? '?from=' + encodeURIComponent(n) : ''); };
+const sText = () => `You’re invited to a brand-new app I’ve been using: Let’s Together. You and your person each swipe on movies, places to eat and things to do, and it only shows what you both said yes to. No more “what do you want to do?” It’s still in testing, so you’d be one of the first.`;
+const sDraw = () => { $('#sprev').textContent = sText() + '\n' + sLink(); };
+$('#sn').addEventListener('input', sDraw); sDraw();
+$('#sgo').addEventListener('click', async () => { if (navigator.share) { try { await navigator.share({ text: sText(), url: sLink() }); } catch {} } else $('#scopy').click(); });
+$('#scopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText(sText() + '\n' + sLink()); $('#smsg').textContent = 'Copied. Paste it into a text.'; } catch { $('#smsg').textContent = 'Press and hold the message above to copy it.'; } });
 load();
 </script></body></html>
