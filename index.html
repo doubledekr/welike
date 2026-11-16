@@ -626,6 +626,10 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .hdr{gap:7px}.hdr .pill{height:30px;padding:0 12px;display:inline-flex;align-items:center;font-size:13px}
 .hdr .ib{width:40px;height:30px;border-radius:999px;font-size:16px;color:#ffe3da;background:linear-gradient(135deg,rgba(255,122,77,.42),rgba(255,77,126,.34));box-shadow:0 0 14px -6px rgba(255,90,100,.7)}
 .hdr .ib:active{transform:scale(.95)}
+/* Header icons are solid, like the heart: bell and gear filled, the search lens filled in. */
+.hdr .ib .ic path{fill:currentColor;fill-rule:evenodd}
+.hdr .ib[data-act="search"] .ic{stroke-width:2.3}
+.hdr .ib[data-tab="you"] .ic{stroke-width:.8;font-size:19px}
 /* Bell levels have to beat the header pill style above: 1 = something new to read (lit, steady),
    2 = something waiting on you (solid, slow pulse), 3 = waiting and soon (solid, quick pulse). */
 .hdr .ib.bell.lv1,.hdr .ib.bell.lv2,.hdr .ib.bell.lv3{color:#fff;background:linear-gradient(135deg,#ffd23f,#ffa514)}
@@ -721,7 +725,7 @@ const DECKS = {
   mix:      { label: 'Surprise me',  em: '🎲', hint: 'A bit of everything',       nudge: 'Surprise me' },
 };
 const ICONS = {
-  x: 'M6 6l12 12M18 6L6 18', heart: 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z',
+  x: 'M6 6l12 12M18 6L6 18', gear: 'M18.93 9.39 L21.41 10.09 L21.41 13.91 L18.93 14.61 L18.74 15.05 L20.00 17.30 L17.30 20.00 L15.05 18.74 L14.61 18.93 L13.91 21.41 L10.09 21.41 L9.39 18.93 L8.95 18.74 L6.70 20.00 L4.00 17.30 L5.26 15.05 L5.07 14.61 L2.59 13.91 L2.59 10.09 L5.07 9.39 L5.26 8.95 L4.00 6.70 L6.70 4.00 L8.95 5.26 L9.39 5.07 L10.09 2.59 L13.91 2.59 L14.61 5.07 L15.05 5.26 L17.30 4.00 L20.00 6.70 L18.74 8.95Z M15.10 12a3.1 3.1 0 1 0 -6.20 0a3.1 3.1 0 1 0 6.20 0z', heart: 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z',
   star: 'M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8-5.3-2.8-5.3 2.8 1-5.8-4.2-4.1 5.9-.9z',
   eye: 'M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12zM12 9.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z',
   undo: 'M9 14L4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11',
@@ -1057,7 +1061,7 @@ function homeHTML() {
     <div class="row hdr"><div class="brand grow hb">${MARK}<span>${BRAND}</span></div>
       <button class="pill ${st.counts.shortlist ? 'hot' : ''}" data-act="shortlist" aria-label="Shortlist">♥ ${st.counts.shortlist || 0}</button>
       <button class="ib" data-act="search" aria-label="Search movies">${ic('search')}</button>
-      ${bellHTML()}<button class="ib" data-tab="you" aria-label="You and settings">${ic('sliders')}</button></div>${slotHTML(incoming)}
+      ${bellHTML()}<button class="ib" data-tab="you" aria-label="You and settings">${ic('gear')}</button></div>${slotHTML(incoming)}
     <div class="seg" style="margin:8px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="${S.homeDeck === k ? 'on' : ''}">${l}${heartTag(k)}</button>`).join('')}</div>${scratchShow() && !S.awayOffer ? `<button class="scratch-pill" data-act="scratch">${ic('spark')}<span><b>A scratch card is waiting</b><small>One thing ${esc(p)} is in on</small></span><i>Scratch</i></button>` : ''}${S.awayOffer ? `<div class="trav"><span class="tic">${ic('pin')}</span><span class="grow"><b>Looks like you’re in ${esc(S.awayOffer.city)}</b><small>Show places to eat and things to do here?</small></span><button class="go" data-act="awayyes">Show</button><button class="x" data-act="awayno" aria-label="Not now">×</button></div>` : ''}${S.away && (S.homeDeck === 'dinner' || S.homeDeck === 'event') ? `<div class="row" style="justify-content:space-between;margin:6px 2px 0"><small class="muted" style="font-size:12.5px">${ic('pin')} Showing ${esc(S.away.city)} on this phone</small><button class="chip" data-act="awayoff" style="padding:5px 12px;font-size:13px">Back to home</button></div>` : ''}${S.homeDeck === 'movie' ? `<div class="row" style="margin:6px 2px 0"><button class="chip" data-act="movielib" style="padding:5px 12px;font-size:13px">${ic('film')} Movie library</button></div>` : ''}${shareChip()}${S.homeDeck === 'art' ? `<div class="row" style="justify-content:space-between;margin:6px 2px 0"><button class="chip" data-act="gallery" style="padding:5px 12px;font-size:13px">${ic('frame')} Our gallery</button><small class="muted" style="font-size:12.5px">No nudges, just likes</small></div>` : ''}${S.homeDeck === 'trip' ? `<div class="row" style="justify-content:space-between;margin:6px 2px 0"><button class="chip" data-act="trips" style="padding:5px 12px;font-size:13px">${ic('heart')} Saved trips</button><button class="chip ${S.tripCity ? 'on' : ''}" data-act="tripcity" style="padding:5px 12px;font-size:13px">${esc(S.tripCity || 'Anywhere')} ▾</button></div>` : ''}
     <small class="muted" id="prog" style="min-height:17px;text-align:center;font-size:12.5px;line-height:17px;margin-top:10px"></small>
     <div class="stack" id="stack" style="margin:10px 0 14px"><div class="done"><p class="muted">Dealing today's handful…</p></div></div>
