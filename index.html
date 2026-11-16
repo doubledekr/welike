@@ -965,7 +965,6 @@ function render() {
   loadBite();
 }
 function renderLanding() {
-  if (!standalone() && isPhone() && !S.tourAnyway) return renderA2hsFirst();
   const ios = /iphone|ipad|ipod/i.test(navigator.userAgent), st = (n, t) => `<div class="step"><span class="num">${n}</span><span>${t}</span></div>`;
   const slide = (art, h, p, extra = '') => `<section class="ob-slide"><div class="ob-card">${art}<h2>${h}</h2><p>${p}</p>${extra}</div></section>`;
   const slides = [
@@ -973,13 +972,10 @@ function renderLanding() {
     slide(`<div class="ob-art"><span class="mini no">${ic('x')}</span><span class="mini yes">${ic('heart')}</span></div>`, 'Swipe separately', 'Movies, places to eat, local events and someday trips. No thanks, like it, or love it. Your swipes stay private unless you both like something, apart from a rare scratch-card hint.'),
     slide(`<div class="ob-art"><span class="mini a"></span><span class="mini b"></span><span class="badge" style="position:absolute">${ic('heart')}</span></div>`, 'See what you both like', 'When you have both said yes to the same thing, it is a match. Matches collect in a shared library you can open any time.'),
     slide(`<div class="ob-art"><span class="badge">${ic('shuffle')}</span></div>`, 'Decide tonight', 'Pick a match, shuffle one at random, send a trailer for a quick yes or no, or play a tie-breaker and let the winner choose.'),
-    ...(standalone() ? [] : [slide(`<div class="ob-art"><span class="badge">${ic('share')}</span></div>`, 'First, save it to your Home Screen', 'Do this before you sign up, so it opens full screen and nudges reach you.',
-      `<div class="steps" style="text-align:left;margin:4px 0 0">${a2hsSteps().html}${st('✓', 'Open Let’s Together from the new icon')}</div>`)]),
-    slide(`${MARK}`, 'Ready when you are', 'Start a new couple to get an invite link for your better half. No email or password, just your first name.',
+    slide(`${MARK}`, 'Ready when you are', 'Start a new couple to get an invite link for your better half. No email or password, just your first name. Then we’ll help you put it on your Home Screen.',
       `<button class="btn" data-act="getstarted" data-mode="new">Start a new couple</button><button class="btn ghost" data-act="getstarted" data-mode="code">I have a code from my partner</button>`),
   ];
   $app.innerHTML = `<div class="ob"><div class="ob-top"><div class="brand hb">${MARK}<span>${BRAND}</span></div><button class="btn ghost sm" data-act="getstarted" data-mode="code">I have a code</button></div>
-    ${standalone() ? '' : `<button class="ob-ban" data-act="obhome">${ic('share')}<span><b>Save to your Home Screen first</b><small>Then open it from the icon to sign up</small></span><i>How</i></button>`}
     <div class="ob-pager" id="obp">${slides.join('')}</div>
     <div class="ob-dots" id="obd">${slides.map((_, i) => `<i class="${i ? '' : 'on'}"></i>`).join('')}</div>
     <div class="ob-foot"><button class="btn" data-act="obnext" id="obn">Next</button><button class="jlink" data-act="getstarted" data-mode="new" id="obs">Skip the tour and start a new couple</button></div></div>`;
@@ -1016,7 +1012,6 @@ function renderJoin() {
   if (pre) {   // arrived from an invite link
     $app.innerHTML = `<div class="center jinv"><div class="jtop">${MARK}<div class="brand">${BRAND}</div></div>
       <h1 id="jhead">You’re invited</h1><p class="muted jlead" id="jlead">Enter your first name to pair up and start swiping together.</p>
-      ${home}
       <label class="field"><span>Your first name</span><input id="jn" autocomplete="given-name" maxlength="24" placeholder="First name"></label>
       <label class="field"><span>Couple code</span><input id="jc" autocapitalize="characters" autocomplete="off" maxlength="12" value="${esc(pre)}" placeholder="8 letters and numbers"></label><div id="jwho"></div>
       <div style="height:18px"></div><button class="btn" id="jgo">Join</button>
@@ -1026,7 +1021,6 @@ function renderJoin() {
     $app.innerHTML = `<div class="center jinv"><button class="btn ghost sm" data-act="landing" style="width:auto;align-self:flex-start;margin-bottom:14px">‹ How it works</button>
       <div class="jtop">${MARK}<div class="brand">${BRAND}</div></div>
       <h1>${isNew ? 'Start your couple' : 'Got a couple code?'}</h1><p class="muted jlead">${isNew ? 'Enter your first name and home ZIP. You will get an invite link to send to your better half.' : 'A couple code comes from your partner’s invite, or from when you first signed up. It is not something you make up. Enter it below, then your first name.'}</p>
-      ${home}
       <label class="field"><span>Your first name</span><input id="jn" autocomplete="given-name" maxlength="24" placeholder="First name"></label>
       ${isNew ? `<label class="field"><span>Home ZIP code, for restaurants and events near you</span><input id="jz" inputmode="numeric" autocomplete="postal-code" maxlength="5" placeholder="48201"></label><input id="jc" type="hidden" value="">`
         : `<label class="field"><span>Code from your invite</span><input id="jc" autocapitalize="characters" autocomplete="off" maxlength="12" placeholder="From your partner’s message"></label>`}<div id="jwho"></div>
@@ -2033,8 +2027,8 @@ function a2hsMoment(why) {
 function installSheet(why) {
   carrySignIn(); step('a2hs' + (why ? ':' + why : '')); const g = a2hsSteps(), p = partner();
   if (bip) { sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('plus')}</span><h2>${why === 'match' ? 'Nice match.' : ''} Put it on your Home Screen</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">One tap. Then ${esc(p || 'your other half')} can reach you with a nudge when they pick something.</p></div></div><div style="height:16px"></div><button class="btn" data-act="hshow">Install</button><div style="height:10px"></div><button class="btn ghost" data-act="a2hslater">Not now</button>`); return; }
-  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('share')}</span><h2>${why === 'match' ? 'Nice match! Now put it on your Home Screen' : 'Put it on your Home Screen'}</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">${why === 'match' ? `Next time you and ${esc(p || 'your person')} match, you’ll get a ping.` : `So ${esc(p || 'your other half')} can reach you with a nudge when they pick something.`} It takes ten seconds.</p></div></div>
-    <div class="steps">${g.html}<div class="step"><span class="num">✓</span><span>Open <b>Let’s Together</b> from the new icon. You’ll still be signed in</span></div></div>
+  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('share')}</span><h2>${why === 'match' ? 'Nice match! Now put it on your Home Screen' : why === 'new' ? 'You’re in. Now put it on your Home Screen' : 'Put it on your Home Screen'}</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">${why === 'match' ? `Next time you and ${esc(p || 'your person')} match, you’ll get a ping.` : `So ${esc(p || 'your other half')} can reach you with a nudge when they pick something.`} It takes ten seconds.</p></div></div>
+    <div class="steps">${g.html}<div class="step"><span class="num">✓</span><span>Open <b>Let’s Together</b> from the new icon. You’ll already be signed in${why === 'new' && !partner() ? ', and you can send your invite from there' : ''}</span></div></div>
     <div class="note" style="margin:0 0 16px">If it ever asks you to sign in, tap <b>I have a code</b>, enter <b>${esc(S.code)}</b> and tap your name.</div>
     <button class="btn" data-act="a2hsdone">Done, I’ve added it</button><div style="height:10px"></div><button class="btn ghost" data-act="a2hslater">Later</button>`);
   a2hsArrow(g.arrow);
@@ -2066,9 +2060,8 @@ function pushAskSheet() {
 }
 function nextOnboard() {
   if (!S.code || !S.me || S.view !== 'home') return;
+  if (!standalone() && isPhone() && !ls.get('a2hs') && Date.now() - Number(ls.get('a2ask') || 0) > 20 * 36e5) { ls.set('a2ask', String(Date.now())); return installSheet('new'); }
   if (needInvite()) return inviteSheet();   // first thing: get the other half in. Asks again once a day, four times at most
-  // In the browser the Home Screen comes first: it is what gives the app nudges. "Later" brings it back the next day.
-  if (!standalone() && isPhone() && !ls.get('a2hs') && Date.now() - Number(ls.get('a2ask') || 0) > 20 * 36e5) { ls.set('a2ask', String(Date.now())); return installSheet(); }
   if (needSetup()) return setupSheet();
   if (holdForInstall()) return;   // this-phone steps wait for the Home Screen app, for a day
   // Opened from the Home Screen icon: notifications first, since they are the reason for the icon.
