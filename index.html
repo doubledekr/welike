@@ -2571,7 +2571,7 @@ document.addEventListener('click', async e => {
         catch (er) { t.disabled = false; return toast(String(er.message || er).includes('name_taken') ? 'Your other half already uses that name.' : 'Could not change the name. Try again.'); } }
       case 'tourany': S.tourAnyway = true; a2hsArrow(''); step('tour_anyway'); return render();
       case 'getstarted': a2hsArrow(''); step('form_' + (ds.mode || 'code')); S.joinForm = true; S.joinMode = ds.mode || 'code'; return render();
-      case 'obhome': { const pg = document.getElementById('obp'); if (pg) pg.scrollTo({ left: pg.clientWidth * (pg.children.length - 2), behavior: 'smooth' }); return; }
+      case 'obhome': if (!standalone() && isPhone()) { S.tourAnyway = false; return render(); } { const pg = document.getElementById('obp'); if (pg) pg.scrollTo({ left: pg.clientWidth * (pg.children.length - 2), behavior: 'smooth' }); return; }
       case 'obnext': { const pg = document.getElementById('obp'); if (pg) pg.scrollBy({ left: pg.clientWidth, behavior: 'smooth' }); return; }
       case 'landing': S.joinForm = false; return render();
       case 'sendrec': t.disabled = true; return sendRec(S.detailCard);
