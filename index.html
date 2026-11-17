@@ -772,6 +772,23 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .seg .hc{font-size:0;padding:0;top:4px;right:7px;bottom:auto;width:6px;height:6px;border-radius:50%;background:#ff5c8a;box-shadow:0 0 6px rgba(255,92,138,.8);transition:all .2s}
 .seg button.on .hc{font-size:9.5px;width:auto;height:auto;border-radius:99px;padding:0 5px;top:-7px;right:-2px;line-height:15px;background:linear-gradient(135deg,#ff7a4d,#ff4d7e)}
 
+
+/* tonight: a loose pile of five */
+.tdeck{position:relative;width:min(250px,68vw);aspect-ratio:250/330;margin:30px auto 22px;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab}
+.tpc{position:absolute;inset:0;border-radius:28px;overflow:hidden;color:#fff;background:linear-gradient(155deg,var(--c1),var(--c2));will-change:transform}
+.tpc .cbg{position:absolute;right:-26px;bottom:-24px;font-size:170px;opacity:.16;transform:rotate(-12deg);line-height:1}
+.tpc .cic{position:absolute;left:16px;top:16px;width:50px;height:50px;border-radius:16px;display:grid;place-items:center;font-size:26px;background:rgba(255,255,255,.22)}
+.tpc .cnum{position:absolute;right:16px;top:20px;font-size:12px;font-weight:700;background:rgba(0,0,0,.22);padding:4px 9px;border-radius:99px}
+.tpc .ctx{position:absolute;left:18px;right:16px;bottom:18px}.tpc .ctx b{display:block;font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.05}.tpc .ctx small{display:block;font-size:13.5px;line-height:1.3;opacity:.92;margin-top:6px}
+.tdots{display:flex;justify-content:center;gap:7px;margin:14px 0 6px}.tdots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.2);transition:background .3s,transform .3s}.tdots i.on{background:#ff8a6a;transform:scale(1.3)}
+/* a plan opened from a banner or the inbox arrives in its own color: a burst, a rim that settles, and each stop lighting in turn */
+.scrim.kglow::before{content:"";position:fixed;left:50%;top:22%;width:60px;height:60px;margin:-30px;border-radius:50%;background:radial-gradient(circle,var(--kb),transparent 70%);filter:blur(6px);pointer-events:none;animation:kbloom .9s ease-out calc(0s - var(--ke,0s)) both}
+@keyframes kbloom{0%{opacity:0;transform:scale(1)}40%{opacity:.85;transform:scale(9)}100%{opacity:0;transform:scale(16)}}
+.scrim.kglow .sheet{animation:pop .22s cubic-bezier(.2,.9,.3,1),kglow 1.6s ease-out calc(.1s - var(--ke,0s)) forwards}
+@keyframes kglow{0%{box-shadow:0 0 0 0 transparent}35%{box-shadow:0 0 70px 8px var(--kg)}100%{box-shadow:0 0 36px -8px var(--kg)}}
+.scrim.kset .sheet{box-shadow:0 0 36px -8px var(--kg)}
+.scrim.kglow .prow{border-radius:14px;animation:kpulse .9s ease-out both;animation-delay:calc(.35s + var(--i,0) * .11s - var(--ke,0s))}
+@keyframes kpulse{0%{opacity:0;transform:translateY(12px)}40%{opacity:1;transform:none;box-shadow:0 0 22px -2px var(--kg)}100%{box-shadow:0 0 0 0 transparent}}
 </style>
 </head>
 <body>
@@ -1215,10 +1232,11 @@ async function shareApp() {
 }
 function tonightSheet() {
   const st = S.state, p = partner(), latest = (st.sessions || []).find(s => s.from !== S.me && s.my_left > 0), rest = (st.sessions || []).filter(s => s !== latest);
-  const CATS = { movie: ['#8b5cf6', '#3b1d8f'], dinner: ['#fbab3c', '#c2410c'], activity: ['#2dd4bf', '#0f6b63'], event: ['#4d9bff', '#1e3a8a'], mix: ['#ff7a4d', '#ff4d7e'] };
-  let h = `<div class="grab"></div><div class="tn"><div class="tn-head"><div class="brand">${BRAND}</div><h2>What should we<br>do tonight?</h2><p class="muted" style="margin-top:8px;font-size:14px">${p ? `Pick one. ${esc(p)} gets the same cards.` : 'Pick one to start a round.'}</p></div>
-    <div class="crow">` + ['movie', 'dinner', 'activity', 'event', 'mix'].map(d => `<button class="ccard" data-nudge="${d}" style="--c1:${CATS[d][0]};--c2:${CATS[d][1]}"><span class="cbg">${ic(DIC[d])}</span><span class="cic">${ic(DIC[d])}</span><span class="ctx"><b>${DECKS[d].label}</b><small>${DECKS[d].hint}</small></span></button>`).join('') + `</div>
-    <button class="tile wide" data-act="movielib" style="width:100%"><span class="tic">${ic('film')}</span><span><b>Movie library</b><small>Pick from your matches, shuffle, send a pick or play for it</small></span></button>`;
+  // One brand family for all five: color is kept for what is happening (Friday, Saturday, partner, booking, match), and the icon and name tell these apart.
+  const CATS = { movie: ['#ff7a62', '#d9365e'], dinner: ['#ff8f5a', '#e0475f'], activity: ['#ff6f86', '#b83270'], event: ['#ff9b6b', '#cf3f55'], mix: ['#ff7f7f', '#c43a7a'] }, TD = ['movie', 'dinner', 'activity', 'event', 'mix'];
+  let h = `<div class="grab"></div><div class="tn"><div class="tn-head"><div class="brand">${BRAND}</div><h2>What should we<br>do tonight?</h2><p class="muted" style="margin-top:8px;font-size:14px">Swipe to flip through. Tap one to start${p ? `, and ${esc(p)} gets the same cards` : ''}.</p></div>
+    <div class="tdeck" id="tdeck">` + TD.map((d, i) => `<div class="tpc" data-k="${d}" style="--c1:${CATS[d][0]};--c2:${CATS[d][1]}"><span class="cbg">${ic(DIC[d])}</span><span class="cic">${ic(DIC[d])}</span><span class="cnum">${i + 1} of ${TD.length}</span><span class="ctx"><b>${DECKS[d].label}</b><small>${DECKS[d].hint}</small></span></div>`).join('') + `</div>
+    <div class="tdots">${TD.map(() => '<i></i>').join('')}</div>`;
   // Only the newest round can be "in progress": it has to be from the last 18 hours, not decided yet, and still have cards waiting. An older unfinished round never comes back once a newer one exists.
   const last = rest.find(s => !s.filters?.bite && !s.filters?.solo && !s.filters?.share && !s.filters?.evshare);
   const cur = last && !last.filters?.final && !last.filters?.narrow_child && Date.now() - new Date(last.created_at) < 18 * 36e5 && (last.from === S.me ? (last.my_left > 0 || last.their_left > 0) : last.my_left > 0) ? last : null;
@@ -1226,6 +1244,43 @@ function tonightSheet() {
     const name = cur.filters?.matched ? 'From your matches' : cur.filters?.evshare ? (cur.from === S.me ? 'Events you sent' : esc(cur.from) + '’s event picks') : cur.filters?.share ? (cur.from === S.me ? 'Places you sent' : esc(cur.from) + '’s place picks') : cur.filters?.wishlist ? (cur.from === S.me ? 'Your wishlist' : esc(cur.from) + '’s wishlist') : cur.filters?.rewatch ? 'Watch again?' : cur.filters?.second ? 'Second look' : DECKS[cur.deck].label;
     h += `<div class="sect">Round in progress</div><button class="sess" data-open="${cur.id}"><span class="tic">${ic(DIC[cur.deck])}</span><span class="grow"><b>${name}</b><small>Started ${ago(cur.created_at)} · ${status}</small></span>${cur.matches ? `<span class="pill hot">${cur.matches} match${cur.matches > 1 ? 'es' : ''}</span>` : ''}</button>`; }
   sheet(h.replace('<div class="sect">Round in progress</div>', '</div><div class="sect">Round in progress</div>') + (cur ? '' : '</div>'));
+  tdeckInit();
+}
+// The "tonight" cards lie in a loose pile. Swipe the top one either way and it slides back under the pile; tap it to start that round.
+function tdeckInit() {
+  const deck = document.getElementById('tdeck'); if (!deck) return;
+  const cards = [...deck.children], dots = [...document.querySelectorAll('.tdots i')], order = cards.map((_, i) => i), K = cards.map(c => c.dataset.k);
+  let seed = 11; const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
+  const jit = c => { const sg = rnd() < .5 ? -1 : 1; c._j = { x: (rnd() - .5) * 30, y: (rnd() - .5) * 18, r: sg * (3 + rnd() * 7) }; };
+  const look = (c, i) => { const j = c._j, t = i === 0; return { transform: `translate(${t ? j.x * .25 : j.x}px,${(t ? j.y * .25 : j.y) + i * 3}px) rotate(${t ? j.r * .3 : j.r}deg)`, filter: `brightness(${1 - i * .09})`, boxShadow: t ? '0 22px 38px -14px rgba(0,0,0,.9)' : '0 8px 18px -8px rgba(0,0,0,.85)' }; };
+  const place = (c, i, ms = 0) => { const k = look(c, i), from = { transform: c.style.transform, filter: c.style.filter, boxShadow: c.style.boxShadow }; c.style.zIndex = 10 - i; Object.assign(c.style, k); if (ms && from.transform) c.animate([from, k], { duration: ms, easing: 'cubic-bezier(.2,.9,.25,1)' }); };
+  const paint = () => dots.forEach((d, i) => d.classList.toggle('on', i === order[0]));
+  cards.forEach((c, i) => { jit(c); place(c, i); c.animate([{ transform: `translate(${i % 2 ? 60 : -60}px,240px) rotate(${i % 2 ? 25 : -25}deg)`, opacity: 0 }, { transform: c.style.transform, opacity: 1 }], { duration: 520, delay: (cards.length - 1 - i) * 80, easing: 'cubic-bezier(.2,.9,.25,1)', fill: 'backwards' }); });
+  paint();
+  let drag = null, busy = false;
+  const top = () => cards[order[0]];
+  const cycle = async dir => {
+    busy = true; const c = top(), nx = cards[order[1]];
+    nx.animate([{ boxShadow: '0 0 0 0 transparent' }, { boxShadow: '0 0 70px 14px rgba(255,90,120,.8)' }, { boxShadow: look(nx, 0).boxShadow }], { duration: 800 });
+    const out = `translateX(${dir * 340}px) rotate(${dir * 22}deg)`;
+    await c.animate([{ transform: c.style.transform }, { transform: out }], { duration: 190, easing: 'ease-in' }).finished;
+    order.push(order.shift()); order.forEach((k, i) => { if (cards[k] !== c) place(cards[k], i, 380); });
+    jit(c); c.style.transform = out; place(c, order.length - 1, 600); c.style.zIndex = 1; paint();
+    setTimeout(() => { c.style.zIndex = 10 - order.indexOf(cards.indexOf(c)); busy = false; }, 260);
+  };
+  const pick = () => {
+    busy = true; const c = top(), d = c.dataset.k;
+    c.animate([{ transform: c.style.transform, boxShadow: c.style.boxShadow }, { transform: 'translateY(-6px) scale(1.06)', boxShadow: '0 0 80px 16px rgba(255,90,120,.9)' }], { duration: 260, easing: 'ease-out', fill: 'forwards' });
+    cards.forEach(x => { if (x !== c) x.animate([{ opacity: 1 }, { opacity: 0, transform: x.style.transform + ' translateY(30px)' }], { duration: 260, fill: 'forwards' }); });
+    setTimeout(() => nudgeSheet(d), 320);
+  };
+  deck.addEventListener('pointerdown', e => { if (busy) return; drag = { x: e.clientX, y: e.clientY, t: Date.now(), dx: 0, base: top().style.transform }; deck.setPointerCapture(e.pointerId); });
+  deck.addEventListener('pointermove', e => { if (!drag) return; drag.dx = e.clientX - drag.x; if (Math.abs(drag.dx) > 4) top().style.transform = `${drag.base} translateX(${drag.dx}px) rotate(${drag.dx / 14}deg)`; });
+  const end = e => { if (!drag) return; const g = drag; drag = null; const moved = Math.abs(g.dx);
+    if (moved > 55) return cycle(g.dx > 0 ? 1 : -1);
+    if (moved < 8 && Math.abs(e.clientY - g.y) < 10 && Date.now() - g.t < 600 && e.type === 'pointerup') return pick();
+    const c = top(); c.animate([{ transform: c.style.transform }, { transform: g.base }], { duration: 260, easing: 'cubic-bezier(.2,.9,.25,1)' }); c.style.transform = g.base; };
+  deck.addEventListener('pointerup', end); deck.addEventListener('pointercancel', end);
 }
 /* ---------- plan a day ---------- */
 // A plan is a date and two to four things in order, built from what both people have liked. One person puts it
@@ -1465,10 +1520,13 @@ function daySheet(id) {
     : `<div style="height:14px"></div><button class="btn" data-pl="resp|yes">I’m in</button><div class="row" style="gap:10px;margin-top:10px"><button class="btn ghost" data-pl="edit" style="flex:1">Change something</button><button class="btn ghost" data-pl="resp|${auto ? 'busy' : 'drop'}" style="flex:1">${auto ? 'We already have plans' : 'Not this time'}</button></div>`;
   const shapes = sh ? `<div class="kv pshape">Rather do something else tonight?</div><div class="chips">${Object.entries(FSHAPE).map(([k, l]) => `<button class="chip ${k === sh ? 'on' : ''}" data-pl="shape|${k}">${l}</button>`).join('')}</div>` : '';
   S.plView = p.id;
+  if (!$layer.querySelector('.sheet #pwx') || S.kgId !== id) { S.kgId = id; S.kgAt = Date.now(); }
   sheet(`<div class="grab"></div><div class="body"><h2>${auto ? pAutoName(p) + (pDayName(p.day) !== dfmt(p.day) ? ' · ' + pDayName(p.day) : '') : pDayName(p.day) + (p.mode === 'in' ? ': a night in' : '')}</h2><p class="muted" style="margin-top:6px;font-size:14px">${auto ? (solo ? 'Put together from what you like.' : `Put together from what you both like${p.by !== 'auto' ? `, then changed by ${p.by === S.me ? 'you' : esc(p.by)}` : ''}. Swap anything you like.`) : `${p.by === S.me ? 'You' : esc(p.by)} put this together${pDayName(p.day) !== dfmt(p.day) ? ' for ' + esc(dfmt(p.day)) : ''}.`}</p>
     <div id="pwx" class="pwx" hidden></div>
     <div style="margin-top:8px">${p.items.map(row).join('')}</div>${shapes}
     ${near.length ? `<p class="muted" style="margin-top:12px;font-size:13px">Also a short walk away, and you both like them: ${near.map(x => `${esc(x.c.title)} (${x.mi} mi)`).join(', ')}.</p>` : ''}${acts}</div>`);
+  { const sc = $layer.querySelector('.scrim'), el = (Date.now() - S.kgAt) / 1000, on = el < 1.9;   // a redraw while it is still arriving carries on from where it was
+    sc?.classList.add('kc', 'k-' + pKind(p), on ? 'kglow' : 'kset'); if (on) { sc.style.setProperty('--ke', el + 's'); sc.querySelectorAll('.prow').forEach((r, i) => r.style.setProperty('--i', i)); } }
   pWeatherFill(p);
   if (!S.pool) dayPool().then(() => { if (S.plView === id && document.querySelector('[data-pl^="resp"],[data-pl="edit"]')) daySheet(id); }).catch(() => {});
 }
