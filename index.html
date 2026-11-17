@@ -897,6 +897,18 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 /* the logo's glow follows its rounded shape (a plain shadow on the drawing came out square on iPhone) */
 .mark{box-shadow:none!important;filter:drop-shadow(0 4px 8px rgba(255,90,100,.55))}
 .splash .mark,.sco .mark{filter:drop-shadow(0 0 22px rgba(255,90,100,.75))}
+
+/* the gold card's glow is one soft light behind the whole pile */
+.thalo.gold{background:radial-gradient(closest-side,rgba(255,205,95,.95),rgba(255,190,70,.5) 60%,transparent);animation:none;filter:blur(26px)}
+.thalo.gold.show{opacity:.75}
+/* plan a day */
+.pday .tripbar{margin-top:10px}
+.tcard.pa{flex:0 0 min(44vw,170px);aspect-ratio:1/1;border-radius:22px;background:linear-gradient(160deg,color-mix(in srgb,var(--ka) 22%,#21161b),#1a1115 62%);box-shadow:0 12px 26px -14px #000;color:#fff}
+.tcard.pa.both{box-shadow:0 12px 26px -14px #000,0 0 26px -6px var(--kg)}
+.tcard.pa .pimg{position:absolute;inset:0;display:grid;place-items:center;font-size:44px;padding-bottom:22%}
+.tcard.pa .who{position:absolute;left:10px;top:10px;font-style:normal;font-size:11px;font-weight:700;padding:4px 9px;border-radius:99px;background:rgba(10,6,10,.55);color:#fff;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.tcard.pa.both .who{background:linear-gradient(135deg,var(--ka),var(--kb))}
+.parow{padding-bottom:22px}
 </style>
 </head>
 <body>
@@ -1363,10 +1375,10 @@ function tdeckInit() {
   const cards = [...deck.children], dots = [...document.querySelectorAll('.tdots i')], order = cards.map((_, i) => i), K = cards.map(c => c.dataset.k);
   let seed = 11; const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
   const jit = c => { const sg = rnd() < .5 ? -1 : 1; c._j = { x: (rnd() - .5) * 30, y: (rnd() - .5) * 18, r: sg * (3 + rnd() * 7) }; };
-  const look = (c, i) => { const j = c._j, t = i === 0; return { transform: `translate(${t ? j.x * .25 : j.x}px,${(t ? j.y * .25 : j.y) + i * 3}px) rotate(${t ? j.r * .3 : j.r}deg)`, filter: t ? 'none' : `brightness(${1 - i * .09})`, boxShadow: t ? `0 22px 38px -14px rgba(0,0,0,.9), ${c.classList.contains('goldc') ? '0 0 18px -2px rgba(255,214,110,.6), 0 0 56px 0' : '0 0 46px -6px'} ${getComputedStyle(c).getPropertyValue('--kg').trim() || 'rgba(255,150,130,.6)'}` : '0 8px 18px -8px rgba(0,0,0,.85)' }; };
+  const look = (c, i) => { const j = c._j, t = i === 0; return { transform: `translate(${t ? j.x * .25 : j.x}px,${(t ? j.y * .25 : j.y) + i * 3}px) rotate(${t ? j.r * .3 : j.r}deg)`, filter: t ? 'none' : `brightness(${1 - i * .09})`, boxShadow: t ? `0 22px 38px -14px rgba(0,0,0,.9), ${c.classList.contains('goldc') ? '0 0 0 0 transparent' : '0 0 46px -6px ' + (getComputedStyle(c).getPropertyValue('--kg').trim() || 'rgba(255,150,130,.6)')}` : '0 8px 18px -8px rgba(0,0,0,.85)' }; };
   const place = (c, i, ms = 0) => { const k = look(c, i), from = { transform: c.style.transform, filter: c.style.filter, boxShadow: c.style.boxShadow }; c.style.zIndex = 10 - i; Object.assign(c.style, k); if (ms && from.transform) c.animate([from, k], { duration: ms, easing: 'cubic-bezier(.2,.9,.25,1)' }); };
   const halo = document.createElement('div'); halo.className = 'thalo'; deck.prepend(halo);
-  const paint = () => { dots.forEach((d, i) => d.classList.toggle('on', i === order[0])); cards.forEach((c, i) => c.classList.toggle('top', i === order[0])); const mx = cards[order[0]].classList.contains('mixc'); halo.classList.toggle('show', mx); if (mx && !wtop) wspin(); wtop = mx; tiltWatch(); };
+  const paint = () => { dots.forEach((d, i) => d.classList.toggle('on', i === order[0])); cards.forEach((c, i) => c.classList.toggle('top', i === order[0])); const mx = cards[order[0]].classList.contains('mixc'), gd = cards[order[0]].classList.contains('goldc'); halo.classList.toggle('show', mx || gd); halo.classList.toggle('gold', gd); if (mx && !wtop) wspin(); wtop = mx; tiltWatch(); };
   // Surprise me is a prize wheel: one flat picture the phone just turns. It spins to a stop each time the card comes to the top.
   const whl = deck.querySelector('.whl'); let wrot = 0, wtop = false;
   const wspin = () => { if (!whl || matchMedia('(prefers-reduced-motion: reduce)').matches) return; const to = wrot + 1080 + Math.random() * 360; whl.getAnimations().forEach(a => a.cancel()); whl.animate([{ transform: `rotate(${wrot}deg)` }, { transform: `rotate(${to}deg)` }], { duration: 2600, easing: 'cubic-bezier(.12,.6,.1,1)', fill: 'forwards' }); wrot = to % 360; };
@@ -1380,7 +1392,7 @@ function tdeckInit() {
   const cycle = (dir, from, vx = 0) => {
     const c = top(), nx = cards[order[1]];
     const ng = getComputedStyle(nx).getPropertyValue('--kg').trim() || 'rgba(255,140,120,.8)';
-    nx.animate([{ boxShadow: '0 0 0 0 transparent' }, { boxShadow: `0 0 70px 14px ${ng}` }, { boxShadow: look(nx, 0).boxShadow }], { duration: 800 });
+    if (!nx.classList.contains('goldc')) nx.animate([{ boxShadow: '0 0 0 0 transparent' }, { boxShadow: `0 0 70px 14px ${ng}` }, { boxShadow: look(nx, 0).boxShadow }], { duration: 800 });
     const out = `translate(${dir * 400}px,${(from.dy || 0) * 1.4}px) rotate(${dir * 26}deg)`, speed = Math.min(Math.abs(vx), 3);
     c.style.zIndex = 40; c.getAnimations().forEach(a => a.cancel());
     const fly = c.animate([{ transform: from.t }, { transform: out }], { duration: speed > .6 ? 170 : 230, easing: speed > .6 ? 'cubic-bezier(.2,.6,.4,1)' : 'cubic-bezier(.4,.1,.6,1)' });
@@ -1505,14 +1517,16 @@ async function dayStart() {
   await dayPool(); try { S.plans = await rpc('plan_list', { p_code: S.code }); } catch {}
   const t = pToday(), live = (S.plans || []).filter(p => p.day >= t && (p.status === 'sent' || p.status === 'agreed'));
   const anch = S.pool.filter(c => c.deck === 'event' || (c.deck === 'dinner' && c.kind !== 'cook')).sort((a, b) => (isDated(b) - isDated(a)) || String(a.event_date || '').localeCompare(String(b.event_date || '')) || ((b.loves || 0) - (a.loves || 0))).slice(0, 14);
-  S.listCards = anch;
-  sheet(`<div class="grab"></div><div class="body"><h2>Plan a day</h2><p class="muted" style="margin-top:6px;font-size:14px">Put two or three things you both like into one day, then send it to ${esc(them())}.</p>
-    ${live.map(p => `<button class="sess" data-pl="view|${p.id}"><span class="tic">${ic('list')}</span><span class="grow"><b>${pDayName(p.day)}${p.mode === 'in' ? ' · night in' : ''}</b><small>${pSum(p)} · ${pStatus(p)}</small></span><span class="pill ${p.ok?.[S.me] ? '' : 'hot'}">Open</span></button>`).join('')}
-    <div style="height:12px"></div>
-    <button class="tile wide" data-pl="new|out" style="width:100%"><span class="tic">${ic('pin')}</span><span><b>Build a whole day</b><small>Somewhere in the daytime, dinner, and something after</small></span></button>
-    <div style="height:8px"></div>
-    <button class="tile wide" data-pl="new|in" style="width:100%"><span class="tic">${ic('film')}</span><span><b>Night in</b><small>A movie you both want, and dinner to order or cook</small></span></button>
-    ${anch.length ? `<div class="sect">Or plan around one thing</div>${anch.map(c => `<div class="prow">${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy">` : `<span class="pimg">${emojiFor(c)}</span>`}<span class="grow"><b>${esc(c.title)}</b><small>${isDated(c) ? esc(dfmt(c.event_date) + (c.data?.time ? ' · ' + c.data.time : '')) : esc(c.subtitle || '')}</small></span><button class="pill" data-pl="around|${c.id}">Plan</button></div>`).join('')}` : `<p class="muted" style="margin-top:18px;font-size:13.5px">Nothing in Eat or Go out that you have both liked yet. You can still start a plan and find places together as you go.</p>`}
+  let mine = []; try { mine = (await rpc('plan_my_likes', { p_code: S.code, p_member: S.me })).filter(c => !anch.some(x => x.id === c.id)); } catch {}
+  S.listCards = [...anch, ...mine];
+  const pk = p => p.mode === 'in' || pKind(p) === 'fri' ? 'fri' : 'sat';
+  const tile = (c, both) => `<button class="tcard pa kc k-${CK[c.deck] || 'ask'} ${both ? 'both' : ''}" data-pl="around|${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy" draggable="false">` : `<span class="pimg">${emojiFor(c)}</span>`}<i class="who">${both ? 'You both like' : 'You like'}</i><span class="tt"><b>${esc(c.title)}</b><small>${isDated(c) ? esc(dfmt(c.event_date) + (c.data?.time ? ' · ' + c.data.time : '')) : esc((c.subtitle || '').split(' · ')[0])}</small></span></button>`;
+  sheet(`<div class="grab"></div><div class="tn pday"><div class="tn-head"><div class="brand">${BRAND}</div><h2>Plan a day</h2><p class="muted" style="margin-top:8px;font-size:14px">Two or three things in one day, sent to ${esc(them())} to say yes or swap.</p></div>
+    ${live.map(p => `<button class="tripbar kc k-${pk(p)}" data-pl="view|${p.id}" style="width:100%;text-align:left"><span class="tic">${ic(pk(p) === 'fri' ? 'moon' : 'sun')}</span><span class="grow"><b>${pDayName(p.day)}${p.mode === 'in' ? ' · night in' : ''}</b><small>${pSum(p)} · ${pStatus(p)}</small></span><span class="go ${p.ok?.[S.me] ? '' : 'blink'}">Open</span></button>`).join('')}
+    <div class="stiles" style="margin-top:14px"><button class="stile kc k-sat" data-pl="new|out"><span class="tic">${ic('sun')}</span><span><b>A whole day</b><small>Daytime, dinner, something after</small></span></button>
+      <button class="stile kc k-fri" data-pl="new|in"><span class="tic">${ic('moon')}</span><span><b>Night in</b><small>A movie, and dinner to order or cook</small></span></button></div>
+    ${S.listCards.length ? `<div class="sect" style="margin-top:20px">Or plan around one thing</div><p class="muted" style="font-size:13px;margin-top:-2px">Swipe through what you like. Tap one to build a day around it.</p>
+      <div class="trow parow">${anch.map(c => tile(c, true)).join('')}${mine.map(c => tile(c, false)).join('')}</div>` : `<p class="muted" style="margin-top:18px;font-size:13.5px">Nothing liked in Eat or Go out yet. You can still start a plan and find places together as you go.</p>`}
   </div>`);
 }
 function dayDraft({ mode = 'out', anchor = null, plan = null }) {
@@ -2599,7 +2613,7 @@ function youHTML() {
     <div class="sect">Weekend plans</div>${plansForm()}
     <div class="sect">Travel</div><div class="note" style="border-style:solid"><b>${ls.get('travel') ? 'Travel mode is on for this phone.' : 'Away from home?'}</b> ${ls.get('travel') ? `When you open the app more than 30 miles from home, it asks whether to show restaurants and things to do where you are. Home stays saved${p ? `, and ${esc(p)} keeps seeing home unless their phone is away too` : ''}.` : 'Turn on travel mode and the app will notice when you open it in another city, then ask before switching.'}<div style="height:10px"></div>${ls.get('travel') ? '<button class="btn ghost sm" data-act="traveloff">Turn off</button>' : '<button class="btn sm" data-act="travelon">Turn on travel mode</button>'}</div>
     <div class="sect">Notifications</div>${pushBlock}
-    <div class="sect">Card effects</div><div class="note" style="border-style:solid"><b>${ls.get('tilt') === 'off' ? 'Tilt effects are off.' : 'Cards catch the light when you tilt your phone.'}</b> ${ls.get('tilt') === 'off' ? 'Cards stay still.' : 'Only the cards move, and only while they are on screen.'}<div style="height:10px"></div><button class="btn sm ${ls.get('tilt') === 'off' ? '' : 'ghost'}" data-act="tiltset">${ls.get('tilt') === 'off' ? 'Turn on' : 'Turn off'}</button></div>
+    <div class="sect">Card effects</div><div class="note" style="border-style:solid"><b>${ls.get('tilt') === 'off' ? 'Tilt effects are off.' : 'Cards catch the light.'}</b> ${ls.get('tilt') === 'off' ? 'Cards stay still.' : 'A soft gloss drifts across the top card. Only the cards are affected.'}<div style="height:10px"></div><button class="btn sm ${ls.get('tilt') === 'off' ? '' : 'ghost'}" data-act="tiltset">${ls.get('tilt') === 'off' ? 'Turn on' : 'Turn off'}</button></div>
     <div class="sect">What is in the decks</div>
     <div class="item"><span class="em">🎬</span><span class="grow"><b>${S.state.counts.movie} movies</b><small>${(S.state.services || []).join(', ') || 'Loading the catalog'}</small></span></div>
     <div class="item"><span class="em">🎟️</span><span class="grow"><b>${S.state.counts.event} upcoming events</b><small>Next three days</small></span></div>
@@ -2864,7 +2878,7 @@ function goldStep(tx, ty, sp, force) {
 const TILT = { x: 0, y: 0, rawx: 0, rawy: 0, bx: null, by: null, last: 0, raf: 0, lis: false, granted: false, asked: false };
 const tiltPerm = () => typeof window.DeviceOrientationEvent?.requestPermission === 'function';
 const tiltStill = () => matchMedia('(prefers-reduced-motion: reduce)').matches || ls.get('tilt') === 'off';
-const needTiltAsk = () => tiltPerm() && isPhone() && !ls.get('tilt') && !tiltStill();
+const needTiltAsk = () => false;
 const clamp1 = v => Math.max(-1, Math.min(1, v));
 function tiltOri(e) {
   if (e.gamma == null || e.beta == null) return; TILT.last = performance.now();
@@ -2892,11 +2906,10 @@ function tiltFrame(now) {
 }
 function tiltWatch() {
   if (tiltStill()) return;
-  if (!TILT.lis && ls.get('tilt') !== 'auto' && (!tiltPerm() || TILT.granted)) { addEventListener('deviceorientation', tiltOri); TILT.lis = true; }
+  if (!TILT.lis && !tiltPerm()) { addEventListener('deviceorientation', tiltOri); TILT.lis = true; }
   if (!TILT.raf) TILT.raf = requestAnimationFrame(tiltFrame);
 }
 // iPhone only shares motion after a tap, once per launch: the first tap after opening asks quietly for what was already allowed.
-addEventListener('pointerup', () => { if (ls.get('tilt') === 'on' && tiltPerm() && !TILT.granted && !TILT.asked) { TILT.asked = true; tiltGrant().then(ok => { if (ok) tiltWatch(); }); } });
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { TILT.bx = null; tiltWatch(); } });
 function tiltAskSheet() {
   sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('spark')}</span><h2>Cards that catch the light</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">Tilt your phone and the cards shine like a new deck. Your phone will ask to share motion; it is only used for this, and only while cards are on screen.</p></div></div>
@@ -3472,7 +3485,7 @@ document.addEventListener('click', async e => {
       case 'pushyes': if (ls.get('askedpush')) ls.set('askedpush2', '1'); ls.set('askedpush', '1'); step('push_yes'); closeSheet(); await enablePush().catch(() => {}); return nextOnboard();
       case 'tiltyes': ls.set('tilt', 'on'); TILT.asked = true; closeSheet(); await tiltGrant(); tiltWatch(); return;
       case 'tiltno': ls.set('tilt', 'auto'); closeSheet(); return;
-      case 'tiltset': { const off = ls.get('tilt') === 'off'; ls.set('tilt', off ? 'on' : 'off'); if (off) { TILT.asked = true; await tiltGrant(); tiltWatch(); } return render(); }
+      case 'tiltset': { const off = ls.get('tilt') === 'off'; ls.set('tilt', off ? 'on' : 'off'); if (off) tiltWatch(); return render(); }
       case 'pushno': if (ls.get('askedpush')) ls.set('askedpush2', '1'); else ls.set('pushnoAt', String(Date.now())); ls.set('askedpush', '1'); step('push_no'); closeSheet(); return nextOnboard();
       case 'coachnext': return coach(Number(ds.i));
       case 'coach': return coach(0);
