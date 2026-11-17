@@ -1590,6 +1590,16 @@ async function shareApp() {
   if (navigator.share) { try { await navigator.share({ text, url }); } catch {} return; }
   try { await navigator.clipboard.writeText(text + '\n' + url); toast('Invite copied. Paste it into a text.'); } catch { location.href = './hello/?app=1#share'; }
 }
+// "Know a couple who'd love this?": opened from the share nudge. One of them sets it up, then brings their partner in.
+const TELL = 'You two should try Let’s Together. You each swipe on movies, places to eat and things to do, and it only shows what you both said yes to. One of you starts it and adds it to your Home Screen, then sends the other your couple code. It’s still in testing, so you’d be one of the first.';
+function tellSheet() {
+  step('tell_open');
+  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('heart')}</span><h2>Know a couple who’d love this?</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">Send it to one of them. They do the rest.</p></div>
+    <div class="steps" style="text-align:left;margin-top:14px"><div class="step"><span class="num">1</span><span>You send the link to <b>one</b> of them</span></div><div class="step"><span class="num">2</span><span>They start a couple and add it to their Home Screen</span></div><div class="step"><span class="num">3</span><span>They pass their code to their partner</span></div></div>
+    <button class="btn" style="margin-top:18px" data-act="tellsend" data-how="${isPhone() ? 'text' : 'share'}">${isPhone() ? 'Text them the link' : 'Copy the link'}</button>
+    ${isPhone() ? '<button class="btn ghost" style="margin-top:10px" data-act="tellsend" data-how="share">Send another way</button>' : ''}
+    <button class="jlink" data-act="closesheet">Not now</button></div>`);
+}
 function tonightSheet() {
   if (partner()) tip1('gold', 'The gold card plans a surprise date. Once a month.');
   const st = S.state, p = partner(), latest = (st.sessions || []).find(s => s.from !== S.me && s.my_left > 0), rest = (st.sessions || []).filter(s => s !== latest);
@@ -2098,7 +2108,7 @@ async function inboxSheet() {
   const sw = (id, inner, label) => `<div class="swr" data-swid="${esc(id)}"><span class="swa ${label === 'Remove' ? 'del' : 'hid'}">${label}</span><div class="swf">${inner}</div></div>`;
   const lpl = i => { const m = /[?&]plan=([\w-]+)/.exec(i.url || ''); return m && (S.plans || []).find(p => p.id === m[1]); };
   const lkind = i => /[?&]surprise=/.test(i.url || '') ? 'match' : /[?&]plan=/.test(i.url || '') ? pKind(lpl(i) || (/friday/i.test(i.title) ? { auto: 'fri' } : null)) : /match/i.test(i.title) ? 'match' : /[?&]s=/.test(i.url || '') ? 'ask' : /book|closed|tomorrow/i.test(i.title) ? 'book' : '';
-  const kic = i => /[?&]plan=/.test(i.url || '') ? (lkind(i) === 'fri' ? 'moon' : 'sun') : /planfor=/.test(i.url || '') ? 'list' : /match/i.test(i.title) ? 'heart' : /rec=/.test(i.url || '') ? 'play' : /trip=/.test(i.url || '') ? 'plane' : /share=/.test(i.url || '') ? 'ticket' : 'spark';
+  const kic = i => /[?&]plan=/.test(i.url || '') ? (lkind(i) === 'fri' ? 'moon' : 'sun') : /planfor=/.test(i.url || '') ? 'list' : /match/i.test(i.title) ? 'heart' : /rec=/.test(i.url || '') ? 'play' : /trip=/.test(i.url || '') ? 'plane' : /share=/.test(i.url || '') ? 'ticket' : /tell=/.test(i.url || '') ? 'heart' : 'spark';
   sheet(`<div class="grab"></div><div class="body"><h2>Inbox</h2>
     ${w.length ? `<div class="sect" style="margin-top:16px">Waiting on you</div>${w.map(x => x.k === 'invite' ? inRow(x, true) : sw('w:' + x.k, inRow(x, true), 'Hide')).join('')}` : ''}
     <div class="inhead" style="margin-top:${w.length ? 22 : 16}px"><div class="sect" style="margin:0">Lately</div>${items.length ? `<button class="inclear" data-act="inclear">Clear all</button>` : ''}</div>
@@ -2208,6 +2218,7 @@ function inboxGo(u) {
   if (g) return openGame(g);
   if (q.get('into')) return intoSheet(q.get('into'));
   if (q.get('gem')) return gemOpen();
+  if (q.get('tell')) return tellSheet();
   if (q.get('surprise')) return surpOpen(q.get('surprise'));
   if (q.get('plan')) { S.favAsk = q.get('fav') ? q.get('plan') : null; return dayAct('view', q.get('plan')).catch(() => {}); }
   if (q.get('reveal')) { prepRevealTest(); return render(); }
@@ -3938,6 +3949,10 @@ document.addEventListener('click', async e => {
       case 'planday': return dayStart();
       case 'inbox': return inboxSheet();
       case 'shareapp': return shareApp();
+      case 'tellsend': { const url = 'https://letstogether.app/'; step('tell_' + ds.how);
+        if (ds.how === 'text') { const body = encodeURIComponent(`${TELL}\n${url}`); location.href = /iphone|ipad|ipod|macintosh/i.test(navigator.userAgent) ? `sms:&body=${body}` : `sms:?body=${body}`; return; }
+        if (navigator.share) { try { await navigator.share({ text: TELL, url }); } catch {} return; }
+        try { await navigator.clipboard.writeText(TELL + '\n' + url); toast('Copied. Paste it into a message.'); } catch {} return; }
       case 'whatsnew': return newsShow(true);
       case 'inclear': { const rows = [...document.querySelectorAll('#inlately .swr')]; rows.forEach((r, i) => setTimeout(() => { r.style.maxHeight = r.offsetHeight + 'px'; r.offsetHeight; r.classList.add('sw'); r.querySelector('.swf').style.transition = 'transform .22s ease'; r.querySelector('.swf').style.transform = 'translateX(-110%)'; r.classList.add('out'); }, i * 70));
         setTimeout(() => { const l = document.getElementById('inlately'); if (l) l.innerHTML = '<p class="muted" style="font-size:14px;padding:6px 0 4px">All clear.</p>'; t.remove(); document.querySelector('.inhint')?.remove(); }, rows.length * 70 + 420);
@@ -4154,11 +4169,13 @@ async function boot() {
   const tpq = new URLSearchParams(location.search).get('tripplan'); if (tpq) history.replaceState(null, '', location.pathname);
   const itq = new URLSearchParams(location.search).get('into'); if (itq) history.replaceState(null, '', location.pathname);
   const gmq = new URLSearchParams(location.search).get('gem'); if (gmq) history.replaceState(null, '', location.pathname);
+  const tlq = new URLSearchParams(location.search).get('tell'); if (tlq) history.replaceState(null, '', location.pathname);
   const spq = new URLSearchParams(location.search).get('surprise'); if (spq) history.replaceState(null, '', location.pathname);
   const plq = new URLSearchParams(location.search).get('plan'); S.favAsk = new URLSearchParams(location.search).get('fav') ? plq : null; const plf = new URLSearchParams(location.search).get('planfor'); if (plq || plf) history.replaceState(null, '', location.pathname);
   render(); if (rc) return openRec(rc, rk); if (tpq) return openTripPlan(tpq); if (tp) return openGetaway(tp, partner()); if (SHW[shq]) return openShareTab(shq);
   if (invq && !partner()) { carrySignIn(); return inviteSheet(); }
   if (gmq) gemOpen();
+  if (tlq) tellSheet();
   if (itq) intoSheet(itq);
   if (spq) { carrySignIn(); return surpView(spq); }
   if (plq) { carrySignIn(); return dayAct('view', plq).catch(() => {}); } if (plf) { carrySignIn(); return dayAct('around', plf).catch(() => {}); }
