@@ -1136,7 +1136,6 @@ function homeHTML() {
   if (!HDECKS.some(d => d[0] === S.homeDeck)) S.homeDeck = 'movie';
   return `<div class="home">
     <div class="row hdr"><div class="brand grow hb">${MARK}<span>${BRAND}</span></div>
-      <button class="pill ${st.counts.shortlist ? 'hot' : ''}" data-act="shortlist" aria-label="Shortlist">♥ ${st.counts.shortlist || 0}</button>
       <button class="ib" data-act="search" aria-label="Search movies">${ic('search')}</button>
       ${bellHTML()}<button class="ib" data-tab="you" aria-label="You and settings">${ic('gear')}</button></div>${slotHTML(incoming)}
     <div class="seg" style="margin:8px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="${S.homeDeck === k ? 'on' : ''}">${l}${heartTag(k)}</button>`).join('')}</div>${scratchShow() && !S.awayOffer ? `<button class="scratch-pill" data-act="scratch">${ic('spark')}<span><b>A scratch card is waiting</b><small>One thing ${esc(p)} is in on</small></span><i>Scratch</i></button>` : ''}${S.awayOffer ? `<div class="trav"><span class="tic">${ic('pin')}</span><span class="grow"><b>Looks like you’re in ${esc(S.awayOffer.city)}</b><small>Show places to eat and things to do here?</small></span><button class="go" data-act="awayyes">Show</button><button class="x" data-act="awayno" aria-label="Not now">×</button></div>` : ''}${S.away && (S.homeDeck === 'dinner' || S.homeDeck === 'event') ? `<div class="row" style="justify-content:space-between;margin:6px 2px 0"><small class="muted" style="font-size:12.5px">${ic('pin')} Showing ${esc(S.away.city)} on this phone</small><button class="chip" data-act="awayoff" style="padding:5px 12px;font-size:13px">Back to home</button></div>` : ''}${S.homeDeck === 'movie' ? `<div class="row" style="margin:6px 2px 0"><button class="chip" data-act="movielib" style="padding:5px 12px;font-size:13px">${ic('film')} Movie library</button></div>` : ''}${shareChip()}${S.homeDeck === 'art' ? `<div class="row" style="justify-content:space-between;margin:6px 2px 0"><button class="chip" data-act="gallery" style="padding:5px 12px;font-size:13px">${ic('frame')} Our gallery</button><small class="muted" style="font-size:12.5px">No nudges, just likes</small></div>` : ''}${S.homeDeck === 'trip' ? `<div class="row" style="justify-content:space-between;margin:6px 2px 0"><button class="chip" data-act="trips" style="padding:5px 12px;font-size:13px">${ic('heart')} Saved trips</button><button class="chip ${S.tripCity ? 'on' : ''}" data-act="tripcity" style="padding:5px 12px;font-size:13px">${esc(S.tripCity || 'Anywhere')} ▾</button></div>` : ''}
@@ -2469,14 +2468,15 @@ function drawStack() {
 // reveal on them, the way it plays for a fresh handful.
 function prepRevealTest() {
   try { Object.keys(localStorage).forEach(k => { if (k.startsWith('wl_rev:')) localStorage.removeItem(k); }); } catch {}
-  if (S.doneHtml) delete S.doneHtml[S.homeDeck]; S.rev = null; S.unlock = true; S.view = 'home'; S.tab = 'home';
+  if (S.doneHtml) delete S.doneHtml[S.homeDeck]; S.rev = null; S.unlock = true; S.revealForce = true; S.view = 'home'; S.tab = 'home';
 }
 function revealCards(st) {
   const deck = S.sess?.deck, key = 'rev:' + deck + ':' + new Date().toDateString(), now = performance.now();
   // Home is sometimes redrawn while the reveal plays; then it carries on, on the new cards, from where it was.
   const cont = S.rev && S.rev.deck === deck && now - S.rev.t0 < 1400;
   if (!cont) {
-    if (!deck || ls.get(key) || S.deck.length < (S.total || 0)) return;   // once a day, and only before any swipes
+    if (!deck || ((ls.get(key) || S.deck.length < (S.total || 0)) && !S.revealForce)) return;   // once a day, and only before any swipes
+    S.revealForce = false;
     ls.set(key, '1'); S.rev = { deck, t0: now }; S.revealUntil = Date.now() + 3200;
     setTimeout(() => { const p = document.getElementById('prog'); if (p) p.style.color = ''; updateBar(); }, 3250);
   }
