@@ -1078,6 +1078,9 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .ob2-sw{flex:none;padding:8px 14px;border-radius:99px;font-size:12.5px;font-weight:700;background:rgba(255,255,255,.1);color:#cbbfc4}.ob2-sw.on{background:linear-gradient(135deg,var(--ka),var(--kb));color:#1c0a12}
 .ob2-inv{display:flex;align-items:center;gap:10px;margin:6px 0 14px}.ob2-inv .mark{width:38px;height:38px}.ob2-inv .brand{font-size:24px}.wk-h.ob2-big{font-size:clamp(32px,9.4vw,38px);overflow-wrap:anywhere}
 .wn.ob2 .jwho{margin-top:14px}
+.field .mdp{display:flex;gap:8px;margin:0;font-size:inherit;letter-spacing:0;text-transform:none}.mdp select{flex:1.5}.mdp select+select{flex:1}.field .mdy{margin-top:8px}
+.wn.ob2 .field select{background:rgba(255,255,255,.07);border-radius:14px;padding:13px 12px;color:inherit;font-size:16px;border:1px solid transparent;width:100%;outline:none;-webkit-appearance:none;appearance:none}
+.wn.ob2 .field{display:block;margin-top:12px}.ob2-fine{font-size:12.5px;color:var(--muted);margin-top:12px}
 </style>
 </head>
 <body>
@@ -1326,8 +1329,8 @@ const homeSig = () => { try { return JSON.stringify([S.state, S.plans, S.share, 
 const swPend = new Set();   // swipes still being saved
 async function refresh() {
   if (swPend.size) await Promise.allSettled([...swPend]);   // a refresh right after the last swipe must include it
-  const [st, pantry, settings, share, plans, inbox, favs, surp] = await Promise.all([rpc('get_state', { p_code: S.code, p_member: S.me }), rpc('get_pantry', { p_code: S.code }), rpc('get_settings', { p_code: S.code }), rpc('share_state', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('plan_list', { p_code: S.code }).catch(() => []), rpc('inbox_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('fav_list', { p_code: S.code }).catch(() => null), rpc('surprise_list', { p_code: S.code, p_member: S.me }).catch(() => null)]);
-  S.surp = surp || S.surp || null;
+  const [st, pantry, settings, share, plans, inbox, favs, surp, dates] = await Promise.all([rpc('get_state', { p_code: S.code, p_member: S.me }), rpc('get_pantry', { p_code: S.code }), rpc('get_settings', { p_code: S.code }), rpc('share_state', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('plan_list', { p_code: S.code }).catch(() => []), rpc('inbox_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('fav_list', { p_code: S.code }).catch(() => null), rpc('surprise_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('dates_get', { p_code: S.code, p_member: S.me }).catch(() => null)]);
+  S.surp = surp || S.surp || null; S.dates = dates || S.dates || null;
   S.state = st; S.plans = plans || []; S.pool = null; if (inbox) S.inbox = inbox; if (favs) S.favs = favs; S.share = share; S.pantry = pantry || []; S.settings = settings || {};
 }
 async function loadSession(id, keep) {
@@ -1411,6 +1414,7 @@ function ob2Steps() {
   if (needInvite()) s.push('invite');
   if (!standalone() && isPhone() && !ls.get('a2hs')) s.push('install');
   if (needPushAsk()) s.push('push');                                 // on an iPhone this only exists in the Home Screen app, so it waits for the icon
+  if (datesNeed()) s.push('dates');                                 // the second person in is only asked for what is still missing
   if (needSetup() || needLoc()) s.push('setup');
   return s;
 }
@@ -1430,12 +1434,12 @@ function ob2Skip() {   // "Later" on a step: remember it was offered, so it does
   const k = S.ob2?.steps[S.ob2.i];
   if (k === 'invite') inviteAsked(); if (k === 'install') { ls.set('a2ask', String(Date.now())); step('a2hs_later'); }
   if (k === 'push') { ls.set('pushnoAt', String(Date.now())); ls.set('askedpush', '1'); step('push_no'); }
-  if (k === 'setup') ls.set('setupskip', '1'); if (k === 'try') ls.set('ob2try', '1');
+  if (k === 'setup') ls.set('setupskip', '1'); if (k === 'try') ls.set('ob2try', '1'); if (k === 'dates') ls.set('datesAt', String(Date.now()));
   ob2Next();
 }
 function ob2Draw() {
   const el = document.querySelector('.wn.ob2'), o = S.ob2; if (!el || !o) return; const k = o.steps[o.i], n = o.steps.length, p = partner(), last = o.i === n - 1;
-  const C = { try: ['#ffb547', '#ff7a4d'], invite: ['#ff7a4d', '#ff4d7e'], install: ['#2dd4bf', '#4d9bff'], push: ['#ffb547', '#ff4d7e'], setup: ['#ffb547', '#ff7a4d'] }[k];
+  const C = { try: ['#ffb547', '#ff7a4d'], invite: ['#ff7a4d', '#ff4d7e'], install: ['#2dd4bf', '#4d9bff'], push: ['#ffb547', '#ff4d7e'], dates: ['#ff7a9c', '#ff4d7e'], setup: ['#ffb547', '#ff7a4d'] }[k];
   const kick = (x = '') => `<small class="wk-k">Step ${o.i + 1} of ${n}${x}</small>`, sp = '<div class="ob2-sp"></div>';
   step('ob2_' + k);
   const body = {
@@ -1450,6 +1454,9 @@ function ob2Draw() {
     push: () => `${kick()}<h2 class="wk-h">Hear when you match</h2><p class="wk-p">Only these. No marketing, ever.</p>
       ${[['It’s a match', 'You both liked Jazz night, Friday'], [`${esc(p || 'Your person')} sent you a trailer`, 'Quick yes or no?'], ['A hidden gem dropped', 'Scratch it together']].map(([a, b], j) => `<div class="ob2-push" style="animation-delay:${.15 + j * .22}s">${MARK}<span><b>${a}</b><small>${b}</small></span></div>`).join('')}${sp}
       <button class="btn wk-cta" data-act="ob2push">Turn on nudges</button>`,
+    dates: () => { const d = S.dates || {}, both = !d.bday && !d.anniv;
+      return `${kick()}<h2 class="wk-h">${both ? 'Dates worth remembering' : !d.bday ? 'When’s your birthday?' : 'When’s your anniversary?'}</h2><p class="wk-p">${!d.bday ? `${esc(p || 'Your person')} gets a quiet heads-up two weeks before, with a way to plan the day.` : 'You both get a heads-up two weeks before, with a way to plan the day.'}${d.anniv && p ? ` ${esc(p)} already added your anniversary: ${mdText(d.anniv)}.` : ''}</p>
+      ${datesFields(true)}<p class="ob2-fine">Only the two of you see these. No birth year is asked for.</p>${sp}<button class="btn wk-cta" data-act="ob2dates">Save</button>`; },
     setup: () => { const st = S.settings || {}, all = S.state?.services || [], on = st.services || [], svc = needSetup(), zip = !st.zip && !st.lat;
       return `${kick()}<h2 class="wk-h">${svc ? 'What can you watch?' : 'Make it local'}</h2><p class="wk-p">${svc ? 'Movie cards only show things on the services you have. It applies to both of you.' : 'Places and events start from where you really are.'}</p>
       ${svc ? `<div class="ob2-svc">${all.map(x => `<button class="${on.includes(x) ? 'on' : ''}" data-svc="${esc(x)}">${esc(x)}</button>`).join('')}</div>` : ''}
@@ -1593,6 +1600,45 @@ async function shareApp() {
   if (navigator.share) { try { await navigator.share({ text: text + '\n' + url }); } catch {} return; }
   try { await navigator.clipboard.writeText(text + '\n' + url); toast('Invite copied. Paste it into a text.'); } catch { location.href = './hello/?app=1#share'; }
 }
+/* ---------- birthdays and the anniversary ---------- */
+// Each person gives their own birthday (month and day, never a year). The anniversary belongs to the couple: whoever enters it
+// first sets it for both, so the second person is only asked for a birthday. The backend reminds the partner ahead of each date.
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const mdText = md => { const m = /(\d\d)-(\d\d)$/.exec(md || ''); return m ? `${MONTHS[Number(m[1]) - 1]} ${Number(m[2])}` : ''; };
+const datesNeed = () => !!S.dates && (!S.dates.bday || !S.dates.anniv);
+const mdPick = (id, md) => { const m = /(\d\d)-(\d\d)$/.exec(md || ''), mm = m ? Number(m[1]) : 0, dd = m ? Number(m[2]) : 0;
+  return `<span class="mdp"><select id="${id}m" aria-label="Month"><option value="">Month</option>${MONTHS.map((x, i) => `<option value="${i + 1}" ${mm === i + 1 ? 'selected' : ''}>${x}</option>`).join('')}</select><select id="${id}d" aria-label="Day"><option value="">Day</option>${Array.from({ length: 31 }, (_, i) => `<option ${dd === i + 1 ? 'selected' : ''}>${i + 1}</option>`).join('')}</select></span>`; };
+function datesFields(onlyMissing) {
+  const d = S.dates || {}, yr = /^(\d{4})-/.exec(d.anniv || '')?.[1] || '';
+  const b = onlyMissing && d.bday ? '' : `<div class="field"><span>Your birthday</span>${mdPick('db', d.bday)}</div>`;
+  const a = onlyMissing && d.anniv ? '' : `<div class="field"><span>Your anniversary</span>${mdPick('da', d.anniv)}<input id="day" class="mdy" inputmode="numeric" maxlength="4" placeholder="Year, if you like" value="${esc(yr)}"></div>`;
+  return b + a;
+}
+// reads the pickers: undefined = not on screen or left blank (leave as is), a string = save it
+function datesRead(root) {
+  const v = id => root.querySelector('#' + id)?.value || '', p2 = n => String(n).padStart(2, '0'), out = {};
+  const md = k => { const m = Number(v(k + 'm')), d = Number(v(k + 'd')); if (!m && !d) return undefined; if (!m || !d) return null; return `${p2(m)}-${p2(d)}`; };
+  const b = md('db'), a = md('da'); if (b === null || a === null) return null;
+  if (b) out.bday = b;
+  if (a) { const y = v('day').trim(); if (y && !/^(19|20)\d\d$/.test(y)) return null; out.anniv = (y ? y + '-' : '') + a; }
+  return out;
+}
+async function datesSave(root) {
+  const r = datesRead(root); if (r === null) { toast('Pick both a month and a day. The year is optional.'); return false; }
+  if (!r.bday && !r.anniv) return true;
+  try { S.dates = await rpc('dates_set', { p_code: S.code, p_member: S.me, p_bday: r.bday ?? null, p_anniv: r.anniv ?? null }); step('dates_saved'); return true; }
+  catch { toast('That date didn’t save. Check it and try again.'); return false; }
+}
+function bdaysSheet() {
+  const d = S.dates || {}, p = partner();
+  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('heart')}</span><h2>Dates worth remembering</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">${esc(p || 'Your other half')} gets a quiet heads-up two weeks before your birthday, and you both get one before your anniversary, with a way to plan the day.</p></div></div>
+    <div style="height:14px"></div>${datesFields(false)}
+    ${p && d.partner_bday ? `<p class="muted" style="font-size:13.5px;margin-top:12px">${esc(p)}’s birthday: ${mdText(d.partner_bday)}</p>` : p ? `<p class="muted" style="font-size:13.5px;margin-top:12px">${esc(p)} adds their own birthday.</p>` : ''}
+    <button class="btn" style="margin-top:16px" data-act="bdayssave">Save</button><button class="jlink" data-act="bdayslater">Not now</button>
+    <p class="muted" style="font-size:12.5px;text-align:center;margin-top:10px">Only the two of you see these. No birth year is asked for.</p>`);
+}
+const datesBanner = () => { if (!datesNeed() || Date.now() - Number(ls.get('datesAt') || 0) < 14 * 86400000) return ''; const d = S.dates;
+  return `<button class="nudge slim" data-act="bdays"><span class="grow"><b>Add your ${!d.bday && !d.anniv ? 'birthday and anniversary' : !d.bday ? 'birthday' : 'anniversary'}</b><small> · ${esc(them())} gets a heads-up before the day</small></span><span class="go">Add</span></button>`; };
 // "Know a couple who'd love this?": opened from the share nudge. One of them sets it up, then brings their partner in.
 const TELL = 'You two should try Let’s Together. You each swipe on movies, places to eat and things to do, and it only shows what you both said yes to. One of you starts it and adds it to your Home Screen, then sends the other your couple code. It’s still in testing, so you’d be one of the first.';
 function tellSheet() {
@@ -2037,6 +2083,7 @@ function slotHTML(incoming) {
     ['trip:' + (planDue() || ''), planBanner()],
     S.evPend && ls.get('evno') !== evKey() ? ['ev:' + evKey(), `<div class="hsb"><span class="tic">${ic('ticket')}</span><span class="grow"><b>You liked ${S.evPend.count > 1 ? S.evPend.count + ' events' : 'an event'} this week</b><small>Send to ${esc(them())} before ${S.evPend.count > 1 ? 'they pass' : 'it passes'}?</small></span><button class="go" data-act="evask">Share</button></div>`] : null,
     ['shr:' + pToday(), shareRemindBanner()],
+    ['dates', datesBanner()],
     ['hs', hsBanner()],
   ].filter(x => x && x[1] && !gone[x[0]]);
   setTimeout(surpGreet, 600);
@@ -2222,6 +2269,8 @@ function inboxGo(u) {
   if (q.get('into')) return intoSheet(q.get('into'));
   if (q.get('gem')) return gemOpen();
   if (q.get('tell')) return tellSheet();
+  if (q.get('bdays')) return bdaysSheet();
+  if (q.get('plansurprise')) return surpStart();
   if (q.get('surprise')) return surpOpen(q.get('surprise'));
   if (q.get('plan')) { S.favAsk = q.get('fav') ? q.get('plan') : null; return dayAct('view', q.get('plan')).catch(() => {}); }
   if (q.get('reveal')) { prepRevealTest(); return render(); }
@@ -3029,6 +3078,7 @@ function youHTML() {
   return `<div class="you"><div class="brand">You</div>
     <div class="ycard"><div class="yrow"><span class="tic">${ic('heart')}</span><span class="grow"><b>${esc(S.me)}</b><small>${p ? 'Paired with ' + esc(p) : 'Not paired yet'}</small></span><button class="ysw" data-act="rename">Rename</button></div>
       <div class="yrow"><span class="tic">${ic('share')}</span><span class="grow"><b>${esc(S.code)}</b><small>Your couple code</small></span><button class="ysw" data-act="invite">Invite</button></div>
+      <button class="yrow" data-act="bdays"><span class="tic">${ic('heart')}</span><span class="grow"><b>Birthday and anniversary</b><small>${S.dates?.bday || S.dates?.anniv ? esc([S.dates.bday ? 'Birthday ' + mdText(S.dates.bday) : '', S.dates.anniv ? 'Anniversary ' + mdText(S.dates.anniv) : ''].filter(Boolean).join(' · ')) : 'So you both get a heads-up before the day'}</small></span><span class="ych">›</span></button>
       <button class="yrow" data-tab="lists"><span class="tic">${ic('list')}</span><span class="grow"><b>Your own lists</b><small>Dinners, activities and pantry</small></span><span class="ych">›</span></button></div>
     <div class="sect">This phone</div>
     <div class="ycard">${pushRow}
@@ -3964,6 +4014,10 @@ document.addEventListener('click', async e => {
         t.disabled = true; try { S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { friday_start: root.querySelector('#p_fs').value, friday_fav: pick('ff'), plan_price: pick('pr'), no_bars: pick('nb') === '1', plan_avoid: root.querySelector('#p_avoid').value.split(',').map(x => x.trim()).filter(Boolean) } }); } catch { t.disabled = false; return toast('Could not save. Try again.'); }
         toast('Saved for both of you.'); return render(); }
       case 'plansoff': { S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { plans_off: S.settings?.plans_off !== true } }); toast(S.settings.plans_off ? 'Weekend plans are off.' : 'Weekend plans are back on.'); return render(); }
+      case 'bdays': return bdaysSheet();
+      case 'bdayssave': { t.disabled = true; const ok = await datesSave(t.closest('.sheet')); t.disabled = false; if (!ok) return; closeSheet(); toast('Saved. You’ll both get a heads-up before the day.', 3500); if (S.view === 'home') render(); return; }
+      case 'bdayslater': ls.set('datesAt', String(Date.now())); closeSheet(); if (S.view === 'home' && S.tab === 'home') render(); return;
+      case 'ob2dates': { t.disabled = true; const ok = await datesSave(t.closest('.wn')); t.disabled = false; if (!ok) return; ls.set('datesAt', String(Date.now())); return ob2Next(); }
       case 'ob2go': S.obI = Number(ds.i) || 0; if (S.obI >= 2) ls.set('ob2try', '1'); return render();
       case 'ob2try': ls.set('ob2try', '1'); return ob2Next();
       case 'ob2skip': return ob2Skip();
@@ -4173,12 +4227,14 @@ async function boot() {
   const itq = new URLSearchParams(location.search).get('into'); if (itq) history.replaceState(null, '', location.pathname);
   const gmq = new URLSearchParams(location.search).get('gem'); if (gmq) history.replaceState(null, '', location.pathname);
   const tlq = new URLSearchParams(location.search).get('tell'); if (tlq) history.replaceState(null, '', location.pathname);
+  const dtq = new URLSearchParams(location.search).get('bdays'), psq = new URLSearchParams(location.search).get('plansurprise'); if (dtq || psq) history.replaceState(null, '', location.pathname);
   const spq = new URLSearchParams(location.search).get('surprise'); if (spq) history.replaceState(null, '', location.pathname);
   const plq = new URLSearchParams(location.search).get('plan'); S.favAsk = new URLSearchParams(location.search).get('fav') ? plq : null; const plf = new URLSearchParams(location.search).get('planfor'); if (plq || plf) history.replaceState(null, '', location.pathname);
   render(); if (rc) return openRec(rc, rk); if (tpq) return openTripPlan(tpq); if (tp) return openGetaway(tp, partner()); if (SHW[shq]) return openShareTab(shq);
   if (invq && !partner()) { carrySignIn(); return inviteSheet(); }
   if (gmq) gemOpen();
   if (tlq) tellSheet();
+  if (dtq) bdaysSheet(); else if (psq) surpStart();
   if (itq) intoSheet(itq);
   if (spq) { carrySignIn(); return surpView(spq); }
   if (plq) { carrySignIn(); return dayAct('view', plq).catch(() => {}); } if (plf) { carrySignIn(); return dayAct('around', plf).catch(() => {}); }
