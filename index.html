@@ -984,6 +984,8 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .gemhall img{clip-path:polygon(13% 0,100% 0,100% 87%,87% 100%,0 100%,0 13%)}
 
 .tag.loc{background:rgba(45,212,191,.2);color:#bff5ec}
+
+.stamp.seen.long{font-size:clamp(30px,10.5vw,52px)}
 </style>
 </head>
 <body>
@@ -2784,6 +2786,8 @@ const emojiFor = c => c.data?.emoji || (c.deck === 'dinner' ? KINDS[c.kind]?.[1]
 // The three answers, worded for what is being judged. Underneath they are the same three levels everywhere:
 // no, yes and love, and love ranks higher wherever the app picks from what you both like.
 const VERD = c => c?.deck === 'art' ? ['Not for me', 'I like it', 'Love it'] : ['Nah', 'Maybe', 'Hell yeah'];
+// The down swipe means "I already know this one", worded for the deck; on a dated event it means the date does not work
+const DWN = c => !c ? null : c.deck === 'movie' ? (S.rewatch ? null : 'Seen it') : c.deck === 'dinner' ? (c.kind === 'cook' ? null : 'Been there') : c.deck === 'event' ? (c.data?.place ? 'Been there' : 'Can’t make it') : c.deck === 'trip' ? 'Been there' : c.deck === 'art' ? 'Seen in person' : null;
 function cardHTML(c, cls = '') {
   const tags = [];
   if (c.deck === 'movie') { (c.data.services || []).slice(0, 2).forEach(s => tags.push(svcTag(s))); (c.data.genres || []).slice(0, 2).forEach(g => tags.push(`<span class="tag">${esc(g)}</span>`)); if (c.data.user_rating) tags.push(`<span class="tag">★ ${c.data.user_rating}</span>`); }
@@ -2798,7 +2802,7 @@ function cardHTML(c, cls = '') {
   const gem = !!c.data?.gem;
   return `<div class="card ${cls}${gem ? ' gemc' : ''}" data-id="${c.id}"><div class="art ${c.deck}">${emojiFor(c)}</div>${art}
     ${gem ? '<span class="gfx"><i></i><i></i><i></i><i></i><i></i></span>' : ''}<div class="shade">${gem ? `<div class="gemk">${ic('gem')}<span>Hidden gem</span><b class="gst"></b><b class="gst"></b></div>` : ''}<h3>${esc(c.title)}</h3>${gem && c.data.notes ? `<div class="sub gsub">${esc(c.data.notes)}</div>` : c.subtitle ? `<div class="sub">${esc(c.subtitle)}</div>` : ''}<div class="tags">${tags.join('')}</div></div>
-    <div class="info">i</div><div class="stamp yes">${VERD(c)[1]}</div><div class="stamp no">${VERD(c)[0]}</div><div class="stamp love">${VERD(c)[2]}</div>${c.deck === 'movie' && !S.rewatch ? '<div class="stamp seen">Seen it</div>' : ''}</div>`;
+    <div class="info">i</div><div class="stamp yes">${VERD(c)[1]}</div><div class="stamp no">${VERD(c)[0]}</div><div class="stamp love">${VERD(c)[2]}</div>${DWN(c) ? `<div class="stamp seen ${DWN(c).length > 9 ? 'long' : ''}">${DWN(c)}</div>` : ''}</div>`;
 }
 function updateBar() { const el = document.getElementById('prog'); if (el && !(S.revealUntil > Date.now())) el.textContent = S.bite || S.solo || !partner() ? '' : `${them()} has ${S.theirLeft ? S.theirLeft + ' to go' : 'finished'}`; const m = document.getElementById('mcount'); if (m) { m.textContent = S.matches.length ? `${S.matches.length} match${S.matches.length > 1 ? 'es' : ''}` : 'No matches yet'; m.className = 'pill' + (S.matches.length ? ' hot' : ''); } }
 function renderSwipe() {
@@ -3114,7 +3118,7 @@ function drawStack() {
     return;
   }
   if (S.bite && S.doneHtml?.[S.sess?.deck]) { delete S.doneHtml[S.sess.deck]; try { ls.set('donehtml', JSON.stringify(S.doneHtml)); } catch {} }
-  acts.style.visibility = ''; if (seen) seen.style.display = S.deck[0].deck === 'movie' && !S.rewatch ? '' : 'none';
+  acts.style.visibility = ''; if (seen) { seen.style.display = DWN(S.deck[0]) ? '' : 'none'; seen.setAttribute('aria-label', DWN(S.deck[0]) || 'Seen it'); }
   const kk = CK[S.sess?.deck || S.deck[0]?.deck]; st.classList.remove('k-fri', 'k-sat', 'k-ask', 'k-book', 'k-match'); if (kk) st.classList.add('kc', 'k-' + kk);
   const kg = getComputedStyle(st).getPropertyValue('--kg').trim() || 'rgba(255,90,120,.75)';
   const prev = S.pileAt === st ? S.pileDepth || {} : {}, depth = {};
@@ -3195,7 +3199,7 @@ function attachDrag(el) {
     const up = dy < -60 && Math.abs(dx) < 70, dn = !!stamp('seen') && dy > 60 && Math.abs(dx) < 70, v = up || dn; stamp('yes').style.opacity = v ? 0 : Math.max(0, Math.min(1, dx / 90)); stamp('no').style.opacity = v ? 0 : Math.max(0, Math.min(1, -dx / 90)); stamp('love').style.opacity = up ? Math.min(1, (-dy - 40) / 70) : 0; if (stamp('seen')) stamp('seen').style.opacity = dn ? Math.min(1, (dy - 40) / 70) : 0; };
   const up = () => { if (!on) return; on = false; const dist = Math.hypot(dx, dy);
     if (dist < 8 && Date.now() - t0 < 350) { el.style.transform = ''; return showDetail(S.deck[0]); }
-    if (dy < -110 && Math.abs(dx) < 90) return commit('love'); if (dy > 110 && Math.abs(dx) < 90 && S.deck[0]?.deck === 'movie' && !S.rewatch) return commit('seen'); if (dx > 95) return commit('yes'); if (dx < -95) return commit('no');
+    if (dy < -110 && Math.abs(dx) < 90) return commit('love'); if (dy > 110 && Math.abs(dx) < 90 && DWN(S.deck[0])) return commit('seen'); if (dx > 95) return commit('yes'); if (dx < -95) return commit('no');
     el.style.transition = 'transform .25s cubic-bezier(.2,.8,.2,1)'; el.style.transform = ''; el.querySelectorAll('.stamp').forEach(s => s.style.opacity = 0); };
   el.addEventListener('pointerdown', down); el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
 }
@@ -3219,6 +3223,8 @@ async function commit(verdict) {
     else if (r.match) { const m = { ...card, loves: verdict === 'love' ? 1 : 0 }; S.matches.unshift(m); updateBar(); send({ type: 'match', session: sess, card: m }); push(`It's a match ${emojiFor(card)}`, `You and ${S.me} both said yes to ${card.title}.`, `./?s=${sess}`); showMatch(m); }
     if (card.deck === 'movie' && r.seen_by?.length) toast(verdict === 'seen' ? `${r.seen_by.join(' and ')} has seen ${card.title} too. It is in Watched for you both. Worth a rewatch?` : `Heads up: ${r.seen_by.join(' and ')} has already seen ${card.title}. Ask how it was.`, 5500);
     else if (card.deck === 'movie' && verdict === 'seen' && r.liked_by?.length) toast(`${r.liked_by.join(' and ')} wants to watch ${card.title}. You will find it under Watch it again.`, 5500);
+    else if (card.deck !== 'movie' && DWN(card) === 'Been there' && verdict === 'seen' && r.liked_by?.length) toast(`${r.liked_by.join(' and ')} wants to go to ${card.title}. It comes back around so you can say if you’d go again.`, 5500);
+    else if (card.deck !== 'movie' && DWN(card) === 'Been there' && verdict !== 'seen' && verdict !== 'no' && r.seen_by?.length) { toast(`${r.seen_by.join(' and ')} has been to ${card.title}. They get asked if they’d go again.`, 5000); push(`${S.me} wants to try ${card.title}`, 'You’ve been there. It’s back in your pile: would you go again?', './'); }
   } catch (e) { toast('That swipe did not save. Check your connection.'); S.deck.unshift(card); S.hist.pop(); drawStack(); }
 }
 // Events are time sensitive: after liking some, I get asked whether to pass them to my partner before they pass
