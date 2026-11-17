@@ -776,7 +776,7 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 /* the note over a freshly dealt pile */
 .revnote{position:absolute;left:50%;top:-12px;z-index:30;transform:translateX(-50%);white-space:nowrap;pointer-events:none;padding:6px 14px;border-radius:99px;font-size:13px;font-weight:600;color:#fff;background:linear-gradient(135deg,#ff7a4d,#ff4d7e);box-shadow:0 0 24px rgba(255,77,126,.7)}
 /* tonight: a loose pile of five */
-.tdeck{position:relative;width:min(250px,68vw);aspect-ratio:250/330;margin:30px auto 22px;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab}
+.tdeck{position:relative;width:min(250px,68vw);aspect-ratio:250/330;margin:30px auto 22px;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
 .tpc{position:absolute;inset:0;border-radius:28px;overflow:hidden;color:#fff;background:linear-gradient(155deg,var(--c1),var(--c2));will-change:transform}
 .tpc .cbg{position:absolute;right:-26px;bottom:-24px;font-size:170px;opacity:.16;transform:rotate(-12deg);line-height:1}
 .tpc .cic{position:absolute;left:16px;top:16px;width:50px;height:50px;border-radius:16px;display:grid;place-items:center;font-size:26px;background:rgba(255,255,255,.22)}
@@ -1294,16 +1294,21 @@ function tdeckInit() {
   const paint = () => { dots.forEach((d, i) => d.classList.toggle('on', i === order[0])); cards.forEach((c, i) => c.classList.toggle('top', i === order[0])); halo.classList.toggle('show', cards[order[0]].classList.contains('mixc')); };
   cards.forEach((c, i) => { jit(c); place(c, i); c.animate([{ transform: `translate(${i % 2 ? 60 : -60}px,240px) rotate(${i % 2 ? 25 : -25}deg)`, opacity: 0 }, { transform: c.style.transform, opacity: 1 }], { duration: 520, delay: (cards.length - 1 - i) * 80, easing: 'cubic-bezier(.2,.9,.25,1)', fill: 'backwards' }); });
   paint();
-  let drag = null, busy = false;
+  let drag = null;
   const top = () => cards[order[0]];
-  const cycle = async dir => {
-    busy = true; const c = top(), nx = cards[order[1]];
-    const ng = getComputedStyle(nx).getPropertyValue('--kg').trim() || 'rgba(255,140,120,.8)'; nx.animate([{ boxShadow: '0 0 0 0 transparent' }, { boxShadow: `0 0 70px 14px ${ng}` }, { boxShadow: look(nx, 0).boxShadow }], { duration: 800 });
-    const out = `translateX(${dir * 340}px) rotate(${dir * 22}deg)`;
-    await c.animate([{ transform: c.style.transform }, { transform: out }], { duration: 190, easing: 'ease-in' }).finished;
-    order.push(order.shift()); order.forEach((k, i) => { if (cards[k] !== c) place(cards[k], i, 380); });
-    jit(c); c.style.transform = out; place(c, order.length - 1, 600); c.style.zIndex = 1; paint();
-    setTimeout(() => { c.style.zIndex = 10 - order.indexOf(cards.indexOf(c)); busy = false; }, 260);
+  // Flick or drag the top card off: it keeps the speed it left the finger with, the pile steps up straight away
+  // (so the next card can be grabbed at once), and the card slides back under the pile while that happens.
+  const cycle = (dir, from, vx = 0) => {
+    const c = top(), nx = cards[order[1]];
+    const ng = getComputedStyle(nx).getPropertyValue('--kg').trim() || 'rgba(255,140,120,.8)';
+    nx.animate([{ boxShadow: '0 0 0 0 transparent' }, { boxShadow: `0 0 70px 14px ${ng}` }, { boxShadow: look(nx, 0).boxShadow }], { duration: 800 });
+    const out = `translate(${dir * 400}px,${(from.dy || 0) * 1.4}px) rotate(${dir * 26}deg)`, speed = Math.min(Math.abs(vx), 3);
+    c.style.zIndex = 40; c.getAnimations().forEach(a => a.cancel());
+    const fly = c.animate([{ transform: from.t }, { transform: out }], { duration: speed > .6 ? 170 : 230, easing: speed > .6 ? 'cubic-bezier(.2,.6,.4,1)' : 'cubic-bezier(.4,.1,.6,1)' });
+    c.style.transform = out;
+    order.push(order.shift()); order.forEach((k, i) => { if (cards[k] !== c) place(cards[k], i, 340); }); paint();
+    fly.finished.then(() => { jit(c); c.style.zIndex = 1; place(c, order.length - 1, 560); c.style.zIndex = 1;
+      setTimeout(() => { c.style.zIndex = 10 - order.indexOf(cards.indexOf(c)); }, 300); }).catch(() => {});
   };
   const pick = () => {
     busy = true; const c = top(), d = c.dataset.k;
@@ -1311,12 +1316,27 @@ function tdeckInit() {
     cards.forEach(x => { if (x !== c) x.animate([{ opacity: 1 }, { opacity: 0, transform: x.style.transform + ' translateY(30px)' }], { duration: 260, fill: 'forwards' }); });
     setTimeout(() => nudgeSheet(d), 320);
   };
-  deck.addEventListener('pointerdown', e => { if (busy) return; drag = { x: e.clientX, y: e.clientY, t: Date.now(), dx: 0, base: top().style.transform }; deck.setPointerCapture(e.pointerId); });
-  deck.addEventListener('pointermove', e => { if (!drag) return; drag.dx = e.clientX - drag.x; if (Math.abs(drag.dx) > 4) top().style.transform = `${drag.base} translateX(${drag.dx}px) rotate(${drag.dx / 14}deg)`; });
+  let busy = false;
+  deck.addEventListener('pointerdown', e => {
+    if (busy) return; const c = top(); c.getAnimations().forEach(a => { if (a.effect?.getKeyframes?.().some(k => k.transform)) a.cancel(); });
+    const r = c.getBoundingClientRect();
+    drag = { x: e.clientX, y: e.clientY, t: Date.now(), dx: 0, dy: 0, base: c.style.transform, low: e.clientY > r.top + r.height / 2, pts: [[performance.now(), e.clientX]] };
+    try { deck.setPointerCapture(e.pointerId); } catch {}
+  });
+  deck.addEventListener('pointermove', e => {
+    if (!drag) return; drag.dx = e.clientX - drag.x; drag.dy = e.clientY - drag.y;
+    drag.pts.push([performance.now(), e.clientX]); if (drag.pts.length > 6) drag.pts.shift();
+    if (Math.abs(drag.dx) > 2 || Math.abs(drag.dy) > 2) {
+      const rot = drag.dx / 15 * (drag.low ? -1 : 1);   // turns the way a held card would, from where it was grabbed
+      top().style.transform = `${drag.base === 'none' ? '' : drag.base} translate(${drag.dx}px,${drag.dy * .3}px) rotate(${rot}deg) scale(1.02)`;
+    }
+  });
   const end = e => { if (!drag) return; const g = drag; drag = null; const moved = Math.abs(g.dx);
-    if (moved > 55) return cycle(g.dx > 0 ? 1 : -1);
-    if (moved < 8 && Math.abs(e.clientY - g.y) < 10 && Date.now() - g.t < 600 && e.type === 'pointerup') return pick();
-    const c = top(); c.animate([{ transform: c.style.transform }, { transform: g.base }], { duration: 260, easing: 'cubic-bezier(.2,.9,.25,1)' }); c.style.transform = g.base; };
+    const p0 = g.pts[0], p1 = g.pts[g.pts.length - 1], vx = p1[0] > p0[0] ? (p1[1] - p0[1]) / (p1[0] - p0[0]) : 0;   // px per ms over the last few moves
+    const c = top();
+    if (moved > 45 || (Math.abs(vx) > .35 && moved > 12)) return cycle((Math.abs(vx) > .35 ? vx : g.dx) > 0 ? 1 : -1, { t: c.style.transform, dy: g.dy * .3 }, vx);
+    if (moved < 8 && Math.abs(e.clientY - g.y) < 10 && Date.now() - g.t < 600 && e.type === 'pointerup') { c.style.transform = g.base; return pick(); }
+    c.animate([{ transform: c.style.transform }, { transform: g.base }], { duration: 420, easing: 'cubic-bezier(.34,1.56,.64,1)' }); c.style.transform = g.base; };
   deck.addEventListener('pointerup', end); deck.addEventListener('pointercancel', end);
 }
 /* ---------- plan a day ---------- */
