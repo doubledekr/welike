@@ -2050,6 +2050,7 @@ function inboxGo(u) {
   if (s) return openSession(s).catch(() => toast('That round has finished.'));
   if (r) return openRec(r, q.get('keen'));
   if (g) return openGame(g);
+  if (q.get('into')) return intoSheet(q.get('into'));
   if (q.get('gem')) return gemOpen();
   if (q.get('surprise')) return surpOpen(q.get('surprise'));
   if (q.get('plan')) { S.favAsk = q.get('fav') ? q.get('plan') : null; return dayAct('view', q.get('plan')).catch(() => {}); }
@@ -2108,6 +2109,17 @@ function recSheet(c, from, keen) {
     el.innerHTML = `<div class="note" style="margin-top:10px;font-size:14px"><b>${me ? 'You marked this as seen.' : esc(other.join(' and ')) + ' has seen this.'}</b> ${me ? 'Say yes for a rewatch, or pass.' : 'They would watch it again with you.'}</div>`;
     if (me) { const y = document.querySelector('[data-act="recyes"]'); if (y) y.textContent = 'Let’s rewatch it'; }
   }).catch(() => {});
+}
+// "They seem really into this": the partner's Hell yeah on a dated event, with three answers
+async function intoSheet(id) {
+  let c = null; try { c = await rpc('get_card', { p_code: S.code, p_id: id }); } catch {} if (!c) return toast('That event is no longer on.');
+  S.detailCard = c; S.listCards = [c, ...(S.listCards || []).filter(x => x.id !== c.id)];
+  sheet(`<div class="grab"></div><div class="trp kc k-ask"><small class="tkick">${esc(them())} seems really into this</small><h2>${esc(c.title)}</h2>
+    <p class="muted" style="margin-top:6px;font-size:14px">${esc([c.data?.flex ? 'This week' : fmtDate(c.event_date), c.data?.time, c.subtitle].filter(Boolean).join(' · '))}</p>
+    ${c.image ? `<button data-detail="${c.id}" style="display:block;width:100%;margin-top:12px;border-radius:18px;overflow:hidden;aspect-ratio:16/9"><img src="${esc(c.image)}" alt="" style="width:100%;height:100%;object-fit:cover"></button>` : ''}
+    <div style="height:16px"></div><button class="btn tbtn" data-into="plan|${c.id}">I’m in. Plan around it</button>
+    <p class="muted" style="font-size:12.5px;text-align:center;margin:8px 0 0">You can add a drink or dinner before or after, or send it back as it is.</p>
+    <div style="height:10px"></div><div class="row" style="gap:10px"><button class="btn ghost" data-into="seen|${c.id}" style="flex:1">Can’t make it</button><button class="btn ghost" data-into="no|${c.id}" style="flex:1">Not for me</button></div></div>`);
 }
 async function openRec(id, keen) {
   try { const c = await rpc('get_card', { p_code: S.code, p_id: id }); if (c) recSheet(c, partner(), Number(keen) || 0); } catch {}
@@ -3219,7 +3231,7 @@ async function commit(verdict) {
     send({ type: 'swipe', session: sess, left: S.deck.length });
     if (S.bite && card.deck === 'event') { if (r.match) push(`You matched on an event ${emojiFor(card)}`, `You and ${S.me} both want to go to ${card.title}.`, './'); else if (verdict === 'yes' || verdict === 'love') S.evLiked = true; if (r.keen && r.weeks === 3 && !r.match && partner()) keenNudge(card, r.weeks); if (!S.deck.length && S.evLiked) { S.evLiked = false; evPeek(true); } }
     // Hell yeah on a dated event: the other person hears about it straight away and is asked to build a plan around it
-    if (card.deck === 'event' && !card.data?.place && verdict === 'love' && !r.match && partner()) { push(`${S.me} says Hell yeah: ${card.title}`, `${card.data?.flex ? 'This week' : fmtDate(card.event_date)}. Want to make a plan around it? Add one thing before or after and send it back.`, `./?planfor=${card.id}`); toast(`${them()} gets asked to plan around it.`, 3200); }
+    if (card.deck === 'event' && !card.data?.place && verdict === 'love' && !r.match && partner()) { push(`${S.me} seems really into this`, `${card.title}, ${card.data?.flex ? 'this week' : fmtDate(card.event_date)}. Take a look and say if you’re in.`, `./?into=${card.id}`); toast(`${them()} gets told you’re really into it.`, 3200); }
     if (S.bite && r.before && !r.match && partner() && (card.deck === 'event' || card.deck === 'dinner') && !(r.keen && r.weeks === 3) && !$layer.innerHTML) againSheet(card);
     if (r.match && S.bite) { S.state.counts.shortlist = (S.state.counts.shortlist || 0) + 1; const hm = S.state.counts.hearts ||= {}; hm[card.deck] = (hm[card.deck] || 0) + 1; paintHearts(); toast(`You have both liked ${card.title}. It will come up first next round.`, 3500); send({ type: 'shortlist' }); }
     else if (r.match) { const m = { ...card, loves: verdict === 'love' ? 1 : 0 }; S.matches.unshift(m); updateBar(); send({ type: 'match', session: sess, card: m }); push(`It's a match ${emojiFor(card)}`, `You and ${S.me} both said yes to ${card.title}.`, `./?s=${sess}`); showMatch(m); }
@@ -3507,7 +3519,7 @@ async function saveAdd(t) {
 /* ---------- events ---------- */
 document.addEventListener('click', async e => {
   if (S.slDrag && Date.now() - S.slDrag < 350 && e.target.closest('.sli')) return;
-  const t = e.target.closest('[data-tripclaim],[data-datesok],[data-tripstay],[data-staysave],[data-stayok],[data-sp],[data-pl],[data-inurl],[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-hdeck],[data-like],[data-final],[data-lad],[data-chg],[data-tbpick],[data-g],[data-seenany],[data-padd],[data-lib],[data-libf],[data-tripc],[data-who],[data-gcity],[data-getaway],[data-libc],[data-planf],[data-planact],[data-tripbook],[data-tripinvite],[data-tripsearch],[data-planbook],[data-planpick],[data-tripdates],[data-datesave],[data-tripitem],[data-astack],[data-shpick],[data-feel],[data-seenme],[data-pset],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
+  const t = e.target.closest('[data-into],[data-tripclaim],[data-datesok],[data-tripstay],[data-staysave],[data-stayok],[data-sp],[data-pl],[data-inurl],[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-hdeck],[data-like],[data-final],[data-lad],[data-chg],[data-tbpick],[data-g],[data-seenany],[data-padd],[data-lib],[data-libf],[data-tripc],[data-who],[data-gcity],[data-getaway],[data-libc],[data-planf],[data-planact],[data-tripbook],[data-tripinvite],[data-tripsearch],[data-planbook],[data-planpick],[data-tripdates],[data-datesave],[data-tripitem],[data-astack],[data-shpick],[data-feel],[data-seenme],[data-pset],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
   if (!t) return; const ds = t.dataset;
   try {
     if (ds.who) { const jn = document.getElementById('jn'); if (jn) jn.value = ds.who; return document.getElementById('jgo')?.click(); }
@@ -3519,6 +3531,10 @@ document.addEventListener('click', async e => {
     if (ds.shpick) { const on = !S.shSel.has(ds.shpick); on ? S.shSel.add(ds.shpick) : S.shSel.delete(ds.shpick); t.classList.toggle('on', on); const g = document.getElementById('shgo'); if (g) g.innerHTML = shGoLabel(); return; }
     if (ds.tab) { S.tab = ds.tab; S.view = 'home'; if (ds.tab === 'home') { S.revEntry = true; await refresh(); } return render(); }
     if (ds.final) { const c = await rpc('set_final', { p_code: S.code, p_session: S.sess.id, p_card: ds.final }); send({ type: 'final', card: c }); push(`Tonight: ${c.title}`, `${S.me} locked it in.`, `./?s=${S.sess.id}`); return showFinal(c); }
+    if (ds.into) { const [a, id] = ds.into.split('|'), c = S.detailCard?.id === id ? S.detailCard : null; t.disabled = true;
+      try { await rpc('event_answer', { p_code: S.code, p_member: S.me, p_card: id, p_verdict: a === 'plan' ? 'yes' : a }); } catch { t.disabled = false; return toast('Could not save that. Try again in a moment.'); }
+      if (a === 'plan') { send({ type: 'shortlist' }); return dayAct('around', id).catch(() => {}); }
+      push(a === 'seen' ? `${S.me} can’t make it` : `${S.me} passed on this one`, `${c?.title || 'That event'}${a === 'seen' ? ': the date doesn’t work.' : ' isn’t their thing.'}`, './'); closeSheet(); toast(a === 'seen' ? 'Marked as can’t make it.' : 'Okay, passed.', 2500); refresh().catch(() => {}); return; }
     if (ds.like) { t.disabled = true; const r = await rpc('like_card', { p_code: S.code, p_member: S.me, p_card: ds.like }); t.outerHTML = '<span class="pill hot">Liked</span>'; if (r.match) { toast('You have both liked that one. It will come up first next round.', 3500); send({ type: 'shortlist' }); } refresh().catch(() => {}); return; }
     if (ds.hdeck) { S.homeDeck = ds.hdeck; ls.set('deck', ds.hdeck); S.revEntry = true; return render(); }
     if (ds.lad) return ladder(ds.lad, t);
@@ -3852,12 +3868,14 @@ async function boot() {
   const invq = new URLSearchParams(location.search).get('invite'); if (invq) history.replaceState(null, '', location.pathname);
   if (new URLSearchParams(location.search).get('reveal')) { history.replaceState(null, '', location.pathname); prepRevealTest(); }
   const tpq = new URLSearchParams(location.search).get('tripplan'); if (tpq) history.replaceState(null, '', location.pathname);
+  const itq = new URLSearchParams(location.search).get('into'); if (itq) history.replaceState(null, '', location.pathname);
   const gmq = new URLSearchParams(location.search).get('gem'); if (gmq) history.replaceState(null, '', location.pathname);
   const spq = new URLSearchParams(location.search).get('surprise'); if (spq) history.replaceState(null, '', location.pathname);
   const plq = new URLSearchParams(location.search).get('plan'); S.favAsk = new URLSearchParams(location.search).get('fav') ? plq : null; const plf = new URLSearchParams(location.search).get('planfor'); if (plq || plf) history.replaceState(null, '', location.pathname);
   render(); if (rc) return openRec(rc, rk); if (tpq) return openTripPlan(tpq); if (tp) return openGetaway(tp, partner()); if (SHW[shq]) return openShareTab(shq);
   if (invq && !partner()) { carrySignIn(); return inviteSheet(); }
   if (gmq) gemOpen();
+  if (itq) intoSheet(itq);
   if (spq) { carrySignIn(); return surpView(spq); }
   if (plq) { carrySignIn(); return dayAct('view', plq).catch(() => {}); } if (plf) { carrySignIn(); return dayAct('around', plf).catch(() => {}); }
   nextOnboard(); if (!newsShow()) { checkTravel(); scratchCheck(); } installCheck(); evPeek(); carrySignIn();
