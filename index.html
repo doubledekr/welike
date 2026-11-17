@@ -907,7 +907,7 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .tcard.pa.both{box-shadow:0 12px 26px -14px #000,0 0 26px -6px var(--kg)}
 .tcard.pa .pimg{position:absolute;inset:0;display:grid;place-items:center;font-size:44px;padding-bottom:22%}
 .tcard.pa .who{position:absolute;left:10px;top:10px;font-style:normal;font-size:11px;font-weight:700;padding:4px 9px;border-radius:99px;background:rgba(10,6,10,.55);color:#fff;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
-.tcard.pa.both .who{background:linear-gradient(135deg,var(--ka),var(--kb))}
+.tcard.pa.both .who{background:linear-gradient(135deg,var(--ka),var(--kb))}.tcard.pa .who.them{background:rgba(255,77,126,.85)}
 .parow{padding-bottom:22px}
 </style>
 </head>
@@ -1520,12 +1520,12 @@ async function dayStart() {
   let mine = []; try { mine = (await rpc('plan_my_likes', { p_code: S.code, p_member: S.me })).filter(c => !anch.some(x => x.id === c.id)); } catch {}
   S.listCards = [...anch, ...mine];
   const pk = p => p.mode === 'in' || pKind(p) === 'fri' ? 'fri' : 'sat';
-  const tile = (c, both) => `<button class="tcard pa kc k-${CK[c.deck] || 'ask'} ${both ? 'both' : ''}" data-pl="around|${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy" draggable="false">` : `<span class="pimg">${emojiFor(c)}</span>`}<i class="who">${both ? 'You both like' : 'You like'}</i><span class="tt"><b>${esc(c.title)}</b><small>${isDated(c) ? esc(dfmt(c.event_date) + (c.data?.time ? ' · ' + c.data.time : '')) : esc((c.subtitle || '').split(' · ')[0])}</small></span></button>`;
+  const tile = (c, both) => `<button class="tcard pa kc k-${CK[c.deck] || 'ask'} ${both ? 'both' : ''}" data-pl="around|${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy" draggable="false">` : `<span class="pimg">${emojiFor(c)}</span>`}${both ? '<i class="who">You both like</i>' : c.who && c.who !== S.me ? `<i class="who them">${esc(c.who)} likes</i>` : ''}<span class="tt"><b>${esc(c.title)}</b><small>${isDated(c) ? esc(dfmt(c.event_date) + (c.data?.time ? ' · ' + c.data.time : '')) : esc((c.subtitle || '').split(' · ')[0])}</small></span></button>`;
   sheet(`<div class="grab"></div><div class="tn pday"><div class="tn-head"><div class="brand">${BRAND}</div><h2>Plan a day</h2><p class="muted" style="margin-top:8px;font-size:14px">Two or three things in one day, sent to ${esc(them())} to say yes or swap.</p></div>
     ${live.map(p => `<button class="tripbar kc k-${pk(p)}" data-pl="view|${p.id}" style="width:100%;text-align:left"><span class="tic">${ic(pk(p) === 'fri' ? 'moon' : 'sun')}</span><span class="grow"><b>${pDayName(p.day)}${p.mode === 'in' ? ' · night in' : ''}</b><small>${pSum(p)} · ${pStatus(p)}</small></span><span class="go ${p.ok?.[S.me] ? '' : 'blink'}">Open</span></button>`).join('')}
     <div class="stiles" style="margin-top:14px"><button class="stile kc k-sat" data-pl="new|out"><span class="tic">${ic('sun')}</span><span><b>A whole day</b><small>Daytime, dinner, something after</small></span></button>
       <button class="stile kc k-fri" data-pl="new|in"><span class="tic">${ic('moon')}</span><span><b>Night in</b><small>A movie, and dinner to order or cook</small></span></button></div>
-    ${S.listCards.length ? `<div class="sect" style="margin-top:20px">Or plan around one thing</div><p class="muted" style="font-size:13px;margin-top:-2px">Swipe through what you like. Tap one to build a day around it.</p>
+    ${S.listCards.length ? `<div class="sect" style="margin-top:20px">Or plan around one thing</div><p class="muted" style="font-size:13px;margin-top:-2px">Swipe through what you and ${esc(them())} like. Tap one to build a day around it.</p>
       <div class="trow parow">${anch.map(c => tile(c, true)).join('')}${mine.map(c => tile(c, false)).join('')}</div>` : `<p class="muted" style="margin-top:18px;font-size:13.5px">Nothing liked in Eat or Go out yet. You can still start a plan and find places together as you go.</p>`}
   </div>`);
 }
