@@ -791,6 +791,39 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .scrim.kset .sheet{box-shadow:0 0 36px -8px var(--kg)}
 .scrim.kglow .prow{border-radius:14px;animation:kpulse .9s ease-out both;animation-delay:calc(.35s + var(--i,0) * .11s - var(--ke,0s))}
 @keyframes kpulse{0%{opacity:0;transform:translateY(12px)}40%{opacity:1;transform:none;box-shadow:0 0 22px -2px var(--kg)}100%{box-shadow:0 0 0 0 transparent}}
+
+/* ---- one palette: categories wear the five colors; glows, not edges; line icons, no tiles ---- */
+.seg button.kc .hc{background:linear-gradient(135deg,var(--ka),var(--kb));box-shadow:0 0 6px var(--kb)}
+.seg button.kc.on{background:linear-gradient(135deg,color-mix(in srgb,var(--ka) 26%,transparent),color-mix(in srgb,var(--kb) 14%,transparent));box-shadow:0 0 16px -2px var(--kg)}
+.seg button.kc.on .hc{background:linear-gradient(135deg,var(--ka),var(--kb))}
+.stack.kc .card:not(.under){box-shadow:0 18px 40px rgba(0,0,0,.55),0 0 56px -16px var(--kg)}
+.tripbar .tic,.inrow .tic,.tripbar.kc .tic,.inrow.kc .tic{background:none!important;box-shadow:none!important;width:30px;color:var(--ka,#ff9a7a);filter:drop-shadow(0 0 7px var(--kb,#ff4d7e))}
+.tripbar .tic .ic,.inrow .tic .ic{width:24px;height:24px}
+.tripbar.kc{box-shadow:0 10px 34px -12px var(--kg)}
+.inrow.kc{background:linear-gradient(135deg,var(--kt2),transparent 78%);box-shadow:0 8px 26px -14px var(--kg);margin-bottom:6px}
+.tpc.kc{background:linear-gradient(160deg,color-mix(in srgb,var(--ka) 24%,#21161b),#1a1115 62%)}
+.tpc .cic{background:none;color:var(--ka,#fff);filter:drop-shadow(0 0 9px var(--kb,#fff));width:40px;height:40px}
+.tpc .cic .ic{width:34px;height:34px}
+.tpc .cbg{color:var(--ka,#fff);opacity:.1}
+.tpc .ctx,.tpc .cic{z-index:3}
+.tpc.mixc{background:#7a5cff}
+.tpc.mixc .cic{color:#fff;filter:drop-shadow(0 0 8px rgba(255,255,255,.9))}
+.tpc .ink{position:absolute;inset:-35%;background:linear-gradient(135deg,#b04dff,#ff4d7e 35%,#ffb547 60%,#2dd4bf 85%,#4d9bff)}
+.tpc .ink i{position:absolute;width:72%;height:72%;border-radius:50%}
+/* neighbours on the wheel sit next to each other, so every blend stays bright (no gold over violet) */
+.tpc .ink i:nth-child(1){background:radial-gradient(circle,#8a5cff 0,#8a5cff00 68%);left:-6%;top:-4%;animation:ik1 11s ease-in-out infinite alternate}
+.tpc .ink i:nth-child(2){background:radial-gradient(circle,#ff4d9e 0,#ff4d9e00 68%);right:-8%;top:4%;animation:ik2 13s ease-in-out infinite alternate}
+.tpc .ink i:nth-child(3){background:radial-gradient(circle,#ff8a4d 0,#ff8a4d00 68%);right:-4%;top:34%;animation:ik3 12s ease-in-out infinite alternate}
+.tpc .ink i:nth-child(4){background:radial-gradient(circle,#ffc94d 0,#ffc94d00 68%);right:4%;bottom:-6%;animation:ik4 14s ease-in-out infinite alternate}
+.tpc .ink i:nth-child(5){background:radial-gradient(circle,#2dd4bf 0,#2dd4bf00 68%);left:-4%;bottom:-4%;animation:ik5 10s ease-in-out infinite alternate}
+.tpc .ink i:nth-child(6){background:radial-gradient(circle,#4d9bff 0,#4d9bff00 68%);left:-10%;top:30%;animation:ik6 15s ease-in-out infinite alternate}
+@keyframes ik1{to{transform:translate(30%,12%) scale(1.15)}}@keyframes ik2{to{transform:translate(-26%,22%) scale(.9)}}@keyframes ik3{to{transform:translate(-14%,-26%) scale(1.12)}}
+@keyframes ik4{to{transform:translate(-28%,-14%) scale(1.15)}}@keyframes ik5{to{transform:translate(24%,-18%) scale(.9)}}@keyframes ik6{to{transform:translate(14%,28%) scale(1.1)}}
+.tpc .veil{position:absolute;inset:0;z-index:2;background:linear-gradient(180deg,transparent 45%,rgba(10,6,10,.45))}
+.thalo{position:absolute;inset:-26px;border-radius:50px;z-index:0;pointer-events:none;background:conic-gradient(#8a5cff,#ff4d9e,#ff8a4d,#ffc94d,#2dd4bf,#4d9bff,#8a5cff);filter:blur(38px);opacity:0;transition:opacity .5s;animation:tspin 16s linear infinite}
+.thalo.show{opacity:.6}
+@keyframes tspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.tpc .ink i,.thalo{animation:none}}
 </style>
 </head>
 <body>
@@ -837,6 +870,8 @@ const ICONS = {
 const MARK = `<svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="mkg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8050"/><stop offset="1" stop-color="#ff4080"/></linearGradient></defs><rect width="48" height="48" rx="12" fill="url(#mkg)"/><rect x="10.3" y="10.3" width="19.2" height="19.2" rx="4.6" fill="#fff" opacity=".42"/><rect x="18.5" y="18.5" width="19.2" height="19.2" rx="4.6" fill="#fff" opacity=".42"/><path d="M23.1 18.5H29.5V24.9A4.6 4.6 0 0 1 24.9 29.5H18.5V23.1A4.6 4.6 0 0 1 23.1 18.5Z" fill="#fff"/><path transform="translate(20.25 20.2) scale(.3125)" d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" fill="url(#mkg)"/></svg>`;
 const BRAND = 'Let’s <i>Together</i>';
 const ic = n => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[n] || ''}"/></svg>`;
+// Each category wears one of the five what's-happening colors.
+const CK = { movie: 'fri', dinner: 'sat', activity: 'ask', event: 'ask', trip: 'book', art: 'match' };
 const DIC = { movie: 'film', dinner: 'dine', activity: 'spark', event: 'ticket', mix: 'shuffle', trip: 'plane', art: 'frame' };
 const KINDS = { cook: ['Cook at home', '🍳'], restaurant: ['Restaurant', '🍷'], orderin: ['Order in', '🥡'] };
 const EVENT_EM = { 'Music': '🎶', 'Comedy': '🎤', 'Trivia': '🧠', 'Arts and Film': '🎞️', 'Sports and Games': '🏟️', 'Brunch': '🥞', 'Happy Hour': '🍻', 'Seasonal': '🍂', 'Special Event': '✨', 'Bar': '🍸', 'Museum': '🏛️', 'Gallery': '🖼️', 'Bookstore': '📚', 'Bowling': '🎳', 'Games & fun': '🕹️', 'Night out': '🌙', 'Shops': '🛍️' };
@@ -1159,7 +1194,7 @@ function homeHTML() {
     <div class="row hdr"><div class="brand grow hb">${MARK}<span>${BRAND}</span></div>
       <button class="ib" data-act="search" aria-label="Search movies">${ic('search')}</button>
       ${bellHTML()}<button class="ib" data-tab="you" aria-label="You and settings">${ic('gear')}</button></div>${slotHTML(incoming)}
-    <div class="seg" style="margin:12px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="${S.homeDeck === k ? 'on' : ''}">${l}${heartTag(k)}</button>`).join('')}</div>${scratchShow() && !S.awayOffer ? `<button class="scratch-pill" data-act="scratch">${ic('spark')}<span><b>A scratch card is waiting</b><small>One thing ${esc(p)} is in on</small></span><i>Scratch</i></button>` : ''}${S.awayOffer ? `<div class="trav"><span class="tic">${ic('pin')}</span><span class="grow"><b>Looks like you’re in ${esc(S.awayOffer.city)}</b><small>Show places to eat and things to do here?</small></span><button class="go" data-act="awayyes">Show</button><button class="x" data-act="awayno" aria-label="Not now">×</button></div>` : ''}${S.away && (S.homeDeck === 'dinner' || S.homeDeck === 'event') ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><small class="muted" style="font-size:12.5px">${ic('pin')} Showing ${esc(S.away.city)} on this phone</small><button class="chip" data-act="awayoff" style="padding:5px 12px;font-size:13px">Back to home</button></div>` : ''}${S.homeDeck === 'movie' ? `<div class="row" style="margin:14px 2px 0"><button class="chip" data-act="movielib" style="padding:5px 12px;font-size:13px">${ic('film')} Movie library</button></div>` : ''}${shareChip()}${S.homeDeck === 'art' ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="gallery" style="padding:5px 12px;font-size:13px">${ic('frame')} Our gallery</button><small class="muted" style="font-size:12.5px">No nudges, just likes</small></div>` : ''}${S.homeDeck === 'trip' ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="trips" style="padding:5px 12px;font-size:13px">${ic('heart')} Saved trips</button><button class="chip ${S.tripCity ? 'on' : ''}" data-act="tripcity" style="padding:5px 12px;font-size:13px">${esc(S.tripCity || 'Anywhere')} ▾</button></div>` : ''}
+    <div class="seg" style="margin:12px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="kc k-${CK[k]} ${S.homeDeck === k ? 'on' : ''}">${l}${heartTag(k)}</button>`).join('')}</div>${scratchShow() && !S.awayOffer ? `<button class="scratch-pill" data-act="scratch">${ic('spark')}<span><b>A scratch card is waiting</b><small>One thing ${esc(p)} is in on</small></span><i>Scratch</i></button>` : ''}${S.awayOffer ? `<div class="trav"><span class="tic">${ic('pin')}</span><span class="grow"><b>Looks like you’re in ${esc(S.awayOffer.city)}</b><small>Show places to eat and things to do here?</small></span><button class="go" data-act="awayyes">Show</button><button class="x" data-act="awayno" aria-label="Not now">×</button></div>` : ''}${S.away && (S.homeDeck === 'dinner' || S.homeDeck === 'event') ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><small class="muted" style="font-size:12.5px">${ic('pin')} Showing ${esc(S.away.city)} on this phone</small><button class="chip" data-act="awayoff" style="padding:5px 12px;font-size:13px">Back to home</button></div>` : ''}${S.homeDeck === 'movie' ? `<div class="row" style="margin:14px 2px 0"><button class="chip" data-act="movielib" style="padding:5px 12px;font-size:13px">${ic('film')} Movie library</button></div>` : ''}${shareChip()}${S.homeDeck === 'art' ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="gallery" style="padding:5px 12px;font-size:13px">${ic('frame')} Our gallery</button><small class="muted" style="font-size:12.5px">No nudges, just likes</small></div>` : ''}${S.homeDeck === 'trip' ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="trips" style="padding:5px 12px;font-size:13px">${ic('heart')} Saved trips</button><button class="chip ${S.tripCity ? 'on' : ''}" data-act="tripcity" style="padding:5px 12px;font-size:13px">${esc(S.tripCity || 'Anywhere')} ▾</button></div>` : ''}
     <div class="stack" id="stack" style="margin:16px 0 16px">${S.doneHtml?.[S.homeDeck]?.day === new Date().toDateString() ? S.doneHtml[S.homeDeck].html : ''}</div>
     <div class="actions" id="acts" style="visibility:hidden"><button class="act sm" data-sw="undo" aria-label="Undo">${ic('undo')}</button><button class="act no" data-sw="no" aria-label="No">${ic('x')}</button>
       <button class="act sm" data-sw="seen" id="seenb" aria-label="Seen it" style="display:none">${ic('eye')}</button>
@@ -1234,9 +1269,9 @@ async function shareApp() {
 function tonightSheet() {
   const st = S.state, p = partner(), latest = (st.sessions || []).find(s => s.from !== S.me && s.my_left > 0), rest = (st.sessions || []).filter(s => s !== latest);
   // One brand family for all five: color is kept for what is happening (Friday, Saturday, partner, booking, match), and the icon and name tell these apart.
-  const CATS = { movie: ['#ff7a62', '#d9365e'], dinner: ['#ff8f5a', '#e0475f'], activity: ['#ff6f86', '#b83270'], event: ['#ff9b6b', '#cf3f55'], mix: ['#ff7f7f', '#c43a7a'] }, TD = ['movie', 'dinner', 'activity', 'event', 'mix'];
+  const TD = ['movie', 'dinner', 'activity', 'event', 'mix'];
   let h = `<div class="grab"></div><div class="tn"><div class="tn-head"><div class="brand">${BRAND}</div><h2>What should we<br>do tonight?</h2><p class="muted" style="margin-top:8px;font-size:14px">Swipe to flip through. Tap one to start${p ? `, and ${esc(p)} gets the same cards` : ''}.</p></div>
-    <div class="tdeck" id="tdeck">` + TD.map((d, i) => `<div class="tpc" data-k="${d}" style="--c1:${CATS[d][0]};--c2:${CATS[d][1]}"><span class="cbg">${ic(DIC[d])}</span><span class="cic">${ic(DIC[d])}</span><span class="cnum">${i + 1} of ${TD.length}</span><span class="ctx"><b>${DECKS[d].label}</b><small>${DECKS[d].hint}</small></span></div>`).join('') + `</div>
+    <div class="tdeck" id="tdeck">` + TD.map((d, i) => `<div class="tpc ${CK[d] ? 'kc k-' + CK[d] : 'mixc'}" data-k="${d}">${CK[d] ? '' : '<span class="ink"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="veil"></span>'}<span class="cbg">${ic(DIC[d])}</span><span class="cic">${ic(DIC[d])}</span><span class="ctx"><b>${DECKS[d].label}</b><small>${DECKS[d].hint}</small></span></div>`).join('') + `</div>
     <div class="tdots">${TD.map(() => '<i></i>').join('')}</div>`;
   // Only the newest round can be "in progress": it has to be from the last 18 hours, not decided yet, and still have cards waiting. An older unfinished round never comes back once a newer one exists.
   const last = rest.find(s => !s.filters?.bite && !s.filters?.solo && !s.filters?.share && !s.filters?.evshare);
@@ -1253,16 +1288,17 @@ function tdeckInit() {
   const cards = [...deck.children], dots = [...document.querySelectorAll('.tdots i')], order = cards.map((_, i) => i), K = cards.map(c => c.dataset.k);
   let seed = 11; const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
   const jit = c => { const sg = rnd() < .5 ? -1 : 1; c._j = { x: (rnd() - .5) * 30, y: (rnd() - .5) * 18, r: sg * (3 + rnd() * 7) }; };
-  const look = (c, i) => { const j = c._j, t = i === 0; return { transform: `translate(${t ? j.x * .25 : j.x}px,${(t ? j.y * .25 : j.y) + i * 3}px) rotate(${t ? j.r * .3 : j.r}deg)`, filter: `brightness(${1 - i * .09})`, boxShadow: t ? '0 22px 38px -14px rgba(0,0,0,.9)' : '0 8px 18px -8px rgba(0,0,0,.85)' }; };
+  const look = (c, i) => { const j = c._j, t = i === 0; return { transform: `translate(${t ? j.x * .25 : j.x}px,${(t ? j.y * .25 : j.y) + i * 3}px) rotate(${t ? j.r * .3 : j.r}deg)`, filter: `brightness(${1 - i * .09})`, boxShadow: t ? `0 22px 38px -14px rgba(0,0,0,.9), 0 0 46px -6px ${getComputedStyle(c).getPropertyValue('--kg').trim() || 'rgba(255,150,130,.6)'}` : '0 8px 18px -8px rgba(0,0,0,.85)' }; };
   const place = (c, i, ms = 0) => { const k = look(c, i), from = { transform: c.style.transform, filter: c.style.filter, boxShadow: c.style.boxShadow }; c.style.zIndex = 10 - i; Object.assign(c.style, k); if (ms && from.transform) c.animate([from, k], { duration: ms, easing: 'cubic-bezier(.2,.9,.25,1)' }); };
-  const paint = () => dots.forEach((d, i) => d.classList.toggle('on', i === order[0]));
+  const halo = document.createElement('div'); halo.className = 'thalo'; deck.prepend(halo);
+  const paint = () => { dots.forEach((d, i) => d.classList.toggle('on', i === order[0])); cards.forEach((c, i) => c.classList.toggle('top', i === order[0])); halo.classList.toggle('show', cards[order[0]].classList.contains('mixc')); };
   cards.forEach((c, i) => { jit(c); place(c, i); c.animate([{ transform: `translate(${i % 2 ? 60 : -60}px,240px) rotate(${i % 2 ? 25 : -25}deg)`, opacity: 0 }, { transform: c.style.transform, opacity: 1 }], { duration: 520, delay: (cards.length - 1 - i) * 80, easing: 'cubic-bezier(.2,.9,.25,1)', fill: 'backwards' }); });
   paint();
   let drag = null, busy = false;
   const top = () => cards[order[0]];
   const cycle = async dir => {
     busy = true; const c = top(), nx = cards[order[1]];
-    nx.animate([{ boxShadow: '0 0 0 0 transparent' }, { boxShadow: '0 0 70px 14px rgba(255,90,120,.8)' }, { boxShadow: look(nx, 0).boxShadow }], { duration: 800 });
+    const ng = getComputedStyle(nx).getPropertyValue('--kg').trim() || 'rgba(255,140,120,.8)'; nx.animate([{ boxShadow: '0 0 0 0 transparent' }, { boxShadow: `0 0 70px 14px ${ng}` }, { boxShadow: look(nx, 0).boxShadow }], { duration: 800 });
     const out = `translateX(${dir * 340}px) rotate(${dir * 22}deg)`;
     await c.animate([{ transform: c.style.transform }, { transform: out }], { duration: 190, easing: 'ease-in' }).finished;
     order.push(order.shift()); order.forEach((k, i) => { if (cards[k] !== c) place(cards[k], i, 380); });
@@ -1271,7 +1307,7 @@ function tdeckInit() {
   };
   const pick = () => {
     busy = true; const c = top(), d = c.dataset.k;
-    c.animate([{ transform: c.style.transform, boxShadow: c.style.boxShadow }, { transform: 'translateY(-6px) scale(1.06)', boxShadow: '0 0 80px 16px rgba(255,90,120,.9)' }], { duration: 260, easing: 'ease-out', fill: 'forwards' });
+    const pg = getComputedStyle(c).getPropertyValue('--kg').trim() || 'rgba(255,140,120,.85)'; c.animate([{ transform: c.style.transform, boxShadow: c.style.boxShadow }, { transform: 'translateY(-6px) scale(1.06)', boxShadow: `0 0 80px 16px ${pg}` }], { duration: 260, easing: 'ease-out', fill: 'forwards' });
     cards.forEach(x => { if (x !== c) x.animate([{ opacity: 1 }, { opacity: 0, transform: x.style.transform + ' translateY(30px)' }], { duration: 260, fill: 'forwards' }); });
     setTimeout(() => nudgeSheet(d), 320);
   };
@@ -1677,8 +1713,8 @@ function waiting() {
     const pid = (/view\|([\w-]+)/.exec(x.a || '') || [])[1], pl = pid && byId(pid);
     if (/^p[bc]/.test(x.k)) x.kind = 'book';
     else if (/^p[atw]/.test(x.k) && pl) { x.kind = pKind(pl); x.ic = pIcon(pl); }
-    else if (x.k.startsWith('s')) { const s = (st.sessions || []).find(z => 's' + z.id === x.k); x.kind = s?.from === 'Let’s Together' ? pKind(byId(s.filters?.plan)) : 'ask'; if (s?.from === 'Let’s Together') x.ic = pIcon(byId(s.filters?.plan)); }
-    else if (x.k.startsWith('ti') || x.k === 'invite') x.kind = 'ask';
+    else if (x.k.startsWith('s')) { const s = (st.sessions || []).find(z => 's' + z.id === x.k); x.kind = s?.from === 'Let’s Together' ? pKind(byId(s.filters?.plan)) : CK[s?.deck] || 'ask'; if (s?.from === 'Let’s Together') x.ic = pIcon(byId(s.filters?.plan)); }
+    else if (x.k.startsWith('ti')) x.kind = 'book'; else if (x.k === 'invite') x.kind = 'ask';
   });
   if (S.evPend && ls.get('evno') !== evKey()) out.push({ k: 'ev' + evKey(), kind: 'book', lv: 2, ic: 'ticket', t: `You liked ${S.evPend.count > 1 ? S.evPend.count + ' events' : 'an event'} this week`, s: `Send to ${them()} before ${S.evPend.count > 1 ? 'they pass' : 'it passes'}.`, a: 'data-act="evask"', go: 'Share' });
   return out;
@@ -2550,6 +2586,8 @@ function drawStack() {
   }
   if (S.bite && S.doneHtml?.[S.sess?.deck]) { delete S.doneHtml[S.sess.deck]; try { ls.set('donehtml', JSON.stringify(S.doneHtml)); } catch {} }
   acts.style.visibility = ''; if (seen) seen.style.display = S.deck[0].deck === 'movie' && !S.rewatch ? '' : 'none';
+  const kk = CK[S.sess?.deck || S.deck[0]?.deck]; st.classList.remove('k-fri', 'k-sat', 'k-ask', 'k-book', 'k-match'); if (kk) st.classList.add('kc', 'k-' + kk);
+  const kg = getComputedStyle(st).getPropertyValue('--kg').trim() || 'rgba(255,90,120,.75)';
   const prev = S.pileAt === st ? S.pileDepth || {} : {}, depth = {};
   st.innerHTML = S.deck.slice(0, PILE).map((c, i) => cardHTML(c, i ? 'under' : '')).reverse().join('');
   const cs = [...st.querySelectorAll('.card')].reverse();   // [top, next, ...]
@@ -2557,7 +2595,7 @@ function drawStack() {
     if (S.bite && !S.revEntry && !(S.rev && performance.now() - S.rev.t0 < 1400) || !S.bite) {   // a reveal brings its own entrance
       if (prev[id] != null && prev[id] !== i) { const o = pilePose(id, prev[id]);
         el.animate([o, k], { duration: 420, easing: 'cubic-bezier(.2,.9,.25,1)' });
-        if (i === 0) el.animate([{ boxShadow: '0 0 0 0 transparent' }, { boxShadow: '0 0 70px 14px rgba(255,90,120,.75)', offset: .35 }, { boxShadow: k.boxShadow }], { duration: 800 }); }
+        if (i === 0) el.animate([{ boxShadow: '0 0 0 0 transparent' }, { boxShadow: `0 0 70px 14px ${kg}`, offset: .35 }, { boxShadow: k.boxShadow }], { duration: 800 }); }
       else if (prev[id] == null && Object.keys(prev).length) el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 380 });
     } });
   S.pileAt = st; S.pileDepth = depth;
@@ -2605,7 +2643,7 @@ function revealCards(st) {
   cs.forEach((el, i) => {
     const base = el.style.transform || 'none', top = i === L - 1, side = (L - 1 - i) % 2 ? 1 : -1;
     const from = quick ? `translate(${side * 34}px,120px) rotate(${side * 10}deg)` : `translate(${side * 56}px,230px) rotate(${side * 18}deg)`;
-    const glowTop = quick ? '0 0 56px 12px rgba(255,90,110,.75)' : '0 0 96px 24px rgba(255,80,110,.9)', end = el.style.filter || 'none';
+    const kg = getComputedStyle(st).getPropertyValue('--kg').trim() || 'rgba(255,90,110,.8)', glowTop = quick ? `0 0 56px 12px ${kg}` : `0 0 96px 24px ${kg}`, end = el.style.filter || 'none';
     const a = el.animate(quick ? [
       { transform: from, opacity: 0, filter: top ? 'brightness(1.25)' : end },
       { transform: base, opacity: 1, boxShadow: top ? glowTop : 'none', filter: top ? 'brightness(1.08)' : end, offset: .6 },
