@@ -969,6 +969,16 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .gemk{display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:#ffd6e0;margin-bottom:4px}.gemk .ic{width:15px;height:15px;filter:drop-shadow(0 0 5px rgba(255,77,126,.9))}
 .gemk.in{margin:14px 0 0;color:var(--muted)}.card .gsub{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;white-space:normal}
 .gsect{display:flex;align-items:center;gap:6px}.gsect .ic{width:14px;height:14px;color:var(--ka)}.trp .prow small{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* a hidden gem reaching the top of a pile: the card catches light in cut-gem facets, once */
+.gfx{position:absolute;inset:0;pointer-events:none;border-radius:inherit;overflow:hidden;z-index:1}.gfx i{position:absolute;inset:0;opacity:0}
+.gfx i:nth-child(1){clip-path:polygon(0 0,58% 0,22% 42%);background:rgba(255,255,255,.3)}.gfx i:nth-child(2){clip-path:polygon(58% 0,100% 0,100% 38%,22% 42%);background:rgba(255,190,210,.28)}
+.gfx i:nth-child(3){clip-path:polygon(0 0,22% 42%,0 78%);background:rgba(160,240,225,.26)}.gfx i:nth-child(4){clip-path:polygon(22% 42%,100% 38%,64% 100%,0 78%);background:rgba(255,255,255,.2)}.gfx i:nth-child(5){clip-path:polygon(100% 38%,100% 100%,64% 100%);background:rgba(255,190,210,.24)}
+@keyframes gfacet{0%{opacity:0}28%{opacity:1}100%{opacity:0}}@keyframes gpop{0%{transform:scale(1)}35%{transform:scale(1.7) rotate(-8deg)}70%{transform:scale(.92)}100%{transform:scale(1)}}@keyframes gstar{0%{opacity:0;transform:scale(.2)}45%{opacity:1;transform:scale(1.2) rotate(40deg)}100%{opacity:0;transform:scale(.3) rotate(90deg)}}
+.card.gemc.tl .gfx i{animation:gfacet .6s ease-out both}.card.gemc.tl .gfx i:nth-child(1){animation-delay:.3s}.card.gemc.tl .gfx i:nth-child(2){animation-delay:.43s}.card.gemc.tl .gfx i:nth-child(3){animation-delay:.56s}.card.gemc.tl .gfx i:nth-child(4){animation-delay:.69s}.card.gemc.tl .gfx i:nth-child(5){animation-delay:.82s}
+.gemk{position:relative}.gst{position:absolute;left:-4px;top:-16px;width:14px;height:14px;background:#fff;opacity:0;clip-path:polygon(50% 0,60% 40%,100% 50%,60% 60%,50% 100%,40% 60%,0 50%,40% 40%)}.gst+.gst{left:20px;top:-26px;width:9px;height:9px}
+.card.gemc.tl .gemk .ic{animation:gpop .6s .45s both}.card.gemc.tl .gst{animation:gstar .7s 1s both}.card.gemc.tl .gst+.gst{animation-delay:1.25s}
+@media (prefers-reduced-motion:reduce){.card.gemc.tl .gfx i,.card.gemc.tl .gemk .ic,.card.gemc.tl .gst{animation:none}}
 </style>
 </head>
 <body>
@@ -1153,7 +1163,7 @@ async function openScratch() {
   let down = false, lx = 0, ly = 0, moves = 0, done = false;
   const pt = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; };
   const reveal = () => { if (done) return; done = true; cv.style.transition = 'opacity .5s'; cv.style.opacity = 0; setTimeout(() => cv.remove(), 520);
-    document.getElementById('scp').innerHTML = c.gemcard ? `${esc(c.data?.notes || '')} It joins your Go out pile next, so you can each say what you think.` : c.test ? `This one is a sample so you can see how it works. A real card shows something ${esc(them())} liked that you have not matched on.` : `${esc(them())} said <b>${VERD(c)[c.loved ? 2 : 1]}</b> to this one. It is not a match yet. It’s saved for when you plan a surprise.`;
+    document.getElementById('scp').innerHTML = c.gemcard ? `${esc(c.data?.notes || '')} ${c.tripgem ? `Add it to your ${esc(c.tripgem)} trip from the trip board.` : 'It joins your Go out pile next, so you can each say what you think.'}` : c.test ? `This one is a sample so you can see how it works. A real card shows something ${esc(them())} liked that you have not matched on.` : `${esc(them())} said <b>${VERD(c)[c.loved ? 2 : 1]}</b> to this one. It is not a match yet. It’s saved for when you plan a surprise.`;
     document.getElementById('scb').style.visibility = ''; if (c.test) { if (S.settings) delete S.settings.scratchtest; rpc('set_settings', { p_code: S.code, p_settings: { scratchtest: null } }).catch(() => {}); } else if (c.gemcard) { ls.set('gemday', new Date().toDateString()); rpc('gem_reveal', { p_code: S.code, p_member: S.me, p_card: c.id }).catch(() => {}); } else { ls.set('scratchAt', String(Date.now())); newGap(); if (c.id) rpc('reveal_note', { p_code: S.code, p_member: S.me, p_card: c.id }).catch(() => {}); } try { navigator.vibrate?.([20, 30, 40]); } catch {} };
   const check = () => { const d = g.getImageData(0, 0, W, H).data; let clear = 0, tot = 0; for (let i = 3; i < d.length; i += 4 * 37) { tot++; if (d[i] < 40) clear++; } if (clear / tot > .45) reveal(); };
   cv.addEventListener('pointerdown', e => { e.preventDefault(); down = true; [lx, ly] = pt(e); g.beginPath(); g.arc(lx, ly, g.lineWidth / 2, 0, 7); g.fill(); try { cv.setPointerCapture(e.pointerId); } catch {} });
@@ -2778,7 +2788,7 @@ function cardHTML(c, cls = '') {
   const art = c.image ? `<img class="bg" src="${esc(c.image)}" alt="" draggable="false" onerror="this.remove()">` : '';
   const gem = !!c.data?.gem;
   return `<div class="card ${cls}${gem ? ' gemc' : ''}" data-id="${c.id}"><div class="art ${c.deck}">${emojiFor(c)}</div>${art}
-    <div class="shade">${gem ? `<div class="gemk">${ic('gem')}<span>Hidden gem</span></div>` : ''}<h3>${esc(c.title)}</h3>${gem && c.data.notes ? `<div class="sub gsub">${esc(c.data.notes)}</div>` : c.subtitle ? `<div class="sub">${esc(c.subtitle)}</div>` : ''}<div class="tags">${tags.join('')}</div></div>
+    ${gem ? '<span class="gfx"><i></i><i></i><i></i><i></i><i></i></span>' : ''}<div class="shade">${gem ? `<div class="gemk">${ic('gem')}<span>Hidden gem</span><b class="gst"></b><b class="gst"></b></div>` : ''}<h3>${esc(c.title)}</h3>${gem && c.data.notes ? `<div class="sub gsub">${esc(c.data.notes)}</div>` : c.subtitle ? `<div class="sub">${esc(c.subtitle)}</div>` : ''}<div class="tags">${tags.join('')}</div></div>
     <div class="info">i</div><div class="stamp yes">${VERD(c)[1]}</div><div class="stamp no">${VERD(c)[0]}</div><div class="stamp love">${VERD(c)[2]}</div>${c.deck === 'movie' && !S.rewatch ? '<div class="stamp seen">Seen it</div>' : ''}</div>`;
 }
 function updateBar() { const el = document.getElementById('prog'); if (el && !(S.revealUntil > Date.now())) el.textContent = S.bite || S.solo || !partner() ? '' : `${them()} has ${S.theirLeft ? S.theirLeft + ' to go' : 'finished'}`; const m = document.getElementById('mcount'); if (m) { m.textContent = S.matches.length ? `${S.matches.length} match${S.matches.length > 1 ? 'es' : ''}` : 'No matches yet'; m.className = 'pill' + (S.matches.length ? ' hot' : ''); } }
