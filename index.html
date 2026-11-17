@@ -1166,7 +1166,7 @@ async function openScratch() {
   let down = false, lx = 0, ly = 0, moves = 0, done = false;
   const pt = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; };
   const reveal = () => { if (done) return; done = true; cv.style.transition = 'opacity .5s'; cv.style.opacity = 0; setTimeout(() => cv.remove(), 520);
-    document.getElementById('scp').innerHTML = c.gemcard ? `${esc(c.data?.notes || '')} ${c.tripgem ? `Add it to your ${esc(c.tripgem)} trip from the trip board.` : 'It joins your Go out pile next, so you can each say what you think.'}` : c.test ? `This one is a sample so you can see how it works. A real card shows something ${esc(them())} liked that you have not matched on.` : `${esc(them())} said <b>${VERD(c)[c.loved ? 2 : 1]}</b> to this one. It is not a match yet. It’s saved for when you plan a surprise.`;
+    document.getElementById('scp').innerHTML = c.gemcard ? `${esc(c.data?.notes || '')} ${c.tripgem ? `Add it to your ${esc(c.tripgem)} trip from the trip board.` : c.awaygem ? `It joins your Go out pile for ${esc(c.awaygem)}.` : 'It joins your Go out pile next, so you can each say what you think.'}` : c.test ? `This one is a sample so you can see how it works. A real card shows something ${esc(them())} liked that you have not matched on.` : `${esc(them())} said <b>${VERD(c)[c.loved ? 2 : 1]}</b> to this one. It is not a match yet. It’s saved for when you plan a surprise.`;
     document.getElementById('scb').style.visibility = ''; if (c.test) { if (S.settings) delete S.settings.scratchtest; rpc('set_settings', { p_code: S.code, p_settings: { scratchtest: null } }).catch(() => {}); } else if (c.gemcard) { ls.set('gemday', new Date().toDateString()); rpc('gem_reveal', { p_code: S.code, p_member: S.me, p_card: c.id }).catch(() => {}); } else { ls.set('scratchAt', String(Date.now())); newGap(); if (c.id) rpc('reveal_note', { p_code: S.code, p_member: S.me, p_card: c.id }).catch(() => {}); } try { navigator.vibrate?.([20, 30, 40]); } catch {} };
   const check = () => { const d = g.getImageData(0, 0, W, H).data; let clear = 0, tot = 0; for (let i = 3; i < d.length; i += 4 * 37) { tot++; if (d[i] < 40) clear++; } if (clear / tot > .45) reveal(); };
   cv.addEventListener('pointerdown', e => { e.preventDefault(); down = true; [lx, ly] = pt(e); g.beginPath(); g.arc(lx, ly, g.lineWidth / 2, 0, 7); g.fill(); try { cv.setPointerCapture(e.pointerId); } catch {} });
@@ -1179,6 +1179,8 @@ try { S.away = JSON.parse(ls.get('away') || 'null'); } catch { S.away = null; }
 const homeGeo = () => { const s = S.settings || {}; return typeof s.lat === 'number' && typeof s.lng === 'number' ? [s.lat, s.lng] : s.zgeo ? [s.zgeo.lat, s.zgeo.lng] : null; };
 function milesApart(a, b, c, d) { const r = x => x * Math.PI / 180, h = Math.sin(r(c - a) / 2) ** 2 + Math.cos(r(a)) * Math.cos(r(c)) * Math.sin(r(d - b) / 2) ** 2; return 3958.8 * 2 * Math.asin(Math.sqrt(h)); }
 let travelBusy = false, travelAt = 0;
+// tells the backend where this phone is for now (or that it is home again), so hidden gems there can be offered
+const gemAway = () => { if (!S.code || !S.me) return; const k = S.away ? S.away.city : ''; if (S.gemAwayKey === k) return; S.gemAwayKey = k; rpc('gem_away', { p_code: S.code, p_member: S.me, p_city: S.away?.city ?? null, p_lat: S.away?.lat ?? null, p_lng: S.away?.lng ?? null }).catch(() => { S.gemAwayKey = null; }); };
 async function checkTravel(ask = false) {
   if (!S.code || !S.me || !navigator.geolocation || travelBusy) return;
   if (!ask && (!ls.get('travel') || Date.now() - travelAt < 10 * 60000)) return;
@@ -1191,14 +1193,14 @@ async function checkTravel(ask = false) {
     const lat = pos.coords.latitude, lng = pos.coords.longitude;
     if (milesApart(hg[0], hg[1], lat, lng) < 30) {
       S.awayOffer = null;
-      if (S.away) { S.away = null; ls.del('away'); toast('Welcome home. Back to your usual places.', 3500); if (S.view === 'home') render(); }
+      if (S.away) { S.away = null; ls.del('away'); gemAway(); toast('Welcome home. Back to your usual places.', 3500); if (S.view === 'home') render(); }
       else if (ask) { toast('Travel mode is on. You are near home right now.', 3500); if (S.tab === 'you') render(); }
       return;
     }
     let city = '';
     try { const j = await (await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat.toFixed(3)}&longitude=${lng.toFixed(3)}&localityLanguage=en`)).json(); city = j.city || j.locality || j.principalSubdivision || ''; } catch {}
     if (!city) { if (ask) toast('Travel mode is on.'); return; }
-    if (S.away?.city === city) { S.away = { city, lat, lng }; ls.set('away', JSON.stringify(S.away)); return; }
+    if (S.away?.city === city) { S.away = { city, lat, lng }; ls.set('away', JSON.stringify(S.away)); gemAway(); return; }
     if (!ask && ls.get('awayno') === city + new Date().toDateString()) return;
     S.awayOffer = { city, lat, lng }; S.view = S.view; if (S.view === 'home' && !$layer.innerHTML) { S.tab = 'home'; render(); }
   } finally { travelBusy = false; }
@@ -3590,10 +3592,10 @@ document.addEventListener('click', async e => {
       case 'scolater': document.querySelector('.sco')?.remove(); return;
       case 'scratchdone': document.querySelector('.scr')?.remove(); return render();
       case 'travelon': return checkTravel(true);
-      case 'traveloff': ls.del('travel'); ls.del('away'); S.away = null; S.awayOffer = null; return render();
-      case 'awayyes': if (!S.awayOffer) return; S.away = S.awayOffer; ls.set('away', JSON.stringify(S.away)); S.awayOffer = null; if (S.homeDeck !== 'event') S.homeDeck = 'dinner'; toast(`Showing ${S.away.city} on this phone. Home is still saved.`, 3500); return render();
+      case 'traveloff': ls.del('travel'); ls.del('away'); S.away = null; S.awayOffer = null; gemAway(); return render();
+      case 'awayyes': if (!S.awayOffer) return; S.away = S.awayOffer; ls.set('away', JSON.stringify(S.away)); S.awayOffer = null; gemAway(); if (S.homeDeck !== 'event') S.homeDeck = 'dinner'; toast(`Showing ${S.away.city} on this phone. Home is still saved.`, 3500); return render();
       case 'awayno': if (S.awayOffer) ls.set('awayno', S.awayOffer.city + new Date().toDateString()); S.awayOffer = null; return render();
-      case 'awayoff': if (S.away) ls.set('awayno', S.away.city + new Date().toDateString()); S.away = null; ls.del('away'); return render();
+      case 'awayoff': if (S.away) ls.set('awayno', S.away.city + new Date().toDateString()); S.away = null; ls.del('away'); gemAway(); return render();
       case 'rename': sheet(`<div class="grab"></div><h2>Change your name</h2><p class="muted" style="margin-top:6px;font-size:14.5px">This is the name ${esc(them())} sees. Your swipes, likes and matches stay with you.</p><label class="field"><span>Your name</span><input id="rn" maxlength="24" autocomplete="given-name" value="${esc(S.me)}"></label><div style="height:14px"></div><button class="btn" data-act="renamego">Save name</button>`); return;
       case 'renamego': { const n = document.getElementById('rn').value.trim(); if (!n) return toast('Enter a name.'); if (n === S.me) return closeSheet(); t.disabled = true;
         try { const r = await rpc('rename_member', { p_code: S.code, p_member: S.me, p_new: n }); S.me = r.name; ls.set('name', r.name); closeSheet(); await refresh(); send({ type: 'joined' }); toast(`You are now ${r.name}.`); return render(); }
