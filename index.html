@@ -1010,8 +1010,9 @@ async function refresh() {
   const [st, pantry, settings, share, plans, inbox, favs] = await Promise.all([rpc('get_state', { p_code: S.code, p_member: S.me }), rpc('get_pantry', { p_code: S.code }), rpc('get_settings', { p_code: S.code }), rpc('share_state', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('plan_list', { p_code: S.code }).catch(() => []), rpc('inbox_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('fav_list', { p_code: S.code }).catch(() => null)]);
   S.state = st; S.plans = plans || []; S.pool = null; if (inbox) S.inbox = inbox; if (favs) S.favs = favs; S.share = share; S.pantry = pantry || []; S.settings = settings || {};
 }
-async function loadSession(id) {
+async function loadSession(id, keep) {
   const d = await rpc('get_session', { p_code: S.code, p_session: id, p_member: S.me });
+  if (keep && !keep()) return false;   // a newer request has taken over: leave everything as it is
   S.sess = d.session; S.deck = d.deck; S.matches = d.matches; S.total = d.total; S.theirLeft = d.their_left; S.solo = !!d.session.solo; S.rewatch = !!d.session.filters?.rewatch; S.bite = !!d.session.filters?.bite; S.hist = [];
 }
 async function openSession(id) {
@@ -1166,8 +1167,10 @@ async function lateFill(deck, sid, look, bg, res) {
 }
 // The main screen deals one small solo stack per deck per day. Likes are saved quietly and feed the next round.
 async function loadBite() {
-  const deck = S.homeDeck, extra = !!S.unlock || (revArmed().includes(deck) && !S.revDealt?.[deck]); S.unlock = false; if (extra && revArmed().includes(deck)) (S.revDealt ||= {})[deck] = true;
-  const here = () => S.view === 'home' && S.tab === 'home' && S.homeDeck === deck && document.getElementById('stack');
+  // Only the newest request draws: an older answer arriving late can never overwrite a newer one.
+  const seq = S.biteSeq = (S.biteSeq || 0) + 1;
+  const deck = S.homeDeck, extra = !!S.unlock || revArmed().includes(deck); S.unlock = false;
+  const here = () => S.view === 'home' && S.tab === 'home' && S.homeDeck === deck && S.biteSeq === seq && document.getElementById('stack');
   // No movies until the streaming services are chosen: a handful dealt before that ignores them.
   if (deck === 'movie' && !S.settings?.services?.length && !S.settings?.setup && !ls.get('setupskip')) {
     const st = document.getElementById('stack'); if (st) st.innerHTML = `<div class="done"><div class="badge">${ic('film')}</div><h3>First, your streaming services</h3><p class="muted">Pick the ones you have and your movies will only be things you can actually watch.</p><div style="height:12px"></div><button class="btn" data-act="opensetup">Choose services</button></div>`;
@@ -1190,7 +1193,7 @@ async function loadBite() {
       : away ? await rpc('start_bite_at', { p_code: S.code, p_member: S.me, p_deck: deck, p_extra: extra, p_away: away })
       : await rpc('start_bite', { p_code: S.code, p_member: S.me, p_deck: deck, p_extra: extra });
     if (!here()) return;
-    await loadSession(r.id); if (!here()) return;
+    if ((await loadSession(r.id, here)) === false || !here()) return;
     drawStack();
     if (look) lateFill(deck, r.id, look, bg, res);
   } catch (e) { const st = document.getElementById('stack'); if (st && here()) st.innerHTML = '<div class="done"><p class="muted">Could not load today’s cards. Reopen the app to try again.</p></div>'; }
