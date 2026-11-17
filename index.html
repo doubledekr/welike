@@ -1042,6 +1042,10 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .ehint .l{left:10px;top:44%}.ehint .r{right:10px;top:44%}.ehint .u{left:50%;top:12px;transform:translateX(-50%)}.ehint .d{left:50%;bottom:34%;transform:translateX(-50%)}
 .ehint .l:before{content:'← '}.ehint .r:after{content:' →'}.ehint .u:before{content:'↑ '}.ehint .d:before{content:'↓ '}
 @keyframes ehint{0%{opacity:0}12%,70%{opacity:1}100%{opacity:0}}
+
+/* guessing game: swipe to answer */
+#gstack .card{touch-action:none}.gcard .stamp{font-size:clamp(30px,10.5vw,52px)}
+.gacts{display:flex;gap:10px;margin-top:4px}.gacts .btn{flex:1}
 </style>
 </head>
 <body>
@@ -2735,7 +2739,19 @@ function renderGuess() {
     $app.innerHTML = `<div class="center"><div class="badge" style="margin:0 0 18px">${ic('target')}</div><h2 class="serif" style="font-size:42px;line-height:1.05">You got ${r.score} of ${r.total}</h2><p class="muted" style="margin:10px 0 22px;font-size:15.5px;line-height:1.45">Which ones stay secret.${r.overall != null ? ` So far you read ${esc(them())} right ${r.overall}% of the time.` : ''}</p><button class="btn" data-act="unlock">Unlock a few more cards</button><div style="height:10px"></div><button class="btn ghost" data-act="home">Done</button></div>`;
     return; }
   $app.innerHTML = `<div class="swipe"><div class="topbar"><button class="back" data-act="home" aria-label="Back">‹</button><div class="grow"><h2>What did ${esc(them())} say?</h2><small>${S.gi + 1} of ${S.gq.length} · you only see your score</small></div></div>
-    <div class="stack">${cardHTML(S.gq[S.gi])}</div><div class="actions" style="gap:10px"><button class="btn ghost" data-g="0">Passed</button><button class="btn" data-g="1">Said yes</button></div></div>`;
+    <p class="muted" style="font-size:13.5px;margin:8px 2px 0">Swipe right if ${esc(them())} liked it, left if they didn’t.</p>
+    <div class="stack" id="gstack">${cardHTML(S.gq[S.gi], 'gcard')}</div>${btnsOn() ? `<div class="gacts"><button class="btn ghost" data-g="0">Didn’t like it</button><button class="btn" data-g="1">Liked it</button></div>` : ''}</div>`;
+  // one card, answered by swiping: right for liked, left for didn't
+  const c = document.querySelector('#gstack .card'); if (!c) return;
+  c.querySelectorAll('.stamp.love,.stamp.seen,.gfx,.ehint').forEach(x => x.remove()); const sy = c.querySelector('.stamp.yes'), sn = c.querySelector('.stamp.no'); if (sy) sy.textContent = 'Liked it'; if (sn) sn.textContent = 'Didn’t like it';
+  let g = null, done = false;
+  c.addEventListener('pointerdown', e => { if (done || e.target.closest('.info')) return; g = { x: e.clientX, y: e.clientY, dx: 0 }; c.style.transition = 'none'; try { c.setPointerCapture(e.pointerId); } catch {} });
+  c.addEventListener('pointermove', e => { if (!g) return; g.dx = e.clientX - g.x; const dy = (e.clientY - g.y) * .25; c.style.transform = `translate(${g.dx}px,${dy}px) rotate(${g.dx / 18}deg)`; if (sy) sy.style.opacity = Math.max(0, Math.min(1, g.dx / 80)); if (sn) sn.style.opacity = Math.max(0, Math.min(1, -g.dx / 80)); });
+  const up = () => { if (!g) return; const dx = g.dx; g = null;
+    if (Math.abs(dx) < 70) { c.style.transition = 'transform .28s ease-out'; c.style.transform = ''; if (sy) sy.style.opacity = 0; if (sn) sn.style.opacity = 0; return; }
+    done = true; c.style.transition = 'transform .3s ease-in, opacity .3s'; c.style.transform = `translate(${dx > 0 ? 140 : -140}%,30px) rotate(${dx > 0 ? 22 : -22}deg)`; c.style.opacity = .3; try { navigator.vibrate?.(10); } catch {}
+    setTimeout(() => guessAnswer(dx > 0), 280); };
+  c.addEventListener('pointerup', up); c.addEventListener('pointercancel', () => { if (!g) return; g = null; c.style.transition = 'transform .28s ease-out'; c.style.transform = ''; });
 }
 async function guessAnswer(yes) {
   S.ga.push({ card: S.gq[S.gi].id, guess: yes }); S.gi++;
