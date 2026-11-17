@@ -766,6 +766,11 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 @keyframes fade{from{opacity:0}} @keyframes up{from{transform:translateY(40px);opacity:.4}}
 @keyframes pop{from{transform:scale(.6) rotate(-10deg);opacity:0}} @keyframes drop{from{transform:translate(-50%,-20px);opacity:0}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* Category likes (option B): a small glowing dot on tabs that have shared likes; the tab you're on shows the count. */
+.seg button{position:relative;overflow:visible}
+.seg .hc{font-size:0;padding:0;top:4px;right:7px;bottom:auto;width:6px;height:6px;border-radius:50%;background:#ff5c8a;box-shadow:0 0 6px rgba(255,92,138,.8);transition:all .2s}
+.seg button.on .hc{font-size:9.5px;width:auto;height:auto;border-radius:99px;padding:0 5px;top:-7px;right:-2px;line-height:15px;background:linear-gradient(135deg,#ff7a4d,#ff4d7e)}
 </style>
 </head>
 <body>
@@ -1655,8 +1660,8 @@ async function inboxSheet() {
 // have, never Google photos. The list is fetched once a day per phone; the pictures themselves come from the cache.
 async function mosaicList() {
   const day = new Date().toDateString();
-  try { const c = JSON.parse(ls.get('mosaic') || 'null'); if (c && c.day === day && c.code === S.code) return c.list; } catch {}
-  try { const list = await rpc('mosaic_images', { p_code: S.code }) || []; ls.set('mosaic', JSON.stringify({ day, code: S.code, list })); return list; } catch { return []; }
+  try { const c = JSON.parse(ls.get('mosaic2') || 'null'); if (c && c.day === day && c.code === S.code) return c.list; } catch {}
+  try { const list = await rpc('mosaic_images', { p_code: S.code }) || []; ls.set('mosaic2', JSON.stringify({ day, code: S.code, list })); return list; } catch { return []; }
 }
 const MOS_RATIO = { movie: '2/3', art: '4/5', trip: '3/2', event: '3/2' };
 let mosBusy = false;
@@ -1665,25 +1670,36 @@ function mosSync(L) { const el = (performance.now() - (L._t0 || 0)) / 1000; L.qu
 async function mosaicFill() {
   const st = document.querySelector('.stack'); if (!st || !st.querySelector(':scope > .done') || st.querySelector(':scope > .dbg') || mosBusy || !S.code) return;
   if (S.mosNode && S.mosNode._key === S.code + new Date().toDateString()) { mosSync(S.mosNode); st.prepend(S.mosNode); return; }
-  mosBusy = true; const list = await mosaicList(); mosBusy = false;
-  if (list.length < 6 || !st.isConnected || !st.querySelector(':scope > .done') || st.querySelector(':scope > .dbg')) return;
-  const tiles = []; while (tiles.length < 24) tiles.push(...list); const cols = [[], [], [], []];
-  tiles.slice(0, 24).forEach((t, i) => cols[(i + Math.floor(i / 4)) % 4].push(t));   // 6 per column, mixed categories
-  const L = document.createElement('div'); L.className = 'dbg'; L.setAttribute('aria-hidden', 'true');
+  mosBusy = true; const raw = await mosaicList(); mosBusy = false;
+  if (!st.isConnected || !st.querySelector(':scope > .done') || st.querySelector(':scope > .dbg')) return;
+  // Every picture appears in exactly one column. Categories are dealt in turn so neighbors differ.
+  const seen = new Set(), byDeck = {};
+  raw.forEach(t => { if (t?.i && !seen.has(t.i)) { seen.add(t.i); (byDeck[t.d] ||= []).push(t); } });
+  const list = []; for (let k = 0; Object.values(byDeck).some(a => a.length > k); k++) Object.values(byDeck).forEach(a => { if (a[k]) list.push(a[k]); });
+  if (list.length < 6) return;
   const tile = t => `<span style="aspect-ratio:${MOS_RATIO[t.d] || '3/4'}"><img alt="" decoding="async" referrerpolicy="no-referrer" src="${esc(t.i)}" data-f="${/tripadvisor/.test(t.f || '') && t.f !== t.i ? esc(t.f) : ''}"></span>`;
-  const SPEED = [[86, -11], [72, -40], [94, -23], [78, -57]];   // seconds per loop, and a head start so columns don't line up
-  L.innerHTML = `<div class="mos">${cols.map((c, i) => { const half = `<div class="half">${c.map(tile).join('')}</div>`; return `<div style="--t:${SPEED[i][0]}s;--d:${SPEED[i][1]}s">${half}${half}</div>`; }).join('')}</div>`;
+  const L = document.createElement('div'); L.className = 'dbg'; L.setAttribute('aria-hidden', 'true'); L.style.visibility = 'hidden'; st.prepend(L);
+  // Each column repeats its own pictures to loop, so it must be taller than the screen plus its tallest picture,
+  // or a picture could meet its own repeat. Use the most columns that allows, down to two wider ones.
+  let ok = false;
+  for (const n of [4, 3, 2]) {
+    const cols = Array.from({ length: n }, () => []); list.forEach((t, i) => cols[i % n].push(t));
+    L.innerHTML = `<div class="mos" style="grid-template-columns:repeat(${n},1fr)">${cols.map(c => { const half = `<div class="half">${c.map(tile).join('')}</div>`; return `<div>${half}${half}</div>`; }).join('')}</div>`;
+    const wallH = L.offsetHeight;
+    ok = [...L.querySelectorAll('.mos > div')].every(c => { const h = c.querySelector('.half'); const tallest = Math.max(...[...h.children].map(x => x.offsetHeight)); return h.offsetHeight >= wallH + tallest; });
+    if (ok) break;
+  }
+  if (!ok) { L.remove(); return; }
   L.querySelectorAll('img').forEach(im => {
-    const ok = () => im.classList.add('in');
-    im.addEventListener('load', ok); if (im.complete && im.naturalWidth) ok();
+    const done = () => im.classList.add('in');
+    im.addEventListener('load', done); if (im.complete && im.naturalWidth) done();
     im.addEventListener('error', () => { if (im.dataset.f) { im.src = im.dataset.f; im.dataset.f = ''; return; } const src = im.getAttribute('src'); L.querySelectorAll('img').forEach(x => { if (x.getAttribute('src') === src) x.parentElement.remove(); }); });   // never show a broken picture
   });
-  st.prepend(L);
   // same calm pace for every column (about 8 px a second, a little different each), whatever its height
   const PACE = [7, 8.5, 7.5, 9];
   L.querySelectorAll('.mos > div').forEach((c, i) => { const h = c.querySelector('.half').offsetHeight || 600; c.style.setProperty('--t', Math.round(h / PACE[i]) + 's'); c.dataset.d0 = -Math.round((h / PACE[i]) * (i + 1) / 5); });
   L._t0 = performance.now(); L._key = S.code + new Date().toDateString(); S.mosNode = L; mosSync(L);
-  requestAnimationFrame(() => L.classList.add('on'));
+  L.style.visibility = ''; requestAnimationFrame(() => L.classList.add('on'));
 }
 new MutationObserver(() => { if (document.querySelector('.stack > .done') && !document.querySelector('.stack > .dbg')) mosaicFill(); }).observe(document.getElementById('app'), { childList: true, subtree: true });
 // Swipe a row left to remove it (Lately) or hide it until it changes (Waiting on you).
@@ -2408,7 +2424,7 @@ function cardHTML(c, cls = '') {
     <div class="shade"><h3>${esc(c.title)}</h3>${c.subtitle ? `<div class="sub">${esc(c.subtitle)}</div>` : ''}<div class="tags">${tags.join('')}</div></div>
     <div class="info">i</div><div class="stamp yes">Like it</div><div class="stamp no">No thanks</div><div class="stamp love">Love it</div>${c.deck === 'movie' && !S.rewatch ? '<div class="stamp seen">Seen it</div>' : ''}</div>`;
 }
-function updateBar() { const el = document.getElementById('prog'); if (el) el.textContent = S.bite ? (S.deck.length ? `${S.deck.length} left today` : '') : S.solo || !partner() ? `${S.deck.length} left` : `${S.deck.length} left · ${them()} has ${S.theirLeft ? S.theirLeft + ' to go' : 'finished'}`; const m = document.getElementById('mcount'); if (m) { m.textContent = S.matches.length ? `${S.matches.length} match${S.matches.length > 1 ? 'es' : ''}` : 'No matches yet'; m.className = 'pill' + (S.matches.length ? ' hot' : ''); } }
+function updateBar() { const el = document.getElementById('prog'); if (el && !(S.revealUntil > Date.now())) el.textContent = S.bite ? (S.deck.length ? `${S.deck.length} left today` : '') : S.solo || !partner() ? `${S.deck.length} left` : `${S.deck.length} left · ${them()} has ${S.theirLeft ? S.theirLeft + ' to go' : 'finished'}`; const m = document.getElementById('mcount'); if (m) { m.textContent = S.matches.length ? `${S.matches.length} match${S.matches.length > 1 ? 'es' : ''}` : 'No matches yet'; m.className = 'pill' + (S.matches.length ? ' hot' : ''); } }
 function renderSwipe() {
   const d = S.solo ? { label: 'Browse movies' } : S.sess.filters?.plan ? { label: esc(S.sess.note || 'For your plan') } : S.sess.filters?.matched ? { label: 'From your matches' } : S.sess.filters?.evshare ? { label: S.sess.from === S.me ? 'Events you sent' : esc(S.sess.from) + "'s event picks" } : S.sess.filters?.share ? { label: S.sess.from === S.me ? 'Places you sent' : esc(S.sess.from) + "'s place picks" } : S.sess.filters?.wishlist ? { label: S.sess.from === S.me ? 'Your wishlist' : esc(S.sess.from) + "'s wishlist" } : S.rewatch ? { label: 'Watch again?' } : S.sess.filters?.second ? { label: 'Second look' } : DECKS[S.sess.deck], movie = S.deck[0]?.deck === 'movie' && !S.rewatch;
   $app.innerHTML = `<div class="swipe"><div class="topbar"><button class="back" data-act="home" aria-label="Back">‹</button>
@@ -2444,6 +2460,35 @@ function drawStack() {
   acts.style.visibility = ''; if (seen) seen.style.display = S.deck[0].deck === 'movie' && !S.rewatch ? '' : 'none';
   st.innerHTML = (S.deck[1] ? cardHTML(S.deck[1], 'under') : '') + cardHTML(S.deck[0]);
   attachDrag(st.lastElementChild);
+  if (S.bite) revealCards(st);
+}
+// The first time each day a fresh handful shows in a category (opening the app or coming back to it), the cards fan
+// out like a new hand and settle into the stack, the top one arriving with a soft glow, and a line says how many are new.
+function revealCards(st) {
+  const deck = S.sess?.deck, key = 'rev:' + deck + ':' + new Date().toDateString(), now = performance.now();
+  // Home is sometimes redrawn while the reveal plays; then it carries on, on the new cards, from where it was.
+  const cont = S.rev && S.rev.deck === deck && now - S.rev.t0 < 1400;
+  if (!cont) {
+    if (!deck || ls.get(key) || S.deck.length < (S.total || 0)) return;   // once a day, and only before any swipes
+    ls.set(key, '1'); S.rev = { deck, t0: now }; S.revealUntil = Date.now() + 3200;
+    setTimeout(() => { const p = document.getElementById('prog'); if (p) p.style.color = ''; updateBar(); }, 3250);
+  }
+  const at = now - S.rev.t0, cs = [...st.querySelectorAll('.card')], n = S.deck.length, pr = document.getElementById('prog');
+  if (pr && S.revealUntil > Date.now()) { pr.textContent = `✨ ${n} new for you today`; pr.style.color = '#ffb3c1'; }
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { if (!cont) cs.forEach(el => el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400, fill: 'backwards' })); return; }
+  st.style.pointerEvents = 'none'; setTimeout(() => { st.style.pointerEvents = ''; }, Math.max(0, 1350 - at));
+  const fan = ['translateX(-70px) rotate(-15deg) scale(.92)', 'translateX(64px) rotate(11deg) scale(.95)'];
+  cs.forEach((el, i) => {
+    const base = getComputedStyle(el).transform, b = base === 'none' ? '' : ' ' + base, top = i === cs.length - 1, f = fan[cs.length === 1 ? 1 : i] || fan[1];
+    const a = el.animate([
+      { transform: 'translateY(30px) scale(.8)' + b, opacity: 0, filter: top ? 'brightness(1.5) blur(5px)' : 'none' },
+      { transform: f + b, opacity: 1, filter: top ? 'brightness(1.12) blur(0)' : 'none', boxShadow: top ? '0 0 70px 14px rgba(255,90,110,.7)' : 'none', offset: .45 },
+      { transform: f + b, opacity: 1, offset: .62 },
+      { transform: (b || 'none'), opacity: 1, filter: 'none' }
+    ], { duration: 1200, delay: 80 + i * 70, easing: 'cubic-bezier(.3,.7,.2,1)', fill: 'backwards' });
+    a.currentTime = at;
+  });
+  if (pr && !cont) pr.animate([{ opacity: 0, transform: 'translateY(8px) scale(.9)' }, { opacity: 1, transform: 'none' }], { duration: 600, delay: 650, fill: 'backwards', easing: 'ease-out' });
 }
 function attachDrag(el) {
   let sx = 0, sy = 0, dx = 0, dy = 0, t0 = 0, on = false;
