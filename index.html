@@ -416,6 +416,20 @@ html.ios-app .match,html.ios-app .lfront,html.ios-app .scrim,html.ios-app .lbar{
 .stack{container-type:size}
 @container (max-height:400px){.stack .done{gap:7px;padding-top:26px}.stack .done .badge{width:50px;height:50px;border-radius:16px;font-size:23px}.stack .done h3{font-size:21px}.stack .done p{font-size:13px}.stack .done .btn{padding:10px 14px;font-size:14.5px}}
 @container (max-height:270px){.stack .done p{display:none}.stack .done{padding-top:22px}}
+/* Behind an empty deck: a quiet wall of pictures from every category (yours first), not tappable. It fades out at the
+   edges and dims in the middle so the words stay easy to read, and drifts very slowly. */
+.stack>.done{z-index:1}
+.dbg{position:absolute;top:-8px;bottom:-64px;left:-18px;right:-18px;overflow:hidden;pointer-events:none;z-index:0;-webkit-mask-image:linear-gradient(transparent,#000 14%,#000 80%,transparent);mask-image:linear-gradient(transparent,#000 14%,#000 80%,transparent);opacity:0;transition:opacity .8s ease}
+.dbg.on{opacity:1}
+.dbg::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 66% 46% at 50% 47%,rgba(16,13,18,.95) 34%,rgba(16,13,18,.6) 72%,rgba(16,13,18,.18))}
+.dbg .mos{position:absolute;inset:-6% -4%;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;animation:mdrift 46s ease-in-out infinite alternate;will-change:transform}
+.dbg .mos>div{display:flex;flex-direction:column;gap:10px}
+.dbg .mos>div:nth-child(even){margin-top:-38px}
+.dbg .mos span{display:block;border-radius:14px;overflow:hidden;background:rgba(255,255,255,.04)}
+.dbg .mos img{display:block;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .7s ease;filter:saturate(.9)}
+.dbg .mos img.in{opacity:.5}
+@keyframes mdrift{from{transform:translateY(0)}to{transform:translateY(-46px)}}
+@media (prefers-reduced-motion:reduce){.dbg .mos{animation:none}}
 /* big verdict stamps, centred on the card */
 .stamp{top:36%;left:50%;right:auto;bottom:auto;font-size:clamp(50px,17vw,80px);line-height:1.05;padding:6px 24px 10px;border-width:5px;border-radius:20px;white-space:nowrap;background:rgba(10,8,12,.55);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);text-shadow:0 2px 14px rgba(0,0,0,.6);z-index:3}
 .stamp.yes{left:50%;transform:translate(-50%,-50%) rotate(-10deg);box-shadow:0 0 40px -6px rgba(89,211,154,.7)}
@@ -1635,6 +1649,31 @@ async function inboxSheet() {
   if (items.some(i => !i.seen)) { rpc('inbox_seen', { p_code: S.code, p_member: S.me }).catch(() => {}); items.forEach(i => i.seen = true); }
   document.querySelector('.bell')?.classList.remove('lv1', 'lv2', 'lv3');
 }
+// The picture wall behind an empty deck. Links only (nothing stored): small versions of pictures the cards already
+// have, never Google photos. The list is fetched once a day per phone; the pictures themselves come from the cache.
+async function mosaicList() {
+  const day = new Date().toDateString();
+  try { const c = JSON.parse(ls.get('mosaic') || 'null'); if (c && c.day === day && c.code === S.code) return c.list; } catch {}
+  try { const list = await rpc('mosaic_images', { p_code: S.code }) || []; ls.set('mosaic', JSON.stringify({ day, code: S.code, list })); return list; } catch { return []; }
+}
+const MOS_RATIO = { movie: '2/3', art: '4/5', trip: '3/2', event: '3/2' };
+let mosBusy = false;
+async function mosaicFill() {
+  const st = document.querySelector('.stack'); if (!st || !st.querySelector(':scope > .done') || st.querySelector(':scope > .dbg') || mosBusy || !S.code) return;
+  mosBusy = true; const list = await mosaicList(); mosBusy = false;
+  if (list.length < 6 || !st.isConnected || !st.querySelector(':scope > .done') || st.querySelector(':scope > .dbg')) return;
+  const tiles = []; while (tiles.length < 20) tiles.push(...list); const cols = [[], [], [], []];
+  tiles.slice(0, 20).forEach((t, i) => cols[i % 4].push(t));
+  const L = document.createElement('div'); L.className = 'dbg'; L.setAttribute('aria-hidden', 'true');
+  L.innerHTML = `<div class="mos">${cols.map(c => `<div>${c.map(t => `<span style="aspect-ratio:${MOS_RATIO[t.d] || '3/4'}"><img alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" src="${esc(t.i)}" data-f="${/tripadvisor/.test(t.f || '') && t.f !== t.i ? esc(t.f) : ''}"></span>`).join('')}</div>`).join('')}</div>`;
+  L.querySelectorAll('img').forEach(im => {
+    const ok = () => im.classList.add('in');
+    im.addEventListener('load', ok); if (im.complete && im.naturalWidth) ok();
+    im.addEventListener('error', () => { if (im.dataset.f) { im.src = im.dataset.f; im.dataset.f = ''; } else im.parentElement.remove(); });   // never show a broken picture
+  });
+  st.prepend(L); requestAnimationFrame(() => L.classList.add('on'));
+}
+new MutationObserver(() => { if (document.querySelector('.stack > .done') && !document.querySelector('.stack > .dbg')) mosaicFill(); }).observe(document.getElementById('app'), { childList: true, subtree: true });
 // Swipe a row left to remove it (Lately) or hide it until it changes (Waiting on you).
 function inDismiss(row) {
   const id = row.dataset.swid; row.style.maxHeight = row.offsetHeight + 'px'; row.offsetHeight; row.classList.add('out');
