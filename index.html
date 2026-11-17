@@ -1284,9 +1284,10 @@ async function checkTravel(ask = false) {
   if (!S.code || !S.me || !navigator.geolocation || travelBusy) return;
   if (!ask && (!ls.get('travel') || Date.now() - travelAt < 10 * 60000)) return;
   const hg = homeGeo(); if (!hg) { if (ask) toast('Open Eat once so your home area is saved, then try again.', 4500); return; }
-  // A background check must not make the phone ask "allow location?" on every open (iPhones forget the answer between launches).
-  // If the phone would have to ask, let it at most once a week; if it is already allowed, check quietly as before.
-  if (!ask) { try { const pm = await navigator.permissions?.query({ name: 'geolocation' }); if (pm?.state === 'denied') return; if (pm?.state === 'prompt') { if (Date.now() - Number(ls.get('locPromptAt') || 0) < 7 * 86400000) return; ls.set('locPromptAt', String(Date.now())); } } catch {} }
+  // A background check never makes the phone ask "allow location?". iPhones forget a web app's answer between launches, so
+  // asking on open meant asking every time. It only runs when the phone already allows it without a prompt; otherwise
+  // location is used when someone taps for it (the Travel mode switch, or "use my location").
+  if (!ask) { let ok = false; try { ok = (await navigator.permissions?.query({ name: 'geolocation' }))?.state === 'granted'; } catch {} if (!ok) return; }
   travelBusy = true; travelAt = Date.now();
   try {
     const pos = await new Promise(res => navigator.geolocation.getCurrentPosition(res, () => res(null), { maximumAge: 20 * 60000, timeout: 10000 }));
