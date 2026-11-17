@@ -829,7 +829,7 @@ const SVC_DOT = { 'Netflix': '#e50914', 'Hulu': '#1ce783', 'Prime Video': '#00a8
 
 const ls = { get: k => { try { return localStorage.getItem('wl_' + k) } catch { return null } }, set: (k, v) => { try { localStorage.setItem('wl_' + k, v) } catch {} }, del: k => { try { localStorage.removeItem('wl_' + k) } catch {} } };
 const S = { code: ls.get('code'), me: ls.get('name'), state: null, pantry: [], tab: 'home', view: 'home', sess: null, deck: [], hist: [], matches: [], listTab: 'activity', chan: null };
-S.homeDeck = ls.get('deck') || 'movie'; try { S.doneHtml = JSON.parse(ls.get('donehtml') || '{}'); } catch { S.doneHtml = {}; } S.tripCity = ls.get('tripcity') || '';
+S.homeDeck = ls.get('deck') || 'movie'; S.revEntry = true; try { S.doneHtml = JSON.parse(ls.get('donehtml') || '{}'); } catch { S.doneHtml = {}; } S.tripCity = ls.get('tripcity') || '';
 const $app = document.getElementById('app'), $layer = document.getElementById('layer');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const rpc = async (fn, args) => { const { data, error } = await sb.rpc(fn, args); if (error) throw error; return data; };
@@ -2446,6 +2446,7 @@ function drawStack() {
   const st = document.getElementById('stack'); if (!st) return; updateBar();
   const acts = document.getElementById('acts'), seen = document.getElementById('seenb');
   if (!S.deck.length) {
+    if (S.bite) S.revEntry = false;
     acts.style.visibility = 'hidden';
     if (S.bite) { const html = biteDoneHTML(); (S.doneHtml ||= {})[S.sess.deck] = { day: new Date().toDateString(), html }; try { ls.set('donehtml', JSON.stringify(S.doneHtml)); } catch {} setDone(st, html); return; }
     const waiting = !S.solo && S.theirLeft > 0;
@@ -2478,30 +2479,38 @@ function prepRevealTest() {
 function revealCards(st) {
   const deck = S.sess?.deck, key = 'rev:' + deck + ':' + new Date().toDateString(), now = performance.now();
   // Home is sometimes redrawn while the reveal plays; then it carries on, on the new cards, from where it was.
-  const cont = S.rev && S.rev.deck === deck && now - S.rev.t0 < 1400;
+  const cont = S.rev && S.rev.deck === deck && now - S.rev.t0 < (S.rev.quick ? 900 : 1400);
   if (!cont) {
-    const forced = revArmed().includes(deck);
-    if (!deck || ((ls.get(key) || S.deck.length < (S.total || 0)) && !forced)) return;   // once a day, and only before any swipes
-    if (forced) revDisarm(deck);
-    ls.set(key, '1'); S.rev = { deck, t0: now }; S.revealUntil = Date.now() + 3200;
-    setTimeout(() => { const p = document.getElementById('prog'); if (p) p.style.color = ''; updateBar(); }, 3250);
+    if (!deck) return;
+    const armed = revArmed().includes(deck), fresh = armed || (!ls.get(key) && S.deck.length >= (S.total || 0));
+    if (!fresh && !S.revEntry) return;   // not after a swipe or a quiet background redraw
+    S.revEntry = false;
+    S.rev = { deck, t0: now, quick: !fresh };
+    if (fresh) {
+      ls.set(key, '1'); if (armed) revDisarm(deck); S.revealUntil = Date.now() + 3200;
+      setTimeout(() => { const p = document.getElementById('prog'); if (p) p.style.color = ''; updateBar(); }, 3250);
+    }
   }
-  const at = now - S.rev.t0, cs = [...st.querySelectorAll('.card')], n = S.deck.length, pr = document.getElementById('prog');
-  if (pr && S.revealUntil > Date.now()) { pr.textContent = `✨ ${n} new for you today`; pr.style.color = '#ffb3c1'; }
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { if (!cont) cs.forEach(el => el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400, fill: 'backwards' })); return; }
-  st.style.pointerEvents = 'none'; setTimeout(() => { st.style.pointerEvents = ''; }, Math.max(0, 1350 - at));
-  const fan = ['translateX(-70px) rotate(-15deg) scale(.92)', 'translateX(64px) rotate(11deg) scale(.95)'];
+  const quick = S.rev.quick, dur = quick ? 760 : 1200, at = now - S.rev.t0, cs = [...st.querySelectorAll('.card')], n = S.deck.length, pr = document.getElementById('prog');
+  if (!quick && pr && S.revealUntil > Date.now()) { pr.textContent = `✨ ${n} new for you today`; pr.style.color = '#ffb3c1'; }
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { if (!cont) cs.forEach(el => el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: quick ? 250 : 400, fill: 'backwards' })); return; }
+  st.style.pointerEvents = 'none'; setTimeout(() => { st.style.pointerEvents = ''; }, Math.max(0, dur + 150 - at));
+  const fan = quick ? ['translateX(-40px) rotate(-9deg) scale(.95)', 'translateX(36px) rotate(6deg) scale(.97)'] : ['translateX(-70px) rotate(-15deg) scale(.92)', 'translateX(64px) rotate(11deg) scale(.95)'];
   cs.forEach((el, i) => {
     const base = getComputedStyle(el).transform, b = base === 'none' ? '' : ' ' + base, top = i === cs.length - 1, f = fan[cs.length === 1 ? 1 : i] || fan[1];
-    const a = el.animate([
+    const a = el.animate(quick ? [
+      { transform: 'translateY(18px) scale(.9)' + b, opacity: 0 },
+      { transform: f + b, opacity: 1, offset: .45 },
+      { transform: (b || 'none'), opacity: 1 }
+    ] : [
       { transform: 'translateY(30px) scale(.8)' + b, opacity: 0, filter: top ? 'brightness(1.5) blur(5px)' : 'none' },
       { transform: f + b, opacity: 1, filter: top ? 'brightness(1.12) blur(0)' : 'none', boxShadow: top ? '0 0 70px 14px rgba(255,90,110,.7)' : 'none', offset: .45 },
       { transform: f + b, opacity: 1, offset: .62 },
       { transform: (b || 'none'), opacity: 1, filter: 'none' }
-    ], { duration: 1200, delay: 80 + i * 70, easing: 'cubic-bezier(.3,.7,.2,1)', fill: 'backwards' });
+    ], { duration: dur, delay: (quick ? 30 : 80) + i * (quick ? 50 : 70), easing: 'cubic-bezier(.3,.7,.2,1)', fill: 'backwards' });
     a.currentTime = at;
   });
-  if (pr && !cont) pr.animate([{ opacity: 0, transform: 'translateY(8px) scale(.9)' }, { opacity: 1, transform: 'none' }], { duration: 600, delay: 650, fill: 'backwards', easing: 'ease-out' });
+  if (!quick && pr && !cont) pr.animate([{ opacity: 0, transform: 'translateY(8px) scale(.9)' }, { opacity: 1, transform: 'none' }], { duration: 600, delay: 650, fill: 'backwards', easing: 'ease-out' });
 }
 function attachDrag(el) {
   let sx = 0, sy = 0, dx = 0, dy = 0, t0 = 0, on = false;
@@ -2787,10 +2796,10 @@ document.addEventListener('click', async e => {
     if (ds.pl) { const [v, a, a2] = ds.pl.split('|'); if (v === 'side') return await sideLikes(a, a2); if (v === 'sidepick') return await sidePick(a, t); if (v === 'tip') { ls.set('pdtip', '1'); return dayEdit(); } return await dayAct(v, a, t); }
     if (ds.inurl) return inboxGo(ds.inurl);
     if (ds.shpick) { const on = !S.shSel.has(ds.shpick); on ? S.shSel.add(ds.shpick) : S.shSel.delete(ds.shpick); t.classList.toggle('on', on); const g = document.getElementById('shgo'); if (g) g.innerHTML = shGoLabel(); return; }
-    if (ds.tab) { S.tab = ds.tab; S.view = 'home'; if (ds.tab === 'home') await refresh(); return render(); }
+    if (ds.tab) { S.tab = ds.tab; S.view = 'home'; if (ds.tab === 'home') { S.revEntry = true; await refresh(); } return render(); }
     if (ds.final) { const c = await rpc('set_final', { p_code: S.code, p_session: S.sess.id, p_card: ds.final }); send({ type: 'final', card: c }); push(`Tonight: ${c.title}`, `${S.me} locked it in.`, `./?s=${S.sess.id}`); return showFinal(c); }
     if (ds.like) { t.disabled = true; const r = await rpc('like_card', { p_code: S.code, p_member: S.me, p_card: ds.like }); t.outerHTML = '<span class="pill hot">Liked</span>'; if (r.match) { toast('You have both liked that one. It will come up first next round.', 3500); send({ type: 'shortlist' }); } refresh().catch(() => {}); return; }
-    if (ds.hdeck) { S.homeDeck = ds.hdeck; ls.set('deck', ds.hdeck); return render(); }
+    if (ds.hdeck) { S.homeDeck = ds.hdeck; ls.set('deck', ds.hdeck); S.revEntry = true; return render(); }
     if (ds.lad) return ladder(ds.lad, t);
     if (ds.chg) { const o = S.chg?.[+ds.chg]; if (!o) return; if (o.widen) { const cur = Number(S.settings?.radius_mi || 2), next = [5, 10, 25].find(m => m > cur) || 25; S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { radius_mi: next } }); toast(`Looking within ${next} miles now.`); } return startSession(o.deck, o.filters, o.label); }
     if (ds.tbpick) { S.tb = await rpc('tiebreak_pick', { p_code: S.code, p_member: S.me, p_id: S.tb.id, p_card: ds.tbpick }); send({ type: 'tb', id: S.tb.id }); push(`Tonight: ${S.tb.pick.title}`, `${S.me} won the tie-breaker and picked it.`, './'); return render(); }
@@ -2837,7 +2846,7 @@ document.addEventListener('click', async e => {
     if (ds.unsee) { await rpc('unsee', { p_code: S.code, p_member: S.me, p_card: ds.unsee }); await refresh(); toast(S.view === 'library' ? 'Taken out of your Watched.' : 'Taken out of Seen for you.', 3000); if (S.view === 'library') { document.querySelector('.lfront')?.remove(); return openLibrary(); } return loadList(); }
     if (ds.chain) { const c = S.matches.find(x => x.id === ds.chain) || document.querySelector('.match')?._card; document.querySelector('.match')?.remove(); if (c?.data?.chain) await startSession(c.data.chain.deck, c.data.chain.filters || {}, `Since we both said ${c.title}`); return; }
     switch (ds.act) {
-      case 'home': S.view = 'home'; S.tab = 'home'; await refresh(); return render();
+      case 'home': S.view = 'home'; S.tab = 'home'; S.revEntry = true; await refresh(); return render();
       case 'swipe': S.view = 'swipe'; return render();
       case 'matches': document.querySelector('.match')?.remove(); try { const d = await rpc('get_session', { p_code: S.code, p_session: S.sess.id, p_member: S.me }); S.matches = d.matches; S.theirLeft = d.their_left; } catch {} S.view = 'matches'; return render();
       case 'reshuffle': { const mm = document.querySelector('.match'); if (mm?._pool) { const c = libPick(mm._pool, mm._card?.id); return showFinal(c, true, mm._pool); } const c = await pickNext(); if (!c) return; send({ type: 'final', card: c, shuffle: true, session: S.sess.id }); return showFinal(c, true); }
