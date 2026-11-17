@@ -1024,6 +1024,9 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .wk-bow b{position:absolute;left:50%;top:50%;width:20px;height:22px;margin:-11px 0 0 -10px;border-radius:6px;background:linear-gradient(135deg,#d96a82,#7a1830)}
 @keyframes wkwig{0%,60%,100%{transform:rotate(0)}70%{transform:rotate(-7deg)}80%{transform:rotate(6deg)}90%{transform:rotate(-3deg)}}
 .wk-gold.open .wk-bow{animation:none;transform:translate(60px,-90px) rotate(70deg) scale(.5)!important;opacity:0}.wk-gold.open .gband{transform:translateX(115%)!important}
+
+.wk-bow.drag{animation:none}
+.wk-gold.open .wk-bow{transform:var(--fly,translate(70px,-110px) rotate(80deg) scale(.5))!important;opacity:0}.wk-gold.open .gband{transform:translateX(var(--bx,115%))!important}
 </style>
 </head>
 <body>
@@ -2174,12 +2177,20 @@ function walkDraw() {
       if (++n % 6 === 0) { const d = x.getImageData(0, 0, Wd, H).data; let cl = 0, t = 0; for (let i = 3; i < d.length; i += 4 * 41) { t++; if (d[i] < 40) cl++; } if (cl / t > .4) fin(); } });
     cv.addEventListener('pointerup', () => { down = false; });
   } else if (st.k === 'gold') {
+    // The bow sits under the finger the whole way: it moves exactly as far as you pull, the band shifts with it,
+    // and on release it carries on in the direction you were pulling. A plain tap unties it too.
     const c = document.getElementById('wkgold'), band = c.querySelector('.gband'), bow = c.querySelector('.wk-bow'); let g = null;
-    const open = () => { if (c.classList.contains('open')) return; g = null; band.style.transform = ''; bow.style.transform = ''; c.classList.add('open'); try { navigator.vibrate?.([12, 40, 18]); } catch {} walkOk(); };
-    c.addEventListener('pointerdown', e => { if (c.classList.contains('open')) return; g = { x: e.clientX, y: e.clientY }; band.style.transition = bow.style.transition = 'none'; try { c.setPointerCapture(e.pointerId); } catch {} });
-    c.addEventListener('pointermove', e => { if (!g) return; const dx = e.clientX - g.x, dy = e.clientY - g.y, far = Math.hypot(dx, dy); bow.style.transform = `translate(${dx}px,${dy}px) rotate(${dx / 6}deg)`; band.style.transform = `translateX(${dx}px)`; if (far > 46) { band.style.transition = bow.style.transition = ''; open(); } });
-    const up = () => { if (!g) return; band.style.transition = bow.style.transition = ''; open(); };   // a plain tap undoes it too
-    c.addEventListener('pointerup', up); c.addEventListener('pointercancel', () => { g = null; band.style.transition = bow.style.transition = ''; band.style.transform = bow.style.transform = ''; });
+    const open = (dx, dy) => { if (c.classList.contains('open')) return; g = null; const far = Math.hypot(dx, dy) || 1, ux = dx / far, uy = dy / far, tap = far < 6;
+      bow.style.transition = 'transform .5s cubic-bezier(.2,.7,.3,1), opacity .45s ease-in .05s'; band.style.transition = 'transform .6s cubic-bezier(.4,0,.2,1) .08s';
+      c.style.setProperty('--fly', tap ? 'translate(70px,-110px) rotate(80deg) scale(.5)' : `translate(${dx + ux * 170}px,${dy + uy * 170}px) rotate(${(dx + ux * 170) / 3}deg) scale(.55)`);
+      c.style.setProperty('--bx', (tap || dx >= 0 ? 115 : -115) + '%');
+      requestAnimationFrame(() => { c.classList.add('open'); try { navigator.vibrate?.([12, 40, 18]); } catch {} walkOk(); }); };
+    c.addEventListener('pointerdown', e => { if (c.classList.contains('open')) return; e.preventDefault(); g = { x: e.clientX, y: e.clientY, dx: 0, dy: 0 }; bow.classList.add('drag'); bow.style.transition = band.style.transition = 'none'; try { c.setPointerCapture(e.pointerId); } catch {} });
+    c.addEventListener('pointermove', e => { if (!g) return; g.dx = e.clientX - g.x; g.dy = e.clientY - g.y; bow.style.transform = `translate(${g.dx}px,${g.dy}px) rotate(${g.dx / 5}deg)`; band.style.transform = `translateX(${g.dx * .85}px)`; });
+    const up = () => { if (!g) return; const { dx, dy } = g, far = Math.hypot(dx, dy);
+      if (far < 6 || far > 26) return open(dx, dy);
+      g = null; bow.style.transition = band.style.transition = 'transform .3s cubic-bezier(.3,1.4,.5,1)'; bow.style.transform = band.style.transform = ''; setTimeout(() => bow.classList.remove('drag'), 320); };   // a small nudge springs back
+    c.addEventListener('pointerup', up); c.addEventListener('pointercancel', up);
   } else if (st.k === 'end') { const r = document.getElementById('wkbell')?.getBoundingClientRect(); if (r) setTimeout(() => confetti(r.left + r.width / 2, r.top + r.height / 2, 70), 250); }
 }
 function walkTap(a, t) {
