@@ -836,7 +836,7 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .tpc.mixc .veil{background:radial-gradient(120% 80% at 30% 10%,rgba(255,255,255,.16),transparent 55%),linear-gradient(180deg,transparent 45%,rgba(10,6,10,.5))}
 
 /* ---- plan a surprise ---- */
-.tpc.goldc{background:linear-gradient(135deg,#8a5f16,#b0842a 30%,#c29a3c 50%,#a87c24 72%,#94691c);--kg:rgba(255,190,70,.85);color:#3a2404;box-shadow:inset 0 1px 0 rgba(255,245,210,.7),inset 0 -2px 4px rgba(80,45,0,.5)}
+.tpc.goldc{background:linear-gradient(135deg,#8a5f16,#b0842a 30%,#c29a3c 50%,#a87c24 72%,#94691c);--kg:rgba(255,190,70,.6);color:#3a2404;box-shadow:inset 0 1px 0 rgba(255,245,210,.7),inset 0 -2px 4px rgba(80,45,0,.5)}
 .tpc.goldc::after{content:"";position:absolute;inset:9px;border-radius:20px;box-shadow:inset 0 0 0 1px rgba(255,244,205,.55),0 0 0 1px rgba(90,55,5,.3);pointer-events:none}
 .tpc.goldc .glit{position:absolute;inset:0;width:100%;height:100%}
 .tpc.goldc .ctx{color:#3a2404;text-shadow:0 1px 0 rgba(255,246,210,.6)}.tpc.goldc .ctx small{color:#4f3408;opacity:1;font-weight:500}
@@ -879,6 +879,15 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .tpc .gls{clip-path:inset(0 round 28px)}
 .tpc .wbx{position:absolute;inset:0;border-radius:28px;overflow:hidden;clip-path:inset(0 round 28px)}
 .tpc .veil{border-radius:28px}
+
+/* gloss, take 3: the light is the layer's own background, sliding inside a layer that is exactly the card's shape.
+   Nothing sticks out of the card, so there is nothing for the phone to forget to trim: corners stay round. */
+.gls{clip-path:none;overflow:visible;inset:0;border-radius:inherit;background-repeat:no-repeat;background-size:220% 180%,220% 180%;
+  background-image:radial-gradient(38% 16% at 44% 40%,rgba(255,255,255,.12),transparent 72%),radial-gradient(30% 22% at 57% 58%,rgba(255,255,255,.085),transparent 72%);
+  background-position:calc(50% - var(--tx,0)*34%) calc(50% - var(--ty,0)*24%),calc(50% - var(--tx,0)*52%) calc(50% - var(--ty,0)*38%)}
+.gls.gold{mix-blend-mode:normal;opacity:1;clip-path:none;
+  background-image:radial-gradient(38% 16% at 44% 40%,rgba(255,250,225,.34),transparent 72%),radial-gradient(30% 22% at 57% 58%,rgba(255,250,225,.22),transparent 72%)}
+.tpc .gls{clip-path:none}
 </style>
 </head>
 <body>
@@ -1328,7 +1337,7 @@ function tonightSheet() {
   const TD = p ? ['movie', 'gold', 'dinner', 'activity', 'event', 'mix'] : ['movie', 'dinner', 'activity', 'event', 'mix'];
   const goldLeft = S.surp?.left !== false, goldNext = S.surp?.next ? new Date(S.surp.next + 'T12:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'next month';
   let h = `<div class="grab"></div><div class="tn"><div class="tn-head"><div class="brand">${BRAND}</div><h2>What should we<br>do tonight?</h2><p class="muted" style="margin-top:8px;font-size:14px">Swipe to flip through. Tap one to start${p ? `, and ${esc(p)} gets the same cards` : ''}.</p></div>
-    <div class="tdeck" id="tdeck">` + TD.map((d, i) => d === 'gold' ? `<div class="tpc goldc" data-k="gold"><span class="gls gold"><i></i><i></i></span><span class="cnum">${surpItems().some(x => x.mine && x.status !== 'revealed' && x.day >= pToday()) ? 'Yours is set' : goldLeft ? '1 left in ' + new Date().toLocaleDateString(undefined, { month: 'short' }) : 'Next one ' + goldNext}</span><span class="ctx"><b>Plan a<br>surprise</b><small>${esc(p)} won’t know what until you reveal it</small></span></div>` : `<div class="tpc ${CK[d] ? 'kc k-' + CK[d] : 'mixc'}" data-k="${d}">${CK[d] ? '' : '<span class="wbx"><span class="whl"></span></span><span class="veil"></span>'}<span class="cbg">${ic(DIC[d])}</span><span class="cic">${ic(DIC[d])}</span><span class="ctx"><b>${DECKS[d].label}</b><small>${DECKS[d].hint}</small></span></div>`).join('') + `</div>
+    <div class="tdeck" id="tdeck">` + TD.map((d, i) => d === 'gold' ? `<div class="tpc goldc" data-k="gold"><span class="gls gold"></span><span class="cnum">${surpItems().some(x => x.mine && x.status !== 'revealed' && x.day >= pToday()) ? 'Yours is set' : goldLeft ? '1 left in ' + new Date().toLocaleDateString(undefined, { month: 'short' }) : 'Next one ' + goldNext}</span><span class="ctx"><b>Plan a<br>surprise</b><small>${esc(p)} won’t know what until you reveal it</small></span></div>` : `<div class="tpc ${CK[d] ? 'kc k-' + CK[d] : 'mixc'}" data-k="${d}">${CK[d] ? '' : '<span class="wbx"><span class="whl"></span></span><span class="veil"></span>'}<span class="cbg">${ic(DIC[d])}</span><span class="cic">${ic(DIC[d])}</span><span class="ctx"><b>${DECKS[d].label}</b><small>${DECKS[d].hint}</small></span></div>`).join('') + `</div>
     <div class="tdots">${TD.map(() => '<i></i>').join('')}</div>`;
   // Only the newest round can be "in progress": it has to be from the last 18 hours, not decided yet, and still have cards waiting. An older unfinished round never comes back once a newer one exists.
   const last = rest.find(s => !s.filters?.bite && !s.filters?.solo && !s.filters?.share && !s.filters?.evshare);
@@ -1345,7 +1354,7 @@ function tdeckInit() {
   const cards = [...deck.children], dots = [...document.querySelectorAll('.tdots i')], order = cards.map((_, i) => i), K = cards.map(c => c.dataset.k);
   let seed = 11; const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
   const jit = c => { const sg = rnd() < .5 ? -1 : 1; c._j = { x: (rnd() - .5) * 30, y: (rnd() - .5) * 18, r: sg * (3 + rnd() * 7) }; };
-  const look = (c, i) => { const j = c._j, t = i === 0; return { transform: `translate(${t ? j.x * .25 : j.x}px,${(t ? j.y * .25 : j.y) + i * 3}px) rotate(${t ? j.r * .3 : j.r}deg)`, filter: `brightness(${1 - i * .09})`, boxShadow: t ? `0 22px 38px -14px rgba(0,0,0,.9), ${c.classList.contains('goldc') ? '0 0 28px 0 rgba(255,214,110,.85), 0 0 80px 8px' : '0 0 46px -6px'} ${getComputedStyle(c).getPropertyValue('--kg').trim() || 'rgba(255,150,130,.6)'}` : '0 8px 18px -8px rgba(0,0,0,.85)' }; };
+  const look = (c, i) => { const j = c._j, t = i === 0; return { transform: `translate(${t ? j.x * .25 : j.x}px,${(t ? j.y * .25 : j.y) + i * 3}px) rotate(${t ? j.r * .3 : j.r}deg)`, filter: `brightness(${1 - i * .09})`, boxShadow: t ? `0 22px 38px -14px rgba(0,0,0,.9), ${c.classList.contains('goldc') ? '0 0 18px -2px rgba(255,214,110,.6), 0 0 56px 0' : '0 0 46px -6px'} ${getComputedStyle(c).getPropertyValue('--kg').trim() || 'rgba(255,150,130,.6)'}` : '0 8px 18px -8px rgba(0,0,0,.85)' }; };
   const place = (c, i, ms = 0) => { const k = look(c, i), from = { transform: c.style.transform, filter: c.style.filter, boxShadow: c.style.boxShadow }; c.style.zIndex = 10 - i; Object.assign(c.style, k); if (ms && from.transform) c.animate([from, k], { duration: ms, easing: 'cubic-bezier(.2,.9,.25,1)' }); };
   const halo = document.createElement('div'); halo.className = 'thalo'; deck.prepend(halo);
   const paint = () => { dots.forEach((d, i) => d.classList.toggle('on', i === order[0])); cards.forEach((c, i) => c.classList.toggle('top', i === order[0])); const mx = cards[order[0]].classList.contains('mixc'); halo.classList.toggle('show', mx); if (mx && !wtop) wspin(); wtop = mx; tiltWatch(); };
@@ -2885,7 +2894,7 @@ function tiltAskSheet() {
     <div style="height:18px"></div><button class="btn" data-act="tiltyes">Turn on</button><div style="height:10px"></div><button class="btn ghost" data-act="tiltno">Not now</button>
     <p class="muted" style="font-size:12.5px;text-align:center;margin-top:12px">You can change this any time on the You screen.</p>`);
 }
-const GLS = '<span class="gls"><i></i><i></i></span>';
+const GLS = '<span class="gls"></span>';
 // "Surprise me": colors suspended in a thick flat layer, like a lava lamp seen from above. Each color keeps to itself;
 // moving the phone stirs them and they slowly settle. Drawn small and scaled up, so it is cheap.
 const LAVA = { cv: null };
