@@ -1590,7 +1590,7 @@ function biteDoneHTML() {
 async function shareApp() {
   const n = String(S.me || '').trim().split(/\s+/)[0] || '', url = 'https://letstogether.app/';
   const text = 'You’re invited to a brand-new app I’ve been using: Let’s Together. You and your person each swipe on movies, places to eat and things to do, and it only shows what you both said yes to. No more “what do you want to do?” It’s still in testing, so you’d be one of the first.';
-  if (navigator.share) { try { await navigator.share({ text, url }); } catch {} return; }
+  if (navigator.share) { try { await navigator.share({ text: text + '\n' + url }); } catch {} return; }
   try { await navigator.clipboard.writeText(text + '\n' + url); toast('Invite copied. Paste it into a text.'); } catch { location.href = './hello/?app=1#share'; }
 }
 // "Know a couple who'd love this?": opened from the share nudge. One of them sets it up, then brings their partner in.
@@ -3925,7 +3925,7 @@ document.addEventListener('click', async e => {
       case 'savesettings': { const root = t.closest('.sheet') || document; const services = [...root.querySelectorAll('[data-svc].on')].map(x => x.dataset.svc); if (!services.length) return toast('Pick at least one streaming service.'); { const z = root.querySelector('#s_zip').value.trim(); if (!/^\d{5}(-\d{4})?$/.test(z) && !(S.settings?.lat && !z)) return toast('Enter your 5-digit home ZIP code.'); } S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { zip: root.querySelector('#s_zip').value.trim(), services, radius_mi: Number(root.querySelector('#s_rad')?.value || 2), setup: true } }); const fromSheet = !!t.closest('.sheet'); closeSheet(); toast('Saved for both of you.'); send({ type: 'joined' }); render(); if (fromSheet) nextOnboard(); return; }
       case 'psearch': return placeSearch(t);
       case 'invtext': { inviteAsked(); closeSheet(); const body = encodeURIComponent(`${inviteMsg()}\n${inviteLink()}`); location.href = /iphone|ipad|ipod|macintosh/i.test(navigator.userAgent) ? `sms:&body=${body}` : `sms:?body=${body}`; return setTimeout(nextOnboard, 1200); }
-      case 'invshare': { inviteAsked(); try { if (navigator.share) await navigator.share({ title: 'Let’s Together', text: inviteMsg(), url: inviteLink() }); else { await navigator.clipboard.writeText(`${inviteMsg()}\n${inviteLink()}`); toast('Invite and code copied.'); } } catch {} closeSheet(); return nextOnboard(); }
+      case 'invshare': { inviteAsked(); try { if (navigator.share) await navigator.share({ text: inviteMsg() + '\n' + inviteLink() }); else { await navigator.clipboard.writeText(`${inviteMsg()}\n${inviteLink()}`); toast('Invite and code copied.'); } } catch {} closeSheet(); return nextOnboard(); }
       case 'invlater': inviteAsked(); closeSheet(); toast('You can send it any time from the home screen.', 3500); return nextOnboard();
       case 'useiconok': document.querySelector('.wn')?.remove(); step('use_icon_skip'); return;
       case 'useiconnot': document.querySelector('.wn')?.remove(); step('use_icon_gone'); S.installed = false; ls.del('a2hs'); ls.set('a2ask', '0'); return installSheet();
@@ -3954,7 +3954,7 @@ document.addEventListener('click', async e => {
       case 'shareapp': return shareApp();
       case 'tellsend': { const url = 'https://letstogether.app/'; step('tell_' + ds.how);
         if (ds.how === 'text') { const body = encodeURIComponent(`${TELL}\n${url}`); location.href = /iphone|ipad|ipod|macintosh/i.test(navigator.userAgent) ? `sms:&body=${body}` : `sms:?body=${body}`; return; }
-        if (navigator.share) { try { await navigator.share({ text: TELL, url }); } catch {} return; }
+        if (navigator.share) { try { await navigator.share({ text: TELL + '\n' + url }); } catch {} return; }
         try { await navigator.clipboard.writeText(TELL + '\n' + url); toast('Copied. Paste it into a message.'); } catch {} return; }
       case 'whatsnew': return newsShow(true);
       case 'inclear': { const rows = [...document.querySelectorAll('#inlately .swr')]; rows.forEach((r, i) => setTimeout(() => { r.style.maxHeight = r.offsetHeight + 'px'; r.offsetHeight; r.classList.add('sw'); r.querySelector('.swf').style.transition = 'transform .22s ease'; r.querySelector('.swf').style.transform = 'translateX(-110%)'; r.classList.add('out'); }, i * 70));
@@ -3968,7 +3968,7 @@ document.addEventListener('click', async e => {
       case 'ob2try': ls.set('ob2try', '1'); return ob2Next();
       case 'ob2skip': return ob2Skip();
       case 'ob2inv': { inviteAsked(); if (ds.how === 'text') { const body = encodeURIComponent(`${inviteMsg()}\n${inviteLink()}`); location.href = /iphone|ipad|ipod|macintosh/i.test(navigator.userAgent) ? `sms:&body=${body}` : `sms:?body=${body}`; return setTimeout(ob2Next, 1200); }
-        try { if (navigator.share) await navigator.share({ title: 'Let’s Together', text: inviteMsg(), url: inviteLink() }); else { await navigator.clipboard.writeText(`${inviteMsg()}\n${inviteLink()}`); toast('Invite and code copied.'); } } catch {} return ob2Next(); }
+        try { if (navigator.share) await navigator.share({ text: inviteMsg() + '\n' + inviteLink() }); else { await navigator.clipboard.writeText(`${inviteMsg()}\n${inviteLink()}`); toast('Invite and code copied.'); } } catch {} return ob2Next(); }
       case 'ob2inst': if (bip) { const e = bip; bip = null; try { e.prompt(); await e.userChoice; } catch {} } ls.set('a2ask', String(Date.now())); return ob2Next();
       case 'ob2a2': ls.set('a2hs', String(Date.now())); step('a2hs_done'); return ob2Next();
       case 'ob2push': ls.set('askedpush', '1'); step('push_yes'); t.disabled = true; await enablePush().catch(() => {}); return ob2Next();
@@ -4005,7 +4005,7 @@ document.addEventListener('click', async e => {
       case 'tbrefresh': S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: S.tb.id }); return render();
       case 'add': return addSheet();
       case 'savepantry': { const items = document.getElementById('pt').value.split(/\n|,/).map(s => s.replace(/^[\s\-•*\d.x×]+(?=\D)/i, '').replace(/\$\s?\d+(\.\d+)?/g, '').trim()).filter(s => s.length > 1).map(item => ({ item })); const n = await rpc('set_pantry', { p_code: S.code, p_items: items }); await refresh(); toast(`${n} pantry items saved.`); return loadList(); }
-      case 'invite': { const link = `${location.origin}${location.pathname}?c=${S.code}`; try { const msg = `Join me on Let’s Together so we can stop asking “what do you want to do?” Open the link, save it to your Home Screen, then enter our couple code: ${S.code}`; if (navigator.share) await navigator.share({ title: 'Let’s Together', text: msg, url: link }); else { await navigator.clipboard.writeText(`${msg}\n${link}`); toast('Invite and code copied.'); } } catch {} return; }
+      case 'invite': { const link = `${location.origin}${location.pathname}?c=${S.code}`; try { const msg = `Join me on Let’s Together so we can stop asking “what do you want to do?” Open the link, save it to your Home Screen, then enter our couple code: ${S.code}`; if (navigator.share) await navigator.share({ text: msg + '\n' + link }); else { await navigator.clipboard.writeText(`${msg}\n${link}`); toast('Invite and code copied.'); } } catch {} return; }
       case 'push': return enablePush();
       case 'signout': ls.del('name'); authCookie.clear(); S.me = null; if (S.chan) sb.removeChannel(S.chan); return render();
     }

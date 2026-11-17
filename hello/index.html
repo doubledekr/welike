@@ -179,7 +179,7 @@ const sLink = () => 'https://letstogether.app/';
 const sText = () => `You’re invited to a brand-new app I’ve been using: Let’s Together. You and your person each swipe on movies, places to eat and things to do, and it only shows what you both said yes to. No more “what do you want to do?” It’s still in testing, so you’d be one of the first.`;
 const sDraw = () => { $('#sprev').textContent = sText() + '\n' + sLink(); };
 $('#sn').addEventListener('input', sDraw); sDraw();
-$('#sgo').addEventListener('click', async () => { if (navigator.share) { try { await navigator.share({ text: sText(), url: sLink() }); } catch {} } else $('#scopy').click(); });
+$('#sgo').addEventListener('click', async () => { if (navigator.share) { try { await navigator.share({ text: sText() + '\n' + sLink() }); } catch {} } else $('#scopy').click(); });
 $('#scopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText(sText() + '\n' + sLink()); $('#smsg').textContent = 'Copied. Paste it into a text.'; } catch { $('#smsg').textContent = 'Press and hold the message above to copy it.'; } });
 load();
 </script></body></html>
