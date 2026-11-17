@@ -1601,6 +1601,30 @@ async function shareApp() {
   try { await navigator.clipboard.writeText(text + '\n' + url); toast('Invite copied. Paste it into a text.'); } catch { location.href = './hello/?app=1#share'; }
 }
 /* ---------- birthdays and the anniversary ---------- */
+// An occasion coming up in the next two weeks: the partner's birthday (yours is theirs to plan) and the anniversary.
+const mdNext = md => { const m = /(\d\d)-(\d\d)$/.exec(md || ''); if (!m) return null; const t = pToday(), y = Number(t.slice(0, 4));
+  for (const yy of [y, y + 1]) { let d = new Date(yy, Number(m[1]) - 1, Number(m[2])); if (d.getMonth() !== Number(m[1]) - 1) d = new Date(yy, 1, 28); const iso = pIso(d); if (iso >= t) return iso; } return null; };
+const daysTo = iso => Math.round((new Date(iso + 'T12:00') - new Date(pToday() + 'T12:00')) / 86400000);
+function occList() {
+  const d = S.dates, p = partner(), out = []; if (!d || !p) return out;
+  if (d.partner_bday) { const day = mdNext(d.partner_bday); if (day) out.push({ k: 'birthday', day, n: daysTo(day), t: `${p}’s birthday` }); }
+  if (d.anniv) { const day = mdNext(d.anniv), y = /^(\d{4})-/.exec(d.anniv)?.[1]; if (day) out.push({ k: 'anniversary', day, n: daysTo(day), t: 'Your anniversary', yrs: y ? Number(day.slice(0, 4)) - Number(y) : 0 }); }
+  return out.filter(o => o.n <= 14).sort((a, b) => a.n - b.n);
+}
+const occDone = o => (S.surp?.items || []).some(x => x.occasion === o.k && x.status !== 'cancelled') || (o.k === 'anniversary' && (S.plans || []).some(pl => pl.day === o.day));
+const occTop = () => occList().find(o => !occDone(o)) || null;
+const occWhen = n => n === 0 ? 'today' : n === 1 ? 'tomorrow' : `in ${n} days`;
+function occBanner() { const o = occTop(); if (!o) return '';
+  return `<button class="tripbar kc k-match" data-act="occ" data-occ="${o.k}" style="width:100%;text-align:left"><span class="tic">${ic('heart')}</span><span class="grow"><b>${esc(o.t)} is ${occWhen(o.n)}</b><small>${o.k === 'birthday' ? 'Plan a surprise for the day' : 'Plan the day together, or make it a surprise'}</small></span><span class="go">Plan</span></button>`; }
+function occSheet(k) {
+  const o = occList().find(x => x.k === k), p = partner(); if (!o) return toast('Nothing coming up in the next two weeks.');
+  if (k === 'birthday') return surpStart('birthday');
+  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('heart')}</span><h2>${o.yrs > 0 ? `${o.yrs} year${o.yrs === 1 ? '' : 's'}` : 'Your anniversary'}</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">${new Date(o.day + 'T12:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}, ${occWhen(o.n)}. How do you want to do it?</p></div></div>
+    <button class="btn" style="margin-top:16px" data-act="occday" data-day="${o.day}">Plan the day together</button>
+    <button class="btn ghost" style="margin-top:10px" data-act="occsurp">Surprise ${esc(p)}</button>
+    <p class="muted" style="font-size:12.5px;text-align:center;margin-top:12px">A surprise for the day doesn’t use up your monthly one.</p><button class="jlink" data-act="closesheet">Not now</button>`);
+}
+
 // Each person gives their own birthday (month and day, never a year). The anniversary belongs to the couple: whoever enters it
 // first sets it for both, so the second person is only asked for a birthday. The backend reminds the partner ahead of each date.
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -1827,7 +1851,7 @@ async function dayStart() {
       <div class="trow parow">${anch.map(c => tile(c, true)).join('')}${mine.map(c => tile(c, false)).join('')}</div>` : `<p class="muted" style="margin-top:18px;font-size:13.5px">Nothing liked in Eat or Go out yet. You can still start a plan and find places together as you go.</p>`}
   </div>`);
 }
-function dayDraft({ mode = 'out', anchor = null, plan = null }) {
+function dayDraft({ mode = 'out', anchor = null, plan = null, day = null }) {
   const now = pNow(), t = pToday();
   if (plan) {
     const pl = S.pl = { id: plan.id, day: plan.day < t ? t : plan.day, mode: plan.mode, anchor: null, slots: [], items: {} };
@@ -1835,7 +1859,7 @@ function dayDraft({ mode = 'out', anchor = null, plan = null }) {
     const d = plan.items.map(i => i.card).find(c => c && isDated(c)); if (d) { pl.anchor = d; pl.fixed = true; }
     return dayEdit();
   }
-  const pl = S.pl = { id: null, day: now < '15:00' ? t : pAdd(t, 1), mode, anchor, slots: mode === 'in' ? ['dinner', 'evening'] : ['day', 'dinner', 'evening'], items: {} };
+  const pl = S.pl = { id: null, day: day || (now < '15:00' ? t : pAdd(t, 1)), mode, anchor, slots: mode === 'in' ? ['dinner', 'evening'] : ['day', 'dinner', 'evening'], items: {} };
   if (anchor) {
     const s = pSlotOf(anchor); pl.mode = anchor.deck === 'movie' ? 'in' : 'out';
     if (isDated(anchor)) { pl.day = anchor.event_date; pl.fixed = true; }
@@ -2077,6 +2101,7 @@ function slotHTML(incoming) {
     !p ? ['pin:invite', `<button class="nudge slim" data-act="invite"><span class="grow"><b>Invite your other half</b><small> · nothing matches until you are both in</small></span><span class="go">Send link</span></button>`] : null,
     standalone() && pushState() === 'default' ? ['pin:push', `<button class="nudge slim" data-act="pushyes"><span class="grow"><b>Nudges are off on this phone</b><small> · you won’t hear when ${esc(p || 'your other half')} sends something</small></span><span class="go">Turn on</span></button>`] : null,
     ['sp:' + surpKey(), surpBanner()],
+    ['occ:' + (occTop() ? occTop().k + occTop().day : ''), occBanner()],
     ['day:' + dayHomeKey(), dayHome()],
     s ? ['ses:' + s.id, `<button class="nudge slim" data-open="${s.id}"><span class="grow"><b>${s.from === 'Let’s Together' ? 'Swipe to fill your plan' : esc(s.from) + ' ' + (s.filters?.evshare ? 'liked events this week' : s.filters?.share ? 'liked places to eat' : s.filters?.wishlist ? 'shared a wishlist' : s.filters?.plan ? 'needs a pick for your plan' : 'nudged you')}</b><small> · ${esc(s.filters?.evshare ? 'before they pass' : s.filters?.share ? 'for some time soon' : s.filters?.wishlist ? 'movies to pick from' : s.note || DECKS[s.deck].label)} · ${s.my_left} to swipe</small></span><span class="go">Swipe</span></button>`] : null,
     ['tripinv:' + (Object.entries(planInvites()).find(([, v]) => v?.by && v.by !== S.me)?.[0] || ''), inviteBanner()],
@@ -2270,7 +2295,8 @@ function inboxGo(u) {
   if (q.get('gem')) return gemOpen();
   if (q.get('tell')) return tellSheet();
   if (q.get('bdays')) return bdaysSheet();
-  if (q.get('plansurprise')) return surpStart();
+  if (q.get('plansurprise')) return surpStart(['birthday', 'anniversary'].includes(q.get('plansurprise')) ? q.get('plansurprise') : undefined);
+  if (q.get('occasion')) return occSheet(q.get('occasion'));
   if (q.get('surprise')) return surpOpen(q.get('surprise'));
   if (q.get('plan')) { S.favAsk = q.get('fav') ? q.get('plan') : null; return dayAct('view', q.get('plan')).catch(() => {}); }
   if (q.get('reveal')) { prepRevealTest(); return render(); }
@@ -3175,7 +3201,7 @@ function surpBanner() {
   const x = surpTop(); if (!x) return '';
   const [t, sub, go] = x.status === 'revealed' ? [`${surpWhen(x)}: ${x.card?.title || 'your surprise'}`, x.mine ? `${x.for} knows now` : `From ${x.by}`, 'Open']
     : x.mine ? [`Your surprise for ${x.for}`, `${surpWhen(x)} · ${x.status === 'cant' ? `${x.for} can’t make it. Pick a new night` : x.status === 'free' ? `${x.for} is free` : 'Waiting to hear'}`, 'Open']
-    : x.ready ? ['Your surprise is ready', `Scratch to see what ${x.by} planned`, 'Reveal']
+    : x.ready ? [x.occasion === 'birthday' ? 'Your birthday surprise is ready' : x.occasion === 'anniversary' ? 'Your anniversary surprise is ready' : 'Your surprise is ready', `Scratch to see what ${x.by} planned`, 'Reveal']
     : [`Something’s planned · ${surpWhen(x)}`, x.status === 'sent' ? 'Say if you’re free' : x.hints?.length ? 'Hint: ' + x.hints.join(', ').toLowerCase() : `You’ll find out ${surpFinds(x)}`, 'Look'];
   return `<button class="tripbar kc k-match surpb" data-sp="view|${x.id}" style="width:100%;text-align:left"><span class="tic">${ic('spark')}</span><span class="grow"><b>${esc(t)}</b><small>${esc(sub)}</small></span><span class="go ${!x.mine && (x.ready || x.status === 'sent') ? 'blink' : ''}">${go}</span></button>`;
 }
@@ -3208,12 +3234,13 @@ function confetti(x, y, n = 90) {
 }
 async function surpReload() { try { S.surp = await rpc('surprise_list', { p_code: S.code, p_member: S.me }); } catch {} bellSync(); }
 async function surpOpen(id) { await surpReload(); if (S.view === 'home' && S.tab === 'home') render(); return surpView(id); }
-function surpStart() {
+function surpStart(occ) {
   if (!partner()) return toast('Invite your other half first.');
-  const mine = surpItems().find(x => x.mine && x.status !== 'revealed' && x.day >= pToday());
+  const o = occ ? occList().find(x => x.k === occ) : null;   // a birthday or anniversary surprise sits on top of the monthly one
+  const mine = surpItems().find(x => x.mine && x.status !== 'revealed' && x.day >= pToday() && (o ? x.occasion === o.k : !x.occasion));
   if (mine) return surpView(mine.id);
-  if (S.surp?.left === false) return toast(`One surprise a month. Your next one is ready ${S.surp.next ? new Date(S.surp.next + 'T12:00').toLocaleDateString(undefined, { month: 'long', day: 'numeric' }) : 'next month'}.`, 4500);
-  S.sb = { step: 1, hints: [], reveal: 'morning', day: pToday(), time: '19:00' }; surpBuild();
+  if (!o && S.surp?.left === false) return toast(`One surprise a month. Your next one is ready ${S.surp.next ? new Date(S.surp.next + 'T12:00').toLocaleDateString(undefined, { month: 'long', day: 'numeric' }) : 'next month'}.`, 4500);
+  S.sb = { step: 1, hints: [], reveal: 'morning', day: o ? o.day : pToday(), time: '19:00', occ: o ? o.k : null, occDay: o ? o.day : null }; surpBuild();
 }
 const SKIND = { out: ['dine', 'Dinner out', 'A table somewhere', 'sat'], orderin: ['dine', 'Order in', 'Delivered, at home', 'sat'], cook: ['spark', 'Cook dinner', 'From your kitchen', 'sat'], event: ['ticket', 'An event', 'One you’ve liked', 'ask'] };
 const SHINT = ['Dress up', 'Casual', 'Come hungry', 'Bring a jacket', 'Staying in', 'Clear your evening'];
@@ -3221,7 +3248,7 @@ const STIME = ['17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30'];
 const surpHead = (title, n) => `<div class="grab"></div><div class="body surp"><div class="sprog">${[1, 2, 3].map(i => `<i class="${i <= n ? 'on' : ''}"></i>`).join('')}</div><h2>${title}</h2>`;
 function surpBuild() {
   const b = S.sb, p = partner(); if (!b) return;
-  if (b.step === 1) return sheet(surpHead(`What are you<br>surprising ${esc(p)} with?`, 1) + `<p class="muted" style="margin-top:6px;font-size:14px">${esc(p)} only hears when, plus a hint, until you reveal it.</p>
+  if (b.step === 1) return sheet(surpHead(b.occ ? `${b.occ === 'birthday' ? 'A birthday' : 'An anniversary'} surprise<br>for ${esc(p)}` : `What are you<br>surprising ${esc(p)} with?`, 1) + `<p class="muted" style="margin-top:6px;font-size:14px">${esc(p)} only hears when, plus a hint, until you reveal it.</p>
     <div class="stiles">${Object.entries(SKIND).map(([k, [i, t, d, c]]) => `<button class="stile kc k-${c}" data-sp="kind|${k}"><span class="tic">${ic(i)}</span><span><b>${t}</b><small>${d}</small></span></button>`).join('')}</div></div>`);
   if (b.step === 2) {
     const o = b.opts, k = SKIND[b.kind];
@@ -3232,10 +3259,10 @@ function surpBuild() {
       <div style="margin-top:12px">${(o || []).map(row).join('')}</div>
       <div class="row" style="gap:8px;margin-top:14px"><button class="btn ghost" style="flex:1" data-sp="step|1">Back</button><button class="btn" style="flex:2" data-sp="step|3" ${b.card ? '' : 'disabled'}>Next</button></div></div>`);
   }
-  const ev = b.kind === 'event', days = Array.from({ length: 7 }, (_, i) => pAdd(pToday(), i));
+  const ev = b.kind === 'event', days = b.occ ? [-2, -1, 0, 1, 2].map(i => pAdd(b.occDay, i)).filter(d => d >= pToday()) : Array.from({ length: 7 }, (_, i) => pAdd(pToday(), i));
   const chip = (on, act, label) => `<button class="chip ${on ? 'on' : ''}" data-sp="${act}">${label}</button>`;
   sheet(surpHead(b.move ? 'Pick a new night' : 'When?', 3) + `<p class="muted" style="margin-top:6px;font-size:14px">${esc(b.card?.title || '')}</p>
-    ${ev ? `<div class="note" style="margin-top:12px;border-style:solid">${esc(fmtDate(b.day))} at ${pT(b.time)}, when the event is on.</div>` : `<div class="chips sch">${days.map(d => chip(b.day === d, 'day|' + d, d === pToday() ? 'Today' : new Date(d + 'T12:00').toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' }))).join('')}</div>
+    ${ev ? `<div class="note" style="margin-top:12px;border-style:solid">${esc(fmtDate(b.day))} at ${pT(b.time)}, when the event is on.</div>` : `<div class="chips sch">${days.map(d => chip(b.day === d, 'day|' + d, (b.occ && d === b.occDay ? 'The day · ' : '') + (d === pToday() ? 'Today' : new Date(d + 'T12:00').toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' })))).join('')}</div>
     <div class="chips sch" style="margin-top:8px">${STIME.map(t => chip(b.time === t, 'time|' + t, pT(t))).join('')}</div>`}
     ${b.move ? '' : `<div class="sect">A hint for ${esc(p)}</div><div class="chips sch">${SHINT.map(h => chip(b.hints.includes(h), 'hint|' + h, h)).join('')}</div>
     <div class="sect">${esc(p)} finds out</div><div class="chips sch">${chip(b.reveal === 'morning', 'reveal|morning', b.day === pToday() ? 'Right away' : 'That morning')}${chip(b.reveal === '2h', 'reveal|2h', '2 hours before')}${chip(b.reveal === 'manual', 'reveal|manual', 'When I say')}</div>`}
@@ -3248,7 +3275,7 @@ function surpView(id) {
   const c = x.card, d = c?.data || {}, when = `${pDayName(x.day)} at ${pT(x.time)}`, hints = x.hints?.length ? `<div class="chips" style="margin-top:12px">${x.hints.map(h => `<span class="chip on" style="pointer-events:none">${esc(h)}</span>`).join('')}</div>` : '';
   const cardRow = c ? `<div class="prow" style="border:0;margin-top:10px"><button data-detail-s="1" data-sp="detail|${id}" style="flex:none;padding:0">${c.image ? `<img src="${esc(c.image)}" alt="">` : `<span class="pimg">${emojiFor(c)}</span>`}</button><span class="grow"><b>${esc(c.title)}</b><small>${esc((c.subtitle || '').split(' · ')[0])}</small>${d.maps ? `<small class="plk"><a href="${esc(d.maps)}" target="_blank" rel="noopener">Map</a></small>` : ''}</span>${x.status === 'revealed' && (c.deck === 'dinner' && c.kind !== 'cook' || (c.deck === 'event' && d.place)) ? `<button class="x fav ${isFav(c.id) ? 'on' : ''}" data-sp="fav|${id}" aria-label="Favorite">${isFav(c.id) ? '★' : '☆'}</button>` : ''}</div>` : '';
   let h = `<div class="grab"></div><div class="body surp">`;
-  if (x.status === 'revealed') h += `<small class="skick">${x.mine ? `Your surprise for ${esc(x.for)}` : `A surprise from ${esc(x.by)}`}</small><h2>${esc(when)}</h2>${cardRow}${hints}
+  if (x.status === 'revealed') h += `<small class="skick">${x.mine ? `Your ${x.occasion ? x.occasion + ' ' : ''}surprise for ${esc(x.for)}` : x.occasion === 'birthday' ? `Happy birthday, from ${esc(x.by)}` : x.occasion === 'anniversary' ? `Happy anniversary, from ${esc(x.by)}` : `A surprise from ${esc(x.by)}`}</small><h2>${esc(when)}</h2>${cardRow}${hints}
     ${x.booked ? '<p class="muted" style="margin-top:12px;font-size:14px">Booked ✓</p>' : ''}${c && c.deck === 'event' && d.url ? `<div style="height:14px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.url)}" target="_blank" rel="noopener">Event details</a>` : ''}`;
   else if (x.mine) {
     const needsBook = x.kind === 'out' || x.kind === 'event';
@@ -3292,7 +3319,7 @@ async function surpAct(v, a, el) {
         if (b.day === pToday() && b.time <= pNow()) return toast('That time has already passed today. Pick a later one.');
         el.disabled = true;
         if (b.move) { a = b.move; const x = await act('move', { day: b.day, time: b.time }); S.sb = null; push(`${S.me} moved the surprise`, `Now ${pDayLow(x.day)} at ${pT(x.time)}. Tap to say if you’re free.`, './?surprise=' + x.id); toast('Moved. ' + them() + ' has the new night.'); if (S.view === 'home') render(); return surpView(x.id); }
-        const x = await rpc('surprise_create', { p_code: S.code, p_member: S.me, p_kind: b.kind, p_card: b.card.id, p_day: b.day, p_time: b.time, p_hints: b.hints, p_reveal: b.reveal });
+        const x = await rpc('surprise_create', { p_code: S.code, p_member: S.me, p_kind: b.kind, p_card: b.card.id, p_day: b.day, p_time: b.time, p_hints: b.hints, p_reveal: b.reveal, p_occasion: b.occ || null });
         S.sb = null; await surpReload(); push(`${S.me} planned something for ${pDayLow(x.day)}`, `${pT(x.time)}. Keep it free, and tap to say if you can make it.`, './?surprise=' + x.id);
         toast(`Sent. ${them()} knows when, not what.`, 3500); if (S.view === 'home') render(); return surpView(x.id); }
       case 'free': case 'cant': { const x = await act(v); push(v === 'free' ? `${S.me} is free ${pDayLow(x.day)}` : `${S.me} can’t make ${pDayLow(x.day)}`, v === 'free' ? 'Your surprise is on.' : 'Pick another night. It’s still a surprise.', './?surprise=' + x.id); if (S.view === 'home') render(); return surpView(a); }
@@ -4014,6 +4041,9 @@ document.addEventListener('click', async e => {
         t.disabled = true; try { S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { friday_start: root.querySelector('#p_fs').value, friday_fav: pick('ff'), plan_price: pick('pr'), no_bars: pick('nb') === '1', plan_avoid: root.querySelector('#p_avoid').value.split(',').map(x => x.trim()).filter(Boolean) } }); } catch { t.disabled = false; return toast('Could not save. Try again.'); }
         toast('Saved for both of you.'); return render(); }
       case 'plansoff': { S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { plans_off: S.settings?.plans_off !== true } }); toast(S.settings.plans_off ? 'Weekend plans are off.' : 'Weekend plans are back on.'); return render(); }
+      case 'occ': return occSheet(ds.occ);
+      case 'occsurp': closeSheet(); return surpStart('anniversary');
+      case 'occday': { closeSheet(); if (!S.pool) await dayPool(); return dayDraft({ mode: 'out', day: ds.day }); }
       case 'bdays': return bdaysSheet();
       case 'bdayssave': { t.disabled = true; const ok = await datesSave(t.closest('.sheet')); t.disabled = false; if (!ok) return; closeSheet(); toast('Saved. You’ll both get a heads-up before the day.', 3500); if (S.view === 'home') render(); return; }
       case 'bdayslater': ls.set('datesAt', String(Date.now())); closeSheet(); if (S.view === 'home' && S.tab === 'home') render(); return;
@@ -4227,14 +4257,14 @@ async function boot() {
   const itq = new URLSearchParams(location.search).get('into'); if (itq) history.replaceState(null, '', location.pathname);
   const gmq = new URLSearchParams(location.search).get('gem'); if (gmq) history.replaceState(null, '', location.pathname);
   const tlq = new URLSearchParams(location.search).get('tell'); if (tlq) history.replaceState(null, '', location.pathname);
-  const dtq = new URLSearchParams(location.search).get('bdays'), psq = new URLSearchParams(location.search).get('plansurprise'); if (dtq || psq) history.replaceState(null, '', location.pathname);
+  const dtq = new URLSearchParams(location.search).get('bdays'), psq = new URLSearchParams(location.search).get('plansurprise'), ocq = new URLSearchParams(location.search).get('occasion'); if (dtq || psq || ocq) history.replaceState(null, '', location.pathname);
   const spq = new URLSearchParams(location.search).get('surprise'); if (spq) history.replaceState(null, '', location.pathname);
   const plq = new URLSearchParams(location.search).get('plan'); S.favAsk = new URLSearchParams(location.search).get('fav') ? plq : null; const plf = new URLSearchParams(location.search).get('planfor'); if (plq || plf) history.replaceState(null, '', location.pathname);
   render(); if (rc) return openRec(rc, rk); if (tpq) return openTripPlan(tpq); if (tp) return openGetaway(tp, partner()); if (SHW[shq]) return openShareTab(shq);
   if (invq && !partner()) { carrySignIn(); return inviteSheet(); }
   if (gmq) gemOpen();
   if (tlq) tellSheet();
-  if (dtq) bdaysSheet(); else if (psq) surpStart();
+  if (dtq) bdaysSheet(); else if (psq) surpStart(['birthday', 'anniversary'].includes(psq) ? psq : undefined); else if (ocq) occSheet(ocq);
   if (itq) intoSheet(itq);
   if (spq) { carrySignIn(); return surpView(spq); }
   if (plq) { carrySignIn(); return dayAct('view', plq).catch(() => {}); } if (plf) { carrySignIn(); return dayAct('around', plf).catch(() => {}); }
