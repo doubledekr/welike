@@ -1769,7 +1769,7 @@ function daySheet(id) {
 async function dayAct(v, a, t) {
   if (v === 'sidegame') { closeSheet(); return openGame(a); }
   if (v === 'new') return dayDraft({ mode: a });
-  if (v === 'around') { if (!partner()) return toast('Invite your other half first.'); if (!S.pool) await dayPool(); let c = S.pool.find(x => x.id === a) || (S.listCards || []).find(x => x.id === a) || (S.detailCard?.id === a ? S.detailCard : null); if (!c) return dayStart(); if (!S.pool.some(x => x.id === c.id)) S.pool.push(c); document.querySelector('.cele')?.remove(); return dayDraft({ anchor: c }); }
+  if (v === 'around') { if (!partner()) return toast('Invite your other half first.'); if (!S.pool) await dayPool(); let c = S.pool.find(x => x.id === a) || (S.listCards || []).find(x => x.id === a) || (S.detailCard?.id === a ? S.detailCard : null); if (!c) { try { c = await rpc('get_card', { p_code: S.code, p_id: a }); } catch {} } if (!c) return dayStart(); if (!S.pool.some(x => x.id === c.id)) S.pool.push(c); document.querySelector('.cele')?.remove(); return dayDraft({ anchor: c }); }
   if (v === 'view') { if (!(S.plans || []).some(p => p.id === a)) S.plans = await rpc('plan_list', { p_code: S.code }); return daySheet(a); }
   if (v === 'edit') { const p = S.plans.find(x => x.id === S.plView); if (!p) return; if (!S.pool) await dayPool(); for (const i of p.items) if (i.card && !S.pool.some(x => x.id === i.card.id)) S.pool.push(i.card); return dayDraft({ plan: p }); }
   if (v === 'fav') {
@@ -3218,6 +3218,8 @@ async function commit(verdict) {
     const ss = (S.state?.sessions || []).find(x => x.id === sess); if (ss) ss.my_left = S.deck.length;   // Home and the inbox see it right away
     send({ type: 'swipe', session: sess, left: S.deck.length });
     if (S.bite && card.deck === 'event') { if (r.match) push(`You matched on an event ${emojiFor(card)}`, `You and ${S.me} both want to go to ${card.title}.`, './'); else if (verdict === 'yes' || verdict === 'love') S.evLiked = true; if (r.keen && r.weeks === 3 && !r.match && partner()) keenNudge(card, r.weeks); if (!S.deck.length && S.evLiked) { S.evLiked = false; evPeek(true); } }
+    // Hell yeah on a dated event: the other person hears about it straight away and is asked to build a plan around it
+    if (card.deck === 'event' && !card.data?.place && verdict === 'love' && !r.match && partner()) { push(`${S.me} says Hell yeah: ${card.title}`, `${card.data?.flex ? 'This week' : fmtDate(card.event_date)}. Want to make a plan around it? Add one thing before or after and send it back.`, `./?planfor=${card.id}`); toast(`${them()} gets asked to plan around it.`, 3200); }
     if (S.bite && r.before && !r.match && partner() && (card.deck === 'event' || card.deck === 'dinner') && !(r.keen && r.weeks === 3) && !$layer.innerHTML) againSheet(card);
     if (r.match && S.bite) { S.state.counts.shortlist = (S.state.counts.shortlist || 0) + 1; const hm = S.state.counts.hearts ||= {}; hm[card.deck] = (hm[card.deck] || 0) + 1; paintHearts(); toast(`You have both liked ${card.title}. It will come up first next round.`, 3500); send({ type: 'shortlist' }); }
     else if (r.match) { const m = { ...card, loves: verdict === 'love' ? 1 : 0 }; S.matches.unshift(m); updateBar(); send({ type: 'match', session: sess, card: m }); push(`It's a match ${emojiFor(card)}`, `You and ${S.me} both said yes to ${card.title}.`, `./?s=${sess}`); showMatch(m); }
