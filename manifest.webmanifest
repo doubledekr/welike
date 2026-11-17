@@ -1,6 +1,6 @@
 {
   "name": "Let’s Together",
-  "short_name": "Together",
+  "short_name": "Let’s Together",
   "description": "Swipe on movies, places to eat, events and trips. See what you both said yes to.",
   "start_url": "./",
   "scope": "./",
@@ -10,17 +10,17 @@
   "theme_color": "#100d12",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "mark-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "icon-512.png",
+      "src": "mark-512.png",
       "sizes": "512x512",
       "type": "image/png"
     },
     {
-      "src": "icon-512.png",
+      "src": "mark-512m.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

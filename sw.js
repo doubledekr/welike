@@ -7,7 +7,7 @@ self.addEventListener('push', e => {
   // tell an open copy of the app, so its bell lights up straight away
   self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(cs => cs.forEach(c => c.postMessage({ pushed: true }))).catch(() => {});
   e.waitUntil(self.registration.showNotification(d.title || 'Let’s Together', {
-    body: d.body || '', icon: 'icon-192.png', badge: 'icon-192.png', data: { url: d.url || './' },
+    body: d.body || '', icon: 'mark-192.png', badge: 'mark-192.png', data: { url: d.url || './' },
     ...(d.tag ? { tag: d.tag } : {}),   // the same message landing twice on one device shows once
   }));
 });
