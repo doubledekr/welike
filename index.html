@@ -3534,7 +3534,8 @@ document.addEventListener('click', async e => {
     if (ds.into) { const [a, id] = ds.into.split('|'), c = S.detailCard?.id === id ? S.detailCard : null; t.disabled = true;
       try { await rpc('event_answer', { p_code: S.code, p_member: S.me, p_card: id, p_verdict: a === 'plan' ? 'yes' : a }); } catch { t.disabled = false; return toast('Could not save that. Try again in a moment.'); }
       if (a === 'plan') { send({ type: 'shortlist' }); return dayAct('around', id).catch(() => {}); }
-      push(a === 'seen' ? `${S.me} can’t make it` : `${S.me} passed on this one`, `${c?.title || 'That event'}${a === 'seen' ? ': the date doesn’t work.' : ' isn’t their thing.'}`, './'); closeSheet(); toast(a === 'seen' ? 'Marked as can’t make it.' : 'Okay, passed.', 2500); refresh().catch(() => {}); return; }
+      if (a === 'seen') push(`${S.me} can’t make it`, `${c?.title || 'That event'}: the date doesn’t work.`, './');   // "Not for me" stays quiet
+      closeSheet(); toast(a === 'seen' ? 'Marked as can’t make it.' : 'Okay, passed.', 2500); refresh().catch(() => {}); return; }
     if (ds.like) { t.disabled = true; const r = await rpc('like_card', { p_code: S.code, p_member: S.me, p_card: ds.like }); t.outerHTML = '<span class="pill hot">Liked</span>'; if (r.match) { toast('You have both liked that one. It will come up first next round.', 3500); send({ type: 'shortlist' }); } refresh().catch(() => {}); return; }
     if (ds.hdeck) { S.homeDeck = ds.hdeck; ls.set('deck', ds.hdeck); S.revEntry = true; return render(); }
     if (ds.lad) return ladder(ds.lad, t);
