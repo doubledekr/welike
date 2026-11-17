@@ -964,6 +964,11 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .twarn{text-align:center;border-radius:24px;background:#1d1920;padding:24px 18px;margin-top:8px;box-shadow:0 0 40px -8px rgba(255,180,70,.6)}.twarn h2{font-size:25px}.twarn p{font-size:14px;line-height:1.45;margin-top:8px}
 .twi{width:46px;height:46px;border-radius:50%;margin:0 auto 12px;display:grid;place-items:center;font-weight:800;font-size:22px;background:linear-gradient(135deg,#ffb547,#ff7a4d);color:#2a1404}
 .twarn.calm{box-shadow:0 0 40px -10px var(--kg)}.twarn.calm .twi{background:linear-gradient(135deg,var(--ka),var(--kb));color:#06263d}.twarn.calm .twi .ic{width:22px;height:22px}
+
+/* hidden gems */
+.gemk{display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:#ffd6e0;margin-bottom:4px}.gemk .ic{width:15px;height:15px;filter:drop-shadow(0 0 5px rgba(255,77,126,.9))}
+.gemk.in{margin:14px 0 0;color:var(--muted)}.card .gsub{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;white-space:normal}
+.gsect{display:flex;align-items:center;gap:6px}.gsect .ic{width:14px;height:14px;color:var(--ka)}.trp .prow small{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 </style>
 </head>
 <body>
@@ -1002,6 +1007,7 @@ const ICONS = {
   shuffle: 'M3 7h4l10 10h4M17 7h4M3 17h4l3-3M14 10l3-3M19 5l2 2-2 2M19 15l2 2-2 2',
   list: 'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01', sliders: 'M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M16 4v4M10 10v4M18 16v4',
   play: 'M7 4l13 8-13 8z', frame: 'M4 4h16v16H4zM8 8h8v8H8zM4 4l4 4M20 4l-4 4M4 20l4-4M20 20l-4-4', pin: 'M12 21s-6-5.4-6-10a6 6 0 0 1 12 0c0 4.6-6 10-6 10zM12 8.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z', plane: 'M21 3L3 10.5l6.5 2.5L12 20l3-5.5L21 3zM9.5 13L21 3', mail: 'M3 6h18v12H3zM3 7l9 6 9-6', repeat: 'M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3',
+  gem: 'M6.5 3.5h11L22 9.5 12 21 2 9.5zM2 9.5h20M8.6 9.5L12 21l3.4-11.5M6.5 3.5l2.1 6 3.4-6 3.4 6 2.1-6',
   target: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z',
   search: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-3.5-3.5',
   bell: 'M6 16v-5a6 6 0 0 1 12 0v5l1.8 2.2H4.2zM10 20.5a2 2 0 0 0 4 0',
@@ -1108,32 +1114,36 @@ const newGap = () => { const g = 5 + Math.random() * 9; ls.set('scratchGap', Str
 const scratchGap = () => { const g = Number(ls.get('scratchGap')); return g >= 5 && g <= 14 ? g : newGap(); };
 const scratchDue = () => !!partner() && Date.now() - Number(ls.get('scratchAt') || 0) > scratchGap() * 864e5;
 const scratchTest = () => { const t = S.settings?.scratchtest; return t && t.m === S.me && t.card ? { ...t.card, test: true } : null; };
-const scratchShow = () => !!S.peek && (S.peek.test || scratchDue());
+const scratchShow = () => !!S.peek && (S.peek.test || S.peek.gemcard || scratchDue());
+const gemPeek = async () => { try { return await rpc('gem_peek', { p_code: S.code, p_member: S.me }); } catch { return null; } };
+async function gemOpen() { S.peek = await gemPeek(); if (S.peek) openScratch(); else toast('That gem is already scratched. It joins your Go out pile.', 3500); }
 async function scratchCheck() {   // look once per visit; the card is only held in memory until it is scratched
   const t = scratchTest(), was = JSON.stringify(S.peek ?? null);
   if (t) S.peek = t;
-  else { if (!scratchDue() || S.peekTried) return; S.peekTried = true;
-    try { S.peek = await rpc('partner_peek', { p_code: S.code, p_member: S.me }); } catch { S.peek = null; } }
+  else { if (!S.gemTried) { S.gemTried = true; const g = await gemPeek(); if (g) S.peek = g; }
+    if (!S.peek?.gemcard) { if (!scratchDue() || S.peekTried || ls.get('gemday') === new Date().toDateString()) return; S.peekTried = true;
+    try { S.peek = await rpc('partner_peek', { p_code: S.code, p_member: S.me }); } catch { S.peek = null; } } }
   if (!S.peek || S.view !== 'home' || $layer.innerHTML || document.querySelector('.coach,.scr,.sco,.match,.lfront')) return;
   if (!S.peekShown) scratchOffer(); else if (S.tab === 'home' && JSON.stringify(S.peek ?? null) !== was) render();
 }
 function scratchOffer() {
   S.peekShown = true;
   const el = document.createElement('div'); el.className = 'sco';
-  el.innerHTML = `<div class="sco-card"><span class="sco-ic">${ic('spark')}</span><small class="scr-k">${S.peek?.test ? 'Test scratch card' : 'Scratch card'}</small><h2>Something’s waiting for you</h2><p>One thing ${esc(them())} is in on that the two of you have not matched on yet.</p><button class="btn" data-act="scratch">Scratch it</button><button class="btn ghost" data-act="scolater">Later</button></div>`;
+  const G = !!S.peek?.gemcard;
+  el.innerHTML = `<div class="sco-card"><span class="sco-ic">${ic(G ? 'gem' : 'spark')}</span><small class="scr-k">${G ? 'Hidden gem' : S.peek?.test ? 'Test scratch card' : 'Scratch card'}</small><h2>${G ? 'A hidden gem turned up' : 'Something’s waiting for you'}</h2><p>${G ? 'A place near you that most people walk past. You both get the same one.' : `One thing ${esc(them())} is in on that the two of you have not matched on yet.`}</p><button class="btn" data-act="scratch">Scratch it</button><button class="btn ghost" data-act="scolater">Later</button></div>`;
   document.body.appendChild(el); if (S.tab === 'home') render();
 }
 async function openScratch() {
-  let c = S.peek; if (!c) { try { c = await rpc('partner_peek', { p_code: S.code, p_member: S.me }); } catch {} }
+  let c = S.peek; if (!c) c = await gemPeek(); if (!c) { try { c = await rpc('partner_peek', { p_code: S.code, p_member: S.me }); } catch {} }
   S.peek = null; document.querySelector('.sco')?.remove();
   if (!c) { render(); return toast(`Nothing to reveal right now. A card appears once ${them()} likes something you have not said yes to.`, 4500); }
   document.querySelector('.scr')?.remove();
   const el = document.createElement('div'); el.className = 'scr';
-  el.innerHTML = `<small class="scr-k">${c.test ? 'Test scratch card' : 'Scratch card'}</small><h2>One thing ${esc(them())} is in on</h2>
+  el.innerHTML = `<small class="scr-k">${c.gemcard ? 'Hidden gem' : c.test ? 'Test scratch card' : 'Scratch card'}</small><h2>${c.gemcard ? 'A hidden gem near you' : `One thing ${esc(them())} is in on`}</h2>
     <div class="scr-card"><div class="scr-in">${c.image ? `<img src="${esc(c.image)}" alt="">` : emojiFor(c)}<span class="scr-t"><b>${esc(c.title)}</b><small>${esc(c.subtitle || '')}</small></span></div><canvas id="scv"></canvas></div>
     <p id="scp">Scratch the card with your finger to see it.</p>
     <button class="btn" data-act="scratchdone" id="scb" style="visibility:hidden">Got it</button>
-    <small class="scr-n">It’s kept for you: it shows up when you plan a surprise or a day. The next one turns up when you least expect it.</small>`;
+    <small class="scr-n">${c.gemcard ? `${partner() ? esc(them()) + ' gets the same gem. ' : ''}The next one turns up when you least expect it.` : 'It’s kept for you: it shows up when you plan a surprise or a day. The next one turns up when you least expect it.'}</small>`;
   document.body.appendChild(el);
   const cv = document.getElementById('scv'), box = cv.parentElement.getBoundingClientRect(), W = cv.width = Math.round(box.width), H = cv.height = Math.round(box.height), g = cv.getContext('2d');
   const gr = g.createLinearGradient(0, 0, W, H); gr.addColorStop(0, '#ff7a4d'); gr.addColorStop(.5, '#ffd0a8'); gr.addColorStop(1, '#ff4d7e'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
@@ -1143,8 +1153,8 @@ async function openScratch() {
   let down = false, lx = 0, ly = 0, moves = 0, done = false;
   const pt = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; };
   const reveal = () => { if (done) return; done = true; cv.style.transition = 'opacity .5s'; cv.style.opacity = 0; setTimeout(() => cv.remove(), 520);
-    document.getElementById('scp').innerHTML = c.test ? `This one is a sample so you can see how it works. A real card shows something ${esc(them())} liked that you have not matched on.` : `${esc(them())} said <b>${VERD(c)[c.loved ? 2 : 1]}</b> to this one. It is not a match yet. It’s saved for when you plan a surprise.`;
-    document.getElementById('scb').style.visibility = ''; if (c.test) { if (S.settings) delete S.settings.scratchtest; rpc('set_settings', { p_code: S.code, p_settings: { scratchtest: null } }).catch(() => {}); } else { ls.set('scratchAt', String(Date.now())); newGap(); if (c.id) rpc('reveal_note', { p_code: S.code, p_member: S.me, p_card: c.id }).catch(() => {}); } try { navigator.vibrate?.([20, 30, 40]); } catch {} };
+    document.getElementById('scp').innerHTML = c.gemcard ? `${esc(c.data?.notes || '')} It joins your Go out pile next, so you can each say what you think.` : c.test ? `This one is a sample so you can see how it works. A real card shows something ${esc(them())} liked that you have not matched on.` : `${esc(them())} said <b>${VERD(c)[c.loved ? 2 : 1]}</b> to this one. It is not a match yet. It’s saved for when you plan a surprise.`;
+    document.getElementById('scb').style.visibility = ''; if (c.test) { if (S.settings) delete S.settings.scratchtest; rpc('set_settings', { p_code: S.code, p_settings: { scratchtest: null } }).catch(() => {}); } else if (c.gemcard) { ls.set('gemday', new Date().toDateString()); rpc('gem_reveal', { p_code: S.code, p_member: S.me, p_card: c.id }).catch(() => {}); } else { ls.set('scratchAt', String(Date.now())); newGap(); if (c.id) rpc('reveal_note', { p_code: S.code, p_member: S.me, p_card: c.id }).catch(() => {}); } try { navigator.vibrate?.([20, 30, 40]); } catch {} };
   const check = () => { const d = g.getImageData(0, 0, W, H).data; let clear = 0, tot = 0; for (let i = 3; i < d.length; i += 4 * 37) { tot++; if (d[i] < 40) clear++; } if (clear / tot > .45) reveal(); };
   cv.addEventListener('pointerdown', e => { e.preventDefault(); down = true; [lx, ly] = pt(e); g.beginPath(); g.arc(lx, ly, g.lineWidth / 2, 0, 7); g.fill(); try { cv.setPointerCapture(e.pointerId); } catch {} });
   cv.addEventListener('pointermove', e => { if (!down || done) return; e.preventDefault(); const [x, y] = pt(e); g.beginPath(); g.moveTo(lx, ly); g.lineTo(x, y); g.stroke(); lx = x; ly = y; if (++moves % 6 === 0) check(); });
@@ -2021,6 +2031,7 @@ function inboxGo(u) {
   if (s) return openSession(s).catch(() => toast('That round has finished.'));
   if (r) return openRec(r, q.get('keen'));
   if (g) return openGame(g);
+  if (q.get('gem')) return gemOpen();
   if (q.get('surprise')) return surpOpen(q.get('surprise'));
   if (q.get('plan')) { S.favAsk = q.get('fav') ? q.get('plan') : null; return dayAct('view', q.get('plan')).catch(() => {}); }
   if (q.get('reveal')) { prepRevealTest(); return render(); }
@@ -2226,11 +2237,12 @@ function bookSheet(city) {
 // the search box is another site's frame, so the only sign someone used it is focus moving into it
 window.addEventListener('blur', () => { if (document.activeElement?.closest?.('.bookframe')) S.bookTouched = true; });
 // The plan for a city both people agreed on: what they liked there becomes the itinerary, each part bookable
-const planCard = id => [...(S.lib || []), ...(S.libThem || [])].find(c => c.id === id);
+const tripGemsFor = city => (S.tripGems?.[city] || []).map(c => ({ ...c, _gem: true }));
+const planCard = id => [...(S.lib || []), ...(S.libThem || []), ...Object.values(S.tripGems || {}).flat()].find(c => c.id === id);
 function planParts(city) {
-  const all = [...(S.lib || []), ...(S.libThem || [])], picks = planMeta(city).picks || {}, inPlan = c => c.who === 'both' || !!picks[c.id];
+  const base = [...(S.lib || []), ...(S.libThem || [])], have = new Set(base.map(c => c.id)), all = [...base, ...tripGemsFor(city).filter(c => !have.has(c.id))], picks = planMeta(city).picks || {}, inPlan = c => c.who === 'both' || !!picks[c.id];
   const t = all.filter(c => c.deck === 'trip' && c.kind === city), a = all.filter(c => c.deck === 'art' && c.data?.city === city);
-  return { todo: t.filter(inPlan), maybe: t.filter(c => !inPlan(c)), art: a.filter(inPlan), artMaybe: a.filter(c => !inPlan(c)), picks };
+  return { todo: t.filter(inPlan), maybe: t.filter(c => !inPlan(c) && !c._gem), gems: t.filter(c => c._gem && !inPlan(c)), art: a.filter(inPlan), artMaybe: a.filter(c => !inPlan(c)), picks };
 }
 function planSheet(city) {
   S.sheetKind = 'plan'; S.bookCity = city;
@@ -2241,6 +2253,8 @@ function planSheet(city) {
   const price = c => c.data?.price ? ` · from $${c.data.price}` : '';
   const todoRow = c => `<div class="prow">${img(c)}<span class="grow"><b>${esc(c.title)}</b><small>${it[c.id] && planWho(city, c.id)?.by ? `Booked by ${esc(planWho(city, c.id).by)} · ${tDay(planWho(city, c.id).at)}` : whose(c) + price(c)}</small></span>${it[c.id] ? `<button class="pill hot" data-tripitem="${E}|${c.id}" aria-label="Booked">Booked</button>` : c.data?.place ? (c.data.maps ? `<a class="btn sm ghost" href="${esc(c.data.maps)}" target="_blank" rel="noopener">Map</a>` : '') : `<button class="btn sm" data-planbook="${E}|${c.id}">Book</button>`}</div>`;
   const maybeRow = c => `<div class="prow dim">${img(c)}<span class="grow"><b>${esc(c.title)}</b><small>${whose(c)}${c.deck === 'trip' ? price(c) : c.data?.museum ? ' · ' + esc(c.data.museum) : ''}</small></span><button class="btn ghost sm" data-planpick="${E}|${c.id}">Add</button></div>`;
+  if (!S.tripGems?.[city]) rpc('trip_gems', { p_code: S.code, p_city: city }).then(g => { (S.tripGems ||= {})[city] = g || []; if ((g || []).length && S.sheetKind === 'plan' && S.bookCity === city && document.querySelector('.trp .tring')) planSheet(city); }).catch(() => { (S.tripGems ||= {})[city] = []; });
+  const gemRow = c => `<div class="prow">${img(c)}<span class="grow"><b>${esc(c.title)}</b><small>${esc(c.data?.notes || '')}</small></span><button class="btn ghost sm" data-planpick="${E}|${c.id}">Add</button></div>`;
   const halls = {}; P.art.forEach(c => (halls[c.data?.museum || 'Museum'] ||= []).push(c));
   const step = (icn, t, sub, btn, cls = '', extra = '') => `<div class="tstep ${cls}"><div class="trw"><span class="tic">${ic(icn)}</span><span class="grow"><b>${t}</b><small>${sub}</small></span>${btn}</div>${extra}</div>`;
   const dStep = !dates ? step('target', 'Dates', `Suggest some and ${T} says if they work`, `<button class="tpill go" data-tripdates="${E}">Suggest</button>`, 'hot')
@@ -2261,6 +2275,7 @@ function planSheet(city) {
     <div class="sect">Things to do</div>
     ${P.todo.length ? P.todo.map(todoRow).join('') : `<p class="muted" style="font-size:14px">Nothing on the plan yet. Add from the picks below, or swipe more ${E} ideas on the Trips tab.</p>`}
     ${P.maybe.length ? `<small class="muted" style="display:block;margin:10px 2px 2px;font-size:12.5px">Only one of you liked these. Add any to the plan.</small>${P.maybe.map(maybeRow).join('')}` : ''}
+    ${P.gems?.length ? `<div class="sect gsect">${ic('gem')} Hidden gems nearby</div><small class="muted" style="display:block;margin:0 2px 2px;font-size:12.5px">Places most visitors miss. Add any to the plan.</small>${P.gems.slice(0, 8).map(gemRow).join('')}` : ''}
     ${P.art.length || P.artMaybe.length ? `<div class="sect">Art to see</div>${Object.entries(halls).map(([m, cs]) => `<div class="prow">${img(cs[0])}<span class="grow"><b>${esc(m)}</b><small>${cs.length} piece${cs.length > 1 ? 's' : ''} on your list: ${esc(cs.slice(0, 2).map(c => c.title).join(', '))}${cs.length > 2 ? '…' : ''}</small></span>${cs[0].data?.url ? `<a class="btn ghost sm" href="${esc(cs[0].data.url)}" target="_blank" rel="noopener">Visit info</a>` : ''}</div>`).join('')}${P.artMaybe.map(maybeRow).join('')}` : ''}
     <p class="muted" style="font-size:11.5px;text-align:center;margin-top:14px">Booking happens on Expedia and Viator. Let’s Together may earn a commission, and it never changes what you see.</p></div>`);
 }
@@ -2757,12 +2772,13 @@ function cardHTML(c, cls = '') {
   if (c.deck === 'dinner') { tags.push(`<span class="tag">${KINDS[c.kind]?.[0] || 'Dinner'}</span>`); if (c.data.rating) tags.push(`<span class="tag">★ ${c.data.rating}</span>`); if (c.data.price) tags.push(`<span class="tag">${esc(c.data.price)}</span>`); if (c.data.delivery) tags.push('<span class="tag">Delivers</span>'); if (c.data.miles != null) tags.push(`<span class="tag">${c.data.away ? c.data.miles + ' mi' : c.data.miles > 3 ? (c.data.miles >= 10 ? Math.round(c.data.miles) : c.data.miles) + ' mi from home' : 'Local'}</span>`); const oh = onHand(c); if (oh) tags.push(`<span class="tag">${oh.have === oh.total ? 'You have everything' : `${oh.have} of ${oh.total} on hand`}</span>`); }
   if (c.deck === 'art') { if (c.kind) tags.push(`<span class="tag">${esc(c.kind)}</span>`); if (c.data.on_view) tags.push('<span class="tag">On view now</span>'); }
   if (c.deck === 'trip') { if (c.kind) tags.push(`<span class="tag">${esc(c.kind)}</span>`); if (c.data.rating) tags.push(`<span class="tag">★ ${c.data.rating}</span>`); if (c.data.minutes) tags.push(`<span class="tag">${fmtMins(c.data.minutes)}</span>`); if (c.data.price) tags.push(`<span class="tag">from $${c.data.price}</span>`); if (c.data.place) tags.push('<span class="tag">Sight to see</span>'); }
-  if (c.deck === 'event' && c.data.place) { if (c.kind) tags.push(`<span class="tag">${esc(c.kind)}</span>`); if (c.data.rating) tags.push(`<span class="tag">★ ${c.data.rating}</span>`); tags.push(milesTag(c.data)); }
+  if (c.deck === 'event' && c.data.place) { if (c.kind && !c.data.gem) tags.push(`<span class="tag">${esc(c.kind)}</span>`); if (c.data.rating) tags.push(`<span class="tag">★ ${c.data.rating}</span>`); tags.push(milesTag(c.data)); }
   else if (c.deck === 'event') { tags.push(`<span class="tag">${c.data.flex ? 'This week' : fmtDate(c.event_date)}</span>`); if (c.kind) tags.push(`<span class="tag">${esc(c.kind)}</span>`); if (c.data.area) tags.push(`<span class="tag">${esc(c.data.area)}</span>`); }
   if (c.deck === 'activity' && c.data.chain) tags.push(`<span class="tag">Then pick ${c.data.chain.deck === 'movie' ? 'a movie' : c.data.chain.deck === 'event' ? 'an event' : 'the food'}</span>`);
   const art = c.image ? `<img class="bg" src="${esc(c.image)}" alt="" draggable="false" onerror="this.remove()">` : '';
-  return `<div class="card ${cls}" data-id="${c.id}"><div class="art ${c.deck}">${emojiFor(c)}</div>${art}
-    <div class="shade"><h3>${esc(c.title)}</h3>${c.subtitle ? `<div class="sub">${esc(c.subtitle)}</div>` : ''}<div class="tags">${tags.join('')}</div></div>
+  const gem = !!c.data?.gem;
+  return `<div class="card ${cls}${gem ? ' gemc' : ''}" data-id="${c.id}"><div class="art ${c.deck}">${emojiFor(c)}</div>${art}
+    <div class="shade">${gem ? `<div class="gemk">${ic('gem')}<span>Hidden gem</span></div>` : ''}<h3>${esc(c.title)}</h3>${gem && c.data.notes ? `<div class="sub gsub">${esc(c.data.notes)}</div>` : c.subtitle ? `<div class="sub">${esc(c.subtitle)}</div>` : ''}<div class="tags">${tags.join('')}</div></div>
     <div class="info">i</div><div class="stamp yes">${VERD(c)[1]}</div><div class="stamp no">${VERD(c)[0]}</div><div class="stamp love">${VERD(c)[2]}</div>${c.deck === 'movie' && !S.rewatch ? '<div class="stamp seen">Seen it</div>' : ''}</div>`;
 }
 function updateBar() { const el = document.getElementById('prog'); if (el && !(S.revealUntil > Date.now())) el.textContent = S.bite || S.solo || !partner() ? '' : `${them()} has ${S.theirLeft ? S.theirLeft + ' to go' : 'finished'}`; const m = document.getElementById('mcount'); if (m) { m.textContent = S.matches.length ? `${S.matches.length} match${S.matches.length > 1 ? 'es' : ''}` : 'No matches yet'; m.className = 'pill' + (S.matches.length ? ' hot' : ''); } }
@@ -3361,6 +3377,7 @@ function bookBlock(c, day, time) {
   return '';
 }
 function closeSheet() { $layer.innerHTML = ''; document.querySelector('.a2arrow')?.remove(); tiltWatch(); }
+const gemBlock = d => d?.gem ? `<div class="gemk in">${ic('gem')}<span>Hidden gem</span></div>${d.src ? `<a class="btn ghost" style="display:block;text-align:center;text-decoration:none;margin-top:10px" href="${esc(d.src)}" target="_blank" rel="noopener">Read more on Wikipedia</a>` : ''}<p class="muted" style="font-size:11.5px;text-align:center">Facts from Wikipedia. Photo and hours from Google. Description written by Let’s Together.</p>` : '';
 function showDetail(c) {
   if (!c) return; S.detailCard = c;
   if (isRest(c) && !c.data.book_at) bookFetch([c]).then(ok => { if (ok && S.detailCard === c && $layer.querySelector('.sheet')) showDetail(c); }); const d = c.data || {}; let b = '';
@@ -3388,12 +3405,12 @@ function showDetail(c) {
       <p class="muted" style="font-size:11.5px;text-align:center">Public-domain image, courtesy of ${esc(d.museum || 'the museum')}.</p>`;
   } else if (c.deck === 'trip') {
     b = `<div class="tags">${c.kind ? `<span class="tag">${esc(c.kind)}</span>` : ''}${d.rating ? `<span class="tag">★ ${d.rating}${d.reviews ? ` (${Number(d.reviews).toLocaleString()})` : ''}</span>` : ''}${d.minutes ? `<span class="tag">${fmtMins(d.minutes)}</span>` : ''}${d.price ? `<span class="tag">from $${d.price}</span>` : ''}</div>
-      ${d.notes ? `<p>${esc(d.notes)}</p>` : ''}${d.place ? `${d.url ? `<div style="height:18px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.url)}" target="_blank" rel="noopener">Visit website</a>` : ''}${d.maps ? `<div style="height:10px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.maps)}" target="_blank" rel="noopener">See it on Google Maps</a>` : ''}${d.photo_credit ? `<p class="muted" style="font-size:11.5px;text-align:center">Photo: ${esc(d.photo_credit)} on Google</p>` : ''}`
+      ${d.notes ? `<p>${esc(d.notes)}</p>` : ''}${gemBlock(d)}${d.place ? `${d.url ? `<div style="height:18px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.url)}" target="_blank" rel="noopener">Visit website</a>` : ''}${d.maps ? `<div style="height:10px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.maps)}" target="_blank" rel="noopener">See it on Google Maps</a>` : ''}${d.photo_credit ? `<p class="muted" style="font-size:11.5px;text-align:center">Photo: ${esc(d.photo_credit)} on Google</p>` : ''}`
       : `${d.url ? `<div style="height:18px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.url)}" target="_blank" rel="noopener">View on Viator</a>` : ''}
       <p class="muted" style="font-size:11.5px;text-align:center">Experiences from Viator. Let’s Together may earn a commission if you book.</p>`}`;
   } else if (c.deck === 'event' && d.place) {
     b = `<div class="tags">${c.kind ? `<span class="tag">${esc(c.kind)}</span>` : ''}${d.rating ? `<span class="tag">★ ${d.rating}${d.ratings ? ' (' + d.ratings + ')' : ''}</span>` : ''}${milesTag(d)}</div>
-      ${d.address ? `<div class="kv">Where</div><p style="margin-top:0">${esc(d.address)}</p>` : ''}${d.notes ? `<p>${esc(d.notes)}</p>` : ''}
+      ${d.address ? `<div class="kv">Where</div><p style="margin-top:0">${esc(d.address)}</p>` : ''}${d.notes ? `<p>${esc(d.notes)}</p>` : ''}${gemBlock(d)}
       ${d.url ? `<div style="height:18px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.url)}" target="_blank" rel="noopener">Visit website</a>` : ''}
       ${d.maps ? `<div style="height:10px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.maps)}" target="_blank" rel="noopener">Open in Google Maps</a>` : ''}${d.photo_credit ? `<p class="muted" style="font-size:11.5px;text-align:center">Photo: ${esc(d.photo_credit)} on Google</p>` : ''}`;
   } else if (c.deck === 'event') {
@@ -3804,10 +3821,12 @@ async function boot() {
   const invq = new URLSearchParams(location.search).get('invite'); if (invq) history.replaceState(null, '', location.pathname);
   if (new URLSearchParams(location.search).get('reveal')) { history.replaceState(null, '', location.pathname); prepRevealTest(); }
   const tpq = new URLSearchParams(location.search).get('tripplan'); if (tpq) history.replaceState(null, '', location.pathname);
+  const gmq = new URLSearchParams(location.search).get('gem'); if (gmq) history.replaceState(null, '', location.pathname);
   const spq = new URLSearchParams(location.search).get('surprise'); if (spq) history.replaceState(null, '', location.pathname);
   const plq = new URLSearchParams(location.search).get('plan'); S.favAsk = new URLSearchParams(location.search).get('fav') ? plq : null; const plf = new URLSearchParams(location.search).get('planfor'); if (plq || plf) history.replaceState(null, '', location.pathname);
   render(); if (rc) return openRec(rc, rk); if (tpq) return openTripPlan(tpq); if (tp) return openGetaway(tp, partner()); if (SHW[shq]) return openShareTab(shq);
   if (invq && !partner()) { carrySignIn(); return inviteSheet(); }
+  if (gmq) gemOpen();
   if (spq) { carrySignIn(); return surpView(spq); }
   if (plq) { carrySignIn(); return dayAct('view', plq).catch(() => {}); } if (plf) { carrySignIn(); return dayAct('around', plf).catch(() => {}); }
   nextOnboard(); if (!newsShow()) { checkTravel(); scratchCheck(); } installCheck(); evPeek(); carrySignIn();
