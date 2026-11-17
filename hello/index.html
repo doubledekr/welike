@@ -175,7 +175,7 @@ const clean = n => String(n || '').replace(/[^\p{L}\p{M}' .-]/gu, '').trim().spl
 const from = clean(new URLSearchParams(location.search).get('from'));
 if (from && !(code && me)) { $('#invt').textContent = `${from} invited you to Let’s Together`; $('#inv').hidden = false; document.title = `${from} invited you to Let’s Together`; }
 $('#sn').value = me || '';
-const sLink = () => { const n = clean($('#sn').value); return 'https://letstogether.app/hello/' + (n ? '?from=' + encodeURIComponent(n) : ''); };
+const sLink = () => 'https://letstogether.app/';
 const sText = () => `You’re invited to a brand-new app I’ve been using: Let’s Together. You and your person each swipe on movies, places to eat and things to do, and it only shows what you both said yes to. No more “what do you want to do?” It’s still in testing, so you’d be one of the first.`;
 const sDraw = () => { $('#sprev').textContent = sText() + '\n' + sLink(); };
 $('#sn').addEventListener('input', sDraw); sDraw();

@@ -1489,12 +1489,12 @@ function biteDoneHTML() {
     <p class="muted">${none ? (S.sess.deck === 'dinner' ? 'Add your ZIP code in settings to load restaurants near you, or add your own there too.' : 'Check back tomorrow, or add your own in settings.') : 'A fresh handful arrives tomorrow.'}${!extra && p && !none ? ' Play a quick guessing round to unlock a few more now.' : ''}</p>
     ${p ? `<button class="btn ghost" data-act="guess">How well do you know ${esc(p)}?</button>` : ''}<button class="btn shareapp" data-act="shareapp">${ic('share')} Share the app with friends</button>${S.hist.length ? '<button class="btn ghost" data-sw="undo">Undo last swipe</button>' : ''}</div>`;
 }
-// Invite another couple: the link opens the story page with this person's name on the invitation.
+// Invite another couple: the link opens the app itself, where they start a couple and add it to their Home Screen.
 async function shareApp() {
-  const n = String(S.me || '').trim().split(/\s+/)[0] || '', url = 'https://letstogether.app/hello/' + (n ? '?from=' + encodeURIComponent(n) : '');
+  const n = String(S.me || '').trim().split(/\s+/)[0] || '', url = 'https://letstogether.app/';
   const text = 'You’re invited to a brand-new app I’ve been using: Let’s Together. You and your person each swipe on movies, places to eat and things to do, and it only shows what you both said yes to. No more “what do you want to do?” It’s still in testing, so you’d be one of the first.';
   if (navigator.share) { try { await navigator.share({ text, url }); } catch {} return; }
-  try { await navigator.clipboard.writeText(text + '\n' + url); toast('Invite copied. Paste it into a text.'); } catch { location.href = url + (n ? '&' : '?') + 'x=1#share'; }
+  try { await navigator.clipboard.writeText(text + '\n' + url); toast('Invite copied. Paste it into a text.'); } catch { location.href = './hello/?app=1#share'; }
 }
 function tonightSheet() {
   const st = S.state, p = partner(), latest = (st.sessions || []).find(s => s.from !== S.me && s.my_left > 0), rest = (st.sessions || []).filter(s => s !== latest);
