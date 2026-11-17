@@ -2856,12 +2856,10 @@ function inviteSheet() {
 }
 const btnsOn = () => { const v = ls.get('btns'); return v === '1' || (v !== '0' && !(isPhone() || navigator.maxTouchPoints > 0)); };
 const btnSync = () => document.body.classList.toggle('nobtn', !btnsOn());
-// With the buttons gone, undo shows for a few seconds after each swipe, and the first few cards of the day wear the four swipe words
+// With the buttons gone, undo shows for a few seconds after each swipe
 function undoChip() { document.querySelector('.undof')?.remove(); if (btnsOn() || !S.hist?.length) return; const st = document.getElementById('stack'); if (!st) return; const r = st.getBoundingClientRect();
   const b = document.createElement('button'); b.className = 'undof'; b.dataset.sw = 'undo'; b.setAttribute('aria-label', 'Undo last swipe'); b.innerHTML = ic('undo') + '<span>Undo</span>'; b.style.left = (r.left + 12) + 'px'; b.style.top = (r.top + 12) + 'px'; document.body.appendChild(b);
   clearTimeout(undoChip.t); undoChip.t = setTimeout(() => { b.classList.add('out'); setTimeout(() => b.remove(), 300); }, 4500); }
-const hintKey = () => 'hints:' + new Date().toDateString();
-const hintHTML = c => btnsOn() || Number(ls.get(hintKey()) || 0) >= 3 ? '' : `<div class="ehint"><span class="l">${VERD(c)[0]}</span><span class="r">${VERD(c)[1]}</span><span class="u">${VERD(c)[2]}</span>${DWN(c) ? `<span class="d">${DWN(c)}</span>` : ''}</div>`;
 const isPhone = () => /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
 const holdForInstall = () => !standalone() && isPhone() && Date.now() - Number(ls.get('a2hs') || 0) < 864e5;
 const needLoc = () => !!navigator.geolocation && !ls.get('askedloc') && !ls.get('travel');
@@ -3295,7 +3293,7 @@ function drawStack() {
       else if (prev[id] == null && Object.keys(prev).length) el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 380 });
     } });
   S.pileAt = st; S.pileDepth = depth;
-  cs[0].style.transform = ''; cs[0].classList.add('tl'); cs[0].insertAdjacentHTML('beforeend', GLS + hintHTML(S.deck[0])); tiltWatch(); btnSync();
+  cs[0].style.transform = ''; cs[0].classList.add('tl'); cs[0].insertAdjacentHTML('beforeend', GLS); tiltWatch(); btnSync();
   attachDrag(cs[0]);
   if (S.bite) revealCards(st);
 }
@@ -3371,7 +3369,7 @@ async function commit(verdict) {
   if (busy || !S.deck.length) return; busy = true;
   const card = S.deck[0], el = document.querySelector('#stack .card:not(.under)'), sess = S.sess.id;
   if (el) { const to = verdict === 'no' ? 'translate(-140%,30px) rotate(-24deg)' : verdict === 'love' ? 'translate(0,-140%)' : verdict === 'seen' ? 'translate(0,140%) scale(.8)' : 'translate(140%,30px) rotate(24deg)'; el.style.transition = 'transform .28s ease-in, opacity .28s'; el.style.transform = to; el.style.opacity = '.3'; const st = el.querySelector('.stamp.' + verdict); if (st) st.style.opacity = 1; }
-  S.deck.shift(); S.hist.push({ card, verdict }); ls.set(hintKey(), String(Number(ls.get(hintKey()) || 0) + 1)); setTimeout(undoChip, 320);
+  S.deck.shift(); S.hist.push({ card, verdict }); setTimeout(undoChip, 320);
   setTimeout(() => { busy = false; if ((S.view === 'swipe' || S.bite) && S.sess?.id === sess && document.getElementById('stack')) drawStack(); }, 230);
   try {
     if (!S.swiped1) { S.swiped1 = true; step('swiped'); }
