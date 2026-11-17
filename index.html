@@ -1166,7 +1166,7 @@ async function lateFill(deck, sid, look, bg, res) {
 }
 // The main screen deals one small solo stack per deck per day. Likes are saved quietly and feed the next round.
 async function loadBite() {
-  const deck = S.homeDeck, extra = !!S.unlock; S.unlock = false;
+  const deck = S.homeDeck, extra = !!S.unlock || (revArmed().includes(deck) && !S.revDealt?.[deck]); S.unlock = false; if (extra && revArmed().includes(deck)) (S.revDealt ||= {})[deck] = true;
   const here = () => S.view === 'home' && S.tab === 'home' && S.homeDeck === deck && document.getElementById('stack');
   // No movies until the streaming services are chosen: a handful dealt before that ignores them.
   if (deck === 'movie' && !S.settings?.services?.length && !S.settings?.setup && !ls.get('setupskip')) {
@@ -2466,17 +2466,23 @@ function drawStack() {
 // out like a new hand and settle into the stack, the top one arriving with a soft glow, and a line says how many are new.
 // Test link (./?reveal=1): forget today's reveals, deal a few bonus cards in the category on screen, and play the
 // reveal on them, the way it plays for a fresh handful.
+// The test primes every category for today: each one plays the reveal the first time it's opened, dealing bonus
+// cards first if it has none left. Kept on the phone for the day, so an update reload doesn't lose it.
+const revArmed = () => { try { const a = JSON.parse(ls.get('revtest') || 'null'); return a && a.day === new Date().toDateString() ? a.decks : []; } catch { return []; } };
+const revDisarm = d => { const left = revArmed().filter(x => x !== d); ls.set('revtest', JSON.stringify({ day: new Date().toDateString(), decks: left })); };
 function prepRevealTest() {
   try { Object.keys(localStorage).forEach(k => { if (k.startsWith('wl_rev:')) localStorage.removeItem(k); }); } catch {}
-  if (S.doneHtml) delete S.doneHtml[S.homeDeck]; S.rev = null; S.unlock = true; S.revealForce = true; S.view = 'home'; S.tab = 'home';
+  ls.set('revtest', JSON.stringify({ day: new Date().toDateString(), decks: HDECKS.map(d => d[0]) }));
+  S.doneHtml = {}; try { ls.set('donehtml', '{}'); } catch {} S.rev = null; S.view = 'home'; S.tab = 'home';
 }
 function revealCards(st) {
   const deck = S.sess?.deck, key = 'rev:' + deck + ':' + new Date().toDateString(), now = performance.now();
   // Home is sometimes redrawn while the reveal plays; then it carries on, on the new cards, from where it was.
   const cont = S.rev && S.rev.deck === deck && now - S.rev.t0 < 1400;
   if (!cont) {
-    if (!deck || ((ls.get(key) || S.deck.length < (S.total || 0)) && !S.revealForce)) return;   // once a day, and only before any swipes
-    S.revealForce = false;
+    const forced = revArmed().includes(deck);
+    if (!deck || ((ls.get(key) || S.deck.length < (S.total || 0)) && !forced)) return;   // once a day, and only before any swipes
+    if (forced) revDisarm(deck);
     ls.set(key, '1'); S.rev = { deck, t0: now }; S.revealUntil = Date.now() + 3200;
     setTimeout(() => { const p = document.getElementById('prog'); if (p) p.style.color = ''; updateBar(); }, 3250);
   }
