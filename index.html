@@ -422,14 +422,16 @@ html.ios-app .match,html.ios-app .lfront,html.ios-app .scrim,html.ios-app .lbar{
 .dbg{position:absolute;top:-8px;bottom:-64px;left:-18px;right:-18px;overflow:hidden;pointer-events:none;z-index:0;-webkit-mask-image:linear-gradient(transparent,#000 14%,#000 80%,transparent);mask-image:linear-gradient(transparent,#000 14%,#000 80%,transparent);opacity:0;transition:opacity .8s ease}
 .dbg.on{opacity:1}
 .dbg::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 66% 46% at 50% 47%,rgba(16,13,18,.95) 34%,rgba(16,13,18,.6) 72%,rgba(16,13,18,.18))}
-.dbg .mos{position:absolute;inset:-6% -4%;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;animation:mdrift 46s ease-in-out infinite alternate;will-change:transform}
-.dbg .mos>div{display:flex;flex-direction:column;gap:10px}
-.dbg .mos>div:nth-child(even){margin-top:-38px}
+.dbg .mos{position:absolute;inset:0 -4%;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;align-items:start}
+/* Each column holds its pictures twice and slides up (or down) by exactly one copy, so the loop has no seam. */
+.dbg .mos>div{animation:mcol var(--t,80s) linear infinite;animation-delay:var(--d,0s);will-change:transform}
+.dbg .mos>div:nth-child(even){animation-direction:reverse}
+.dbg .mos .half{display:flex;flex-direction:column;gap:10px;padding-bottom:10px}
+@keyframes mcol{from{transform:translateY(0)}to{transform:translateY(-50%)}}
 .dbg .mos span{display:block;border-radius:14px;overflow:hidden;background:rgba(255,255,255,.04)}
 .dbg .mos img{display:block;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .7s ease;filter:saturate(.9)}
 .dbg .mos img.in{opacity:.5}
-@keyframes mdrift{from{transform:translateY(0)}to{transform:translateY(-46px)}}
-@media (prefers-reduced-motion:reduce){.dbg .mos{animation:none}}
+@media (prefers-reduced-motion:reduce){.dbg .mos>div{animation:none}}
 /* big verdict stamps, centred on the card */
 .stamp{top:36%;left:50%;right:auto;bottom:auto;font-size:clamp(50px,17vw,80px);line-height:1.05;padding:6px 24px 10px;border-width:5px;border-radius:20px;white-space:nowrap;background:rgba(10,8,12,.55);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);text-shadow:0 2px 14px rgba(0,0,0,.6);z-index:3}
 .stamp.yes{left:50%;transform:translate(-50%,-50%) rotate(-10deg);box-shadow:0 0 40px -6px rgba(89,211,154,.7)}
@@ -1662,16 +1664,22 @@ async function mosaicFill() {
   const st = document.querySelector('.stack'); if (!st || !st.querySelector(':scope > .done') || st.querySelector(':scope > .dbg') || mosBusy || !S.code) return;
   mosBusy = true; const list = await mosaicList(); mosBusy = false;
   if (list.length < 6 || !st.isConnected || !st.querySelector(':scope > .done') || st.querySelector(':scope > .dbg')) return;
-  const tiles = []; while (tiles.length < 20) tiles.push(...list); const cols = [[], [], [], []];
-  tiles.slice(0, 20).forEach((t, i) => cols[i % 4].push(t));
+  const tiles = []; while (tiles.length < 24) tiles.push(...list); const cols = [[], [], [], []];
+  tiles.slice(0, 24).forEach((t, i) => cols[(i + Math.floor(i / 4)) % 4].push(t));   // 6 per column, mixed categories
   const L = document.createElement('div'); L.className = 'dbg'; L.setAttribute('aria-hidden', 'true');
-  L.innerHTML = `<div class="mos">${cols.map(c => `<div>${c.map(t => `<span style="aspect-ratio:${MOS_RATIO[t.d] || '3/4'}"><img alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" src="${esc(t.i)}" data-f="${/tripadvisor/.test(t.f || '') && t.f !== t.i ? esc(t.f) : ''}"></span>`).join('')}</div>`).join('')}</div>`;
+  const tile = t => `<span style="aspect-ratio:${MOS_RATIO[t.d] || '3/4'}"><img alt="" decoding="async" referrerpolicy="no-referrer" src="${esc(t.i)}" data-f="${/tripadvisor/.test(t.f || '') && t.f !== t.i ? esc(t.f) : ''}"></span>`;
+  const SPEED = [[86, -11], [72, -40], [94, -23], [78, -57]];   // seconds per loop, and a head start so columns don't line up
+  L.innerHTML = `<div class="mos">${cols.map((c, i) => { const half = `<div class="half">${c.map(tile).join('')}</div>`; return `<div style="--t:${SPEED[i][0]}s;--d:${SPEED[i][1]}s">${half}${half}</div>`; }).join('')}</div>`;
   L.querySelectorAll('img').forEach(im => {
     const ok = () => im.classList.add('in');
     im.addEventListener('load', ok); if (im.complete && im.naturalWidth) ok();
-    im.addEventListener('error', () => { if (im.dataset.f) { im.src = im.dataset.f; im.dataset.f = ''; } else im.parentElement.remove(); });   // never show a broken picture
+    im.addEventListener('error', () => { if (im.dataset.f) { im.src = im.dataset.f; im.dataset.f = ''; return; } const src = im.getAttribute('src'); L.querySelectorAll('img').forEach(x => { if (x.getAttribute('src') === src) x.parentElement.remove(); }); });   // never show a broken picture
   });
-  st.prepend(L); requestAnimationFrame(() => L.classList.add('on'));
+  st.prepend(L);
+  // same calm pace for every column (about 8 px a second, a little different each), whatever its height
+  const PACE = [7, 8.5, 7.5, 9];
+  L.querySelectorAll('.mos > div').forEach((c, i) => { const h = c.querySelector('.half').offsetHeight || 600; c.style.setProperty('--t', Math.round(h / PACE[i]) + 's'); c.style.setProperty('--d', -Math.round((h / PACE[i]) * (i + 1) / 5) + 's'); });
+  requestAnimationFrame(() => L.classList.add('on'));
 }
 new MutationObserver(() => { if (document.querySelector('.stack > .done') && !document.querySelector('.stack > .dbg')) mosaicFill(); }).observe(document.getElementById('app'), { childList: true, subtree: true });
 // Swipe a row left to remove it (Lately) or hide it until it changes (Waiting on you).
