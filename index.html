@@ -909,6 +909,27 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .tcard.pa .who{position:absolute;left:10px;top:10px;font-style:normal;font-size:11px;font-weight:700;padding:4px 9px;border-radius:99px;background:rgba(10,6,10,.55);color:#fff;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 .tcard.pa.both .who{background:linear-gradient(135deg,var(--ka),var(--kb))}.tcard.pa .who.them{background:rgba(255,77,126,.85)}
 .parow{padding-bottom:22px}
+
+/* You screen: grouped cards, line icons, no outlines */
+.you .ycard{border-radius:20px;background:rgba(255,255,255,.045);overflow:hidden}
+.you .ycard.pad{padding:4px 14px 16px}
+.you .yrow{display:flex;align-items:center;gap:12px;padding:13px 14px;width:100%;text-align:left;text-decoration:none;color:inherit}
+.you .yrow + .yrow{box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.you .yrow .tic{background:none!important;box-shadow:none!important;width:26px;height:26px;flex:none;color:#ff9a7a;filter:drop-shadow(0 0 6px rgba(255,77,126,.7))}
+.you .yrow .tic .ic{width:22px;height:22px}
+.you .yrow b{display:block;font-size:15px;font-weight:600}.you .yrow small{display:block;color:var(--muted);font-size:12.5px;line-height:1.3;margin-top:1px}
+.you .ysw{flex:none;padding:7px 14px;border-radius:99px;font-size:13px;font-weight:700;background:rgba(255,255,255,.08);color:#d9d0dc}
+.you .ysw.on{background:linear-gradient(135deg,#ff7a4d,#ff4d7e);color:#fff;box-shadow:0 0 14px -2px rgba(255,77,126,.6)}
+.you .ych{color:var(--muted);font-size:20px;flex:none}
+.you .note{border:0;background:rgba(255,255,255,.05);max-width:none}
+.you .prow{border-bottom:0}
+.you .sect{margin:24px 4px 10px}
+.you .ystats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.you .ystats div{border-radius:18px;background:rgba(255,255,255,.045);padding:12px 14px}
+.you .ystats b{display:block;font-family:var(--serif);font-weight:400;font-size:26px}.you .ystats small{color:var(--muted);font-size:12.5px}
+/* a little separation under the top card of every pile */
+.stack .card:not(.under){box-shadow:0 0 0 1px rgba(0,0,0,.45),0 5px 16px rgba(0,0,0,.9),0 18px 40px rgba(0,0,0,.55)}
+.stack.kc .card:not(.under){box-shadow:0 0 0 1px rgba(0,0,0,.45),0 5px 16px rgba(0,0,0,.9),0 18px 40px rgba(0,0,0,.55),0 0 56px -16px var(--kg)}
 </style>
 </head>
 <body>
@@ -1375,7 +1396,7 @@ function tdeckInit() {
   const cards = [...deck.children], dots = [...document.querySelectorAll('.tdots i')], order = cards.map((_, i) => i), K = cards.map(c => c.dataset.k);
   let seed = 11; const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
   const jit = c => { const sg = rnd() < .5 ? -1 : 1; c._j = { x: (rnd() - .5) * 30, y: (rnd() - .5) * 18, r: sg * (3 + rnd() * 7) }; };
-  const look = (c, i) => { const j = c._j, t = i === 0; return { transform: `translate(${t ? j.x * .25 : j.x}px,${(t ? j.y * .25 : j.y) + i * 3}px) rotate(${t ? j.r * .3 : j.r}deg)`, filter: t ? 'none' : `brightness(${1 - i * .09})`, boxShadow: t ? `0 22px 38px -14px rgba(0,0,0,.9), ${c.classList.contains('goldc') ? '0 0 0 0 transparent' : '0 0 46px -6px ' + (getComputedStyle(c).getPropertyValue('--kg').trim() || 'rgba(255,150,130,.6)')}` : '0 8px 18px -8px rgba(0,0,0,.85)' }; };
+  const look = (c, i) => { const j = c._j, t = i === 0; return { transform: `translate(${t ? j.x * .25 : j.x}px,${(t ? j.y * .25 : j.y) + i * 3}px) rotate(${t ? j.r * .3 : j.r}deg)`, filter: t ? 'none' : `brightness(${.86 - i * .09})`, boxShadow: t ? `0 0 0 1px rgba(0,0,0,.4), 0 5px 16px rgba(0,0,0,.9), 0 22px 38px -14px rgba(0,0,0,.9), ${c.classList.contains('goldc') ? '0 0 0 0 transparent' : '0 0 46px -6px ' + (getComputedStyle(c).getPropertyValue('--kg').trim() || 'rgba(255,150,130,.6)')}` : '0 8px 18px -8px rgba(0,0,0,.85)' }; };
   const place = (c, i, ms = 0) => { const k = look(c, i), from = { transform: c.style.transform, filter: c.style.filter, boxShadow: c.style.boxShadow }; c.style.zIndex = 10 - i; Object.assign(c.style, k); if (ms && from.transform) c.animate([from, k], { duration: ms, easing: 'cubic-bezier(.2,.9,.25,1)' }); };
   const halo = document.createElement('div'); halo.className = 'thalo'; deck.prepend(halo);
   const paint = () => { dots.forEach((d, i) => d.classList.toggle('on', i === order[0])); cards.forEach((c, i) => c.classList.toggle('top', i === order[0])); const mx = cards[order[0]].classList.contains('mixc'), gd = cards[order[0]].classList.contains('goldc'); halo.classList.toggle('show', mx || gd); halo.classList.toggle('gold', gd); if (mx && !wtop) wspin(); wtop = mx; tiltWatch(); };
@@ -2603,24 +2624,30 @@ function youHTML() {
   const pushBlock = ps === 'granted' ? `<div class="note"><b>Nudges are on for this phone.</b> You will get a notification when ${esc(them())} nudges you or you match.</div>`
     : ps === 'unsupported' || !standalone() ? `<div class="note"><b>To get nudges as notifications:</b> in Safari tap Share, then "Add to Home Screen". Open Let’s Together from the Home Screen icon and come back to this tab to switch them on.${ps !== 'unsupported' ? '<div style="height:10px"></div><button class="btn sm" data-act="push">Turn on anyway</button>' : ''}</div>`
     : `<div class="note"><b>Nudges are off.</b> Turn them on so a nudge reaches you when the app is closed.<div style="height:10px"></div><button class="btn sm" data-act="push">Turn on nudges</button></div>`;
-  return `<div class="brand">You</div>
-    <div class="sect">Signed in</div>
-    <div class="item"><span class="em">👤</span><span class="grow"><b>${esc(S.me)}</b><small>${p ? 'Paired with ' + esc(p) : 'Not paired yet'}</small></span><button class="btn ghost sm" data-act="rename">Change name</button></div>
-    <div class="item"><span class="em">🔑</span><span class="grow"><b>${esc(S.code)}</b><small>Your couple code</small></span><button class="btn ghost sm" data-act="invite">Copy invite</button></div>
-    <div class="sect">Your own lists</div>
-    <button class="sess" data-tab="lists"><span class="tic">${ic('list')}</span><span class="grow"><b>Dinners, activities and pantry</b><small>Add your own things to the decks</small></span><span class="pill">Open</span></button>
-    <div class="sect">Home and streaming</div>${settingsForm()}
-    <div class="sect">Weekend plans</div>${plansForm()}
-    <div class="sect">Travel</div><div class="note" style="border-style:solid"><b>${ls.get('travel') ? 'Travel mode is on for this phone.' : 'Away from home?'}</b> ${ls.get('travel') ? `When you open the app more than 30 miles from home, it asks whether to show restaurants and things to do where you are. Home stays saved${p ? `, and ${esc(p)} keeps seeing home unless their phone is away too` : ''}.` : 'Turn on travel mode and the app will notice when you open it in another city, then ask before switching.'}<div style="height:10px"></div>${ls.get('travel') ? '<button class="btn ghost sm" data-act="traveloff">Turn off</button>' : '<button class="btn sm" data-act="travelon">Turn on travel mode</button>'}</div>
-    <div class="sect">Notifications</div>${pushBlock}
-    <div class="sect">Card effects</div><div class="note" style="border-style:solid"><b>${ls.get('tilt') === 'off' ? 'Tilt effects are off.' : 'Cards catch the light.'}</b> ${ls.get('tilt') === 'off' ? 'Cards stay still.' : 'A soft gloss drifts across the top card. Only the cards are affected.'}<div style="height:10px"></div><button class="btn sm ${ls.get('tilt') === 'off' ? '' : 'ghost'}" data-act="tiltset">${ls.get('tilt') === 'off' ? 'Turn on' : 'Turn off'}</button></div>
-    <div class="sect">What is in the decks</div>
-    <div class="item"><span class="em">🎬</span><span class="grow"><b>${S.state.counts.movie} movies</b><small>${(S.state.services || []).join(', ') || 'Loading the catalog'}</small></span></div>
-    <div class="item"><span class="em">🎟️</span><span class="grow"><b>${S.state.counts.event} upcoming events</b><small>Next three days</small></span></div>
-    <div class="item"><span class="em">🧺</span><span class="grow"><b>${S.state.counts.pantry} pantry items</b><small>Used to flag dinners you can cook now</small></span></div>
-    <div class="item"><span class="em">♥</span><span class="grow"><b>${S.state.counts.liked} movies you have liked</b><small>These carry into every movie night until one of you marks them watched</small></span></div>
-    <div style="height:22px"></div><a class="btn ghost" href="./hello/#board" style="display:block;text-align:center;text-decoration:none">Report a bug or suggest something</a><div style="height:10px"></div><a class="btn ghost" href="./hello/" style="display:block;text-align:center;text-decoration:none">The story and install guide</a><div style="height:10px"></div><button class="btn ghost" data-act="whatsnew">What’s new</button><div style="height:10px"></div><button class="btn ghost" data-act="coach">How swiping works</button><div style="height:10px"></div><button class="btn ghost" data-act="signout">Sign out on this phone</button>
-    <p class="muted" style="font-size:11.5px;text-align:center;margin-top:18px">Streaming data powered by Watchmode.com</p>`;
+  const sw = (on, act, title, sub, icn, onLabel = 'On', offLabel = 'Off') => `<div class="yrow"><span class="tic">${ic(icn)}</span><span class="grow"><b>${title}</b><small>${sub}</small></span><button class="ysw ${on ? 'on' : ''}" data-act="${act}" aria-pressed="${on}">${on ? onLabel : offLabel}</button></div>`;
+  const tOn = !!ls.get('travel'), gOn = ls.get('tilt') !== 'off', c = S.state.counts;
+  const pushRow = ps === 'granted' ? `<div class="yrow"><span class="tic">${ic('bell')}</span><span class="grow"><b>Nudges</b><small>On for this phone</small></span><span class="ysw on" style="pointer-events:none">On</span></div>`
+    : ps === 'unsupported' || !standalone() ? `<div class="yrow"><span class="tic">${ic('bell')}</span><span class="grow"><b>Nudges</b><small>Add the app to your Home Screen, open it from the icon, then switch them on here</small></span>${ps !== 'unsupported' ? '<button class="ysw" data-act="push">Off</button>' : ''}</div>`
+    : `<div class="yrow"><span class="tic">${ic('bell')}</span><span class="grow"><b>Nudges</b><small>A notification when ${esc(them())} nudges you or you match</small></span><button class="ysw" data-act="push">Off</button></div>`;
+  return `<div class="you"><div class="brand">You</div>
+    <div class="ycard"><div class="yrow"><span class="tic">${ic('heart')}</span><span class="grow"><b>${esc(S.me)}</b><small>${p ? 'Paired with ' + esc(p) : 'Not paired yet'}</small></span><button class="ysw" data-act="rename">Rename</button></div>
+      <div class="yrow"><span class="tic">${ic('share')}</span><span class="grow"><b>${esc(S.code)}</b><small>Your couple code</small></span><button class="ysw" data-act="invite">Invite</button></div>
+      <button class="yrow" data-tab="lists"><span class="tic">${ic('list')}</span><span class="grow"><b>Your own lists</b><small>Dinners, activities and pantry</small></span><span class="ych">›</span></button></div>
+    <div class="sect">This phone</div>
+    <div class="ycard">${pushRow}
+      ${sw(tOn, tOn ? 'traveloff' : 'travelon', 'Travel mode', tOn ? 'Asks before showing another city when you’re away' : 'Notice when you open the app in another city', 'plane')}
+      ${sw(gOn, 'tiltset', 'Card gloss', gOn ? 'A soft light drifts across the top card' : 'Cards stay still', 'spark')}</div>
+    <div class="sect">Home and streaming</div><div class="ycard pad">${settingsForm()}</div>
+    <div class="sect">Weekend plans</div><div class="ycard pad">${plansForm()}</div>
+    <div class="sect">In your decks</div>
+    <div class="ystats"><div><b>${c.movie}</b><small>movies</small></div><div><b>${c.event}</b><small>events coming up</small></div><div><b>${c.liked}</b><small>movies you’ve liked</small></div><div><b>${c.pantry}</b><small>pantry items</small></div></div>
+    <div class="sect">Help</div>
+    <div class="ycard"><button class="yrow" data-act="whatsnew"><span class="tic">${ic('spark')}</span><span class="grow"><b>What’s new</b></span><span class="ych">›</span></button>
+      <button class="yrow" data-act="coach"><span class="tic">${ic('play')}</span><span class="grow"><b>How swiping works</b></span><span class="ych">›</span></button>
+      <a class="yrow" href="./hello/"><span class="tic">${ic('frame')}</span><span class="grow"><b>The story and install guide</b></span><span class="ych">›</span></a>
+      <a class="yrow" href="./hello/#board"><span class="tic">${ic('mail')}</span><span class="grow"><b>Report a bug or suggest something</b></span><span class="ych">›</span></a></div>
+    <div style="height:18px"></div><button class="btn ghost" data-act="signout">Sign out on this phone</button>
+    <p class="muted" style="font-size:11.5px;text-align:center;margin-top:18px">Streaming data powered by Watchmode.com</p></div>`;
 }
 function listsHTML() {
   const tabs = [['activity', 'Activities'], ['dinner', 'Dinner'], ['event', 'Events'], ['pantry', 'Pantry'], ['seen', 'Seen']];
@@ -2958,7 +2985,7 @@ function pilePose(id, i) {
   if (!i) return { transform: 'none', filter: 'none', boxShadow: '' };
   let h = 2166136261; for (const ch of String(id)) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
   const r1 = (h >>> 0) / 4294967296, r2 = ((h >>> 11) & 1023) / 1024, r3 = ((h >>> 21) & 1023) / 1024, sg = r1 < .5 ? -1 : 1;
-  return { transform: `translate(${(r2 - .5) * 18}px,${(r3 - .5) * 10 + i * 2}px) rotate(${sg * (1.6 + (r1 % .5) * 2 * 2.6)}deg)`, filter: `brightness(${.78 - i * .08})`, boxShadow: '0 10px 20px -10px rgba(0,0,0,.9)' };
+  return { transform: `translate(${(r2 - .5) * 18}px,${(r3 - .5) * 10 + i * 2}px) rotate(${sg * (1.6 + (r1 % .5) * 2 * 2.6)}deg)`, filter: `brightness(${.66 - i * .08})`, boxShadow: '0 10px 20px -10px rgba(0,0,0,.9)' };
 }
 function drawStack() {
   const st = document.getElementById('stack'); if (!st) return; updateBar();
