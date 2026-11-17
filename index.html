@@ -868,6 +868,11 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 
 /* tabs switch at once: no slow morph of the likes chip */
 .seg .hc{transition:none}.seg button{transition:background .12s,color .12s}
+
+.tpc .whl{position:absolute;left:50%;top:50%;width:176%;aspect-ratio:1;margin:-88% 0 0 -88%;border-radius:50%;will-change:transform;background:conic-gradient(#8a5cff 0 60deg,#ff4d9e 60deg 120deg,#ff8a4d 120deg 180deg,#ffc94d 180deg 240deg,#2dd4bf 240deg 300deg,#4d9bff 300deg 360deg)}
+.tpc.mixc .veil{background:linear-gradient(180deg,transparent 55%,rgba(16,10,13,.55))}
+.tpc.mixc .ctx{text-shadow:0 2px 10px rgba(0,0,0,.6)}.tpc.mixc .ctx small{color:#fff;opacity:1}
+.tpc.mixc .cbg{display:none}
 </style>
 </head>
 <body>
@@ -1317,7 +1322,7 @@ function tonightSheet() {
   const TD = p ? ['movie', 'gold', 'dinner', 'activity', 'event', 'mix'] : ['movie', 'dinner', 'activity', 'event', 'mix'];
   const goldLeft = S.surp?.left !== false, goldNext = S.surp?.next ? new Date(S.surp.next + 'T12:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'next month';
   let h = `<div class="grab"></div><div class="tn"><div class="tn-head"><div class="brand">${BRAND}</div><h2>What should we<br>do tonight?</h2><p class="muted" style="margin-top:8px;font-size:14px">Swipe to flip through. Tap one to start${p ? `, and ${esc(p)} gets the same cards` : ''}.</p></div>
-    <div class="tdeck" id="tdeck">` + TD.map((d, i) => d === 'gold' ? `<div class="tpc goldc" data-k="gold"><canvas class="glit"></canvas><span class="gls gold"><i></i><i></i></span><span class="cnum">${surpItems().some(x => x.mine && x.status !== 'revealed' && x.day >= pToday()) ? 'Yours is set' : goldLeft ? '1 left in ' + new Date().toLocaleDateString(undefined, { month: 'short' }) : 'Next one ' + goldNext}</span><span class="ctx"><b>Plan a<br>surprise</b><small>${esc(p)} won’t know what until you reveal it</small></span></div>` : `<div class="tpc ${CK[d] ? 'kc k-' + CK[d] : 'mixc'}" data-k="${d}">${CK[d] ? '' : '<canvas class="lava" width="60" height="79"></canvas><span class="veil"></span>'}<span class="cbg">${ic(DIC[d])}</span><span class="cic">${ic(DIC[d])}</span><span class="ctx"><b>${DECKS[d].label}</b><small>${DECKS[d].hint}</small></span></div>`).join('') + `</div>
+    <div class="tdeck" id="tdeck">` + TD.map((d, i) => d === 'gold' ? `<div class="tpc goldc" data-k="gold"><canvas class="glit"></canvas><span class="gls gold"><i></i><i></i></span><span class="cnum">${surpItems().some(x => x.mine && x.status !== 'revealed' && x.day >= pToday()) ? 'Yours is set' : goldLeft ? '1 left in ' + new Date().toLocaleDateString(undefined, { month: 'short' }) : 'Next one ' + goldNext}</span><span class="ctx"><b>Plan a<br>surprise</b><small>${esc(p)} won’t know what until you reveal it</small></span></div>` : `<div class="tpc ${CK[d] ? 'kc k-' + CK[d] : 'mixc'}" data-k="${d}">${CK[d] ? '' : '<span class="whl"></span><span class="veil"></span>'}<span class="cbg">${ic(DIC[d])}</span><span class="cic">${ic(DIC[d])}</span><span class="ctx"><b>${DECKS[d].label}</b><small>${DECKS[d].hint}</small></span></div>`).join('') + `</div>
     <div class="tdots">${TD.map(() => '<i></i>').join('')}</div>`;
   // Only the newest round can be "in progress": it has to be from the last 18 hours, not decided yet, and still have cards waiting. An older unfinished round never comes back once a newer one exists.
   const last = rest.find(s => !s.filters?.bite && !s.filters?.solo && !s.filters?.share && !s.filters?.evshare);
@@ -1337,8 +1342,10 @@ function tdeckInit() {
   const look = (c, i) => { const j = c._j, t = i === 0; return { transform: `translate(${t ? j.x * .25 : j.x}px,${(t ? j.y * .25 : j.y) + i * 3}px) rotate(${t ? j.r * .3 : j.r}deg)`, filter: `brightness(${1 - i * .09})`, boxShadow: t ? `0 22px 38px -14px rgba(0,0,0,.9), 0 0 46px -6px ${getComputedStyle(c).getPropertyValue('--kg').trim() || 'rgba(255,150,130,.6)'}` : '0 8px 18px -8px rgba(0,0,0,.85)' }; };
   const place = (c, i, ms = 0) => { const k = look(c, i), from = { transform: c.style.transform, filter: c.style.filter, boxShadow: c.style.boxShadow }; c.style.zIndex = 10 - i; Object.assign(c.style, k); if (ms && from.transform) c.animate([from, k], { duration: ms, easing: 'cubic-bezier(.2,.9,.25,1)' }); };
   const halo = document.createElement('div'); halo.className = 'thalo'; deck.prepend(halo);
-  const paint = () => { dots.forEach((d, i) => d.classList.toggle('on', i === order[0])); cards.forEach((c, i) => c.classList.toggle('top', i === order[0])); halo.classList.toggle('show', cards[order[0]].classList.contains('mixc')); tiltWatch(); };
-  const lv = deck.querySelector('canvas.lava'); if (lv) lavaInit(lv);
+  const paint = () => { dots.forEach((d, i) => d.classList.toggle('on', i === order[0])); cards.forEach((c, i) => c.classList.toggle('top', i === order[0])); const mx = cards[order[0]].classList.contains('mixc'); halo.classList.toggle('show', mx); if (mx && !wtop) wspin(); wtop = mx; tiltWatch(); };
+  // Surprise me is a prize wheel: one flat picture the phone just turns. It spins to a stop each time the card comes to the top.
+  const whl = deck.querySelector('.whl'); let wrot = 0, wtop = false;
+  const wspin = () => { if (!whl || matchMedia('(prefers-reduced-motion: reduce)').matches) return; const to = wrot + 1080 + Math.random() * 360; whl.getAnimations().forEach(a => a.cancel()); whl.animate([{ transform: `rotate(${wrot}deg)` }, { transform: `rotate(${to}deg)` }], { duration: 2600, easing: 'cubic-bezier(.12,.6,.1,1)', fill: 'forwards' }); wrot = to % 360; };
   const gl = deck.querySelector('canvas.glit'); if (gl) goldInit(gl);
   cards.forEach((c, i) => { jit(c); place(c, i); c.animate([{ transform: `translate(${i % 2 ? 60 : -60}px,240px) rotate(${i % 2 ? 25 : -25}deg)`, opacity: 0 }, { transform: c.style.transform, opacity: 1 }], { duration: 520, delay: (cards.length - 1 - i) * 80, easing: 'cubic-bezier(.2,.9,.25,1)', fill: 'backwards' }); });
   paint();
