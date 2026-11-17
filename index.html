@@ -824,6 +824,18 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .thalo.show{opacity:.6}
 @keyframes tspin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.tpc .ink i,.thalo{animation:none}}
+
+/* ---- tilt: satin gloss on the top card, like a new playing card ---- */
+.stack .card.tl{transform:perspective(900px) rotateY(calc(var(--tx,0)*3deg)) rotateX(calc(var(--ty,0)*-2.5deg))}
+.gls{position:absolute;inset:0;overflow:hidden;border-radius:inherit;pointer-events:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.14)}
+.gls i{position:absolute;left:-60%;top:-40%;width:220%;height:180%;will-change:transform}
+.gls i:nth-child(1){background:radial-gradient(38% 16% at 44% 40%,rgba(255,255,255,.12),transparent 72%),radial-gradient(30% 22% at 57% 58%,rgba(255,255,255,.085),transparent 72%),radial-gradient(22% 12% at 49% 74%,rgba(255,255,255,.055),transparent 72%),radial-gradient(16% 20% at 38% 55%,rgba(255,255,255,.04),transparent 72%);transform:translate(calc(var(--tx,0)*22%),calc(var(--ty,0)*14%)) rotate(calc(-6deg + var(--tx,0)*4deg))}
+.gls i:nth-child(2){background:radial-gradient(26% 14% at 60% 34%,rgba(255,255,255,.06),transparent 72%),radial-gradient(34% 12% at 40% 66%,rgba(255,255,255,.05),transparent 72%);transform:translate(calc(var(--tx,0)*31%),calc(var(--ty,0)*21%)) rotate(calc(8deg - var(--ty,0)*5deg))}
+.gls i:nth-child(3){left:0;top:0;width:100%;height:100%;opacity:.5;mix-blend-mode:overlay;background:repeating-linear-gradient(45deg,rgba(255,255,255,.10) 0 1px,transparent 1px 3px),repeating-linear-gradient(-45deg,rgba(255,255,255,.10) 0 1px,transparent 1px 3px);-webkit-mask:radial-gradient(40% 30% at 50% 50%,#000,transparent) no-repeat;mask:radial-gradient(40% 30% at 50% 50%,#000,transparent) no-repeat;-webkit-mask-size:220% 180%;mask-size:220% 180%;-webkit-mask-position:calc(50% - var(--tx,0)*40%) calc(50% - var(--ty,0)*30%);mask-position:calc(50% - var(--tx,0)*40%) calc(50% - var(--ty,0)*30%)}
+.tdeck{perspective:900px}
+.tpc .lava{position:absolute;inset:0;width:100%;height:100%;filter:blur(2.6px) saturate(1.15)}
+.tpc.mixc{background:linear-gradient(160deg,#6a48e0,#b83fa8 55%,#e0556a);box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+.tpc.mixc .veil{background:radial-gradient(120% 80% at 30% 10%,rgba(255,255,255,.16),transparent 55%),linear-gradient(180deg,transparent 45%,rgba(10,6,10,.5))}
 </style>
 </head>
 <body>
@@ -1271,7 +1283,7 @@ function tonightSheet() {
   // One brand family for all five: color is kept for what is happening (Friday, Saturday, partner, booking, match), and the icon and name tell these apart.
   const TD = ['movie', 'dinner', 'activity', 'event', 'mix'];
   let h = `<div class="grab"></div><div class="tn"><div class="tn-head"><div class="brand">${BRAND}</div><h2>What should we<br>do tonight?</h2><p class="muted" style="margin-top:8px;font-size:14px">Swipe to flip through. Tap one to start${p ? `, and ${esc(p)} gets the same cards` : ''}.</p></div>
-    <div class="tdeck" id="tdeck">` + TD.map((d, i) => `<div class="tpc ${CK[d] ? 'kc k-' + CK[d] : 'mixc'}" data-k="${d}">${CK[d] ? '' : '<span class="ink"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="veil"></span>'}<span class="cbg">${ic(DIC[d])}</span><span class="cic">${ic(DIC[d])}</span><span class="ctx"><b>${DECKS[d].label}</b><small>${DECKS[d].hint}</small></span></div>`).join('') + `</div>
+    <div class="tdeck" id="tdeck">` + TD.map((d, i) => `<div class="tpc ${CK[d] ? 'kc k-' + CK[d] : 'mixc'}" data-k="${d}">${CK[d] ? '' : '<canvas class="lava" width="84" height="111"></canvas><span class="veil"></span>'}<span class="cbg">${ic(DIC[d])}</span><span class="cic">${ic(DIC[d])}</span><span class="ctx"><b>${DECKS[d].label}</b><small>${DECKS[d].hint}</small></span>${CK[d] ? GLS : ''}</div>`).join('') + `</div>
     <div class="tdots">${TD.map(() => '<i></i>').join('')}</div>`;
   // Only the newest round can be "in progress": it has to be from the last 18 hours, not decided yet, and still have cards waiting. An older unfinished round never comes back once a newer one exists.
   const last = rest.find(s => !s.filters?.bite && !s.filters?.solo && !s.filters?.share && !s.filters?.evshare);
@@ -1291,7 +1303,8 @@ function tdeckInit() {
   const look = (c, i) => { const j = c._j, t = i === 0; return { transform: `translate(${t ? j.x * .25 : j.x}px,${(t ? j.y * .25 : j.y) + i * 3}px) rotate(${t ? j.r * .3 : j.r}deg)`, filter: `brightness(${1 - i * .09})`, boxShadow: t ? `0 22px 38px -14px rgba(0,0,0,.9), 0 0 46px -6px ${getComputedStyle(c).getPropertyValue('--kg').trim() || 'rgba(255,150,130,.6)'}` : '0 8px 18px -8px rgba(0,0,0,.85)' }; };
   const place = (c, i, ms = 0) => { const k = look(c, i), from = { transform: c.style.transform, filter: c.style.filter, boxShadow: c.style.boxShadow }; c.style.zIndex = 10 - i; Object.assign(c.style, k); if (ms && from.transform) c.animate([from, k], { duration: ms, easing: 'cubic-bezier(.2,.9,.25,1)' }); };
   const halo = document.createElement('div'); halo.className = 'thalo'; deck.prepend(halo);
-  const paint = () => { dots.forEach((d, i) => d.classList.toggle('on', i === order[0])); cards.forEach((c, i) => c.classList.toggle('top', i === order[0])); halo.classList.toggle('show', cards[order[0]].classList.contains('mixc')); };
+  const paint = () => { dots.forEach((d, i) => d.classList.toggle('on', i === order[0])); cards.forEach((c, i) => c.classList.toggle('top', i === order[0])); halo.classList.toggle('show', cards[order[0]].classList.contains('mixc')); tiltWatch(); };
+  const lv = deck.querySelector('canvas.lava'); if (lv) lavaInit(lv);
   cards.forEach((c, i) => { jit(c); place(c, i); c.animate([{ transform: `translate(${i % 2 ? 60 : -60}px,240px) rotate(${i % 2 ? 25 : -25}deg)`, opacity: 0 }, { transform: c.style.transform, opacity: 1 }], { duration: 520, delay: (cards.length - 1 - i) * 80, easing: 'cubic-bezier(.2,.9,.25,1)', fill: 'backwards' }); });
   paint();
   let drag = null;
@@ -2460,6 +2473,7 @@ function nextOnboard() {
   if (needPushAsk()) { step('push_ask'); return pushAskSheet(); }
   if (needLoc()) return locSheet();
   if (!ls.get('coach')) { step('coach'); return coach(); }
+  if (needTiltAsk()) return tiltAskSheet();
 }
 const needInvite = () => !!S.state && !partner() && Date.now() - Number(ls.get('invAt') || 0) > 864e5;
 const inviteLink = () => `${location.origin}${location.pathname}?c=${S.code}`;
@@ -2513,6 +2527,7 @@ function youHTML() {
     <div class="sect">Weekend plans</div>${plansForm()}
     <div class="sect">Travel</div><div class="note" style="border-style:solid"><b>${ls.get('travel') ? 'Travel mode is on for this phone.' : 'Away from home?'}</b> ${ls.get('travel') ? `When you open the app more than 30 miles from home, it asks whether to show restaurants and things to do where you are. Home stays saved${p ? `, and ${esc(p)} keeps seeing home unless their phone is away too` : ''}.` : 'Turn on travel mode and the app will notice when you open it in another city, then ask before switching.'}<div style="height:10px"></div>${ls.get('travel') ? '<button class="btn ghost sm" data-act="traveloff">Turn off</button>' : '<button class="btn sm" data-act="travelon">Turn on travel mode</button>'}</div>
     <div class="sect">Notifications</div>${pushBlock}
+    <div class="sect">Card effects</div><div class="note" style="border-style:solid"><b>${ls.get('tilt') === 'off' ? 'Tilt effects are off.' : 'Cards catch the light when you tilt your phone.'}</b> ${ls.get('tilt') === 'off' ? 'Cards stay still.' : 'Only the cards move, and only while they are on screen.'}<div style="height:10px"></div><button class="btn sm ${ls.get('tilt') === 'off' ? '' : 'ghost'}" data-act="tiltset">${ls.get('tilt') === 'off' ? 'Turn on' : 'Turn off'}</button></div>
     <div class="sect">What is in the decks</div>
     <div class="item"><span class="em">🎬</span><span class="grow"><b>${S.state.counts.movie} movies</b><small>${(S.state.services || []).join(', ') || 'Loading the catalog'}</small></span></div>
     <div class="item"><span class="em">🎟️</span><span class="grow"><b>${S.state.counts.event} upcoming events</b><small>Next three days</small></span></div>
@@ -2580,6 +2595,86 @@ function setDone(st, html) {
   [...st.children].forEach(c => { if (!c.classList.contains('dbg')) c.remove(); });
   st.insertAdjacentHTML('beforeend', html);
 }
+/* ---------- tilt: cards catch the light as the phone moves ---------- */
+// Only the cards react. The sensor is read only while a card pile is on screen and the app is in front; with no
+// sensor (or "not now") the light drifts slowly by itself; with Reduce Motion, or switched off, everything holds still.
+const TILT = { x: 0, y: 0, rawx: 0, rawy: 0, bx: null, by: null, last: 0, raf: 0, lis: false, granted: false, asked: false };
+const tiltPerm = () => typeof window.DeviceOrientationEvent?.requestPermission === 'function';
+const tiltStill = () => matchMedia('(prefers-reduced-motion: reduce)').matches || ls.get('tilt') === 'off';
+const needTiltAsk = () => tiltPerm() && isPhone() && !ls.get('tilt') && !tiltStill();
+const clamp1 = v => Math.max(-1, Math.min(1, v));
+function tiltOri(e) {
+  if (e.gamma == null || e.beta == null) return; TILT.last = performance.now();
+  if (TILT.bx == null) { TILT.bx = e.gamma; TILT.by = e.beta; }
+  TILT.bx += (e.gamma - TILT.bx) * .008; TILT.by += (e.beta - TILT.by) * .008;   // however it's held becomes "level" after a moment
+  TILT.rawx = clamp1((e.gamma - TILT.bx) / 22); TILT.rawy = clamp1((e.beta - TILT.by) / 22);
+}
+async function tiltGrant() {
+  if (!tiltPerm()) return true;
+  try { TILT.granted = (await DeviceOrientationEvent.requestPermission()) === 'granted'; } catch { TILT.granted = false; }
+  return TILT.granted;
+}
+function tiltTargets() { return document.querySelectorAll('#stack .card.tl, #tdeck .tpc.top'); }
+function tiltFrame(now) {
+  TILT.raf = 0;
+  const els = tiltTargets();
+  if (!els.length || document.visibilityState !== 'visible' || tiltStill()) { if (TILT.lis) { removeEventListener('deviceorientation', tiltOri); TILT.lis = false; } return; }
+  let gx, gy;
+  if (now - TILT.last < 1500) { gx = TILT.rawx; gy = TILT.rawy; }
+  else { const t = now / 1000; gx = Math.sin(t * .5) * .5; gy = Math.sin(t * .37 + 1) * .4; }   // no sensor: a slow drift
+  const px = TILT.x, py = TILT.y; TILT.x += (gx - px) * .12; TILT.y += (gy - py) * .12;
+  els.forEach(el => { el.style.setProperty('--tx', TILT.x.toFixed(3)); el.style.setProperty('--ty', TILT.y.toFixed(3)); });
+  lavaStep(now, TILT.x, TILT.y, (TILT.x - px) * 60, (TILT.y - py) * 60);
+  TILT.raf = requestAnimationFrame(tiltFrame);
+}
+function tiltWatch() {
+  if (tiltStill()) return;
+  if (!TILT.lis && ls.get('tilt') !== 'auto' && (!tiltPerm() || TILT.granted)) { addEventListener('deviceorientation', tiltOri); TILT.lis = true; }
+  if (!TILT.raf) TILT.raf = requestAnimationFrame(tiltFrame);
+}
+// iPhone only shares motion after a tap, once per launch: the first tap after opening asks quietly for what was already allowed.
+addEventListener('pointerup', () => { if (ls.get('tilt') === 'on' && tiltPerm() && !TILT.granted && !TILT.asked) { TILT.asked = true; tiltGrant().then(ok => { if (ok) tiltWatch(); }); } });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { TILT.bx = null; tiltWatch(); } });
+function tiltAskSheet() {
+  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('spark')}</span><h2>Cards that catch the light</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">Tilt your phone and the cards shine like a new deck. Your phone will ask to share motion; it is only used for this, and only while cards are on screen.</p></div></div>
+    <div style="height:18px"></div><button class="btn" data-act="tiltyes">Turn on</button><div style="height:10px"></div><button class="btn ghost" data-act="tiltno">Not now</button>
+    <p class="muted" style="font-size:12.5px;text-align:center;margin-top:12px">You can change this any time on the You screen.</p>`);
+}
+const GLS = '<span class="gls"><i></i><i></i><i></i></span>';
+// "Surprise me": colors suspended in a thick flat layer, like a lava lamp seen from above. Each color keeps to itself;
+// moving the phone stirs them and they slowly settle. Drawn small and scaled up, so it is cheap.
+const LAVA = { cv: null };
+function lavaInit(cv) {
+  const W = cv.width, H = cv.height, COL = [[138, 92, 255], [255, 77, 158], [255, 138, 77], [255, 201, 77], [45, 212, 191], [77, 155, 255]];
+  let sd = 9; const R = () => (sd = sd * 16807 % 2147483647) / 2147483647;
+  const B = []; for (let i = 0; i < 24; i++) { const hx = 8 + R() * (W - 16), hy = 8 + R() * (H - 16); B.push({ k: i % 6, r: 6.5 + R() * 8.5, hx, hy, x: hx, y: hy, vx: 0, vy: 0, d: .35 + R() * .9, sw: (R() - .5) * 2 }); }
+  const base = new Uint8ClampedArray(W * H * 3);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const u = (x / W * .45 + y / H * .55), i = (y * W + x) * 3; base[i] = 106 + u * 118; base[i + 1] = 72 + (u < .55 ? -9 * u / .55 : -9 + 22 * (u - .55) / .45); base[i + 2] = 224 - u * 118; }
+  Object.assign(LAVA, { cv, ctx: cv.getContext('2d'), img: cv.getContext('2d').createImageData(W, H), W, H, B, COL, base, n: 0 });
+  lavaStep(0, 0, 0, 0, 0, true);
+}
+function lavaStep(now, tx, ty, ax, ay, force) {
+  const L = LAVA; if (!L.cv || !L.cv.isConnected) { L.cv = null; return; }
+  if (!force && (L.n++ & 1)) return;   // every other frame is plenty
+  const { W, H, B, COL, base } = L, stir = Math.abs(ax) + Math.abs(ay);
+  for (const b of B) {
+    b.vx += -ax * .13 * b.d; b.vy += -ay * .13 * b.d;                                             // the layer lags behind the phone
+    const cx = b.x - W / 2, cy = b.y - H / 2; b.vx += -cy * .005 * b.sw * stir; b.vy += cx * .005 * b.sw * stir;   // and curls as it's stirred
+    for (const o of B) { if (o === b) continue; const dx = b.x - o.x, dy = b.y - o.y, d = Math.hypot(dx, dy) || 1, same = o.k === b.k, min = (b.r + o.r) * (same ? .55 : 1);
+      if (d < min) { const f = (min - d) / min * .075; b.vx += dx / d * f; b.vy += dy / d * f; } else if (same && d < min * 2.6) { b.vx -= dx / d * .003; b.vy -= dy / d * .003; } }
+    b.vx += (b.hx - tx * 6.5 * b.d - b.x) * .006; b.vy += (b.hy - ty * 6.5 * b.d - b.y) * .006; b.vx *= .88; b.vy *= .88; b.x += b.vx; b.y += b.vy;
+  }
+  const px = L.img.data, t = now / 1000, f = [0, 0, 0, 0, 0, 0];
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const wx = x + Math.sin(y * .11 + t * .6) * 2.2, wy = y + Math.cos(x * .13 + t * .5) * 2.2;   // edges ripple a little
+    f[0] = f[1] = f[2] = f[3] = f[4] = f[5] = 0;
+    for (const b of B) { const dx = wx - b.x, dy = wy - b.y; f[b.k] += b.r * b.r / (dx * dx + dy * dy + 1); }
+    let k = 0; for (let j = 1; j < 6; j++) if (f[j] > f[k]) k = j;
+    const a = Math.max(0, Math.min(1, (f[k] - .8) / .3)), i = y * W + x, c = COL[k];
+    px[i * 4] = base[i * 3] + (c[0] - base[i * 3]) * a; px[i * 4 + 1] = base[i * 3 + 1] + (c[1] - base[i * 3 + 1]) * a; px[i * 4 + 2] = base[i * 3 + 2] + (c[2] - base[i * 3 + 2]) * a; px[i * 4 + 3] = 255;
+  }
+  L.ctx.putImageData(L.img, 0, 0);
+}
 // Cards lie in a loose pile: the top one straight, the few under it each at their own small angle, so how many are
 // left shows at a glance. The angle comes from the card's id, so a card keeps its place in the pile across redraws.
 const PILE = 4;
@@ -2619,6 +2714,7 @@ function drawStack() {
       else if (prev[id] == null && Object.keys(prev).length) el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 380 });
     } });
   S.pileAt = st; S.pileDepth = depth;
+  cs[0].style.transform = ''; cs[0].classList.add('tl'); cs[0].insertAdjacentHTML('beforeend', GLS); tiltWatch();
   attachDrag(cs[0]);
   if (S.bite) revealCards(st);
 }
@@ -2692,7 +2788,7 @@ function attachDrag(el) {
 let busy = false;
 async function commit(verdict) {
   if (busy || !S.deck.length) return; busy = true;
-  const card = S.deck[0], el = document.querySelector('#stack .card:last-child'), sess = S.sess.id;
+  const card = S.deck[0], el = document.querySelector('#stack .card:not(.under)'), sess = S.sess.id;
   if (el) { const to = verdict === 'no' ? 'translate(-140%,30px) rotate(-24deg)' : verdict === 'love' ? 'translate(0,-140%)' : verdict === 'seen' ? 'translate(0,140%) scale(.8)' : 'translate(140%,30px) rotate(24deg)'; el.style.transition = 'transform .28s ease-in, opacity .28s'; el.style.transform = to; el.style.opacity = '.3'; const st = el.querySelector('.stamp.' + verdict); if (st) st.style.opacity = 1; }
   S.deck.shift(); S.hist.push({ card, verdict });
   setTimeout(() => { busy = false; if ((S.view === 'swipe' || S.bite) && S.sess?.id === sess && document.getElementById('stack')) drawStack(); }, 230);
@@ -3077,6 +3173,9 @@ document.addEventListener('click', async e => {
       case 'locaway': closeSheet(); toast('Home stays at your ZIP code.', 3000); nextOnboard(); return checkTravel();
       case 'lochome': { const q = S.locPos; closeSheet(); if (q) { try { S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { lat: q.lat, lng: q.lng } }); toast('Home saved.'); } catch { toast('Could not save home. Your ZIP code still works.'); } } return nextOnboard(); }
       case 'pushyes': if (ls.get('askedpush')) ls.set('askedpush2', '1'); ls.set('askedpush', '1'); step('push_yes'); closeSheet(); await enablePush().catch(() => {}); return nextOnboard();
+      case 'tiltyes': ls.set('tilt', 'on'); TILT.asked = true; closeSheet(); await tiltGrant(); tiltWatch(); return;
+      case 'tiltno': ls.set('tilt', 'auto'); closeSheet(); return;
+      case 'tiltset': { const off = ls.get('tilt') === 'off'; ls.set('tilt', off ? 'on' : 'off'); if (off) { TILT.asked = true; await tiltGrant(); tiltWatch(); } return render(); }
       case 'pushno': if (ls.get('askedpush')) ls.set('askedpush2', '1'); else ls.set('pushnoAt', String(Date.now())); ls.set('askedpush', '1'); step('push_no'); closeSheet(); return nextOnboard();
       case 'coachnext': return coach(Number(ds.i));
       case 'coach': return coach(0);
