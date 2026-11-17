@@ -952,6 +952,18 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .tring{flex:none;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--ka) 0 var(--p),rgba(255,255,255,.1) 0)}
 .tring i{font-style:normal;width:44px;height:44px;border-radius:50%;background:#1d1920;display:grid;place-items:center;font-weight:700;font-size:13px}
 .trp .prow{border-bottom:0;padding:8px 0}.trp .sect{margin:20px 2px 6px}
+
+/* trip consensus: agree, claim, then book */
+.tstep{display:block}.tstep .trw{display:flex;align-items:center;gap:8px}.tstep .trw .tic{margin-right:4px}.tstep .trw .grow{min-width:0}
+.tstep.dim{opacity:.45;box-shadow:none}.tstep.hot{box-shadow:0 0 26px -6px var(--kb)}
+.tstep.claim{background:linear-gradient(135deg,rgba(255,77,126,.15),rgba(255,255,255,.03) 75%);box-shadow:0 8px 24px -14px rgba(255,77,126,.7)}
+.tpill.go{background:#fff;color:#06263d}.tpill.them{background:rgba(255,77,126,.88);color:#fff}.tpill.lk{color:var(--muted)}
+.ttwo{display:flex;gap:8px;margin-top:10px}.ttwo .tb{flex:1;padding:10px;border-radius:13px;font-weight:700;font-size:13.5px;background:rgba(255,255,255,.08);color:#e6f2f5}.ttwo .tb.on{background:linear-gradient(135deg,var(--ka),var(--kb));color:#06263d}
+.tstay{margin-top:10px;padding:9px 11px;border-radius:12px;background:rgba(0,0,0,.25);font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:8px}.tstay span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tstay i{flex:none;font-style:normal;color:var(--ka);font-weight:600}.tstay i.w{color:var(--muted);font-weight:400}
+.tfind{display:block;width:100%;margin-top:10px;padding:9px 11px;border-radius:12px;background:rgba(0,0,0,.25);font-size:13px;color:#e6f2f5;text-align:left}
+.twarn{text-align:center;border-radius:24px;background:#1d1920;padding:24px 18px;margin-top:8px;box-shadow:0 0 40px -8px rgba(255,180,70,.6)}.twarn h2{font-size:25px}.twarn p{font-size:14px;line-height:1.45;margin-top:8px}
+.twi{width:46px;height:46px;border-radius:50%;margin:0 auto 12px;display:grid;place-items:center;font-weight:800;font-size:22px;background:linear-gradient(135deg,#ffb547,#ff7a4d);color:#2a1404}
+.twarn.calm{box-shadow:0 0 40px -10px var(--kg)}.twarn.calm .twi{background:linear-gradient(135deg,var(--ka),var(--kb));color:#06263d}.twarn.calm .twi .ic{width:22px;height:22px}
 </style>
 </head>
 <body>
@@ -1049,7 +1061,7 @@ async function onEvent(p) {
   else if (p.type === 'rec') { try { navigator.vibrate?.(40); } catch {} recSheet(p.card, p.from, p.keen); }
   else if (p.type === 'recreply') recReply(p);
   else if (p.type === 'getaway') { try { navigator.vibrate?.(40); } catch {} openGetaway(p.city, p.from); }
-  else if (p.type === 'plan') { await refresh().catch(() => {}); if (S.view === 'trips') openTrips(); else if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) render(); }
+  else if (p.type === 'plan') { await refresh().catch(() => {}); if (S.sheetKind === 'plan' && S.bookCity && document.querySelector('.trp .tring') && (S.settings?.plans || []).includes(S.bookCity)) planSheet(S.bookCity); if (S.view === 'trips') openTrips(); else if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) render(); }
   else if (p.type === 'getreply') { toast(p.yes ? `${p.from} is in for a weekend in ${p.city}. You can now see each other’s picks there.` : `${p.from} said not yet on ${p.city}.`, 5000); if (p.yes) { await refresh().catch(() => {}); if (S.view === 'trips') openTrips(); } }
   else if (p.type === 'joined') { await refresh(); if (S.view === 'home') render(); }
 }
@@ -2013,6 +2025,7 @@ function inboxGo(u) {
   if (q.get('plan')) { S.favAsk = q.get('fav') ? q.get('plan') : null; return dayAct('view', q.get('plan')).catch(() => {}); }
   if (q.get('reveal')) { prepRevealTest(); return render(); }
   if (q.get('planfor')) return dayAct('around', q.get('planfor')).catch(() => {});
+  if (q.get('tripplan')) return openTripPlan(q.get('tripplan'));
   if (q.get('trip')) return openGetaway(q.get('trip'), partner());
   if (SHW[q.get('share')]) return openShareTab(q.get('share'));
   if (q.get('invite') && !partner()) return inviteSheet();
@@ -2168,11 +2181,35 @@ const EXPEDIA = { camref: '1100l6zpQb', network: 'pz', program: 'us-expedia' };
 const dfmt = d => { const [y, m, dd] = String(d).split('-').map(Number); return new Date(y, m - 1, dd).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' }); };
 const planDates = c => { const m = planMeta(c); return m.from && m.to ? `${dfmt(m.from)} to ${dfmt(m.to)}` : ''; };
 const planItems = c => planMeta(c).items || {};
+// Trip consensus: dates count once both agree, flights and the stay are claimed before anyone books, and every booking carries a name
+const planOk = c => { const m = planMeta(c); return !!(m.from && m.to && (m.dates_ok || !m.dates_by)); };
+const planClaim = (c, k) => { const x = planMeta(c).claims?.[k]; return x && !planItems(c)[k] && Date.now() - new Date(x.at) < 48 * 36e5 ? x : null; };
+const planWho = (c, k) => planMeta(c).who?.[k];
+const tAgo = at => { const m = Math.max(0, Math.round((Date.now() - new Date(at)) / 6e4)); return m < 2 ? 'just now' : m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m / 60)} hour${Math.round(m / 60) > 1 ? 's' : ''} ago` : new Date(at).toLocaleDateString(undefined, { weekday: 'short' }); };
+const tDay = at => at ? (Date.now() - new Date(at) < 864e5 ? 'today' : new Date(at).toLocaleDateString(undefined, { weekday: 'short' })) : '';
+const TPART = k => k === 'flights' ? 'the flights' : k === 'stay' ? 'the stay' : (planCard(k)?.title || 'that');
+const planProg = c => { const P = planParts(c), it = planItems(c); return { total: 3 + P.todo.length, done: (planOk(c) ? 1 : 0) + (it.flights ? 1 : 0) + (it.stay ? 1 : 0) + P.todo.filter(x => it[x.id]).length }; };
+const tripUrl = c => './?tripplan=' + encodeURIComponent(c);
+async function openTripPlan(city) { if (!S.code || !S.me || !(S.settings?.plans || []).includes(city)) return; try { await loadLib(); } catch {} planDates(city) ? planSheet(city) : datesSheet(city); }
+function tripWarn(city, k) {   // shown before Expedia opens when the other person has this, and when a booked step is tapped
+  const E = esc(city), w = planWho(city, k), cl = planClaim(city, k), booked = !!planItems(city)[k], by = booked ? w?.by : cl?.by, mine = by === S.me, part = k === 'flights' ? 'flights' : TPART(k), dates = planOk(city) ? planDates(city) : '';
+  const head = booked ? (by ? `${mine ? 'You' : esc(by)} ${mine ? '' : 'already '}booked ${esc(part)}` : `${esc(part[0].toUpperCase() + part.slice(1))} ${k === 'flights' ? 'are' : 'is'} booked`) : `${esc(by)} is booking ${esc(part)}`;
+  const sub = booked ? (w?.at ? `Marked as booked ${tAgo(w.at)}${dates ? ', for ' + dates : ''}.` : 'Marked as booked on your trip board.') : `${esc(by)} tapped “I’m on it” ${tAgo(cl.at)}. Leave ${k === 'flights' ? 'those' : 'it'} to ${esc(by)} so you don’t both pay.`;
+  sheet(`<div class="grab"></div><div class="trp kc k-book"><div class="twarn ${booked && mine ? 'calm' : ''}"><span class="twi">${booked && mine ? ic('heart') : '!'}</span><h2>${head}</h2><p class="muted">${sub}</p></div>
+    <div style="height:16px"></div><button class="btn tbtn" data-tripbook="${E}">${booked ? 'Got it' : 'Got it, don’t book'}</button><div style="height:10px"></div>
+    ${booked ? `<button class="btn ghost" data-tripitem="${E}|${esc(k)}" data-undo="1">It isn’t booked after all</button>` : `<button class="btn ghost" data-tripsearch="${E}|${k}|force">Book anyway</button>`}</div>`);
+}
+function staySheet(city) {
+  const st = planMeta(city).stay;
+  sheet(`<div class="grab"></div><div class="trp kc k-book"><small class="tkick">A place to stay</small><h2>Found one?</h2><p class="muted" style="margin-top:6px;font-size:14px;line-height:1.5">Send ${esc(them())} the name before you book it. One tap from them and you both know it’s the one.</p>
+    <label class="field"><span>Name of the place</span><input id="tsn" maxlength="80" enterkeyhint="send" placeholder="The Hoxton, West Loop" value="${esc(st?.by === S.me ? st.name : '')}"></label>
+    <div style="height:14px"></div><button class="btn tbtn" data-staysave="${esc(city)}">Send to ${esc(them())}</button><div style="height:10px"></div><button class="btn ghost" data-tripbook="${esc(city)}">Back</button></div>`);
+}
 function datesSheet(city) {
   const m = planMeta(city), today = new Date().toISOString().slice(0, 10);
-  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('plane')}</span><h2>When are you thinking?</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">Dates for ${esc(city)} that work for both of you. Either of you can change them.</p></div></div>
+  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('plane')}</span><h2>When are you thinking?</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">Suggest dates for ${esc(city)}. ${esc(them())} says if they work, and then flights and the stay open up.</p></div></div>
     <div class="row" style="gap:10px;margin-top:16px"><label class="field grow"><span>From</span><input type="date" id="pdf" min="${today}" value="${esc(m.from || '')}"></label><label class="field grow"><span>To</span><input type="date" id="pdt" min="${today}" value="${esc(m.to || '')}"></label></div>
-    <div style="height:16px"></div><button class="btn" data-datesave="${esc(city)}">Save dates</button><div style="height:10px"></div><button class="btn ghost" data-tripbook="${esc(city)}">Back</button>`);
+    <div style="height:16px"></div><button class="btn" data-datesave="${esc(city)}">Suggest these dates</button><div style="height:10px"></div><button class="btn ghost" data-tripbook="${esc(city)}">Back</button>`);
 }
 function bookSheet(city) {
   S.bookCity = city; S.sheetKind = 'book'; const dates = planDates(city), it = planItems(city);
@@ -2198,18 +2235,29 @@ function planParts(city) {
 function planSheet(city) {
   S.sheetKind = 'plan'; S.bookCity = city;
   const it = planItems(city), P = planParts(city), p = partner(), dates = planDates(city), E = esc(city);
-  const total = 2 + P.todo.length, done = (it.flights ? 1 : 0) + (it.stay ? 1 : 0) + P.todo.filter(c => it[c.id]).length;
+  const { total, done } = planProg(city), M = planMeta(city), ok = planOk(city), T = esc(them());
   const img = c => c.image ? `<img src="${esc(c.image)}" alt="">` : `<span class="pimg">${ic(c.deck === 'art' ? 'frame' : 'ticket')}</span>`;
   const whose = c => c.who === 'both' ? 'You both picked this' : P.picks[c.id] ? `Added by ${esc(P.picks[c.id])}` : c.who === 'them' ? `${esc(p || 'Partner')} likes this` : 'Your pick';
   const price = c => c.data?.price ? ` · from $${c.data.price}` : '';
-  const todoRow = c => `<div class="prow">${img(c)}<span class="grow"><b>${esc(c.title)}</b><small>${whose(c)}${price(c)}</small></span>${it[c.id] ? `<button class="pill hot" data-tripitem="${E}|${c.id}" aria-label="Booked, tap to undo">Booked</button>` : c.data?.place ? (c.data.maps ? `<a class="btn sm ghost" href="${esc(c.data.maps)}" target="_blank" rel="noopener">Map</a>` : '') : `<button class="btn sm" data-planbook="${E}|${c.id}">Book</button>`}</div>`;
+  const todoRow = c => `<div class="prow">${img(c)}<span class="grow"><b>${esc(c.title)}</b><small>${it[c.id] && planWho(city, c.id)?.by ? `Booked by ${esc(planWho(city, c.id).by)} · ${tDay(planWho(city, c.id).at)}` : whose(c) + price(c)}</small></span>${it[c.id] ? `<button class="pill hot" data-tripitem="${E}|${c.id}" aria-label="Booked">Booked</button>` : c.data?.place ? (c.data.maps ? `<a class="btn sm ghost" href="${esc(c.data.maps)}" target="_blank" rel="noopener">Map</a>` : '') : `<button class="btn sm" data-planbook="${E}|${c.id}">Book</button>`}</div>`;
   const maybeRow = c => `<div class="prow dim">${img(c)}<span class="grow"><b>${esc(c.title)}</b><small>${whose(c)}${c.deck === 'trip' ? price(c) : c.data?.museum ? ' · ' + esc(c.data.museum) : ''}</small></span><button class="btn ghost sm" data-planpick="${E}|${c.id}">Add</button></div>`;
   const halls = {}; P.art.forEach(c => (halls[c.data?.museum || 'Museum'] ||= []).push(c));
-  const step = (icn, t, sub, btn) => `<div class="tstep"><span class="tic">${ic(icn)}</span><span class="grow"><b>${t}</b><small>${sub}</small></span>${btn}</div>`;
+  const step = (icn, t, sub, btn, cls = '', extra = '') => `<div class="tstep ${cls}"><div class="trw"><span class="tic">${ic(icn)}</span><span class="grow"><b>${t}</b><small>${sub}</small></span>${btn}</div>${extra}</div>`;
+  const dStep = !dates ? step('target', 'Dates', `Suggest some and ${T} says if they work`, `<button class="tpill go" data-tripdates="${E}">Suggest</button>`, 'hot')
+    : ok ? step('target', 'Dates', `${dates} · Agreed`, `<button class="tpill on" data-tripdates="${E}">Change</button>`)
+    : M.dates_by === S.me ? step('target', 'Dates', `${dates} · waiting on ${T}`, `<button class="tpill" data-tripdates="${E}">Change</button>`)
+    : step('target', 'Dates', `${dates} · ${esc(M.dates_by)} suggested`, '', 'hot', `<div class="ttwo"><button class="tb on" data-datesok="${E}">Works for me</button><button class="tb" data-tripdates="${E}">Other dates</button></div>`);
+  const st = M.stay, stayLine = !st?.name ? '' : `<div class="tstay"><span>${esc(st.name)}</span>${st.ok ? `<i>${esc(st.by === S.me ? them() : 'You')} said yes</i>` : st.by === S.me ? `<i class="w">Waiting on ${T}</i>` : it.stay ? '' : `<button class="tpill go" data-stayok="${E}">Yes, that one</button>`}</div>`;
+  const bStep = (k, icn, t) => { const w = planWho(city, k), cl = planClaim(city, k), nm = k === 'stay' && st?.name ? esc(st.name) + ' · ' : '';
+    if (it[k]) return step(icn, t, w?.by ? `${nm}${nm ? 'booked' : 'Booked'} by ${esc(w.by)} · ${tDay(w.at)}` : `${nm}Booked`, `<button class="tpill on" data-tripitem="${E}|${k}">Booked</button>`);
+    if (!ok) return step(icn, t, 'Opens once dates are agreed', '<span class="tpill lk">Locked</span>', 'dim');
+    if (cl?.by === S.me) return step(icn, t, 'You’re on it', `<button class="tpill" data-tripclaim="${E}|${k}|0" aria-label="Hand it back">Drop</button><button class="tpill go" data-tripsearch="${E}|${k}">Book</button>`, 'claim', k === 'stay' ? (stayLine || `<button class="tfind" data-tripstay="${E}">Found a place? Send ${T} the name first</button>`) : '');
+    if (cl) return step(icn, t, `${esc(cl.by)} is booking this · ${tAgo(cl.at)}`, `<button class="tpill them" data-tripsearch="${E}|${k}">${esc(cl.by)}’s on it</button>`, 'claim', k === 'stay' ? stayLine : '');
+    return step(icn, t, 'Nobody’s on it yet', `<button class="tpill go" data-tripclaim="${E}|${k}|1">I’m on it</button>`, '', k === 'stay' ? stayLine : ''); };
   sheet(`<div class="grab"></div><div class="trp kc k-book"><div class="row" style="gap:12px"><span class="grow"><small class="tkick">Your trip</small><h2>${E}</h2></span><span class="tring" style="--p:${Math.round(100 * done / Math.max(total, 1))}%"><i>${done}/${total}</i></span></div>
-    ${step('target', 'Dates', dates || 'Pick dates that work for you both', `<button class="tpill ${dates ? 'on' : ''}" data-tripdates="${E}">${dates ? 'Change' : 'Set'}</button>`)}
-    ${step('plane', 'Flights', it.flights ? 'Booked' : 'Search and book on Expedia', it.flights ? `<button class="tpill on" data-tripitem="${E}|flights">Booked</button>` : `<button class="tpill" data-tripsearch="${E}">Find</button>`)}
-    ${step('pin', 'A place to stay', it.stay ? 'Booked' : 'Search and book on Expedia', it.stay ? `<button class="tpill on" data-tripitem="${E}|stay">Booked</button>` : `<button class="tpill" data-tripsearch="${E}">Find</button>`)}
+    ${dStep}
+    ${bStep('flights', 'plane', 'Flights')}
+    ${bStep('stay', 'pin', 'A place to stay')}
     <div class="sect">Things to do</div>
     ${P.todo.length ? P.todo.map(todoRow).join('') : `<p class="muted" style="font-size:14px">Nothing on the plan yet. Add from the picks below, or swipe more ${E} ideas on the Trips tab.</p>`}
     ${P.maybe.length ? `<small class="muted" style="display:block;margin:10px 2px 2px;font-size:12.5px">Only one of you liked these. Add any to the plan.</small>${P.maybe.map(maybeRow).join('')}` : ''}
@@ -2256,7 +2304,7 @@ function renderTrips() {
       ${planned ? `<div class="chips" style="margin:10px 0 2px">${[['all', 'All'], ['both', 'Both of us'], ['me', 'Mine'], ['them', (p || 'Partner') + '’s']].map(([k, l]) => `<button class="chip ${f === k ? 'on' : ''}" data-planf="${esc(g.city)}|${k}">${esc(l)}</button>`).join('')}</div>` : ''}
       <div class="trow">${!ft.length && !fa.length ? '<p class="muted" style="font-size:14px;padding:10px 2px">Nothing in this group yet.</p>' : ''}${fa.length ? (open ? fa.map(c => `<button class="tcard art ${c.who === 'both' ? 'both' : ''}" data-lib="${c.id}"><img src="${esc(c.image)}" alt="">${c.who === 'both' ? `<span class="hb">${ic('heart')}</span>` : ''}${wb(c, planned)}<span class="tt"><b>${esc(c.title)}</b><small>${esc(c.data?.museum || '')}</small></span></button>`).join('') : artStack(fa, key, 'art to see')) : ''}${ft.map(c => `<button class="tcard ${c.who === 'both' ? 'both' : ''}" data-lib="${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="">` : ''}${c.who === 'both' ? `<span class="hb">${ic('heart')}</span>` : ''}${wb(c, planned)}<span class="tt"><b>${esc(c.title)}</b><small>${[c.data?.price ? 'from $' + c.data.price : '', c.data?.rating ? '★ ' + c.data.rating : ''].filter(Boolean).join(' · ')}</small></span></button>`).join('')}</div>
       ${!g.t.length ? `<button class="btn ghost sm" data-gcity="${esc(g.city)}">${ic('plane')} Find things to do in ${esc(g.city)}</button>` : ''}
-      ${planned ? `<div class="tripbar"><span class="tic">${ic('plane')}</span><span class="grow"><b>${planDates(g.city) || 'No dates yet'}</b><small>${(() => { const P = planParts(g.city), it = planItems(g.city), tot = 2 + P.todo.length, dn = (it.flights ? 1 : 0) + (it.stay ? 1 : 0) + P.todo.filter(c => it[c.id]).length; return `${dn} of ${tot} booked`; })()}</small></span><button class="go" data-tripbook="${esc(g.city)}">${planDates(g.city) ? 'Open the plan' : 'Set dates'}</button></div>` : ''}
+      ${planned ? `<div class="tripbar"><span class="tic">${ic('plane')}</span><span class="grow"><b>${planDates(g.city) || 'No dates yet'}</b><small>${(() => { const { done, total } = planProg(g.city); return `${done} of ${total} done`; })()}</small></span><button class="go" data-tripbook="${esc(g.city)}">${planDates(g.city) ? 'Open the plan' : 'Set dates'}</button></div>` : ''}
       ${planned && !planMeta(g.city).booked ? `<div class="row" style="gap:10px;margin-top:12px"><button class="btn sm" data-planact="${esc(g.city)}|booked" style="flex:1">We booked it</button>${planCanLock(g.city) ? `<button class="btn ghost sm" data-planact="${esc(g.city)}|lock" style="flex:1">Lock it back up</button>` : ''}</div>` : ''}
       ${p && !planned ? (planInvites()[g.city]?.by === S.me ? `<p class="muted" style="font-size:13.5px;margin-top:12px">Waiting for ${esc(p)} to answer about ${esc(g.city)}.</p>` : planInvites()[g.city] ? `<button class="btn sm getaway" data-tripinvite="${esc(g.city)}">${esc(planInvites()[g.city].by)} wants to plan this. Take a look</button>` : `<button class="btn ${g.tb + g.ab >= 2 ? '' : 'ghost'} sm getaway" data-getaway="${esc(g.city)}">${ic('plane')} Plan a weekend in ${esc(g.city)}</button>`) : ''}</div>`; }).join('')
       : `<div class="note" style="margin-top:16px"><b>No trips saved yet.</b> Swipe “Like it” on the Trips tab and they collect here, grouped by city. Art you like in the same city stacks up alongside, so you can see the case for going.</div>`}
@@ -3411,7 +3459,7 @@ async function saveAdd(t) {
 /* ---------- events ---------- */
 document.addEventListener('click', async e => {
   if (S.slDrag && Date.now() - S.slDrag < 350 && e.target.closest('.sli')) return;
-  const t = e.target.closest('[data-sp],[data-pl],[data-inurl],[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-hdeck],[data-like],[data-final],[data-lad],[data-chg],[data-tbpick],[data-g],[data-seenany],[data-padd],[data-lib],[data-libf],[data-tripc],[data-who],[data-gcity],[data-getaway],[data-libc],[data-planf],[data-planact],[data-tripbook],[data-tripinvite],[data-tripsearch],[data-planbook],[data-planpick],[data-tripdates],[data-datesave],[data-tripitem],[data-astack],[data-shpick],[data-feel],[data-seenme],[data-pset],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
+  const t = e.target.closest('[data-tripclaim],[data-datesok],[data-tripstay],[data-staysave],[data-stayok],[data-sp],[data-pl],[data-inurl],[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-hdeck],[data-like],[data-final],[data-lad],[data-chg],[data-tbpick],[data-g],[data-seenany],[data-padd],[data-lib],[data-libf],[data-tripc],[data-who],[data-gcity],[data-getaway],[data-libc],[data-planf],[data-planact],[data-tripbook],[data-tripinvite],[data-tripsearch],[data-planbook],[data-planpick],[data-tripdates],[data-datesave],[data-tripitem],[data-astack],[data-shpick],[data-feel],[data-seenme],[data-pset],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
   if (!t) return; const ds = t.dataset;
   try {
     if (ds.who) { const jn = document.getElementById('jn'); if (jn) jn.value = ds.who; return document.getElementById('jgo')?.click(); }
@@ -3436,12 +3484,20 @@ document.addEventListener('click', async e => {
     if (ds.tripc != null) { S.tripCity = ds.tripc; ls.set('tripcity', ds.tripc); closeSheet(); return render(); }
     if (ds.tripinvite) return openGetaway(ds.tripinvite, planInvites()[ds.tripinvite]?.by);
     if (ds.tripbook) return planDates(ds.tripbook) ? planSheet(ds.tripbook) : datesSheet(ds.tripbook);
-    if (ds.tripsearch) return bookSheet(ds.tripsearch);
+    if (ds.tripsearch) { const [city, k, force] = ds.tripsearch.split('|'); if (!k) return bookSheet(city); if (!planOk(city)) return toast('Agree on dates first.'); const cl = planClaim(city, k); if (!force && (planItems(city)[k] || (cl && cl.by !== S.me))) return tripWarn(city, k); return bookSheet(city); }
+    if (ds.tripclaim) { const [city, k, on] = ds.tripclaim.split('|'); t.disabled = true; if (!await planAct(city, 'claim', { key: k, on: on === '1' })) { t.disabled = false; return; }
+      if (on !== '1') { push(`${TPART(k)[0].toUpperCase() + TPART(k).slice(1)} for ${city}: open again`, `${S.me} isn’t booking ${k === 'flights' ? 'them' : 'it'} after all.`, tripUrl(city)); return planSheet(city); }
+      if (planClaim(city, k)?.by !== S.me) return planItems(city)[k] || planClaim(city, k) ? tripWarn(city, k) : planSheet(city);   // the other person got there first
+      push(`${S.me} is booking ${TPART(k)} for ${city}`, `Leave ${k === 'flights' ? 'those' : 'that'} to ${S.me}.`, tripUrl(city)); return bookSheet(city); }
+    if (ds.datesok) { t.disabled = true; if (await planAct(ds.datesok, 'dates_ok')) { push(`${ds.datesok}: dates are set`, `${planDates(ds.datesok)} works for ${S.me}. Flights and the stay are open to claim.`, tripUrl(ds.datesok)); toast('Dates agreed.', 2500); planSheet(ds.datesok); if (S.view === 'trips') renderTrips(); } else t.disabled = false; return; }
+    if (ds.tripstay) return staySheet(ds.tripstay);
+    if (ds.staysave) { const nm = (document.getElementById('tsn')?.value || '').trim(); if (!nm) return toast('Type the name of the place.'); t.disabled = true; if (await planAct(ds.staysave, 'stay', { name: nm })) { push(`${S.me} found a place in ${ds.staysave}`, `${nm.slice(0, 80)}. Is that the one?`, tripUrl(ds.staysave)); toast(`Sent to ${them()}.`, 2500); planSheet(ds.staysave); } else t.disabled = false; return; }
+    if (ds.stayok) { t.disabled = true; const nm = planMeta(ds.stayok).stay?.name || 'the place'; if (await planAct(ds.stayok, 'stay_ok')) { push(`${S.me} said yes to ${nm}`, `Go ahead and book it for ${ds.stayok}.`, tripUrl(ds.stayok)); planSheet(ds.stayok); } else t.disabled = false; return; }
     if (ds.planbook) { const i = ds.planbook.lastIndexOf('|'), city = ds.planbook.slice(0, i), c = planCard(ds.planbook.slice(i + 1)); if (!c?.data?.url) return toast('No booking link for that one yet.'); S.bookCity = city; S.bookPending = { city, id: c.id, title: c.title }; S.bookLeft = true; window.open(c.data.url, '_blank', 'noopener'); return; }
     if (ds.planpick) { const i = ds.planpick.lastIndexOf('|'), city = ds.planpick.slice(0, i), id = ds.planpick.slice(i + 1), on = !(planMeta(city).picks || {})[id]; t.disabled = true; if (await planAct(city, 'pick', { id, on })) planSheet(city); return; }
     if (ds.tripdates) return datesSheet(ds.tripdates);
-    if (ds.datesave) { const f = document.getElementById('pdf')?.value, to = document.getElementById('pdt')?.value; if (!f || !to) return toast('Pick both dates.'); if (to < f) return toast('The end date is before the start date.'); t.disabled = true; if (await planAct(ds.datesave, 'dates', { from: f, to })) { planSheet(ds.datesave); if (S.view === 'trips') renderTrips(); } else t.disabled = false; return; }
-    if (ds.tripitem) { const i = ds.tripitem.lastIndexOf('|'), city = ds.tripitem.slice(0, i), key = ds.tripitem.slice(i + 1), on = !planItems(city)[key]; t.disabled = true; if (await planAct(city, 'item', { key, on })) { if (on) { const nm = key === 'stay' ? 'A place to stay' : key === 'flights' ? 'Flights' : (planCard(key)?.title || 'That'); toast(`${nm} marked as booked.`, 3000); push(`Booked for ${city} ✈️`, `${S.me} marked ${nm} as booked.`, './'); } (S.sheetKind === 'book' ? bookSheet : planSheet)(city); if (S.view === 'trips') renderTrips(); } return; }
+    if (ds.datesave) { const f = document.getElementById('pdf')?.value, to = document.getElementById('pdt')?.value; if (!f || !to) return toast('Pick both dates.'); if (to < f) return toast('The end date is before the start date.'); t.disabled = true; if (await planAct(ds.datesave, 'dates', { from: f, to })) { if (!planOk(ds.datesave)) { push(`${S.me} suggested dates for ${ds.datesave}`, `${planDates(ds.datesave)}. Do they work for you?`, tripUrl(ds.datesave)); toast(`Sent to ${them()}.`, 2500); } planSheet(ds.datesave); if (S.view === 'trips') renderTrips(); } else t.disabled = false; return; }
+    if (ds.tripitem) { const i = ds.tripitem.lastIndexOf('|'), city = ds.tripitem.slice(0, i), key = ds.tripitem.slice(i + 1), on = !planItems(city)[key]; if (!on && !ds.undo) return tripWarn(city, key); t.disabled = true; if (await planAct(city, 'item', { key, on })) { if (on) { const nm = key === 'stay' ? 'A place to stay' : key === 'flights' ? 'Flights' : (planCard(key)?.title || 'That'); toast(`${nm} marked as booked.`, 3000); push(`${S.me} booked ${TPART(key)} for ${city}`, 'It’s on the trip board, so there’s no need to book it again.', tripUrl(city)); } (S.sheetKind === 'book' ? bookSheet : planSheet)(city); if (S.view === 'trips') renderTrips(); } return; }
     if (ds.planact) { const i = ds.planact.lastIndexOf('|'), city = ds.planact.slice(0, i), act = ds.planact.slice(i + 1); t.disabled = true; await planAct(city, act);
       if (act === 'booked') { toast(`${city} is booked. Have a great trip.`, 4000); push(`${city} is booked ✈️`, `${S.me} marked the trip as booked.`, './'); }
       else if (act === 'lock') { toast(`${city} is locked back up. Your own picks are private again.`, 4500); push(`${city} is locked back up`, `${S.me} closed the plan for now. Keep liking things there and float it again any time.`, './'); }
@@ -3672,7 +3728,7 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && S.code && S.me) { try { const was = homeSig(); await refresh(); bellSync(); if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) { if (homeSig() !== was) render(); } else if (S.view === 'swipe' && S.sess) { const d = await rpc('get_session', { p_code: S.code, p_session: S.sess.id, p_member: S.me }); S.theirLeft = d.their_left; S.total = d.total; if (d.matches.length !== S.matches.length) { S.matches = d.matches; } if (d.deck.length !== S.deck.length && !busy) { S.deck = d.deck; drawStack(); } else updateBar(); } } catch {} } });
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); navigator.serviceWorker.addEventListener('message', e => { if (e.data?.pushed) return inboxPoll(); const u = e.data?.open; if (u) { const q = new URL(u).searchParams, s = q.get('s'), r = q.get('rec'), g = q.get('tb'); if (s && S.me) openSession(s); else if (r && S.me) openRec(r, q.get('keen')); else if (g && S.me) openGame(g); else if (q.get('reveal') && S.me) { prepRevealTest(); render(); }
     else if (q.get('surprise') && S.me) surpOpen(q.get('surprise'));
-    else if (q.get('plan') && S.me) { S.favAsk = q.get('fav') ? q.get('plan') : null; dayAct('view', q.get('plan')).catch(() => {}); } else if (q.get('planfor') && S.me) dayAct('around', q.get('planfor')).catch(() => {}); else if (q.get('invite') && S.me) { if (!partner()) inviteSheet(); } else if (q.get('trip') && S.me) openGetaway(q.get('trip'), partner()); else if (SHW[q.get('share')] && S.me) openShareTab(q.get('share')); } }); }
+    else if (q.get('plan') && S.me) { S.favAsk = q.get('fav') ? q.get('plan') : null; dayAct('view', q.get('plan')).catch(() => {}); } else if (q.get('planfor') && S.me) dayAct('around', q.get('planfor')).catch(() => {}); else if (q.get('invite') && S.me) { if (!partner()) inviteSheet(); } else if (q.get('tripplan') && S.me) openTripPlan(q.get('tripplan')); else if (q.get('trip') && S.me) openGetaway(q.get('trip'), partner()); else if (SHW[q.get('share')] && S.me) openShareTab(q.get('share')); } }); }
 
 // iPhone keeps a Home Screen app's storage apart from the browser's, so signing up in Safari and then opening the
 // icon used to mean signing in a second time with the couple code. While someone is signed in in the browser, the
@@ -3747,9 +3803,10 @@ async function boot() {
   const shq = new URLSearchParams(location.search).get('share'); if (shq) history.replaceState(null, '', location.pathname);
   const invq = new URLSearchParams(location.search).get('invite'); if (invq) history.replaceState(null, '', location.pathname);
   if (new URLSearchParams(location.search).get('reveal')) { history.replaceState(null, '', location.pathname); prepRevealTest(); }
+  const tpq = new URLSearchParams(location.search).get('tripplan'); if (tpq) history.replaceState(null, '', location.pathname);
   const spq = new URLSearchParams(location.search).get('surprise'); if (spq) history.replaceState(null, '', location.pathname);
   const plq = new URLSearchParams(location.search).get('plan'); S.favAsk = new URLSearchParams(location.search).get('fav') ? plq : null; const plf = new URLSearchParams(location.search).get('planfor'); if (plq || plf) history.replaceState(null, '', location.pathname);
-  render(); if (rc) return openRec(rc, rk); if (tp) return openGetaway(tp, partner()); if (SHW[shq]) return openShareTab(shq);
+  render(); if (rc) return openRec(rc, rk); if (tpq) return openTripPlan(tpq); if (tp) return openGetaway(tp, partner()); if (SHW[shq]) return openShareTab(shq);
   if (invq && !partner()) { carrySignIn(); return inviteSheet(); }
   if (spq) { carrySignIn(); return surpView(spq); }
   if (plq) { carrySignIn(); return dayAct('view', plq).catch(() => {}); } if (plf) { carrySignIn(); return dayAct('around', plf).catch(() => {}); }
