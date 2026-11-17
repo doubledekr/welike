@@ -1034,6 +1034,14 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .wk-gold.open .wk-bow{transform:none!important;opacity:1;animation:none}
 
 .wk-gt{transition:none}.wk-gold.open .wk-gt{opacity:1;transform:none}
+
+/* swipe-only decks: no button row; a brief undo; the swipe words on the first cards of the day */
+.nobtn .actions{display:none}
+.undof{position:fixed;z-index:30;display:flex;align-items:center;gap:6px;padding:8px 13px 8px 10px;border-radius:99px;background:rgba(20,14,18,.82);color:#f6eef1;font-size:13px;font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,.6);animation:fade .25s;transition:opacity .3s}.undof .ic{width:17px;height:17px}.undof.out{opacity:0}
+.ehint{position:absolute;inset:0;pointer-events:none;z-index:2;animation:ehint 4.5s ease-out both}.ehint span{position:absolute;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700;color:#fff;background:rgba(10,8,12,.5);padding:5px 9px;border-radius:99px;white-space:nowrap}
+.ehint .l{left:10px;top:44%}.ehint .r{right:10px;top:44%}.ehint .u{left:50%;top:12px;transform:translateX(-50%)}.ehint .d{left:50%;bottom:34%;transform:translateX(-50%)}
+.ehint .l:before{content:'← '}.ehint .r:after{content:' →'}.ehint .u:before{content:'↑ '}.ehint .d:before{content:'↓ '}
+@keyframes ehint{0%{opacity:0}12%,70%{opacity:1}100%{opacity:0}}
 </style>
 </head>
 <body>
@@ -2846,6 +2854,14 @@ function inviteSheet() {
     <div class="note" style="margin:16px 0">Your couple code is <b>${esc(S.code)}</b>. The link fills it in for them.</div>
     ${isPhone() ? `<button class="btn" data-act="invtext">${ic('mail')} Text the invite</button><div style="height:10px"></div>` : ''}<button class="btn ${isPhone() ? 'ghost' : ''}" data-act="invshare">${isPhone() ? 'Send another way' : 'Copy the invite'}</button><div style="height:10px"></div><button class="btn ghost" data-act="invlater">I’ll do it later</button>`);
 }
+const btnsOn = () => { const v = ls.get('btns'); return v === '1' || (v !== '0' && !(isPhone() || navigator.maxTouchPoints > 0)); };
+const btnSync = () => document.body.classList.toggle('nobtn', !btnsOn());
+// With the buttons gone, undo shows for a few seconds after each swipe, and the first few cards of the day wear the four swipe words
+function undoChip() { document.querySelector('.undof')?.remove(); if (btnsOn() || !S.hist?.length) return; const st = document.getElementById('stack'); if (!st) return; const r = st.getBoundingClientRect();
+  const b = document.createElement('button'); b.className = 'undof'; b.dataset.sw = 'undo'; b.setAttribute('aria-label', 'Undo last swipe'); b.innerHTML = ic('undo') + '<span>Undo</span>'; b.style.left = (r.left + 12) + 'px'; b.style.top = (r.top + 12) + 'px'; document.body.appendChild(b);
+  clearTimeout(undoChip.t); undoChip.t = setTimeout(() => { b.classList.add('out'); setTimeout(() => b.remove(), 300); }, 4500); }
+const hintKey = () => 'hints:' + new Date().toDateString();
+const hintHTML = c => btnsOn() || Number(ls.get(hintKey()) || 0) >= 3 ? '' : `<div class="ehint"><span class="l">${VERD(c)[0]}</span><span class="r">${VERD(c)[1]}</span><span class="u">${VERD(c)[2]}</span>${DWN(c) ? `<span class="d">${DWN(c)}</span>` : ''}</div>`;
 const isPhone = () => /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
 const holdForInstall = () => !standalone() && isPhone() && Date.now() - Number(ls.get('a2hs') || 0) < 864e5;
 const needLoc = () => !!navigator.geolocation && !ls.get('askedloc') && !ls.get('travel');
@@ -2889,6 +2905,7 @@ function youHTML() {
     <div class="sect">This phone</div>
     <div class="ycard">${pushRow}
       ${sw(tOn, tOn ? 'traveloff' : 'travelon', 'Travel mode', tOn ? 'Asks before showing another city when you’re away' : 'Notice when you open the app in another city', 'plane')}
+      ${sw(btnsOn(), 'btnset', 'Swipe buttons', btnsOn() ? 'Buttons show under the cards' : 'Swipe only, with undo after each card', 'undo')}
       ${sw(gOn, 'tiltset', 'Card gloss', gOn ? 'A soft light drifts across the top card' : 'Cards stay still', 'spark')}</div>
     <div class="sect">Home and streaming</div><div class="ycard pad">${settingsForm()}</div>
     <div class="sect">Weekend plans</div><div class="ycard pad">${plansForm()}</div>
@@ -3278,7 +3295,7 @@ function drawStack() {
       else if (prev[id] == null && Object.keys(prev).length) el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 380 });
     } });
   S.pileAt = st; S.pileDepth = depth;
-  cs[0].style.transform = ''; cs[0].classList.add('tl'); cs[0].insertAdjacentHTML('beforeend', GLS); tiltWatch();
+  cs[0].style.transform = ''; cs[0].classList.add('tl'); cs[0].insertAdjacentHTML('beforeend', GLS + hintHTML(S.deck[0])); tiltWatch(); btnSync();
   attachDrag(cs[0]);
   if (S.bite) revealCards(st);
 }
@@ -3354,7 +3371,7 @@ async function commit(verdict) {
   if (busy || !S.deck.length) return; busy = true;
   const card = S.deck[0], el = document.querySelector('#stack .card:not(.under)'), sess = S.sess.id;
   if (el) { const to = verdict === 'no' ? 'translate(-140%,30px) rotate(-24deg)' : verdict === 'love' ? 'translate(0,-140%)' : verdict === 'seen' ? 'translate(0,140%) scale(.8)' : 'translate(140%,30px) rotate(24deg)'; el.style.transition = 'transform .28s ease-in, opacity .28s'; el.style.transform = to; el.style.opacity = '.3'; const st = el.querySelector('.stamp.' + verdict); if (st) st.style.opacity = 1; }
-  S.deck.shift(); S.hist.push({ card, verdict });
+  S.deck.shift(); S.hist.push({ card, verdict }); ls.set(hintKey(), String(Number(ls.get(hintKey()) || 0) + 1)); setTimeout(undoChip, 320);
   setTimeout(() => { busy = false; if ((S.view === 'swipe' || S.bite) && S.sess?.id === sess && document.getElementById('stack')) drawStack(); }, 230);
   try {
     if (!S.swiped1) { S.swiped1 = true; step('swiped'); }
@@ -3719,7 +3736,7 @@ document.addEventListener('click', async e => {
     if (ds.days) { F.days = +ds.days; t.parentElement.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c === t)); return; }
     if (ds.go) { t.disabled = true; const filters = ds.go === 'movie' ? { services: [...F.services], genres: [...F.genres] } : ds.go === 'dinner' ? { kinds: [...F.kinds] } : ds.go === 'event' ? { days: F.days } : {}; try { await startSession(ds.go, filters, document.getElementById('nnote').value.trim()); } finally { t.disabled = false; } return; }
     if (ds.open) return openSession(ds.open);
-    if (ds.sw) return ds.sw === 'undo' ? undo() : commit(ds.sw);
+    if (ds.sw) { if (ds.sw === 'undo') document.querySelector('.undof')?.remove(); return ds.sw === 'undo' ? undo() : commit(ds.sw); }
     if (ds.list) { S.listTab = ds.list; return render(); }
     if (ds.del) { await rpc('delete_card', { p_code: S.code, p_id: ds.del }); await refresh(); return loadList(); }
     if (ds.detail) { const c = (S.view === 'matches' ? S.matches : S.listCards || []).find(x => x.id === ds.detail); return showDetail(c); }
@@ -3796,6 +3813,7 @@ document.addEventListener('click', async e => {
       case 'pushyes': if (ls.get('askedpush')) ls.set('askedpush2', '1'); ls.set('askedpush', '1'); step('push_yes'); closeSheet(); await enablePush().catch(() => {}); return nextOnboard();
       case 'tiltyes': ls.set('tilt', 'on'); TILT.asked = true; closeSheet(); await tiltGrant(); tiltWatch(); return;
       case 'tiltno': ls.set('tilt', 'auto'); closeSheet(); return;
+      case 'btnset': ls.set('btns', btnsOn() ? '0' : '1'); btnSync(); return render();
       case 'tiltset': { const off = ls.get('tilt') === 'off'; ls.set('tilt', off ? 'on' : 'off'); if (off) tiltWatch(); return render(); }
       case 'pushno': if (ls.get('askedpush')) ls.set('askedpush2', '1'); else ls.set('pushnoAt', String(Date.now())); ls.set('askedpush', '1'); step('push_no'); closeSheet(); return nextOnboard();
       case 'coachnext': return coach(Number(ds.i));
