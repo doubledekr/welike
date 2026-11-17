@@ -1316,7 +1316,7 @@ function tonightSheet() {
   const TD = p ? ['movie', 'gold', 'dinner', 'activity', 'event', 'mix'] : ['movie', 'dinner', 'activity', 'event', 'mix'];
   const goldLeft = S.surp?.left !== false, goldNext = S.surp?.next ? new Date(S.surp.next + 'T12:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'next month';
   let h = `<div class="grab"></div><div class="tn"><div class="tn-head"><div class="brand">${BRAND}</div><h2>What should we<br>do tonight?</h2><p class="muted" style="margin-top:8px;font-size:14px">Swipe to flip through. Tap one to start${p ? `, and ${esc(p)} gets the same cards` : ''}.</p></div>
-    <div class="tdeck" id="tdeck">` + TD.map((d, i) => d === 'gold' ? `<div class="tpc goldc" data-k="gold"><canvas class="glit"></canvas><span class="gls gold"><i></i><i></i><i></i></span><span class="cnum">${goldLeft ? '1 left in ' + new Date().toLocaleDateString(undefined, { month: 'short' }) : 'Next one ' + goldNext}</span><span class="ctx"><b>Plan a<br>surprise</b><small>${esc(p)} won’t know what until you reveal it</small></span></div>` : `<div class="tpc ${CK[d] ? 'kc k-' + CK[d] : 'mixc'}" data-k="${d}">${CK[d] ? '' : '<canvas class="lava" width="84" height="111"></canvas><span class="veil"></span>'}<span class="cbg">${ic(DIC[d])}</span><span class="cic">${ic(DIC[d])}</span><span class="ctx"><b>${DECKS[d].label}</b><small>${DECKS[d].hint}</small></span>${CK[d] ? GLS : ''}</div>`).join('') + `</div>
+    <div class="tdeck" id="tdeck">` + TD.map((d, i) => d === 'gold' ? `<div class="tpc goldc" data-k="gold"><canvas class="glit"></canvas><span class="gls gold"><i></i><i></i><i></i></span><span class="cnum">${surpItems().some(x => x.mine && x.status !== 'revealed' && x.day >= pToday()) ? 'Yours is set' : goldLeft ? '1 left in ' + new Date().toLocaleDateString(undefined, { month: 'short' }) : 'Next one ' + goldNext}</span><span class="ctx"><b>Plan a<br>surprise</b><small>${esc(p)} won’t know what until you reveal it</small></span></div>` : `<div class="tpc ${CK[d] ? 'kc k-' + CK[d] : 'mixc'}" data-k="${d}">${CK[d] ? '' : '<canvas class="lava" width="84" height="111"></canvas><span class="veil"></span>'}<span class="cbg">${ic(DIC[d])}</span><span class="cic">${ic(DIC[d])}</span><span class="ctx"><b>${DECKS[d].label}</b><small>${DECKS[d].hint}</small></span>${CK[d] ? GLS : ''}</div>`).join('') + `</div>
     <div class="tdots">${TD.map(() => '<i></i>').join('')}</div>`;
   // Only the newest round can be "in progress": it has to be from the last 18 hours, not decided yet, and still have cards waiting. An older unfinished round never comes back once a newer one exists.
   const last = rest.find(s => !s.filters?.bite && !s.filters?.solo && !s.filters?.share && !s.filters?.evshare);
@@ -1807,11 +1807,11 @@ async function inboxSheet() {
   try { S.inbox = await rpc('inbox_list', { p_code: S.code, p_member: S.me }); } catch {}
   const w = waitingShown().sort((a, b) => b.lv - a.lv);
   // a notification whose to-do is still in "Waiting on you" isn't listed twice
-  const open = w.map(x => x.a || '').join(' '), dup = i => { const m = /[?&](?:plan|s|planfor|rec|tb|trip)=([\w-]+)/.exec(i.url || ''); return !!m && open.includes(m[1]); };
+  const open = w.map(x => x.a || '').join(' '), dup = i => { const m = /[?&](?:plan|s|planfor|rec|tb|trip|surprise)=([\w-]+)/.exec(i.url || ''); return !!m && open.includes(m[1]); };
   const items = (S.inbox?.items || []).filter(i => !dup(i));
   const sw = (id, inner, label) => `<div class="swr" data-swid="${esc(id)}"><span class="swa ${label === 'Remove' ? 'del' : 'hid'}">${label}</span><div class="swf">${inner}</div></div>`;
   const lpl = i => { const m = /[?&]plan=([\w-]+)/.exec(i.url || ''); return m && (S.plans || []).find(p => p.id === m[1]); };
-  const lkind = i => /[?&]plan=/.test(i.url || '') ? pKind(lpl(i) || (/friday/i.test(i.title) ? { auto: 'fri' } : null)) : /match/i.test(i.title) ? 'match' : /[?&]s=/.test(i.url || '') ? 'ask' : /book|closed|tomorrow/i.test(i.title) ? 'book' : '';
+  const lkind = i => /[?&]surprise=/.test(i.url || '') ? 'match' : /[?&]plan=/.test(i.url || '') ? pKind(lpl(i) || (/friday/i.test(i.title) ? { auto: 'fri' } : null)) : /match/i.test(i.title) ? 'match' : /[?&]s=/.test(i.url || '') ? 'ask' : /book|closed|tomorrow/i.test(i.title) ? 'book' : '';
   const kic = i => /[?&]plan=/.test(i.url || '') ? (lkind(i) === 'fri' ? 'moon' : 'sun') : /planfor=/.test(i.url || '') ? 'list' : /match/i.test(i.title) ? 'heart' : /rec=/.test(i.url || '') ? 'play' : /trip=/.test(i.url || '') ? 'plane' : /share=/.test(i.url || '') ? 'ticket' : 'spark';
   sheet(`<div class="grab"></div><div class="body"><h2>Inbox</h2>
     ${w.length ? `<div class="sect" style="margin-top:16px">Waiting on you</div>${w.map(x => x.k === 'invite' ? inRow(x, true) : sw('w:' + x.k, inRow(x, true), 'Hide')).join('')}` : ''}
@@ -2687,7 +2687,7 @@ function surpStart() {
   if (S.surp?.left === false) return toast(`One surprise a month. Your next one is ready ${S.surp.next ? new Date(S.surp.next + 'T12:00').toLocaleDateString(undefined, { month: 'long', day: 'numeric' }) : 'next month'}.`, 4500);
   S.sb = { step: 1, hints: [], reveal: 'morning', day: pToday(), time: '19:00' }; surpBuild();
 }
-const SKIND = { out: ['dine', 'Dinner out', 'A table somewhere', 'sat'], orderin: ['dine', 'Order in', 'Delivered, at home', 'sat'], cook: ['spark', 'Cook dinner', 'From your kitchen', 'sat'], event: ['ticket', 'A booked event', 'One you’ve liked', 'ask'] };
+const SKIND = { out: ['dine', 'Dinner out', 'A table somewhere', 'sat'], orderin: ['dine', 'Order in', 'Delivered, at home', 'sat'], cook: ['spark', 'Cook dinner', 'From your kitchen', 'sat'], event: ['ticket', 'An event', 'One you’ve liked', 'ask'] };
 const SHINT = ['Dress up', 'Casual', 'Come hungry', 'Bring a jacket', 'Staying in', 'Clear your evening'];
 const STIME = ['17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30'];
 const surpHead = (title, n) => `<div class="grab"></div><div class="body surp"><div class="sprog">${[1, 2, 3].map(i => `<i class="${i <= n ? 'on' : ''}"></i>`).join('')}</div><h2>${title}</h2>`;
@@ -2728,7 +2728,7 @@ function surpView(id) {
       <p class="muted" style="margin-top:12px;font-size:14px">${x.status === 'cant' ? `<b style="color:#ffd27a">${esc(x.for)} can’t make that night.</b> Pick a new one and the surprise stays a surprise.` : x.status === 'free' ? `${esc(x.for)} is free. ` : `Waiting to hear if ${esc(x.for)} is free. `}${x.status === 'cant' ? '' : x.reveal === 'manual' ? `${esc(x.for)} finds out when you tap Reveal.` : `${esc(x.for)} finds out ${surpFinds(x).replace(x.by, 'you')}.`}</p>${hints}
       ${x.status === 'cant' ? `<div style="height:16px"></div><button class="btn" data-sp="move|${id}">Pick a new night</button>` : `${x.kind === 'out' && c ? bookBlock(c, x.day, x.time) : ''}${x.kind === 'event' && d.url ? `<div style="height:18px"></div><a class="btn" style="display:block;text-align:center;text-decoration:none" href="${esc(d.url)}" target="_blank" rel="noopener">Get tickets</a>` : ''}
       ${needsBook ? `<div style="height:10px"></div><button class="btn ghost" data-sp="booked|${id}">${x.booked ? 'Booked ✓ (tap to undo)' : 'Mark as booked'}</button>` : ''}
-      <div style="height:10px"></div><button class="btn ghost" data-sp="revealnow|${id}">Reveal it to ${esc(x.for)} now</button>
+      ${x.reveal === 'manual' || x.day === pToday() ? `<div style="height:10px"></div><button class="btn ghost" data-sp="revealnow|${id}">Reveal it to ${esc(x.for)} now</button>` : ''}
       <div class="row" style="gap:8px;margin-top:10px"><button class="btn ghost" style="flex:1" data-sp="move|${id}">Change the night</button><button class="btn ghost" style="flex:1" data-sp="cancel|${id}">Call it off</button></div>`}`;
   } else {
     const ms = new Date(`${x.day}T${x.time}`) - Date.now(), dd = Math.floor(ms / 864e5), hh = Math.floor(ms % 864e5 / 36e5);
@@ -3647,9 +3647,11 @@ async function boot() {
   const shq = new URLSearchParams(location.search).get('share'); if (shq) history.replaceState(null, '', location.pathname);
   const invq = new URLSearchParams(location.search).get('invite'); if (invq) history.replaceState(null, '', location.pathname);
   if (new URLSearchParams(location.search).get('reveal')) { history.replaceState(null, '', location.pathname); prepRevealTest(); }
+  const spq = new URLSearchParams(location.search).get('surprise'); if (spq) history.replaceState(null, '', location.pathname);
   const plq = new URLSearchParams(location.search).get('plan'); S.favAsk = new URLSearchParams(location.search).get('fav') ? plq : null; const plf = new URLSearchParams(location.search).get('planfor'); if (plq || plf) history.replaceState(null, '', location.pathname);
   render(); if (rc) return openRec(rc, rk); if (tp) return openGetaway(tp, partner()); if (SHW[shq]) return openShareTab(shq);
   if (invq && !partner()) { carrySignIn(); return inviteSheet(); }
+  if (spq) { carrySignIn(); return surpView(spq); }
   if (plq) { carrySignIn(); return dayAct('view', plq).catch(() => {}); } if (plf) { carrySignIn(); return dayAct('around', plf).catch(() => {}); }
   nextOnboard(); if (!newsShow()) { checkTravel(); scratchCheck(); } installCheck(); evPeek(); carrySignIn();
 }
