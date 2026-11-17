@@ -2856,7 +2856,7 @@ function tiltFrame(now) {
   else { const t = now / 1000; gx = Math.sin(t * .5) * .5; gy = Math.sin(t * .37 + 1) * .4; }   // no sensor: a slow drift
   const px = TILT.x, py = TILT.y; TILT.x += (gx - px) * .12; TILT.y += (gy - py) * .12;
   if (Math.abs(TILT.x - (TILT.sx ?? 9)) + Math.abs(TILT.y - (TILT.sy ?? 9)) > .004 || !els[0].style.getPropertyValue('--tx')) { TILT.sx = TILT.x; TILT.sy = TILT.y; els.forEach(el => { el.style.setProperty('--tx', TILT.x.toFixed(3)); el.style.setProperty('--ty', TILT.y.toFixed(3)); }); }
-  lavaStep(now, TILT.x, TILT.y, (TILT.x - px) * 60, (TILT.y - py) * 60); goldStep(TILT.x, TILT.y, Math.hypot(TILT.x - px, TILT.y - py) * 60);
+  goldStep(TILT.x, TILT.y, Math.hypot(TILT.x - px, TILT.y - py) * 60);
   TILT.raf = requestAnimationFrame(tiltFrame);
 }
 function tiltWatch() {
