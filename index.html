@@ -1009,7 +1009,7 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .wk-ban{border-radius:14px;padding:10px 12px;font-size:12.5px;background:rgba(40,36,48,.95);margin-bottom:4px;opacity:0;transform:translateY(-14px);transition:opacity .35s,transform .35s}.wk-ban.in{opacity:1;transform:none}
 .wk-gold{position:absolute;left:50%;top:4px;width:160px;height:206px;margin-left:-80px;border-radius:18px;overflow:hidden;background:linear-gradient(135deg,#b8862b,#f6d77a 45%,#a8741d);box-shadow:0 14px 30px rgba(0,0,0,.7)}
 .wk-gold .gband{position:absolute;left:0;right:0;top:44%;height:26px;background:linear-gradient(#5a1230,#8a1e48,#5a1230);transition:transform .6s cubic-bezier(.5,0,.2,1) .15s}.wk-bow{position:absolute;left:50%;top:38%;width:60px;height:50px;margin-left:-30px;background:#8a1e48;clip-path:polygon(0 0,50% 40%,100% 0,100% 100%,50% 60%,0 100%);transition:transform .45s,opacity .45s}
-.wk-gold.open .gband{transform:translateX(110%)}.wk-gold.open .wk-bow{transform:scale(.2) rotate(40deg);opacity:0}
+.wk-gold.open .wk-bow{transform:scale(.2) rotate(40deg);opacity:0}
 .wk-bell{position:absolute;left:50%;top:60px;margin-left:-36px;width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.08);display:grid;place-items:center;box-shadow:0 0 40px -6px var(--kb)}.wk-bell .ic{width:30px;height:30px}
 
 /* walkthrough fixes: even padding in the small boxes, a bow that visibly unties */
@@ -1023,10 +1023,17 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .wk-bow i{position:absolute;top:4px;width:38px;height:46px;background:linear-gradient(135deg,#c9566e,#8e1f3a 55%,#560f22);box-shadow:0 3px 8px rgba(40,10,0,.45)}.wk-bow i:first-child{left:0;clip-path:polygon(0 0,100% 38%,100% 62%,0 100%,14% 50%)}.wk-bow i:nth-child(2){right:0;clip-path:polygon(100% 0,0 38%,0 62%,100% 100%,86% 50%)}
 .wk-bow b{position:absolute;left:50%;top:50%;width:20px;height:22px;margin:-11px 0 0 -10px;border-radius:6px;background:linear-gradient(135deg,#d96a82,#7a1830)}
 @keyframes wkwig{0%,60%,100%{transform:rotate(0)}70%{transform:rotate(-7deg)}80%{transform:rotate(6deg)}90%{transform:rotate(-3deg)}}
-.wk-gold.open .wk-bow{animation:none;transform:translate(60px,-90px) rotate(70deg) scale(.5)!important;opacity:0}.wk-gold.open .gband{transform:translateX(115%)!important}
+.wk-gold.open .wk-bow{animation:none;transform:translate(60px,-90px) rotate(70deg) scale(.5)!important;opacity:0}
 
 .wk-bow.drag{animation:none}
-.wk-gold.open .wk-bow{transform:var(--fly,translate(70px,-110px) rotate(80deg) scale(.5))!important;opacity:0}.wk-gold.open .gband{transform:translateX(var(--bx,115%))!important}
+.wk-gold.open .wk-bow{transform:var(--fly,translate(70px,-110px) rotate(80deg) scale(.5))!important;opacity:0}
+
+/* the surprise card in the walkthrough: bow tied to the ribbon, the ribbon peels off sideways */
+.wk-gold .gband{left:-12%;right:-12%;top:43%;height:28px;overflow:visible;transition:none;will-change:transform}
+.wk-gold .gband .wk-bow{left:50%;top:50%;margin:-27px 0 0 -42px}
+.wk-gold.open .wk-bow{transform:none!important;opacity:1;animation:none}
+
+.wk-gt{transition:none}.wk-gold.open .wk-gt{opacity:1;transform:none}
 </style>
 </head>
 <body>
@@ -2140,7 +2147,7 @@ function walkDraw() {
     gem: () => { const g = w.gem; return `<div class="wk-gem" id="wkg">${g?.image ? `<img src="${esc(g.image)}" alt="">` : ''}<span class="gfx"><i></i><i></i><i></i><i></i><i></i></span><span class="wk-gcap"><span class="gemk">${ic('gem')}<span>Hidden gem</span></span><b>${esc(g?.title || 'A real one near you')}</b></span><canvas id="wkv"></canvas></div>`; },
     into: () => `<div class="wk-bub me"><b>You</b>Hell yeah: Jazz night, Friday</div><div class="wk-bub"><b>${T}’s phone</b>${me} seems really into this.<div class="wk-three"><button data-wk="in">I’m in. Plan it</button><button data-wk="cant">Can’t make it</button><button data-wk="no">Not for me</button></div></div><div id="wkr"></div>`,
     trip: () => `<div id="wkb" class="wk-ban">${T}’s phone · Leave the flights to ${me}.</div><div class="wk-step"><span class="grow"><b>Dates</b><small>Dec 11 to 13 · Agreed</small></span><span class="tpill on">Agreed</span></div><div class="wk-step"><span class="grow"><b>Flights</b><small id="wkfs">Nobody’s on it yet</small></span><button class="tpill go wk-pulse" id="wkp" data-wk="claim">I’m on it</button></div><div class="wk-step" style="opacity:.6"><span class="grow"><b>A place to stay</b><small>${T}’s on it</small></span></div>`,
-    gold: () => `<div class="wk-gold" id="wkgold" role="button" aria-label="Pull the bow"><span class="wk-gt">Yours to plan</span><span class="gband"></span><span class="wk-bow"><i></i><i></i><b></b></span></div>`,
+    gold: () => `<div class="wk-gold" id="wkgold" role="button" aria-label="Pull the bow"><span class="wk-gt">Yours to plan</span><span class="gband"><span class="wk-bow"><i></i><i></i><b></b></span></span></div>`,
     end: () => `<div class="wk-bell" id="wkbell">${ic('bell')}</div>`,
   }[st.k]();
   const pushOff = last && standalone() && pushState() === 'default';
@@ -2177,19 +2184,19 @@ function walkDraw() {
       if (++n % 6 === 0) { const d = x.getImageData(0, 0, Wd, H).data; let cl = 0, t = 0; for (let i = 3; i < d.length; i += 4 * 41) { t++; if (d[i] < 40) cl++; } if (cl / t > .4) fin(); } });
     cv.addEventListener('pointerup', () => { down = false; });
   } else if (st.k === 'gold') {
-    // The bow sits under the finger the whole way: it moves exactly as far as you pull, the band shifts with it,
-    // and on release it carries on in the direction you were pulling. A plain tap unties it too.
-    const c = document.getElementById('wkgold'), band = c.querySelector('.gband'), bow = c.querySelector('.wk-bow'); let g = null;
-    const open = (dx, dy) => { if (c.classList.contains('open')) return; g = null; const far = Math.hypot(dx, dy) || 1, ux = dx / far, uy = dy / far, tap = far < 6;
-      bow.style.transition = 'transform .5s cubic-bezier(.2,.7,.3,1), opacity .45s ease-in .05s'; band.style.transition = 'transform .6s cubic-bezier(.4,0,.2,1) .08s';
-      c.style.setProperty('--fly', tap ? 'translate(70px,-110px) rotate(80deg) scale(.5)' : `translate(${dx + ux * 170}px,${dy + uy * 170}px) rotate(${(dx + ux * 170) / 3}deg) scale(.55)`);
-      c.style.setProperty('--bx', (tap || dx >= 0 ? 115 : -115) + '%');
-      requestAnimationFrame(() => { c.classList.add('open'); try { navigator.vibrate?.([12, 40, 18]); } catch {} walkOk(); }); };
-    c.addEventListener('pointerdown', e => { if (c.classList.contains('open')) return; e.preventDefault(); g = { x: e.clientX, y: e.clientY, dx: 0, dy: 0 }; bow.classList.add('drag'); bow.style.transition = band.style.transition = 'none'; try { c.setPointerCapture(e.pointerId); } catch {} });
-    c.addEventListener('pointermove', e => { if (!g) return; g.dx = e.clientX - g.x; g.dy = e.clientY - g.y; bow.style.transform = `translate(${g.dx}px,${g.dy}px) rotate(${g.dx / 5}deg)`; band.style.transform = `translateX(${g.dx * .85}px)`; });
-    const up = () => { if (!g) return; const { dx, dy } = g, far = Math.hypot(dx, dy);
-      if (far < 6 || far > 26) return open(dx, dy);
-      g = null; bow.style.transition = band.style.transition = 'transform .3s cubic-bezier(.3,1.4,.5,1)'; bow.style.transform = band.style.transform = ''; setTimeout(() => bow.classList.remove('drag'), 320); };   // a small nudge springs back
+    // The bow is tied to the ribbon. Pull either one and the whole ribbon slides with your finger, peeling off the card
+    // to the side you pull; what is written underneath comes up as it goes. Let go early and it settles back.
+    const c = document.getElementById('wkgold'), band = c.querySelector('.gband'), bow = c.querySelector('.wk-bow'), txt = c.querySelector('.wk-gt'); let g = null;
+    const pose = (dx, dy) => { band.style.transform = `translate(${dx}px,${dy * .12}px) rotate(${dx / 50}deg)`; const k = Math.min(1, Math.abs(dx) / 120); txt.style.opacity = k; txt.style.transform = `scale(${.85 + .15 * k})`; };
+    const open = (dir, fast) => { if (c.classList.contains('open')) return; g = null; const t = fast ? .34 : .55;
+      band.style.transition = `transform ${t}s cubic-bezier(.25,.6,.3,1)`; txt.style.transition = `opacity ${t}s, transform ${t}s`;
+      requestAnimationFrame(() => { band.style.transform = `translate(${dir * 135}%,${dir * 6}px) rotate(${dir * 7}deg)`; txt.style.opacity = 1; txt.style.transform = 'none'; c.classList.add('open'); try { navigator.vibrate?.([12, 40, 18]); } catch {} walkOk(); }); };
+    c.addEventListener('pointerdown', e => { if (c.classList.contains('open')) return; e.preventDefault(); g = { x: e.clientX, y: e.clientY, dx: 0, dy: 0, lx: e.clientX, lt: performance.now(), v: 0 }; bow.classList.add('drag'); band.style.transition = txt.style.transition = 'none'; try { c.setPointerCapture(e.pointerId); } catch {} });
+    c.addEventListener('pointermove', e => { if (!g) return; const now = performance.now(); g.v = (e.clientX - g.lx) / Math.max(1, now - g.lt); g.lx = e.clientX; g.lt = now; g.dx = e.clientX - g.x; g.dy = e.clientY - g.y; pose(g.dx, g.dy); });
+    const up = () => { if (!g) return; const { dx, dy, v } = g, far = Math.hypot(dx, dy);
+      if (far < 6) return open(1, false);                                                    // a plain tap
+      if (Math.abs(dx) > 48 || (Math.abs(v) > .45 && Math.abs(dx) > 14)) return open(dx >= 0 ? 1 : -1, Math.abs(v) > .45);
+      g = null; band.style.transition = 'transform .32s cubic-bezier(.3,1.35,.5,1)'; txt.style.transition = 'opacity .25s, transform .25s'; band.style.transform = ''; txt.style.opacity = ''; txt.style.transform = ''; setTimeout(() => bow.classList.remove('drag'), 340); };
     c.addEventListener('pointerup', up); c.addEventListener('pointercancel', up);
   } else if (st.k === 'end') { const r = document.getElementById('wkbell')?.getBoundingClientRect(); if (r) setTimeout(() => confetti(r.left + r.width / 2, r.top + r.height / 2, 70), 250); }
 }
