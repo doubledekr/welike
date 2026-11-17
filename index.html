@@ -1280,8 +1280,22 @@ function milesApart(a, b, c, d) { const r = x => x * Math.PI / 180, h = Math.sin
 let travelBusy = false, travelAt = 0;
 // tells the backend where this phone is for now (or that it is home again), so hidden gems there can be offered
 const gemAway = () => { if (!S.code || !S.me) return; const k = S.away ? S.away.city : ''; if (S.gemAwayKey === k) return; S.gemAwayKey = k; rpc('gem_away', { p_code: S.code, p_member: S.me, p_city: S.away?.city ?? null, p_lat: S.away?.lat ?? null, p_lng: S.away?.lng ?? null }).catch(() => { S.gemAwayKey = null; }); };
+// A planned trip switches this phone to the trip city for its agreed dates, on its own and without asking the phone where it
+// is. "Back to home" holds for the rest of that trip. When the dates end it goes home again.
+async function tripAuto() {
+  if (!S.code || !S.me) return; let t; try { t = await rpc('trip_now', { p_code: S.code }); } catch { return; }
+  const key = t ? t.city + '|' + t.from : '';
+  if (t && ls.get('tripoff') !== key) {
+    if (S.away?.trip === key) return;   // already there; keeps an exact position if they gave one
+    S.away = { city: t.city, lat: t.lat, lng: t.lng, trip: key, to: t.to }; ls.set('away', JSON.stringify(S.away)); S.awayOffer = null; gemAway();
+    if (ls.get('triphello') !== key) { ls.set('triphello', key); toast(`Your ${t.city} trip is on. Showing what’s there until you’re home.`, 4500); }
+    if (S.view === 'home') render();
+  } else if (S.away?.trip) { S.away = null; ls.del('away'); gemAway(); if (!t) toast('Welcome home. Back to your usual places.', 3500); if (S.view === 'home') render(); }
+}
+const tripLocBanner = () => S.away?.trip && !S.away.exact && navigator.geolocation ? `<button class="nudge slim" data-act="triploc"><span class="grow"><b>You’re in ${esc(S.away.city)}</b><small> · use your location for what’s close by</small></span><span class="go">Use it</span></button>` : '';
 async function checkTravel(ask = false) {
   if (!S.code || !S.me || !navigator.geolocation || travelBusy) return;
+  if (!ask && S.away?.trip) return;   // a planned trip decides where this phone is showing
   if (!ask && (!ls.get('travel') || Date.now() - travelAt < 10 * 60000)) return;
   const hg = homeGeo(); if (!hg) { if (ask) toast('Open Eat once so your home area is saved, then try again.', 4500); return; }
   // A background check never makes the phone ask "allow location?". iPhones forget a web app's answer between launches, so
@@ -1529,7 +1543,7 @@ function homeHTML() {
     <div class="row hdr"><div class="brand grow hb">${MARK}<span>${BRAND}</span></div>
       <button class="ib" data-act="search" aria-label="Search movies">${ic('search')}</button>
       ${bellHTML()}<button class="ib" data-tab="you" aria-label="You and settings">${ic('gear')}</button></div>${slotHTML(incoming)}
-    <div class="seg" style="margin:12px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="kc k-${CK[k]} ${S.homeDeck === k ? 'on' : ''}">${l}${heartTag(k)}</button>`).join('')}</div>${scratchShow() && !S.awayOffer ? `<button class="scratch-pill" data-act="scratch">${ic('spark')}<span><b>A scratch card is waiting</b><small>One thing ${esc(p)} is in on</small></span><i>Scratch</i></button>` : ''}${S.awayOffer ? `<div class="trav"><span class="tic">${ic('pin')}</span><span class="grow"><b>Looks like you’re in ${esc(S.awayOffer.city)}</b><small>Show places to eat and things to do here?</small></span><button class="go" data-act="awayyes">Show</button><button class="x" data-act="awayno" aria-label="Not now">×</button></div>` : ''}${S.away && (S.homeDeck === 'dinner' || S.homeDeck === 'event') ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><small class="muted" style="font-size:12.5px">${ic('pin')} Showing ${esc(S.away.city)} on this phone</small><button class="chip" data-act="awayoff" style="padding:5px 12px;font-size:13px">Back to home</button></div>` : ''}${S.homeDeck === 'movie' ? `<div class="row" style="margin:14px 2px 0"><button class="chip" data-act="movielib" style="padding:5px 12px;font-size:13px">${ic('film')} Movie library</button></div>` : ''}${shareChip()}${S.homeDeck === 'art' ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="gallery" style="padding:5px 12px;font-size:13px">${ic('frame')} Our gallery</button><small class="muted" style="font-size:12.5px">No nudges, just likes</small></div>` : ''}${S.homeDeck === 'trip' ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="trips" style="padding:5px 12px;font-size:13px">${ic('heart')} Saved trips</button><button class="chip ${S.tripCity ? 'on' : ''}" data-act="tripcity" style="padding:5px 12px;font-size:13px">${esc(S.tripCity || 'Anywhere')} ▾</button></div>` : ''}
+    <div class="seg" style="margin:12px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="kc k-${CK[k]} ${S.homeDeck === k ? 'on' : ''}">${l}${heartTag(k)}</button>`).join('')}</div>${scratchShow() && !S.awayOffer ? `<button class="scratch-pill" data-act="scratch">${ic('spark')}<span><b>A scratch card is waiting</b><small>One thing ${esc(p)} is in on</small></span><i>Scratch</i></button>` : ''}${S.awayOffer ? `<div class="trav"><span class="tic">${ic('pin')}</span><span class="grow"><b>Looks like you’re in ${esc(S.awayOffer.city)}</b><small>Show places to eat and things to do here?</small></span><button class="go" data-act="awayyes">Show</button><button class="x" data-act="awayno" aria-label="Not now">×</button></div>` : ''}${S.away && (S.homeDeck === 'dinner' || S.homeDeck === 'event') ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><small class="muted" style="font-size:12.5px">${ic('pin')} ${S.away.trip ? `Your ${esc(S.away.city)} trip` : `Showing ${esc(S.away.city)} on this phone`}</small><button class="chip" data-act="awayoff" style="padding:5px 12px;font-size:13px">Back to home</button></div>` : ''}${S.homeDeck === 'movie' ? `<div class="row" style="margin:14px 2px 0"><button class="chip" data-act="movielib" style="padding:5px 12px;font-size:13px">${ic('film')} Movie library</button></div>` : ''}${shareChip()}${S.homeDeck === 'art' ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="gallery" style="padding:5px 12px;font-size:13px">${ic('frame')} Our gallery</button><small class="muted" style="font-size:12.5px">No nudges, just likes</small></div>` : ''}${S.homeDeck === 'trip' ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="trips" style="padding:5px 12px;font-size:13px">${ic('heart')} Saved trips</button><button class="chip ${S.tripCity ? 'on' : ''}" data-act="tripcity" style="padding:5px 12px;font-size:13px">${esc(S.tripCity || 'Anywhere')} ▾</button></div>` : ''}
     <div class="stack" id="stack" style="margin:16px 0 16px">${S.doneHtml?.[S.homeDeck]?.day === new Date().toDateString() ? S.doneHtml[S.homeDeck].html : ''}</div>
     <div class="actions" id="acts" style="visibility:hidden"><button class="act sm" data-sw="undo" aria-label="Undo">${ic('undo')}</button><button class="act no" data-sw="no" aria-label="No">${ic('x')}</button>
       <button class="act sm" data-sw="seen" id="seenb" aria-label="Seen it" style="display:none">${ic('eye')}</button>
@@ -2108,6 +2122,7 @@ function slotHTML(incoming) {
     ['tripinv:' + (Object.entries(planInvites()).find(([, v]) => v?.by && v.by !== S.me)?.[0] || ''), inviteBanner()],
     ['trip:' + (planDue() || ''), planBanner()],
     S.evPend && ls.get('evno') !== evKey() ? ['ev:' + evKey(), `<div class="hsb"><span class="tic">${ic('ticket')}</span><span class="grow"><b>You liked ${S.evPend.count > 1 ? S.evPend.count + ' events' : 'an event'} this week</b><small>Send to ${esc(them())} before ${S.evPend.count > 1 ? 'they pass' : 'it passes'}?</small></span><button class="go" data-act="evask">Share</button></div>`] : null,
+    ['triploc:' + (S.away?.trip || ''), tripLocBanner()],
     ['shr:' + pToday(), shareRemindBanner()],
     ['dates', datesBanner()],
     ['hs', hsBanner()],
@@ -3980,7 +3995,12 @@ document.addEventListener('click', async e => {
       case 'traveloff': ls.del('travel'); ls.del('away'); S.away = null; S.awayOffer = null; gemAway(); return render();
       case 'awayyes': if (!S.awayOffer) return; S.away = S.awayOffer; ls.set('away', JSON.stringify(S.away)); S.awayOffer = null; gemAway(); if (S.homeDeck !== 'event') S.homeDeck = 'dinner'; toast(`Showing ${S.away.city} on this phone. Home is still saved.`, 3500); return render();
       case 'awayno': if (S.awayOffer) ls.set('awayno', S.awayOffer.city + new Date().toDateString()); S.awayOffer = null; return render();
-      case 'awayoff': if (S.away) ls.set('awayno', S.away.city + new Date().toDateString()); S.away = null; ls.del('away'); gemAway(); return render();
+      case 'triploc': { const a = S.away; if (!a?.trip) return; t.disabled = true;
+        const pos = await new Promise(res => navigator.geolocation.getCurrentPosition(res, () => res(null), { timeout: 12000 }));
+        if (!pos) { t.disabled = false; return toast('Could not get your location. Still showing ' + a.city + '.', 4000); }
+        if (milesApart(a.lat, a.lng, pos.coords.latitude, pos.coords.longitude) > 60) { S.away = { ...a, exact: true }; ls.set('away', JSON.stringify(S.away)); toast(`You don’t look to be in ${a.city} yet, so it’s showing the city centre.`, 4500); return render(); }
+        S.away = { ...a, lat: pos.coords.latitude, lng: pos.coords.longitude, exact: true }; ls.set('away', JSON.stringify(S.away)); gemAway(); toast('Got it. Showing what’s near you.', 3000); return render(); }
+      case 'awayoff': if (S.away?.trip) ls.set('tripoff', S.away.trip); if (S.away) ls.set('awayno', S.away.city + new Date().toDateString()); S.away = null; ls.del('away'); gemAway(); return render();
       case 'rename': sheet(`<div class="grab"></div><h2>Change your name</h2><p class="muted" style="margin-top:6px;font-size:14.5px">This is the name ${esc(them())} sees. Your swipes, likes and matches stay with you.</p><label class="field"><span>Your name</span><input id="rn" maxlength="24" autocomplete="given-name" value="${esc(S.me)}"></label><div style="height:14px"></div><button class="btn" data-act="renamego">Save name</button>`); return;
       case 'renamego': { const n = document.getElementById('rn').value.trim(); if (!n) return toast('Enter a name.'); if (n === S.me) return closeSheet(); t.disabled = true;
         try { const r = await rpc('rename_member', { p_code: S.code, p_member: S.me, p_new: n }); S.me = r.name; ls.set('name', r.name); closeSheet(); await refresh(); send({ type: 'joined' }); toast(`You are now ${r.name}.`); return render(); }
@@ -4269,7 +4289,7 @@ async function boot() {
   if (itq) intoSheet(itq);
   if (spq) { carrySignIn(); return surpView(spq); }
   if (plq) { carrySignIn(); return dayAct('view', plq).catch(() => {}); } if (plf) { carrySignIn(); return dayAct('around', plf).catch(() => {}); }
-  nextOnboard(); if (!newsShow()) { checkTravel(); scratchCheck(); } installCheck(); evPeek(); carrySignIn();
+  nextOnboard(); tripAuto(); if (!newsShow()) { checkTravel(); scratchCheck(); } installCheck(); evPeek(); carrySignIn();
 }
 boot();
 </script>
