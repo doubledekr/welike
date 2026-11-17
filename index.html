@@ -1011,6 +1011,19 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .wk-gold .gband{position:absolute;left:0;right:0;top:44%;height:26px;background:linear-gradient(#5a1230,#8a1e48,#5a1230);transition:transform .6s cubic-bezier(.5,0,.2,1) .15s}.wk-bow{position:absolute;left:50%;top:38%;width:60px;height:50px;margin-left:-30px;background:#8a1e48;clip-path:polygon(0 0,50% 40%,100% 0,100% 100%,50% 60%,0 100%);transition:transform .45s,opacity .45s}
 .wk-gold.open .gband{transform:translateX(110%)}.wk-gold.open .wk-bow{transform:scale(.2) rotate(40deg);opacity:0}
 .wk-bell{position:absolute;left:50%;top:60px;margin-left:-36px;width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.08);display:grid;place-items:center;box-shadow:0 0 40px -6px var(--kb)}.wk-bell .ic{width:30px;height:30px}
+
+/* walkthrough fixes: even padding in the small boxes, a bow that visibly unties */
+.wk-dirs div{padding:9px 2px 8px;line-height:1.25;font-size:11.5px;white-space:nowrap;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:50px}.wk-dirs b{line-height:1;margin-bottom:3px}
+.wk-three{display:grid;grid-template-columns:1fr 1fr;gap:6px}.wk-three button{padding:10px 6px;line-height:1.2;min-height:40px;font-size:12.5px;display:flex;align-items:center;justify-content:center;text-align:center}.wk-three button:first-child{grid-column:1/-1}
+.wk-bub{padding:12px 14px}.wk-row{padding:10px 13px;line-height:1.3}.wk-ban{padding:10px 13px;line-height:1.3}.wk-step{padding:12px 13px;line-height:1.3}.wk-step .tpill{flex:none;line-height:1.2;padding:8px 14px}
+.wk-gold{touch-action:none;cursor:pointer;display:grid;place-items:center}
+.wk-gt{font-family:var(--serif);font-style:italic;font-size:22px;color:#4a2a05;opacity:0;transform:scale(.85);transition:opacity .4s .35s,transform .4s .35s}.wk-gold.open .wk-gt{opacity:1;transform:none}
+.wk-gold .gband{top:43%;height:28px;box-shadow:0 3px 8px rgba(40,10,0,.45)}
+.wk-bow{background:none;clip-path:none;width:84px;height:54px;margin-left:-42px;top:36%;animation:wkwig 1.6s ease-in-out infinite}
+.wk-bow i{position:absolute;top:4px;width:38px;height:46px;background:linear-gradient(135deg,#c9566e,#8e1f3a 55%,#560f22);box-shadow:0 3px 8px rgba(40,10,0,.45)}.wk-bow i:first-child{left:0;clip-path:polygon(0 0,100% 38%,100% 62%,0 100%,14% 50%)}.wk-bow i:nth-child(2){right:0;clip-path:polygon(100% 0,0 38%,0 62%,100% 100%,86% 50%)}
+.wk-bow b{position:absolute;left:50%;top:50%;width:20px;height:22px;margin:-11px 0 0 -10px;border-radius:6px;background:linear-gradient(135deg,#d96a82,#7a1830)}
+@keyframes wkwig{0%,60%,100%{transform:rotate(0)}70%{transform:rotate(-7deg)}80%{transform:rotate(6deg)}90%{transform:rotate(-3deg)}}
+.wk-gold.open .wk-bow{animation:none;transform:translate(60px,-90px) rotate(70deg) scale(.5)!important;opacity:0}.wk-gold.open .gband{transform:translateX(115%)!important}
 </style>
 </head>
 <body>
@@ -2124,7 +2137,7 @@ function walkDraw() {
     gem: () => { const g = w.gem; return `<div class="wk-gem" id="wkg">${g?.image ? `<img src="${esc(g.image)}" alt="">` : ''}<span class="gfx"><i></i><i></i><i></i><i></i><i></i></span><span class="wk-gcap"><span class="gemk">${ic('gem')}<span>Hidden gem</span></span><b>${esc(g?.title || 'A real one near you')}</b></span><canvas id="wkv"></canvas></div>`; },
     into: () => `<div class="wk-bub me"><b>You</b>Hell yeah: Jazz night, Friday</div><div class="wk-bub"><b>${T}’s phone</b>${me} seems really into this.<div class="wk-three"><button data-wk="in">I’m in. Plan it</button><button data-wk="cant">Can’t make it</button><button data-wk="no">Not for me</button></div></div><div id="wkr"></div>`,
     trip: () => `<div id="wkb" class="wk-ban">${T}’s phone · Leave the flights to ${me}.</div><div class="wk-step"><span class="grow"><b>Dates</b><small>Dec 11 to 13 · Agreed</small></span><span class="tpill on">Agreed</span></div><div class="wk-step"><span class="grow"><b>Flights</b><small id="wkfs">Nobody’s on it yet</small></span><button class="tpill go wk-pulse" id="wkp" data-wk="claim">I’m on it</button></div><div class="wk-step" style="opacity:.6"><span class="grow"><b>A place to stay</b><small>${T}’s on it</small></span></div>`,
-    gold: () => `<button class="wk-gold" id="wkgold" data-wk="bow" aria-label="Pull the bow"><span class="gband"></span><span class="wk-bow"></span></button>`,
+    gold: () => `<div class="wk-gold" id="wkgold" role="button" aria-label="Pull the bow"><span class="wk-gt">Yours to plan</span><span class="gband"></span><span class="wk-bow"><i></i><i></i><b></b></span></div>`,
     end: () => `<div class="wk-bell" id="wkbell">${ic('bell')}</div>`,
   }[st.k]();
   const pushOff = last && standalone() && pushState() === 'default';
@@ -2134,15 +2147,19 @@ function walkDraw() {
     ${pushOff ? `<button class="btn wk-cta" data-act="walkpush">Turn on nudges</button><div style="height:8px"></div><button class="btn ghost" data-act="newsdone">Show me today’s cards</button>` : last ? `<button class="btn wk-cta" data-act="newsdone">Show me today’s cards</button>` : `<button class="btn wk-cta wait" id="wkgo" data-act="walknext" disabled>${st.wait}</button>`}</div>`;
   if (st.k === 'swipe') {
     const c = document.getElementById('wkc'), sm = document.getElementById('wks'), seen = new Set(), W = { l: 'Nah', r: 'Maybe', u: 'Hell yeah', d: 'Been there' }; let g = null;
-    c.addEventListener('pointerdown', e => { g = { x: e.clientX, y: e.clientY }; c.style.transition = 'none'; try { c.setPointerCapture(e.pointerId); } catch {} });
-    c.addEventListener('pointermove', e => { if (!g) return; const dx = e.clientX - g.x, dy = e.clientY - g.y; c.style.transform = `translate(${dx}px,${dy}px) rotate(${dx / 14}deg)`; });
-    const up = e => { if (!g) return; const dx = e.clientX - g.x, dy = e.clientY - g.y; g = null; c.style.transition = 'transform .28s cubic-bezier(.2,.8,.2,1)';
-      const d = Math.abs(dx) > Math.abs(dy) ? (dx > 45 ? 'r' : dx < -45 ? 'l' : '') : (dy < -45 ? 'u' : dy > 45 ? 'd' : '');
-      if (!d) { c.style.transform = ''; return; }
-      sm.textContent = W[d]; sm.classList.remove('pop'); void sm.offsetWidth; sm.classList.add('pop'); seen.add(d); el.querySelector(`.wk-dirs [data-d="${d}"]`)?.classList.add('on');
-      c.style.transform = { l: 'translate(-130%,20px) rotate(-20deg)', r: 'translate(130%,20px) rotate(20deg)', u: 'translate(0,-130%)', d: 'translate(0,130%) scale(.85)' }[d];
+    // the word shows as soon as the card leans that way, and the swipe counts after a short pull: no need to fling it
+    const dirOf = (dx, dy, min) => Math.abs(dx) > Math.abs(dy) ? (dx > min ? 'r' : dx < -min ? 'l' : '') : (dy < -min ? 'u' : dy > min ? 'd' : '');
+    const fire = d => { g = null; c.style.transition = 'transform .28s cubic-bezier(.2,.8,.2,1)';
+      sm.textContent = W[d]; sm.style.opacity = ''; sm.classList.remove('pop'); void sm.offsetWidth; sm.classList.add('pop'); seen.add(d); el.querySelector(`.wk-dirs [data-d="${d}"]`)?.classList.add('on'); try { navigator.vibrate?.(10); } catch {}
+      c.style.transform = { l: 'translate(-120%,16px) rotate(-18deg)', r: 'translate(120%,16px) rotate(18deg)', u: 'translate(0,-120%)', d: 'translate(0,120%) scale(.85)' }[d];
       setTimeout(() => { c.style.transition = 'none'; c.style.transform = 'scale(.9)'; c.style.opacity = 0; requestAnimationFrame(() => { c.style.transition = 'transform .25s, opacity .25s'; c.style.transform = ''; c.style.opacity = 1; }); }, 300);
       const b = document.getElementById('wkgo'); if (seen.size >= 4) walkOk(); else if (b) b.textContent = seen.size === 3 ? `One more: swipe ${{ l: 'left', r: 'right', u: 'up', d: 'down' }[['l', 'r', 'u', 'd'].find(x => !seen.has(x))]}` : `${4 - seen.size} to go`; };
+    c.addEventListener('pointerdown', e => { g = { x: e.clientX, y: e.clientY }; c.style.transition = 'none'; sm.classList.remove('pop'); sm.style.opacity = 0; try { c.setPointerCapture(e.pointerId); } catch {} });
+    c.addEventListener('pointermove', e => { if (!g) return; const dx = e.clientX - g.x, dy = e.clientY - g.y, far = Math.max(Math.abs(dx), Math.abs(dy)), d = dirOf(dx, dy, 14);
+      c.style.transform = `translate(${dx}px,${dy}px) rotate(${dx / 14}deg)`;
+      if (d) { sm.textContent = W[d]; sm.style.opacity = Math.min(1, (far - 14) / 34); } else sm.style.opacity = 0;
+      if (far > 78 && d) fire(d); });
+    const up = e => { if (!g) return; const dx = e.clientX - g.x, dy = e.clientY - g.y, d = dirOf(dx, dy, 36); if (d) return fire(d); g = null; sm.style.opacity = 0; c.style.transition = 'transform .25s'; c.style.transform = ''; };
     c.addEventListener('pointerup', up); c.addEventListener('pointercancel', up);
   } else if (st.k === 'gem') {
     const cv = document.getElementById('wkv'), box = cv.parentElement.getBoundingClientRect(), Wd = cv.width = Math.round(box.width), H = cv.height = Math.round(box.height), x = cv.getContext('2d');
@@ -2155,6 +2172,13 @@ function walkDraw() {
     cv.addEventListener('pointermove', e => { if (!down || done) return; e.preventDefault(); const [a, b] = pt(e); x.beginPath(); x.moveTo(lx, ly); x.lineTo(a, b); x.stroke(); lx = a; ly = b;
       if (++n % 6 === 0) { const d = x.getImageData(0, 0, Wd, H).data; let cl = 0, t = 0; for (let i = 3; i < d.length; i += 4 * 41) { t++; if (d[i] < 40) cl++; } if (cl / t > .4) fin(); } });
     cv.addEventListener('pointerup', () => { down = false; });
+  } else if (st.k === 'gold') {
+    const c = document.getElementById('wkgold'), band = c.querySelector('.gband'), bow = c.querySelector('.wk-bow'); let g = null;
+    const open = () => { if (c.classList.contains('open')) return; g = null; band.style.transform = ''; bow.style.transform = ''; c.classList.add('open'); try { navigator.vibrate?.([12, 40, 18]); } catch {} walkOk(); };
+    c.addEventListener('pointerdown', e => { if (c.classList.contains('open')) return; g = { x: e.clientX, y: e.clientY }; band.style.transition = bow.style.transition = 'none'; try { c.setPointerCapture(e.pointerId); } catch {} });
+    c.addEventListener('pointermove', e => { if (!g) return; const dx = e.clientX - g.x, dy = e.clientY - g.y, far = Math.hypot(dx, dy); bow.style.transform = `translate(${dx}px,${dy}px) rotate(${dx / 6}deg)`; band.style.transform = `translateX(${dx}px)`; if (far > 46) { band.style.transition = bow.style.transition = ''; open(); } });
+    const up = () => { if (!g) return; band.style.transition = bow.style.transition = ''; open(); };   // a plain tap undoes it too
+    c.addEventListener('pointerup', up); c.addEventListener('pointercancel', () => { g = null; band.style.transition = bow.style.transition = ''; band.style.transform = bow.style.transform = ''; });
   } else if (st.k === 'end') { const r = document.getElementById('wkbell')?.getBoundingClientRect(); if (r) setTimeout(() => confetti(r.left + r.width / 2, r.top + r.height / 2, 70), 250); }
 }
 function walkTap(a, t) {
