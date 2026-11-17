@@ -2149,17 +2149,18 @@ function walkDraw() {
     const c = document.getElementById('wkc'), sm = document.getElementById('wks'), seen = new Set(), W = { l: 'Nah', r: 'Maybe', u: 'Hell yeah', d: 'Been there' }; let g = null;
     // the word shows as soon as the card leans that way, and the swipe counts after a short pull: no need to fling it
     const dirOf = (dx, dy, min) => Math.abs(dx) > Math.abs(dy) ? (dx > min ? 'r' : dx < -min ? 'l' : '') : (dy < -min ? 'u' : dy > min ? 'd' : '');
-    const fire = d => { g = null; c.style.transition = 'transform .28s cubic-bezier(.2,.8,.2,1)';
+    const fire = d => { g = null; c.style.transition = 'transform .38s cubic-bezier(.3,.7,.3,1), opacity .38s';
       sm.textContent = W[d]; sm.style.opacity = ''; sm.classList.remove('pop'); void sm.offsetWidth; sm.classList.add('pop'); seen.add(d); el.querySelector(`.wk-dirs [data-d="${d}"]`)?.classList.add('on'); try { navigator.vibrate?.(10); } catch {}
-      c.style.transform = { l: 'translate(-120%,16px) rotate(-18deg)', r: 'translate(120%,16px) rotate(18deg)', u: 'translate(0,-120%)', d: 'translate(0,120%) scale(.85)' }[d];
-      setTimeout(() => { c.style.transition = 'none'; c.style.transform = 'scale(.9)'; c.style.opacity = 0; requestAnimationFrame(() => { c.style.transition = 'transform .25s, opacity .25s'; c.style.transform = ''; c.style.opacity = 1; }); }, 300);
+      c.style.transform = { l: 'translate(-105%,10px) rotate(-14deg)', r: 'translate(105%,10px) rotate(14deg)', u: 'translate(0,-105%)', d: 'translate(0,105%) scale(.9)' }[d]; c.style.opacity = 0;
+      setTimeout(() => { c.style.transition = 'none'; c.style.transform = 'scale(.92)'; c.style.opacity = 0; requestAnimationFrame(() => requestAnimationFrame(() => { c.style.transition = 'transform .3s ease-out, opacity .3s ease-out'; c.style.transform = ''; c.style.opacity = 1; })); }, 420);
       const b = document.getElementById('wkgo'); if (seen.size >= 4) walkOk(); else if (b) b.textContent = seen.size === 3 ? `One more: swipe ${{ l: 'left', r: 'right', u: 'up', d: 'down' }[['l', 'r', 'u', 'd'].find(x => !seen.has(x))]}` : `${4 - seen.size} to go`; };
     c.addEventListener('pointerdown', e => { g = { x: e.clientX, y: e.clientY }; c.style.transition = 'none'; sm.classList.remove('pop'); sm.style.opacity = 0; try { c.setPointerCapture(e.pointerId); } catch {} });
     c.addEventListener('pointermove', e => { if (!g) return; const dx = e.clientX - g.x, dy = e.clientY - g.y, far = Math.max(Math.abs(dx), Math.abs(dy)), d = dirOf(dx, dy, 14);
-      c.style.transform = `translate(${dx}px,${dy}px) rotate(${dx / 14}deg)`;
-      if (d) { sm.textContent = W[d]; sm.style.opacity = Math.min(1, (far - 14) / 34); } else sm.style.opacity = 0;
-      if (far > 78 && d) fire(d); });
-    const up = e => { if (!g) return; const dx = e.clientX - g.x, dy = e.clientY - g.y, d = dirOf(dx, dy, 36); if (d) return fire(d); g = null; sm.style.opacity = 0; c.style.transition = 'transform .25s'; c.style.transform = ''; };
+      // follows the finger, with growing resistance past a short pull so it never runs away; it only counts when you let go
+      const soft = v => { const m = Math.abs(v); return Math.sign(v) * (m <= 56 ? m : 56 + (m - 56) * .3); }, sx = soft(dx), sy = soft(dy);
+      c.style.transform = `translate(${sx}px,${sy}px) rotate(${sx / 16}deg)`;
+      if (d) { sm.textContent = W[d]; sm.style.opacity = Math.min(1, (far - 14) / 30); } else sm.style.opacity = 0; });
+    const up = e => { if (!g) return; const dx = e.clientX - g.x, dy = e.clientY - g.y, d = dirOf(dx, dy, 34); if (d) return fire(d); g = null; sm.style.opacity = 0; c.style.transition = 'transform .3s ease-out'; c.style.transform = ''; };
     c.addEventListener('pointerup', up); c.addEventListener('pointercancel', up);
   } else if (st.k === 'gem') {
     const cv = document.getElementById('wkv'), box = cv.parentElement.getBoundingClientRect(), Wd = cv.width = Math.round(box.width), H = cv.height = Math.round(box.height), x = cv.getContext('2d');
