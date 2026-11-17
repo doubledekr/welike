@@ -1078,7 +1078,7 @@ async function openScratch() {
     <div class="scr-card"><div class="scr-in">${c.image ? `<img src="${esc(c.image)}" alt="">` : emojiFor(c)}<span class="scr-t"><b>${esc(c.title)}</b><small>${esc(c.subtitle || '')}</small></span></div><canvas id="scv"></canvas></div>
     <p id="scp">Scratch the card with your finger to see it.</p>
     <button class="btn" data-act="scratchdone" id="scb" style="visibility:hidden">Got it</button>
-    <small class="scr-n">It is shown once and not saved anywhere. The next one turns up when you least expect it.</small>`;
+    <small class="scr-n">It’s kept for you: it shows up when you plan a surprise or a day. The next one turns up when you least expect it.</small>`;
   document.body.appendChild(el);
   const cv = document.getElementById('scv'), box = cv.parentElement.getBoundingClientRect(), W = cv.width = Math.round(box.width), H = cv.height = Math.round(box.height), g = cv.getContext('2d');
   const gr = g.createLinearGradient(0, 0, W, H); gr.addColorStop(0, '#ff7a4d'); gr.addColorStop(.5, '#ffd0a8'); gr.addColorStop(1, '#ff4d7e'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
@@ -1088,7 +1088,7 @@ async function openScratch() {
   let down = false, lx = 0, ly = 0, moves = 0, done = false;
   const pt = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; };
   const reveal = () => { if (done) return; done = true; cv.style.transition = 'opacity .5s'; cv.style.opacity = 0; setTimeout(() => cv.remove(), 520);
-    document.getElementById('scp').innerHTML = c.test ? `This one is a sample so you can see how it works. A real card shows something ${esc(them())} liked that you have not matched on.` : `${esc(them())} said <b>${c.loved ? 'Love it' : 'Like it'}</b> to this one. It is not a match yet. If it comes up again, you know what to do.`;
+    document.getElementById('scp').innerHTML = c.test ? `This one is a sample so you can see how it works. A real card shows something ${esc(them())} liked that you have not matched on.` : `${esc(them())} said <b>${c.loved ? 'Love it' : 'Like it'}</b> to this one. It is not a match yet. It’s saved for when you plan a surprise.`;
     document.getElementById('scb').style.visibility = ''; if (c.test) { if (S.settings) delete S.settings.scratchtest; rpc('set_settings', { p_code: S.code, p_settings: { scratchtest: null } }).catch(() => {}); } else { ls.set('scratchAt', String(Date.now())); newGap(); if (c.id) rpc('reveal_note', { p_code: S.code, p_member: S.me, p_card: c.id }).catch(() => {}); } try { navigator.vibrate?.([20, 30, 40]); } catch {} };
   const check = () => { const d = g.getImageData(0, 0, W, H).data; let clear = 0, tot = 0; for (let i = 3; i < d.length; i += 4 * 37) { tot++; if (d[i] < 40) clear++; } if (clear / tot > .45) reveal(); };
   cv.addEventListener('pointerdown', e => { e.preventDefault(); down = true; [lx, ly] = pt(e); g.beginPath(); g.arc(lx, ly, g.lineWidth / 2, 0, 7); g.fill(); try { cv.setPointerCapture(e.pointerId); } catch {} });
