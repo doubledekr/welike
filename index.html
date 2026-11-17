@@ -2010,7 +2010,7 @@ async function inboxSheet() {
     ${items.length && !ls.get('inswiped') ? `<p class="inhint">Swipe a row left to remove it.</p>` : ''}
     <div id="inlately">${items.length ? items.map(i => sw('i:' + i.id, `<button class="sess inrow ${i.seen ? '' : 'new'} ${lkind(i) ? 'kc k-' + lkind(i) : ''}" data-inurl="${esc(i.url || './')}"><span class="tic">${ic(kic(i))}</span><span class="grow"><b>${esc(i.title)}</b><small>${esc(i.body || '')}${i.body ? ' · ' : ''}${ago(i.at)}</small></span></button>`, 'Remove')).join('') : `<p class="muted" style="font-size:14px;padding:6px 0 4px">${w.length ? 'Nothing else for now.' : `All quiet. Matches and anything ${esc(them())} sends will show up here for a week.`}</p>`}
     </div>
-    <a class="sess inrow" href="./hello/#board" style="text-decoration:none;color:inherit"><span class="tic">${ic('heart')}</span><span class="grow"><b>Report a bug or suggest something</b><small>A public board. Vote on what you want most</small></span></a>
+    <a class="sess inrow" href="./hello/?app=1#board" style="text-decoration:none;color:inherit"><span class="tic">${ic('heart')}</span><span class="grow"><b>Report a bug or suggest something</b><small>A public board. Vote on what you want most</small></span></a>
     <button class="sess inrow" data-act="whatsnew"><span class="tic">${ic('spark')}</span><span class="grow"><b>What’s new</b><small>Plan a day, bars in Go out, and this inbox</small></span></button>
   </div>`);
   ls.set('bellseen', '|' + w.map(x => x.k).join('|') + '|');
@@ -2928,8 +2928,8 @@ function youHTML() {
     <div class="sect">Help</div>
     <div class="ycard"><button class="yrow" data-act="whatsnew"><span class="tic">${ic('spark')}</span><span class="grow"><b>What’s new</b></span><span class="ych">›</span></button>
       <button class="yrow" data-act="coach"><span class="tic">${ic('play')}</span><span class="grow"><b>How swiping works</b></span><span class="ych">›</span></button>
-      <a class="yrow" href="./hello/"><span class="tic">${ic('frame')}</span><span class="grow"><b>The story and install guide</b></span><span class="ych">›</span></a>
-      <a class="yrow" href="./hello/#board"><span class="tic">${ic('mail')}</span><span class="grow"><b>Report a bug or suggest something</b></span><span class="ych">›</span></a></div>
+      <a class="yrow" href="./hello/?app=1"><span class="tic">${ic('frame')}</span><span class="grow"><b>The story and install guide</b></span><span class="ych">›</span></a>
+      <a class="yrow" href="./hello/?app=1#board"><span class="tic">${ic('mail')}</span><span class="grow"><b>Report a bug or suggest something</b></span><span class="ych">›</span></a></div>
     <div style="height:18px"></div><button class="btn ghost" data-act="signout">Sign out on this phone</button>
     <p class="muted" style="font-size:11.5px;text-align:center;margin-top:18px">Streaming data powered by Watchmode.com</p></div>`;
 }
