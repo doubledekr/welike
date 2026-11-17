@@ -836,6 +836,37 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .tpc .lava{position:absolute;inset:0;width:100%;height:100%;filter:blur(2.6px) saturate(1.15)}
 .tpc.mixc{background:linear-gradient(160deg,#6a48e0,#b83fa8 55%,#e0556a);box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
 .tpc.mixc .veil{background:radial-gradient(120% 80% at 30% 10%,rgba(255,255,255,.16),transparent 55%),linear-gradient(180deg,transparent 45%,rgba(10,6,10,.5))}
+
+/* ---- plan a surprise ---- */
+.tpc.goldc{background:linear-gradient(135deg,#8a5f16,#b0842a 30%,#c29a3c 50%,#a87c24 72%,#94691c);--kg:rgba(255,190,70,.7);color:#3a2404;box-shadow:inset 0 1px 0 rgba(255,245,210,.7),inset 0 -2px 4px rgba(80,45,0,.5)}
+.tpc.goldc::after{content:"";position:absolute;inset:9px;border-radius:20px;box-shadow:inset 0 0 0 1px rgba(255,244,205,.55),0 0 0 1px rgba(90,55,5,.3);pointer-events:none}
+.tpc.goldc .glit{position:absolute;inset:0;width:100%;height:100%}
+.tpc.goldc .ctx{color:#3a2404;text-shadow:0 1px 0 rgba(255,246,210,.6)}.tpc.goldc .ctx small{color:#4f3408;opacity:1;font-weight:500}
+.tpc.goldc .cnum{left:20px;right:auto;top:22px;color:#4a2f06;background:rgba(255,248,220,.5)}
+.gls.gold{box-shadow:none;mix-blend-mode:soft-light;opacity:.75}
+.gls.gold i:nth-child(1){background:radial-gradient(38% 16% at 44% 40%,rgba(255,255,255,.75),transparent 72%),radial-gradient(30% 22% at 57% 58%,rgba(255,255,255,.5),transparent 72%),radial-gradient(22% 12% at 49% 74%,rgba(255,255,255,.35),transparent 72%)}
+.gls.gold i:nth-child(2){background:radial-gradient(26% 14% at 60% 34%,rgba(255,255,255,.45),transparent 72%),radial-gradient(34% 12% at 40% 66%,rgba(255,250,230,.4),transparent 72%)}
+.gls.gold i:nth-child(3){display:none}
+.surp h2{font-family:var(--serif);font-weight:400;font-size:28px;line-height:1.1}
+.surp .skick{display:block;letter-spacing:1.5px;text-transform:uppercase;font-size:11.5px;color:#ffd27a;margin-bottom:6px}
+.sprog{display:flex;gap:5px;margin:2px 0 14px}.sprog i{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.11)}.sprog i.on{background:linear-gradient(90deg,#ffd27a,#ff8fb0)}
+.stiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.stile{border-radius:20px;padding:14px;height:118px;display:flex;flex-direction:column;justify-content:space-between;text-align:left;background:linear-gradient(150deg,color-mix(in srgb,var(--ka) 20%,#21161b),#1a1115 70%);box-shadow:0 8px 26px -14px var(--kg)}
+.stile .tic{background:none!important;box-shadow:none!important;width:auto;height:auto;justify-self:start;color:var(--ka);filter:drop-shadow(0 0 7px var(--kb));font-size:24px;display:block}
+.stile b{display:block;font-size:15px}.stile small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.sopt{display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:10px;border-radius:18px;background:rgba(255,255,255,.04);margin-bottom:8px}
+.sopt img,.sopt .pimg{flex:none;width:62px;height:62px;border-radius:13px;object-fit:cover;background:var(--surface2);display:grid;place-items:center;font-size:22px}
+.sopt b{display:block;font-size:14.5px;line-height:1.25}.sopt small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.sopt.on{background:linear-gradient(135deg,rgba(255,210,122,.18),rgba(255,255,255,.04) 70%);box-shadow:0 8px 26px -12px rgba(255,180,60,.8)}
+.stags{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}.stags i{font-style:normal;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;background:rgba(255,255,255,.08);color:#cdbfc4}
+.stags i.her{background:rgba(255,77,126,.18);color:#ff9ab6}.stags i.bk{background:rgba(45,212,191,.16);color:#7fe6d6}
+.sch{margin-top:12px}
+.scount{display:flex;gap:8px;margin-top:14px}.scount div{flex:1;text-align:center;padding:9px 0;border-radius:14px;background:rgba(255,255,255,.05)}.scount b{display:block;font-family:var(--serif);font-weight:400;font-size:24px}.scount small{font-size:11px;color:var(--muted)}
+.scr.gold .scr-card{box-shadow:0 26px 60px -16px rgba(0,0,0,.9),0 0 70px -10px rgba(255,200,90,.8)}
+.scr.gold h2{font-family:var(--serif);font-weight:400;font-size:28px}
+/* inbox rows: the pulse is a glow, the row itself stays light */
+.inrow.kc.p1,.inrow.kc.p2{animation:rowk2 2.4s ease-in-out infinite}.inrow.kc.p3{animation:rowk2 1.2s ease-in-out infinite}
+@keyframes rowk2{0%,100%{box-shadow:0 8px 26px -14px var(--kg)}50%{box-shadow:0 8px 30px -7px var(--kg)}}
 </style>
 </head>
 <body>
@@ -1070,11 +1101,12 @@ async function outings(ms = 6000) {
 
 /* ---------- data ---------- */
 // What Home is drawn from. Coming back to the app only redraws Home when this changed, so the cards don't flicker.
-const homeSig = () => { try { return JSON.stringify([S.state, S.plans, S.share, S.settings, S.pantry, S.favs]); } catch { return String(Math.random()); } };
+const homeSig = () => { try { return JSON.stringify([S.state, S.plans, S.share, S.settings, S.pantry, S.favs, S.surp]); } catch { return String(Math.random()); } };
 const swPend = new Set();   // swipes still being saved
 async function refresh() {
   if (swPend.size) await Promise.allSettled([...swPend]);   // a refresh right after the last swipe must include it
-  const [st, pantry, settings, share, plans, inbox, favs] = await Promise.all([rpc('get_state', { p_code: S.code, p_member: S.me }), rpc('get_pantry', { p_code: S.code }), rpc('get_settings', { p_code: S.code }), rpc('share_state', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('plan_list', { p_code: S.code }).catch(() => []), rpc('inbox_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('fav_list', { p_code: S.code }).catch(() => null)]);
+  const [st, pantry, settings, share, plans, inbox, favs, surp] = await Promise.all([rpc('get_state', { p_code: S.code, p_member: S.me }), rpc('get_pantry', { p_code: S.code }), rpc('get_settings', { p_code: S.code }), rpc('share_state', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('plan_list', { p_code: S.code }).catch(() => []), rpc('inbox_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('fav_list', { p_code: S.code }).catch(() => null), rpc('surprise_list', { p_code: S.code, p_member: S.me }).catch(() => null)]);
+  S.surp = surp || S.surp || null;
   S.state = st; S.plans = plans || []; S.pool = null; if (inbox) S.inbox = inbox; if (favs) S.favs = favs; S.share = share; S.pantry = pantry || []; S.settings = settings || {};
 }
 async function loadSession(id, keep) {
@@ -1281,9 +1313,10 @@ async function shareApp() {
 function tonightSheet() {
   const st = S.state, p = partner(), latest = (st.sessions || []).find(s => s.from !== S.me && s.my_left > 0), rest = (st.sessions || []).filter(s => s !== latest);
   // One brand family for all five: color is kept for what is happening (Friday, Saturday, partner, booking, match), and the icon and name tell these apart.
-  const TD = ['movie', 'dinner', 'activity', 'event', 'mix'];
+  const TD = p ? ['movie', 'gold', 'dinner', 'activity', 'event', 'mix'] : ['movie', 'dinner', 'activity', 'event', 'mix'];
+  const goldLeft = S.surp?.left !== false, goldNext = S.surp?.next ? new Date(S.surp.next + 'T12:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'next month';
   let h = `<div class="grab"></div><div class="tn"><div class="tn-head"><div class="brand">${BRAND}</div><h2>What should we<br>do tonight?</h2><p class="muted" style="margin-top:8px;font-size:14px">Swipe to flip through. Tap one to start${p ? `, and ${esc(p)} gets the same cards` : ''}.</p></div>
-    <div class="tdeck" id="tdeck">` + TD.map((d, i) => `<div class="tpc ${CK[d] ? 'kc k-' + CK[d] : 'mixc'}" data-k="${d}">${CK[d] ? '' : '<canvas class="lava" width="84" height="111"></canvas><span class="veil"></span>'}<span class="cbg">${ic(DIC[d])}</span><span class="cic">${ic(DIC[d])}</span><span class="ctx"><b>${DECKS[d].label}</b><small>${DECKS[d].hint}</small></span>${CK[d] ? GLS : ''}</div>`).join('') + `</div>
+    <div class="tdeck" id="tdeck">` + TD.map((d, i) => d === 'gold' ? `<div class="tpc goldc" data-k="gold"><canvas class="glit"></canvas><span class="gls gold"><i></i><i></i><i></i></span><span class="cnum">${goldLeft ? '1 left in ' + new Date().toLocaleDateString(undefined, { month: 'short' }) : 'Next one ' + goldNext}</span><span class="ctx"><b>Plan a<br>surprise</b><small>${esc(p)} won’t know what until you reveal it</small></span></div>` : `<div class="tpc ${CK[d] ? 'kc k-' + CK[d] : 'mixc'}" data-k="${d}">${CK[d] ? '' : '<canvas class="lava" width="84" height="111"></canvas><span class="veil"></span>'}<span class="cbg">${ic(DIC[d])}</span><span class="cic">${ic(DIC[d])}</span><span class="ctx"><b>${DECKS[d].label}</b><small>${DECKS[d].hint}</small></span>${CK[d] ? GLS : ''}</div>`).join('') + `</div>
     <div class="tdots">${TD.map(() => '<i></i>').join('')}</div>`;
   // Only the newest round can be "in progress": it has to be from the last 18 hours, not decided yet, and still have cards waiting. An older unfinished round never comes back once a newer one exists.
   const last = rest.find(s => !s.filters?.bite && !s.filters?.solo && !s.filters?.share && !s.filters?.evshare);
@@ -1305,6 +1338,7 @@ function tdeckInit() {
   const halo = document.createElement('div'); halo.className = 'thalo'; deck.prepend(halo);
   const paint = () => { dots.forEach((d, i) => d.classList.toggle('on', i === order[0])); cards.forEach((c, i) => c.classList.toggle('top', i === order[0])); halo.classList.toggle('show', cards[order[0]].classList.contains('mixc')); tiltWatch(); };
   const lv = deck.querySelector('canvas.lava'); if (lv) lavaInit(lv);
+  const gl = deck.querySelector('canvas.glit'); if (gl) goldInit(gl);
   cards.forEach((c, i) => { jit(c); place(c, i); c.animate([{ transform: `translate(${i % 2 ? 60 : -60}px,240px) rotate(${i % 2 ? 25 : -25}deg)`, opacity: 0 }, { transform: c.style.transform, opacity: 1 }], { duration: 520, delay: (cards.length - 1 - i) * 80, easing: 'cubic-bezier(.2,.9,.25,1)', fill: 'backwards' }); });
   paint();
   let drag = null;
@@ -1324,10 +1358,11 @@ function tdeckInit() {
       setTimeout(() => { c.style.zIndex = 10 - order.indexOf(cards.indexOf(c)); }, 300); }).catch(() => {});
   };
   const pick = () => {
+    if (top().dataset.k === 'gold' && S.surp?.left === false && !surpItems().some(x => x.mine && x.status !== 'revealed' && x.day >= pToday())) return surpStart();   // used this month: just say so
     busy = true; const c = top(), d = c.dataset.k;
     const pg = getComputedStyle(c).getPropertyValue('--kg').trim() || 'rgba(255,140,120,.85)'; c.animate([{ transform: c.style.transform, boxShadow: c.style.boxShadow }, { transform: 'translateY(-6px) scale(1.06)', boxShadow: `0 0 80px 16px ${pg}` }], { duration: 260, easing: 'ease-out', fill: 'forwards' });
     cards.forEach(x => { if (x !== c) x.animate([{ opacity: 1 }, { opacity: 0, transform: x.style.transform + ' translateY(30px)' }], { duration: 260, fill: 'forwards' }); });
-    setTimeout(() => nudgeSheet(d), 320);
+    setTimeout(() => d === 'gold' ? surpStart() : nudgeSheet(d), 320);
   };
   let busy = false;
   deck.addEventListener('pointerdown', e => {
@@ -1696,6 +1731,7 @@ function slotHTML(incoming) {
   const p = partner(), s = incoming[0], gone = slGone();
   const items = [
     !p ? ['pin:invite', `<button class="nudge slim" data-act="invite"><span class="grow"><b>Invite your other half</b><small> · nothing matches until you are both in</small></span><span class="go">Send link</span></button>`] : null,
+    ['sp:' + surpKey(), surpBanner()],
     ['day:' + dayHomeKey(), dayHome()],
     s ? ['ses:' + s.id, `<button class="nudge slim" data-open="${s.id}"><span class="grow"><b>${s.from === 'Let’s Together' ? 'Swipe to fill your plan' : esc(s.from) + ' ' + (s.filters?.evshare ? 'liked events this week' : s.filters?.share ? 'liked places to eat' : s.filters?.wishlist ? 'shared a wishlist' : s.filters?.plan ? 'needs a pick for your plan' : 'nudged you')}</b><small> · ${esc(s.filters?.evshare ? 'before they pass' : s.filters?.share ? 'for some time soon' : s.filters?.wishlist ? 'movies to pick from' : s.note || DECKS[s.deck].label)} · ${s.my_left} to swipe</small></span><span class="go">Swipe</span></button>`] : null,
     ['tripinv:' + (Object.entries(planInvites()).find(([, v]) => v?.by && v.by !== S.me)?.[0] || ''), inviteBanner()],
@@ -1704,6 +1740,7 @@ function slotHTML(incoming) {
     ['shr:' + pToday(), shareRemindBanner()],
     ['hs', hsBanner()],
   ].filter(x => x && x[1] && !gone[x[0]]);
+  setTimeout(surpGreet, 600);
   if (!items.length) return '';
   return `<div class="slot ${items.length > 1 ? 'many' : ''}"><div class="slotrow" id="slotrow">${items.map(([k, h]) => `<div class="sli" data-slk="${esc(k)}">${h}</div>`).join('')}</div>${items.length > 1 ? `<div class="sld" id="sld">${items.map((_, i) => `<i class="${i ? '' : 'on'}"></i>`).join('')}</div>` : ''}</div>`;
 }
@@ -1741,6 +1778,7 @@ function waiting() {
   for (const s of (st.sessions || []).filter(s => s.from !== S.me && s.my_left > 0).slice(0, 3)) out.push({ k: 's' + s.id, lv: 2, ic: DIC[s.deck] || 'spark', t: s.from === 'Let’s Together' ? 'Swipe to fill your plan' : `${s.from} ${s.filters?.evshare ? 'sent events they liked' : s.filters?.share ? 'sent places to try' : s.filters?.wishlist ? 'shared a wishlist' : s.filters?.plan ? 'needs a pick for your plan' : 'nudged you'}`, s: `${s.note ? s.note + ' · ' : ''}${s.my_left} to swipe`, a: `data-open="${s.id}"`, go: 'Swipe' });
   const ti = Object.entries(planInvites()).find(([, v]) => v?.by && v.by !== S.me);
   if (ti) out.push({ k: 'ti' + ti[0], lv: 2, ic: 'plane', t: `${ti[1].by} wants to plan ${ti[0]}`, s: 'Say yes or not yet.', a: `data-tripinvite="${esc(ti[0])}"`, go: 'Look' });
+  for (const x of surpItems()) { const w = surpWait(x); if (w) out.push(w); }
   if (!standalone() && isPhone() && S.installed === false) out.push({ k: 'hs', lv: 1, ic: 'plus', t: 'Add to Home Screen', s: 'Full screen, with nudges.', a: 'data-act="hshow"', go: 'How' });
   const byId = id => (S.plans || []).find(p => p.id === id);
   out.forEach(x => {
@@ -1882,6 +1920,7 @@ function inboxGo(u) {
   if (s) return openSession(s).catch(() => toast('That round has finished.'));
   if (r) return openRec(r, q.get('keen'));
   if (g) return openGame(g);
+  if (q.get('surprise')) return surpOpen(q.get('surprise'));
   if (q.get('plan')) { S.favAsk = q.get('fav') ? q.get('plan') : null; return dayAct('view', q.get('plan')).catch(() => {}); }
   if (q.get('reveal')) { prepRevealTest(); return render(); }
   if (q.get('planfor')) return dayAct('around', q.get('planfor')).catch(() => {});
@@ -2596,6 +2635,197 @@ function setDone(st, html) {
   [...st.children].forEach(c => { if (!c.classList.contains('dbg')) c.remove(); });
   st.insertAdjacentHTML('beforeend', html);
 }
+/* ---------- plan a surprise ---------- */
+// One a month each. The planner picks dinner out, a delivery, something to cook or an event; the other person hears
+// only when, with a hint, until the reveal. What and where never leaves the server for them before that.
+const surpItems = () => (S.surp?.items || []).filter(x => x.day >= pAdd(pToday(), -1));
+const surpWhen = x => `${pDayName(x.day)} at ${pT(x.time)}`;
+const surpFinds = x => x.reveal === 'morning' ? (x.day === pToday() ? 'this morning' : `${pDayName(x.day) === dfmt(x.day) ? 'that' : pDayName(x.day).toLowerCase()} morning`) : x.reveal === '2h' ? 'two hours before' : `when ${x.by} says`;
+const surpTop = () => { const a = surpItems().filter(x => x.day >= pToday()); return a.find(x => !x.mine && x.ready) || a.find(x => !x.mine && x.status !== 'revealed') || a.find(x => x.mine && x.status !== 'revealed') || a.find(x => x.status === 'revealed') || null; };
+const surpKey = () => { const x = surpTop(); return x ? x.id + x.status + (x.ready ? 'r' : '') + x.day : ''; };
+function surpBanner() {
+  const x = surpTop(); if (!x) return '';
+  const [t, sub, go] = x.status === 'revealed' ? [`${surpWhen(x)}: ${x.card?.title || 'your surprise'}`, x.mine ? `${x.for} knows now` : `From ${x.by}`, 'Open']
+    : x.mine ? [`Your surprise for ${x.for}`, `${surpWhen(x)} · ${x.status === 'cant' ? `${x.for} can’t make it. Pick a new night` : x.status === 'free' ? `${x.for} is free` : 'Waiting to hear'}`, 'Open']
+    : x.ready ? ['Your surprise is ready', `Scratch to see what ${x.by} planned`, 'Reveal']
+    : [`Something’s planned · ${surpWhen(x)}`, x.status === 'sent' ? 'Say if you’re free' : x.hints?.length ? 'Hint: ' + x.hints.join(', ').toLowerCase() : `You’ll find out ${surpFinds(x)}`, 'Look'];
+  return `<button class="tripbar kc k-match surpb" data-sp="view|${x.id}" style="width:100%;text-align:left"><span class="tic">${ic('spark')}</span><span class="grow"><b>${esc(t)}</b><small>${esc(sub)}</small></span><span class="go ${!x.mine && (x.ready || x.status === 'sent') ? 'blink' : ''}">${go}</span></button>`;
+}
+function surpWait(x) {
+  if (x.day < pToday() || x.status === 'revealed') return null; const a = `data-sp="view|${x.id}"`;
+  if (!x.mine && x.ready) return { k: 'spr' + x.id, lv: 3, kind: 'match', ic: 'spark', t: 'Your surprise is ready', s: `Scratch to see what ${x.by} planned.`, a, go: 'Reveal' };
+  if (!x.mine && x.status === 'sent') return { k: 'sps' + x.id + x.day, lv: 2, kind: 'match', ic: 'spark', t: `${x.by} planned something for ${pDayLow(x.day)}`, s: 'Say if you’re free.', a, go: 'Look' };
+  if (x.mine && x.status === 'cant') return { k: 'spc' + x.id + x.day, lv: 2, kind: 'match', ic: 'spark', t: `${x.for} can’t make ${pDayLow(x.day)}`, s: 'Pick a new night for your surprise.', a, go: 'Move' };
+  return null;
+}
+// The first time a surprise shows up for someone, the bell pops confetti.
+function surpGreet() {
+  const x = surpItems().find(y => !y.mine && y.status !== 'revealed'); if (!x) return;
+  let seen = []; try { seen = JSON.parse(ls.get('spseen') || '[]'); } catch {} if (seen.includes(x.id)) return;
+  const b = document.querySelector('.hdr .ib.bell'); if (!b || $layer.innerHTML || document.visibilityState !== 'visible') return;
+  ls.set('spseen', JSON.stringify([...seen, x.id].slice(-20)));
+  const r = b.getBoundingClientRect(); confetti(r.left + r.width / 2, r.top + r.height / 2);
+  b.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.35) rotate(-14deg)' }, { transform: 'scale(1.1) rotate(12deg)' }, { transform: 'scale(1.15) rotate(-6deg)' }, { transform: 'scale(1)' }], { duration: 700, easing: 'ease-out' });
+}
+function confetti(x, y, n = 90) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const cv = document.createElement('canvas'), d = Math.min(2, devicePixelRatio || 1), W = innerWidth, H = innerHeight; cv.width = W * d; cv.height = H * d;
+  cv.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:60'; document.body.appendChild(cv);
+  const c = cv.getContext('2d'); c.scale(d, d);
+  const COL = ['#6b5cff', '#b04dff', '#ff4d7e', '#ff7a4d', '#ffb547', '#ffd23f', '#2dd4bf', '#4d9bff'];
+  let P = Array.from({ length: n }, (_, i) => { const a = Math.random() * 6.28, v = 2 + Math.random() * 5; return { x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 2, w: 3 + Math.random() * 3.5, h: 2 + Math.random() * 2, r: Math.random() * 6, vr: (Math.random() - .5) * .5, c: COL[i % 8], life: 150 }; });
+  (function step() { c.clearRect(0, 0, W, H); P = P.filter(p => p.life-- > 0 && p.y < H + 10);
+    for (const p of P) { p.vy += .14; p.vx *= .985; p.vy *= .985; p.x += p.vx; p.y += p.vy; p.r += p.vr; c.globalAlpha = Math.min(1, p.life / 30); c.save(); c.translate(p.x, p.y); c.rotate(p.r); c.scale(1, Math.cos(p.r * 2.3)); c.fillStyle = p.c; c.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); c.restore(); }
+    P.length ? requestAnimationFrame(step) : cv.remove(); })();
+}
+async function surpReload() { try { S.surp = await rpc('surprise_list', { p_code: S.code, p_member: S.me }); } catch {} bellSync(); }
+async function surpOpen(id) { await surpReload(); if (S.view === 'home' && S.tab === 'home') render(); return surpView(id); }
+function surpStart() {
+  if (!partner()) return toast('Invite your other half first.');
+  const mine = surpItems().find(x => x.mine && x.status !== 'revealed' && x.day >= pToday());
+  if (mine) return surpView(mine.id);
+  if (S.surp?.left === false) return toast(`One surprise a month. Your next one is ready ${S.surp.next ? new Date(S.surp.next + 'T12:00').toLocaleDateString(undefined, { month: 'long', day: 'numeric' }) : 'next month'}.`, 4500);
+  S.sb = { step: 1, hints: [], reveal: 'morning', day: pToday(), time: '19:00' }; surpBuild();
+}
+const SKIND = { out: ['dine', 'Dinner out', 'A table somewhere', 'sat'], orderin: ['dine', 'Order in', 'Delivered, at home', 'sat'], cook: ['spark', 'Cook dinner', 'From your kitchen', 'sat'], event: ['ticket', 'A booked event', 'One you’ve liked', 'ask'] };
+const SHINT = ['Dress up', 'Casual', 'Come hungry', 'Bring a jacket', 'Staying in', 'Clear your evening'];
+const STIME = ['17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30'];
+const surpHead = (title, n) => `<div class="grab"></div><div class="body surp"><div class="sprog">${[1, 2, 3].map(i => `<i class="${i <= n ? 'on' : ''}"></i>`).join('')}</div><h2>${title}</h2>`;
+function surpBuild() {
+  const b = S.sb, p = partner(); if (!b) return;
+  if (b.step === 1) return sheet(surpHead(`What are you<br>surprising ${esc(p)} with?`, 1) + `<p class="muted" style="margin-top:6px;font-size:14px">${esc(p)} only hears when, plus a hint, until you reveal it.</p>
+    <div class="stiles">${Object.entries(SKIND).map(([k, [i, t, d, c]]) => `<button class="stile kc k-${c}" data-sp="kind|${k}"><span class="tic">${ic(i)}</span><span><b>${t}</b><small>${d}</small></span></button>`).join('')}</div></div>`);
+  if (b.step === 2) {
+    const o = b.opts, k = SKIND[b.kind];
+    const row = c => { const tag = bookTag(c), ev = c.deck === 'event';
+      return `<button class="sopt ${b.card?.id === c.id ? 'on' : ''}" data-sp="pick|${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="">` : `<span class="pimg">${emojiFor(c)}</span>`}<span class="grow"><b>${esc(c.title)}</b><small>${esc(ev ? [fmtDate(c.event_date), c.data?.time, c.data?.venue || c.data?.area].filter(Boolean).join(' · ') : [(c.subtitle || '').split(' · ')[0], c.data?.price, c.data?.miles != null ? c.data.miles + ' mi' : ''].filter(Boolean).join(' · '))}</small>
+        <span class="stags">${c.liked ? `<i class="her">${esc(p)} liked this</i>` : ev ? '' : `<i>New to ${esc(p)}</i>`}${tag ? `<i class="${c.data?.book?.url ? 'bk' : ''}">${esc(tag)}</i>` : ''}</span></span></button>`; };
+    return sheet(surpHead(k[1], 2) + `<p class="muted" style="margin-top:6px;font-size:14px">${!o ? 'Finding a few…' : !o.length ? (b.kind === 'event' ? 'Like an upcoming event in Go out first, then it shows up here.' : b.kind === 'cook' ? 'Add a dinner you cook to your lists first, then it shows up here.' : 'Nothing to offer yet. Swipe a few more in Eat and come back.') : b.kind === 'event' ? 'Events you’ve liked that are still to come.' : `A few ${esc(p)} should like.`}</p>
+      <div style="margin-top:12px">${(o || []).map(row).join('')}</div>
+      <div class="row" style="gap:8px;margin-top:14px"><button class="btn ghost" style="flex:1" data-sp="step|1">Back</button><button class="btn" style="flex:2" data-sp="step|3" ${b.card ? '' : 'disabled'}>Next</button></div></div>`);
+  }
+  const ev = b.kind === 'event', days = Array.from({ length: 7 }, (_, i) => pAdd(pToday(), i));
+  const chip = (on, act, label) => `<button class="chip ${on ? 'on' : ''}" data-sp="${act}">${label}</button>`;
+  sheet(surpHead(b.move ? 'Pick a new night' : 'When?', 3) + `<p class="muted" style="margin-top:6px;font-size:14px">${esc(b.card?.title || '')}</p>
+    ${ev ? `<div class="note" style="margin-top:12px;border-style:solid">${esc(fmtDate(b.day))} at ${pT(b.time)}, when the event is on.</div>` : `<div class="chips sch">${days.map(d => chip(b.day === d, 'day|' + d, d === pToday() ? 'Today' : new Date(d + 'T12:00').toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' }))).join('')}</div>
+    <div class="chips sch" style="margin-top:8px">${STIME.map(t => chip(b.time === t, 'time|' + t, pT(t))).join('')}</div>`}
+    ${b.move ? '' : `<div class="sect">A hint for ${esc(p)}</div><div class="chips sch">${SHINT.map(h => chip(b.hints.includes(h), 'hint|' + h, h)).join('')}</div>
+    <div class="sect">${esc(p)} finds out</div><div class="chips sch">${chip(b.reveal === 'morning', 'reveal|morning', b.day === pToday() ? 'Right away' : 'That morning')}${chip(b.reveal === '2h', 'reveal|2h', '2 hours before')}${chip(b.reveal === 'manual', 'reveal|manual', 'When I say')}</div>`}
+    <div class="row" style="gap:8px;margin-top:18px"><button class="btn ghost" style="flex:1" data-sp="${b.move ? 'view|' + b.move : 'step|2'}">Back</button><button class="btn" style="flex:2" data-sp="send">${b.move ? 'Move it' : 'Send the heads-up'}</button></div>
+    ${b.move ? '' : `<p class="muted" style="font-size:12.5px;text-align:center;margin-top:10px">${esc(p)} is told the day and time only${b.kind === 'out' || ev ? '. You can book right after' : ''}.</p>`}</div>`);
+}
+function surpView(id) {
+  const x = (S.surp?.items || []).find(y => y.id === id); if (!x) return toast('That surprise is not around any more.');
+  if (!x.mine && x.ready) return surpReveal(id);
+  const c = x.card, d = c?.data || {}, when = `${pDayName(x.day)} at ${pT(x.time)}`, hints = x.hints?.length ? `<div class="chips" style="margin-top:12px">${x.hints.map(h => `<span class="chip on" style="pointer-events:none">${esc(h)}</span>`).join('')}</div>` : '';
+  const cardRow = c ? `<div class="prow" style="border:0;margin-top:10px"><button data-detail-s="1" data-sp="detail|${id}" style="flex:none;padding:0">${c.image ? `<img src="${esc(c.image)}" alt="">` : `<span class="pimg">${emojiFor(c)}</span>`}</button><span class="grow"><b>${esc(c.title)}</b><small>${esc((c.subtitle || '').split(' · ')[0])}</small>${d.maps ? `<small class="plk"><a href="${esc(d.maps)}" target="_blank" rel="noopener">Map</a></small>` : ''}</span>${x.status === 'revealed' && (c.deck === 'dinner' && c.kind !== 'cook' || (c.deck === 'event' && d.place)) ? `<button class="x fav ${isFav(c.id) ? 'on' : ''}" data-sp="fav|${id}" aria-label="Favorite">${isFav(c.id) ? '★' : '☆'}</button>` : ''}</div>` : '';
+  let h = `<div class="grab"></div><div class="body surp">`;
+  if (x.status === 'revealed') h += `<small class="skick">${x.mine ? `Your surprise for ${esc(x.for)}` : `A surprise from ${esc(x.by)}`}</small><h2>${esc(when)}</h2>${cardRow}${hints}
+    ${x.booked ? '<p class="muted" style="margin-top:12px;font-size:14px">Booked ✓</p>' : ''}${c && c.deck === 'event' && d.url ? `<div style="height:14px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.url)}" target="_blank" rel="noopener">Event details</a>` : ''}`;
+  else if (x.mine) {
+    const needsBook = x.kind === 'out' || x.kind === 'event';
+    h += `<small class="skick">Your surprise for ${esc(x.for)}</small><h2>${esc(when)}</h2>${cardRow}
+      <p class="muted" style="margin-top:12px;font-size:14px">${x.status === 'cant' ? `<b style="color:#ffd27a">${esc(x.for)} can’t make that night.</b> Pick a new one and the surprise stays a surprise.` : x.status === 'free' ? `${esc(x.for)} is free. ` : `Waiting to hear if ${esc(x.for)} is free. `}${x.status === 'cant' ? '' : x.reveal === 'manual' ? `${esc(x.for)} finds out when you tap Reveal.` : `${esc(x.for)} finds out ${surpFinds(x).replace(x.by, 'you')}.`}</p>${hints}
+      ${x.status === 'cant' ? `<div style="height:16px"></div><button class="btn" data-sp="move|${id}">Pick a new night</button>` : `${x.kind === 'out' && c ? bookBlock(c, x.day, x.time) : ''}${x.kind === 'event' && d.url ? `<div style="height:18px"></div><a class="btn" style="display:block;text-align:center;text-decoration:none" href="${esc(d.url)}" target="_blank" rel="noopener">Get tickets</a>` : ''}
+      ${needsBook ? `<div style="height:10px"></div><button class="btn ghost" data-sp="booked|${id}">${x.booked ? 'Booked ✓ (tap to undo)' : 'Mark as booked'}</button>` : ''}
+      <div style="height:10px"></div><button class="btn ghost" data-sp="revealnow|${id}">Reveal it to ${esc(x.for)} now</button>
+      <div class="row" style="gap:8px;margin-top:10px"><button class="btn ghost" style="flex:1" data-sp="move|${id}">Change the night</button><button class="btn ghost" style="flex:1" data-sp="cancel|${id}">Call it off</button></div>`}`;
+  } else {
+    const ms = new Date(`${x.day}T${x.time}`) - Date.now(), dd = Math.floor(ms / 864e5), hh = Math.floor(ms % 864e5 / 36e5);
+    h += `<small class="skick">A surprise from ${esc(x.by)}</small><h2>Something’s planned</h2><p style="margin-top:8px;font-size:17px">${esc(when)}</p>${hints}
+      ${ms > 0 ? `<div class="scount"><div><b>${dd}</b><small>day${dd === 1 ? '' : 's'}</small></div><div><b>${hh}</b><small>hour${hh === 1 ? '' : 's'}</small></div></div>` : ''}
+      <p class="muted" style="margin-top:12px;font-size:14px">You’ll find out what it is ${esc(surpFinds(x))}.</p>
+      ${x.status === 'sent' ? `<div style="height:14px"></div><button class="btn" data-sp="free|${id}">I’m free</button><div style="height:10px"></div><button class="btn ghost" data-sp="cant|${id}">Can’t that night</button>`
+        : x.status === 'free' ? `<p style="margin-top:14px;font-size:14.5px">You said you’re free ✓</p><div style="height:10px"></div><button class="btn ghost" data-sp="cant|${id}">Actually, I can’t that night</button>`
+        : `<p style="margin-top:14px;font-size:14.5px">You said you can’t. ${esc(x.by)} will pick another night.</p><div style="height:10px"></div><button class="btn ghost" data-sp="free|${id}">I can make it after all</button>`}`;
+  }
+  sheet(h + '</div>'); $layer.querySelector('.scrim')?.classList.add('kc', 'k-match', 'kset');
+  if (x.mine && x.kind === 'out' && c) bookFetch([c]).then(ok => { if (ok && $layer.querySelector('.surp')) surpView(id); });
+}
+async function surpAct(v, a, el) {
+  const b = S.sb, put = x => { if (x && S.surp) { const i = S.surp.items.findIndex(y => y.id === x.id); if (i >= 0) S.surp.items[i] = x; else S.surp.items.push(x); } };
+  const act = async (action, arg) => { const x = await rpc('surprise_act', { p_code: S.code, p_member: S.me, p_id: a, p_action: action, p_arg: arg || {} }); put(x); bellSync(); return x; };
+  const cur = () => (S.surp?.items || []).find(y => y.id === a);
+  try {
+    switch (v) {
+      case 'view': S.sb = null; return surpView(a);
+      case 'detail': return showDetail(cur()?.card);
+      case 'kind': b.kind = a; b.card = null; b.opts = null; b.step = 2; surpBuild();
+        { const r = await rpc('surprise_options', { p_code: S.code, p_member: S.me, p_kind: a }); if (S.sb !== b || b.kind !== a) return; b.opts = r.options || []; surpBuild();
+          bookFetch(b.opts).then(ok => { if (ok && S.sb === b && b.step === 2) surpBuild(); }); } return;
+      case 'pick': b.card = (b.opts || []).find(c => c.id === a) || null; if (b.kind === 'event' && b.card) { b.day = b.card.event_date; b.time = evStart(b.card) || '19:00'; } return surpBuild();
+      case 'step': b.step = Number(a); return surpBuild();
+      case 'day': b.day = a; return surpBuild();
+      case 'time': b.time = a; return surpBuild();
+      case 'hint': b.hints = b.hints.includes(a) ? b.hints.filter(h => h !== a) : [...b.hints, a].slice(-3); return surpBuild();
+      case 'reveal': b.reveal = a; return surpBuild();
+      case 'send': {
+        if (b.day === pToday() && b.time <= pNow()) return toast('That time has already passed today. Pick a later one.');
+        el.disabled = true;
+        if (b.move) { a = b.move; const x = await act('move', { day: b.day, time: b.time }); S.sb = null; push(`${S.me} moved the surprise`, `Now ${pDayLow(x.day)} at ${pT(x.time)}. Tap to say if you’re free.`, './?surprise=' + x.id); toast('Moved. ' + them() + ' has the new night.'); if (S.view === 'home') render(); return surpView(x.id); }
+        const x = await rpc('surprise_create', { p_code: S.code, p_member: S.me, p_kind: b.kind, p_card: b.card.id, p_day: b.day, p_time: b.time, p_hints: b.hints, p_reveal: b.reveal });
+        S.sb = null; await surpReload(); push(`${S.me} planned something for ${pDayLow(x.day)}`, `${pT(x.time)}. Keep it free, and tap to say if you can make it.`, './?surprise=' + x.id);
+        toast(`Sent. ${them()} knows when, not what.`, 3500); if (S.view === 'home') render(); return surpView(x.id); }
+      case 'free': case 'cant': { const x = await act(v); push(v === 'free' ? `${S.me} is free ${pDayLow(x.day)}` : `${S.me} can’t make ${pDayLow(x.day)}`, v === 'free' ? 'Your surprise is on.' : 'Pick another night. It’s still a surprise.', './?surprise=' + x.id); if (S.view === 'home') render(); return surpView(a); }
+      case 'booked': await act('booked'); if (S.view === 'home') render(); return surpView(a);
+      case 'revealnow': if (el.dataset.sure !== '1') { el.dataset.sure = '1'; el.textContent = `Tap again to reveal it to ${them()} now`; return; }
+        await act('revealnow'); push('Your surprise is ready', `Scratch the card to see what ${S.me} planned.`, './?surprise=' + a); toast(`${them()} can scratch it now.`); if (S.view === 'home') render(); return surpView(a);
+      case 'move': { const x = cur(); S.sb = { step: 3, move: a, kind: x.kind, card: x.card, day: x.day < pToday() ? pToday() : x.day, time: x.time, hints: [], reveal: x.reveal }; return surpBuild(); }
+      case 'cancel': if (el.dataset.sure !== '1') { el.dataset.sure = '1'; el.textContent = 'Tap again to call it off'; return; }
+        { const x = cur(); await act('cancel'); push(`${S.me} called off ${pDayLow(x.day)}’s plan`, 'Nothing to hold that night any more.', './'); await surpReload(); closeSheet(); toast('Called off. Your surprise for this month is back.'); return render(); }
+      case 'fav': { const c = cur()?.card; if (!c) return; const on = !isFav(c.id); S.favs = await rpc('fav_toggle', { p_code: S.code, p_member: S.me, p_card: c.id, p_on: on }).catch(() => S.favs); return surpView(a); }
+      case 'done': document.querySelector('.scr')?.remove(); if (S.view === 'home') render(); return;
+    }
+  } catch (e) { const m = String(e?.message || e); toast(/used_this_month/.test(m) ? 'You’ve used this month’s surprise.' : /bad_day/.test(m) ? 'Pick a day in the next two months.' : 'That did not go through. Check your connection.'); if (el) el.disabled = false; }
+}
+// The reveal: a gold card to scratch. The place arrives from the server only now.
+async function surpReveal(id) {
+  let x; try { x = await rpc('surprise_act', { p_code: S.code, p_member: S.me, p_id: id, p_action: 'reveal', p_arg: {} }); } catch { return toast('Not quite time yet.'); }
+  const first = (S.surp?.items || []).find(y => y.id === id)?.status !== 'revealed';
+  if (S.surp) { const i = S.surp.items.findIndex(y => y.id === id); if (i >= 0) S.surp.items[i] = x; } bellSync();
+  const c = x.card; if (!c) return;
+  closeSheet(); document.querySelector('.scr')?.remove();
+  const el = document.createElement('div'); el.className = 'scr gold';
+  el.innerHTML = `<small class="scr-k">From ${esc(x.by)}</small><h2>${esc(pDayName(x.day))}’s surprise</h2>
+    <div class="scr-card"><div class="scr-in">${c.image ? `<img src="${esc(c.image)}" alt="">` : emojiFor(c)}<span class="scr-t"><b>${esc(c.title)}</b><small>${esc(pT(x.time))}${x.booked ? ' · Booked' : ''}${c.data?.miles != null ? ' · ' + c.data.miles + ' mi' : ''}</small></span></div><canvas id="scv"></canvas></div>
+    <p id="scp">Scratch the card to see where you’re going.</p>
+    <div id="scb" style="visibility:hidden;width:100%;max-width:340px"><div class="row" style="gap:8px">${c.data?.maps ? `<a class="btn ghost" style="flex:1;text-decoration:none;text-align:center" href="${esc(c.data.maps)}" target="_blank" rel="noopener">Map</a>` : ''}<button class="btn" style="flex:2" data-sp="done">Can’t wait</button></div></div>`;
+  document.body.appendChild(el);
+  const cv = document.getElementById('scv'), box = cv.parentElement.getBoundingClientRect(), W = cv.width = Math.round(box.width), H = cv.height = Math.round(box.height), g = cv.getContext('2d');
+  const gr = g.createLinearGradient(0, 0, W, H); [[0, '#8a5f16'], [.3, '#b0842a'], [.5, '#d8b25a'], [.72, '#a87c24'], [1, '#94691c']].forEach(([o, col]) => gr.addColorStop(o, col)); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+  for (let i = 0; i < 700; i++) { g.globalAlpha = .25 + Math.random() * .6; g.fillStyle = Math.random() < .5 ? '#fff6d6' : '#ffe29a'; g.beginPath(); g.arc(Math.random() * W, Math.random() * H, .4 + Math.random() * 1.1, 0, 6.28); g.fill(); }
+  g.globalAlpha = 1; g.fillStyle = '#3a2404'; g.textAlign = 'center'; g.font = `italic ${Math.round(W / 7)}px "Instrument Serif", Georgia, serif`; g.fillText('Scratch me', W / 2, H / 2 + 8);
+  g.globalCompositeOperation = 'destination-out'; g.lineCap = 'round'; g.lineJoin = 'round'; g.lineWidth = Math.max(44, W / 5);
+  let down = false, lx = 0, ly = 0, moves = 0, done = false;
+  const pt = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; };
+  const reveal = () => { if (done) return; done = true; cv.style.transition = 'opacity .5s'; cv.style.opacity = 0; setTimeout(() => cv.remove(), 520);
+    document.getElementById('scp').innerHTML = `<b>${esc(c.title)}</b>, ${esc(pDayLow(x.day))} at ${esc(pT(x.time))}.${x.hints?.length ? ' ' + esc(x.hints.join(', ')) + '.' : ''}`;
+    document.getElementById('scb').style.visibility = ''; const r = el.querySelector('.scr-card').getBoundingClientRect(); confetti(r.left + r.width / 2, r.top + r.height / 3, 120);
+    if (first) push(`${S.me} just found out`, `The surprise is revealed: ${c.title}.`, './?surprise=' + id); try { navigator.vibrate?.([20, 30, 40]); } catch {} };
+  const check = () => { const dt = g.getImageData(0, 0, W, H).data; let clear = 0, tot = 0; for (let i = 3; i < dt.length; i += 4 * 37) { tot++; if (dt[i] < 40) clear++; } if (clear / tot > .45) reveal(); };
+  cv.addEventListener('pointerdown', e => { down = true; [lx, ly] = pt(e); try { cv.setPointerCapture(e.pointerId); } catch {} });
+  cv.addEventListener('pointermove', e => { if (!down) return; const [px, py] = pt(e); g.beginPath(); g.moveTo(lx, ly); g.lineTo(px, py); g.stroke(); lx = px; ly = py; if (++moves % 6 === 0) check(); });
+  const up = () => { if (down) { down = false; check(); } }; cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+}
+// Fine gold glitter on the surprise card: each fleck faces its own way and flashes only when the tilt lines up with it.
+const GOLD = { cv: null };
+function goldInit(cv) {
+  const r = cv.parentElement.getBoundingClientRect(), d = Math.min(2, devicePixelRatio || 1), W = cv.width = Math.round((r.width || 250) * d), H = cv.height = Math.round((r.height || 330) * d);
+  let sd = 5; const R = () => (sd = sd * 16807 % 2147483647) / 2147483647, P = [];
+  for (let i = 0; i < 1800; i++) { const a = R() * 6.28, m = .25 + R() * .75; P.push({ x: R() * W, y: R() * H, nx: Math.cos(a) * m, ny: Math.sin(a) * m, r: (.6 + R() * R() * 1.5) * d * .5, w: .2 + R() * .22, star: R() < .025 }); }
+  Object.assign(GOLD, { cv, c: cv.getContext('2d'), W, H, P, d, vel: 0 }); goldStep(.3, .2, 0);
+}
+function goldStep(tx, ty, sp) {
+  const G = GOLD; if (!G.cv || !G.cv.isConnected) { G.cv = null; return; }
+  G.vel += (Math.min(1, sp * .9) - G.vel) * .2;
+  const { c, W, H, P, d } = G, lx = W / 2 + tx * W * .55, ly = H * .45 + ty * H * .55, boost = .6 + G.vel * .9;
+  c.clearRect(0, 0, W, H); c.globalCompositeOperation = 'lighter';
+  for (const p of P) { const dx = p.nx - tx * .85, dy = p.ny - ty * .85, dist = Math.hypot(dx, dy); let o = 1 - dist / p.w; if (o <= 0) continue;
+    o = Math.min(1, o * 1.5 * Math.max(.25, 1 - Math.hypot(p.x - lx, p.y - ly) / (W * .8)) * boost);
+    c.globalAlpha = o; c.fillStyle = '#fffdf0'; c.beginPath(); c.arc(p.x, p.y, p.r * (1 + o), 0, 6.28); c.fill();
+    c.globalAlpha = o * .35; c.fillStyle = '#ffe9a0'; c.beginPath(); c.arc(p.x, p.y, p.r * 4, 0, 6.28); c.fill();
+    if (p.star && o > .45) { const L = (3 + o * 5) * d; c.globalAlpha = o; c.strokeStyle = '#fffbe8'; c.lineWidth = .6 * d; c.beginPath(); c.moveTo(p.x - L, p.y); c.lineTo(p.x + L, p.y); c.moveTo(p.x, p.y - L); c.lineTo(p.x, p.y + L); c.stroke(); } }
+}
 /* ---------- tilt: cards catch the light as the phone moves ---------- */
 // Only the cards react. The sensor is read only while a card pile is on screen and the app is in front; with no
 // sensor (or "not now") the light drifts slowly by itself; with Reduce Motion, or switched off, everything holds still.
@@ -2615,7 +2845,7 @@ async function tiltGrant() {
   try { TILT.granted = (await DeviceOrientationEvent.requestPermission()) === 'granted'; } catch { TILT.granted = false; }
   return TILT.granted;
 }
-function tiltTargets() { return document.querySelectorAll('#stack .card.tl, #tdeck .tpc.top'); }
+function tiltTargets() { return document.querySelectorAll($layer.innerHTML ? '#tdeck .tpc.top' : '#stack .card.tl'); }
 function tiltFrame(now) {
   TILT.raf = 0;
   const els = tiltTargets();
@@ -2625,7 +2855,7 @@ function tiltFrame(now) {
   else { const t = now / 1000; gx = Math.sin(t * .5) * .5; gy = Math.sin(t * .37 + 1) * .4; }   // no sensor: a slow drift
   const px = TILT.x, py = TILT.y; TILT.x += (gx - px) * .12; TILT.y += (gy - py) * .12;
   els.forEach(el => { el.style.setProperty('--tx', TILT.x.toFixed(3)); el.style.setProperty('--ty', TILT.y.toFixed(3)); });
-  lavaStep(now, TILT.x, TILT.y, (TILT.x - px) * 60, (TILT.y - py) * 60);
+  lavaStep(now, TILT.x, TILT.y, (TILT.x - px) * 60, (TILT.y - py) * 60); goldStep(TILT.x, TILT.y, Math.hypot(TILT.x - px, TILT.y - py) * 60);
   TILT.raf = requestAnimationFrame(tiltFrame);
 }
 function tiltWatch() {
@@ -2982,7 +3212,7 @@ function bookBlock(c, day, time) {
   if (d.reservable === false) return `<p class="muted" style="font-size:13.5px;margin-top:14px">Walk-in: no reservations here.</p>`;
   return '';
 }
-function closeSheet() { $layer.innerHTML = ''; document.querySelector('.a2arrow')?.remove(); }
+function closeSheet() { $layer.innerHTML = ''; document.querySelector('.a2arrow')?.remove(); tiltWatch(); }
 function showDetail(c) {
   if (!c) return; S.detailCard = c;
   if (isRest(c) && !c.data.book_at) bookFetch([c]).then(ok => { if (ok && S.detailCard === c && $layer.querySelector('.sheet')) showDetail(c); }); const d = c.data || {}; let b = '';
@@ -3081,7 +3311,7 @@ async function saveAdd(t) {
 /* ---------- events ---------- */
 document.addEventListener('click', async e => {
   if (S.slDrag && Date.now() - S.slDrag < 350 && e.target.closest('.sli')) return;
-  const t = e.target.closest('[data-pl],[data-inurl],[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-hdeck],[data-like],[data-final],[data-lad],[data-chg],[data-tbpick],[data-g],[data-seenany],[data-padd],[data-lib],[data-libf],[data-tripc],[data-who],[data-gcity],[data-getaway],[data-libc],[data-planf],[data-planact],[data-tripbook],[data-tripinvite],[data-tripsearch],[data-planbook],[data-planpick],[data-tripdates],[data-datesave],[data-tripitem],[data-astack],[data-shpick],[data-feel],[data-seenme],[data-pset],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
+  const t = e.target.closest('[data-sp],[data-pl],[data-inurl],[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-hdeck],[data-like],[data-final],[data-lad],[data-chg],[data-tbpick],[data-g],[data-seenany],[data-padd],[data-lib],[data-libf],[data-tripc],[data-who],[data-gcity],[data-getaway],[data-libc],[data-planf],[data-planact],[data-tripbook],[data-tripinvite],[data-tripsearch],[data-planbook],[data-planpick],[data-tripdates],[data-datesave],[data-tripitem],[data-astack],[data-shpick],[data-feel],[data-seenme],[data-pset],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
   if (!t) return; const ds = t.dataset;
   try {
     if (ds.who) { const jn = document.getElementById('jn'); if (jn) jn.value = ds.who; return document.getElementById('jgo')?.click(); }
@@ -3125,6 +3355,7 @@ document.addEventListener('click', async e => {
     if (ds.lib) { const c = (S.libMode === 'movie' && S.libF === 'seen' && S.view === 'library' ? (S.libSeen || []).find(x => x.id === ds.lib) : null) || (S.lib || []).find(x => x.id === ds.lib) || (S.view === 'trips' ? (S.libThem || []).find(x => x.id === ds.lib) : null); if (!S.libSel) return libFront(c, t);
       if (S.libSel.has(c.id)) S.libSel.delete(c.id); else if (S.libSel.size >= 6) return toast('Six is plenty.'); else S.libSel.add(c.id);
       t.classList.toggle('sel', S.libSel.has(c.id)); const b = document.getElementById('lplay'); if (b) { b.textContent = `Play for it (${S.libSel.size})`; b.disabled = S.libSel.size < 2; b.style.opacity = S.libSel.size < 2 ? .5 : 1; } return; }
+    if (ds.sp) { const [v, a] = ds.sp.split('|'); return surpAct(v, a, t); }
     if (ds.nudge) return nudgeSheet(ds.nudge);
     if (ds.svc) return t.classList.toggle('on');
     if (ds.f) { const set = F[ds.f]; set.has(ds.v) ? set.delete(ds.v) : set.add(ds.v); return t.classList.toggle('on'); }
@@ -3340,6 +3571,7 @@ setTimeout(checkVersion, 4000);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && S.bookCity && S.bookTouched && document.querySelector('.bookframe')) S.bookLeft = true; if (document.visibilityState === 'visible' && S.bookLeft) setTimeout(bookBack, 400); if (document.visibilityState === 'hidden' && updReady && S.view === 'home' && !$layer.innerHTML && !document.querySelector('.match,.lfront,.coach,.wn,.scr,.sco,.bookframe')) reloadKeep(); if (document.visibilityState === 'visible') { returnAt = Date.now(); tryUpdate(true); evPeek(); checkVersion(true); checkTravel(); S.peekTried = false; scratchCheck(); } });
 document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && S.code && S.me) { try { const was = homeSig(); await refresh(); bellSync(); if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) { if (homeSig() !== was) render(); } else if (S.view === 'swipe' && S.sess) { const d = await rpc('get_session', { p_code: S.code, p_session: S.sess.id, p_member: S.me }); S.theirLeft = d.their_left; S.total = d.total; if (d.matches.length !== S.matches.length) { S.matches = d.matches; } if (d.deck.length !== S.deck.length && !busy) { S.deck = d.deck; drawStack(); } else updateBar(); } } catch {} } });
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); navigator.serviceWorker.addEventListener('message', e => { if (e.data?.pushed) return inboxPoll(); const u = e.data?.open; if (u) { const q = new URL(u).searchParams, s = q.get('s'), r = q.get('rec'), g = q.get('tb'); if (s && S.me) openSession(s); else if (r && S.me) openRec(r, q.get('keen')); else if (g && S.me) openGame(g); else if (q.get('reveal') && S.me) { prepRevealTest(); render(); }
+    else if (q.get('surprise') && S.me) surpOpen(q.get('surprise'));
     else if (q.get('plan') && S.me) { S.favAsk = q.get('fav') ? q.get('plan') : null; dayAct('view', q.get('plan')).catch(() => {}); } else if (q.get('planfor') && S.me) dayAct('around', q.get('planfor')).catch(() => {}); else if (q.get('invite') && S.me) { if (!partner()) inviteSheet(); } else if (q.get('trip') && S.me) openGetaway(q.get('trip'), partner()); else if (SHW[q.get('share')] && S.me) openShareTab(q.get('share')); } }); }
 
 // iPhone keeps a Home Screen app's storage apart from the browser's, so signing up in Safari and then opening the
