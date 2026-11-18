@@ -5,7 +5,7 @@ Run: python3 scripts/make_emails.py"""
 import pathlib
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent / 'emails'
-SANS = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif"
+SANS = "Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif"
 
 
 def page(title, preheader, heading, lead, middle, fine):
@@ -17,6 +17,7 @@ def page(title, preheader, heading, lead, middle, fine):
 <meta name="color-scheme" content="dark">
 <meta name="supported-color-schemes" content="dark">
 <title>{title}</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body style="margin:0;padding:0;background-color:#100d12;">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;">{preheader}</div>
@@ -27,7 +28,7 @@ def page(title, preheader, heading, lead, middle, fine):
 <img src="https://letstogether.app/email-logo.gif" width="300" height="214" alt="Let’s Together" style="display:block;border:0;width:300px;max-width:100%;height:auto;">
 </td></tr>
 <tr><td align="center" bgcolor="#1b1620" style="background-color:#1b1620;border-radius:24px;padding:36px 28px 32px;">
-<p style="margin:0 0 6px;font-family:Georgia,'Times New Roman',serif;font-size:30px;line-height:1.15;color:#ffffff;">{heading}</p>
+<p style="margin:0 0 6px;font-family:'Instrument Serif',Georgia,'Times New Roman',serif;font-size:34px;line-height:1.15;color:#ffffff;">{heading}</p>
 <p style="margin:0 0 26px;font-family:{SANS};font-size:15px;line-height:1.5;color:#c9bec6;">{lead}</p>
 {middle}
 <p style="margin:24px 0 0;font-family:{SANS};font-size:13.5px;line-height:1.5;color:#9a8f97;">{fine}</p>
