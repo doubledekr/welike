@@ -1305,6 +1305,65 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 /* lean: only the card on top bobs; nothing behind an open sheet keeps animating */
 .card:not(.tl) .art{animation:none}
 body:has(#layer>*) #app :is(.brand i,.hdr .ic,.card .art,.btn,.go.blink,.dbg .mos>div),body:has(#layer>*) #app :is(.btn,.go.blink)::after{animation-play-state:paused}
+/* friends, private groups and group plans (beta) */
+.fr .yrow small,.frcta small,.frnp .yrow small{display:block;color:var(--muted);font-size:12.5px;line-height:1.3;margin-top:2px}
+.fr .brand{font-size:30px}
+.hdr.h5 .brand.hb{font-size:clamp(15px,4.7vw,21px);gap:6px}.hdr.h5 .brand.hb .mark{width:26px;height:26px}.hdr.h5 .ib{width:37px}
+.frdot{width:8px;height:8px;border-radius:50%;background:#ff6a5e;flex:none}
+.frcta{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px;border-radius:20px;background:linear-gradient(135deg,rgba(255,122,77,.26),rgba(255,77,126,.18));margin-bottom:4px}
+.frcta .tic{width:26px;height:26px;flex:none;color:#ff9a7a;background:none;box-shadow:none}
+.frempty{padding:4px 2px 0}.frfine{font-size:12.5px;margin-top:12px;line-height:1.45}
+.btn.frnew{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;max-width:none}
+.frpicks{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.frpick{padding:9px 14px;border-radius:99px;background:rgba(255,255,255,.07);color:#d9d0dc;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+.frpick.on{background:linear-gradient(135deg,#ff7a4d,#ff4d7e);color:#fff}
+.frpick .ic{width:15px;height:15px}
+.frnp .btn,.frp .btn.frsend{max-width:none}
+.frsw1{padding-left:0;padding-right:0;box-shadow:none;margin-top:8px}
+.frrow2{display:flex;gap:10px;align-items:flex-end}.frrow2>*{flex:1;min-width:0}.frrow2 .btn{flex:none}
+.frrow2 .field input{width:100%;box-sizing:border-box;color:#fff;border:0;font:500 16px Inter,system-ui,sans-serif;min-height:46px}
+.frsel{flex:none;height:42px;border:0;border-radius:12px;background:rgba(255,255,255,.08);color:#fff;font:500 15px Inter,system-ui,sans-serif;padding:0 10px;max-width:56%}
+.frsel.wide{width:100%;max-width:none;height:48px}.frrow2 .frsel.wide{height:42px}.frsb>#frat{margin-top:10px}
+.frin{height:46px;border:0;border-radius:12px;background:rgba(255,255,255,.07);color:#fff;font:500 16px Inter,system-ui,sans-serif;padding:0 14px;width:100%;box-sizing:border-box;margin-top:8px}
+.fradd{margin-top:10px}.fradd .frin{margin-top:0}.fradd+.btn{margin-top:10px}.frsb>.frin:first-of-type{margin-top:10px}.frsb .frrow2{margin-top:10px}
+.frup{display:block;color:var(--muted);font-size:12px;letter-spacing:1.2px;text-transform:uppercase;margin-top:10px}
+.frh{font-family:var(--serif);font-weight:400;font-size:34px;line-height:1.08;margin-top:8px;overflow-wrap:anywhere}
+.frwho{font-size:14px;line-height:1.5;margin-top:8px;color:#e8e0ea}.frwho em{font-style:normal;color:#ffb89a;font-size:12.5px}.frwho span{color:var(--muted)}
+.frwhen{margin-top:6px;color:#ffd0a8;font-weight:600;font-size:14.5px}
+.frsurp{display:flex;gap:8px;align-items:center;margin-top:10px;padding:10px 12px;border-radius:14px;background:rgba(138,92,255,.16);font-size:13.5px;line-height:1.35}.frsurp .ic{width:18px;height:18px;flex:none;color:#c4a8ff}
+.frstep{border-radius:20px;background:rgba(255,255,255,.045);padding:14px;margin-top:10px}
+.frstep.flater{opacity:.5}
+.frsh{display:flex;align-items:center;gap:10px}
+.frsh i{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:13px;background:rgba(255,255,255,.1);color:#d9d0dc}
+.frsh i .ic{width:15px;height:15px;stroke-width:3}
+.frstep.fdone .frsh i{background:linear-gradient(135deg,#2dd4bf,#4d9bff);color:#06263d}
+.frsh b{font-size:15.5px}.frsh small{margin-left:auto;color:var(--muted);font-size:12.5px;text-align:right}
+.frstep.fdone .frsh small{color:#bfeee6;font-weight:600}
+.frsb{margin-top:10px;font-size:14.5px;line-height:1.45}.frsb p+p{margin-top:6px}
+.fropt{display:flex;align-items:center;gap:10px;padding:10px 0;width:100%;text-align:left}
+.fropt small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}
+.frrank i{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:13px;background:rgba(255,255,255,.08);color:#fff}
+.frrank.on i{background:linear-gradient(135deg,#ff7a4d,#ff4d7e)}
+.frlink{color:#ffb89a;font-size:13px;font-weight:600;text-decoration:underline;text-underline-offset:3px;background:none;padding:0}
+.frsend{margin-top:10px}.frsb p+.btn.sm,.frsb .frlist+.btn{margin-top:10px}
+.fr3{display:flex;gap:5px;flex:none}
+.fr3 button{padding:7px 9px;border-radius:99px;background:rgba(255,255,255,.07);font-size:12.5px;font-weight:700;color:#d9d0dc}
+.fr3 button.on[data-v=can]{background:#2dd4bf;color:#06263d}.fr3 button.on[data-v=maybe]{background:#ffc94d;color:#3d2a00}.fr3 button.on[data-v=cant]{background:#ff6a5e;color:#fff}
+.frtime{flex:none;width:76px;font-size:14.5px}
+.frride{margin-top:8px;padding:10px 12px;border-radius:14px;background:rgba(45,212,191,.14);font-size:13.5px;line-height:1.4}
+.frlist{margin-top:12px}.frlist b{display:block;font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.frlist span{display:flex;justify-content:space-between;gap:10px;padding:6px 0;font-size:14.5px}.frlist em{font-style:normal;color:var(--muted);font-size:12.5px;flex:none}
+.frpk{font-family:var(--serif);font-weight:400;font-size:26px;line-height:1.1}
+.frsw .topbar small{display:block;color:var(--muted);font-size:12.5px}
+.frcard{position:relative;height:min(58vh,480px);border-radius:26px;overflow:hidden;background:linear-gradient(160deg,#2a2230,#17131b);margin-top:14px;touch-action:pan-y;will-change:transform;-webkit-user-select:none;user-select:none}
+.frcard img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.frart{position:absolute;inset:0;display:grid;place-items:center;padding-bottom:20%;color:rgba(255,255,255,.3)}.frart .ic{width:84px;height:84px;stroke-width:1.2}
+.frct{position:absolute;left:0;right:0;bottom:0;padding:70px 18px 18px;background:linear-gradient(180deg,transparent,rgba(10,8,12,.94))}
+.frct small{color:#ffd0a8;font-size:12px;letter-spacing:1.2px;text-transform:uppercase}
+.frct h3{font-family:var(--serif);font-weight:400;font-size:28px;line-height:1.1;margin-top:4px}.frct p{color:#d9d0dc;font-size:14px;margin-top:6px;line-height:1.35}
+.fracts{display:flex;justify-content:center;gap:30px;margin:18px 0 6px}
+.frb{width:66px;height:66px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.08);color:#fff}.frb .ic{width:28px;height:28px}
+.frb.y{background:linear-gradient(135deg,#ff7a4d,#ff4d7e)}
 </style>
 <script>window.LT_BETA = true;</script>
 <style>body::after{content:'BETA';position:fixed;top:calc(env(safe-area-inset-top) + 2px);left:50%;transform:translateX(-50%);font:700 9px/1 system-ui,sans-serif;letter-spacing:.24em;color:#ffb547;opacity:.85;z-index:99999;pointer-events:none}</style>
@@ -1346,7 +1405,7 @@ const DECKS = {
 };
 const ICONS = {
   x: 'M6 6l12 12M18 6L6 18', moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z', sun: 'M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4', gear: 'M10.11 4.95 L10.16 1.56 L13.84 1.56 L13.89 4.95 A7.3 7.3 0 0 1 15.65 5.68 L18.08 3.32 L20.68 5.92 L18.32 8.35 A7.3 7.3 0 0 1 19.05 10.11 L22.44 10.16 L22.44 13.84 L19.05 13.89 A7.3 7.3 0 0 1 18.32 15.65 L20.68 18.08 L18.08 20.68 L15.65 18.32 A7.3 7.3 0 0 1 13.89 19.05 L13.84 22.44 L10.16 22.44 L10.11 19.05 A7.3 7.3 0 0 1 8.35 18.32 L5.92 20.68 L3.32 18.08 L5.68 15.65 A7.3 7.3 0 0 1 4.95 13.89 L1.56 13.84 L1.56 10.16 L4.95 10.11 A7.3 7.3 0 0 1 5.68 8.35 L3.32 5.92 L5.92 3.32 L8.35 5.68 A7.3 7.3 0 0 1 10.11 4.95Z M15.10 12a3.1 3.1 0 1 0-6.20 0a3.1 3.1 0 1 0 6.20 0z', heart: 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z',
-  cal: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4', user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c.8-4 4-6 8-6s7.2 2 8 6',
+  cal: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4', users: 'M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2.5 20c.6-3.4 3.2-5.2 6.5-5.2s5.9 1.8 6.5 5.2M16 4.2a3.5 3.5 0 0 1 0 6.6M18.2 15.2c1.8.7 3 2.3 3.3 4.8', user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c.8-4 4-6 8-6s7.2 2 8 6',
   star: 'M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8-5.3-2.8-5.3 2.8 1-5.8-4.2-4.1 5.9-.9z',
   eye: 'M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12zM12 9.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z',
   undo: 'M9 14L4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11',
@@ -1655,7 +1714,11 @@ function onHand(card) { const ing = card.data?.ingredients || []; if (!ing.lengt
 /* ---------- views ---------- */
 function render() {
   document.querySelector('.a2arrow')?.remove();
+  if (sbA && S.acct && (!S.code || !S.me)) {   // signed in with no couple: friends only, or still choosing
+    if (S.view === 'fplan' && FR.plan) return renderFPlan(); if (S.view === 'fswipe' && FR.plan) return renderFSwipe();
+    return FR.d && ls.get('solo') && !S.startMode ? renderFriends() : renderStart(); }
   if (!S.code || !S.me) return renderJoin();
+  if (S.view === 'friends') return renderFriends(); if (S.view === 'fplan') return renderFPlan(); if (S.view === 'fswipe') return renderFSwipe();
   if (S.view === 'swipe') return renderSwipe();
   if (S.view === 'matches') return renderMatches();
   if (S.view === 'game') return renderGame();
@@ -1674,6 +1737,7 @@ function render() {
 }
 function renderLanding() {
   // Before sign-up: hello, a card to flick, two phones that match, then name and ZIP on the last screen.
+  if (sbA && ls.get('fpend') && S.obI == null) S.obI = 3;   // came from a friend's link: straight to sign-in
   const i = S.obI = Math.max(0, Math.min(3, S.obI || 0)), C = [['#ffb547', '#ff4d7e'], ['#ffb547', '#ff7a4d'], ['#ff7a9c', '#ff4d7e'], ['#ffb547', '#ff4d7e']][i];
   step('tour' + (i + 1));
   const top = skip => `<div class="wn-top"><span class="wk-dots">${[1, 2, 3].map(k => `<i class="${k <= i ? 'on' : ''}"></i>`).join('')}</span>${skip ? '<button data-act="ob2go" data-i="3">Skip</button>' : `<button data-act="ob2go" data-i="${i - 1}">Back</button>`}</div>`;
@@ -1684,7 +1748,8 @@ function renderLanding() {
     () => `${top(1)}<small class="wk-k">Tap both phones</small><h2 class="wk-h">Two yeses make a match</h2><p class="wk-p">Matches land in a shared list, ready for whenever you want a plan.</p>
       <div class="wk-stage ob2-match"><div class="ob2-two"><button class="ob2-mini" data-w="Hell yeah"><b>You</b><span></span><em>Tap</em></button><button class="ob2-mini" data-w="Maybe"><b>Your person</b><span></span><em>Tap</em></button></div><div class="ob2-hit" id="ob2hit"><b>It’s a match</b><small>Then pick one, shuffle, or let a tie-breaker decide</small></div></div>
       <button class="btn wk-cta wait" id="wkgo" data-act="ob2go" data-i="3" disabled>Tap both phones</button>`,
-    () => `${top(0)}<small class="wk-k">No email, no password</small><h2 class="wk-h">Start your couple</h2><p class="wk-p">Two things and you’re in. You’ll get an invite link for your better half.</p>
+    () => sbA ? `${top(0)}<small class="wk-k">One sign-in, any phone</small><h2 class="wk-h">${ls.get('fpend') ? 'A friend invited you' : 'Sign in to start'}</h2><p class="wk-p">${ls.get('fpend') ? 'Sign in and add your first name to join them. No partner needed.' : 'Your account is yours. Your couple, your friends and your plans hang off it, and it follows you to any phone.'}</p>
+      <div class="ob2-sp"></div><button class="btn wk-cta" data-act="acct">Sign in or sign up</button>${code}` : `${top(0)}<small class="wk-k">No email, no password</small><h2 class="wk-h">Start your couple</h2><p class="wk-p">Two things and you’re in. You’ll get an invite link for your better half.</p>
       <label class="field"><span>Your first name</span><input id="jn" autocomplete="given-name" maxlength="24" placeholder="First name"></label>
       <label class="field"><span>Home ZIP, for places near you</span><input id="jz" inputmode="numeric" autocomplete="postal-code" maxlength="5" placeholder="48201"></label><input id="jc" type="hidden" value=""><div id="jwho"></div>
       <div class="ob2-sp"></div><button class="btn wk-cta" data-act="newcouple">Start</button>${code}`,
@@ -1881,8 +1946,8 @@ function homeHTML() {
   if (!ls.get('allv1')) { ls.set('allv1', '1'); S.homeDeck = 'all'; ls.set('deck', 'all'); }   // the Everything deck is the new front door, once
   if (!HDECKS.some(d => d[0] === S.homeDeck)) S.homeDeck = 'all';
   return `<div class="home">
-    <div class="row hdr"><div class="brand grow hb">${MARK}<span>${BRAND}</span></div>
-      <button class="ib" data-act="search" aria-label="Search movies">${ic('search')}</button>
+    <div class="row hdr ${sbA ? 'h5' : ''}"><div class="brand grow hb">${MARK}<span>${BRAND}</span></div>
+      <button class="ib" data-act="search" aria-label="Search movies">${ic('search')}</button>${sbA ? `<button class="ib" data-fr="open" aria-label="Friends and group plans">${ic('users')}</button>` : ''}
       <button class="ib shr ${ls.get('shared') ? 'done' : ''}" data-act="sharefriends" aria-label="Share Let’s Together with friends">${ic('share')}</button>
       ${bellHTML()}<button class="ib" data-tab="you" aria-label="You and settings">${ic('gear')}</button></div>${slotHTML(incoming)}
     <div id="hbot" style="display:contents"><div class="seg" style="margin:12px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="kc k-${CK[k]} ${S.homeDeck === k ? 'on' : ''}">${l}${heartTag(k)}</button>`).join('')}</div>${scratchShow() && !S.awayOffer ? `<button class="scratch-pill" data-act="scratch">${ic('spark')}<span><b>A scratch card is waiting</b><small>One thing ${esc(p)} is in on</small></span><i>Scratch</i></button>` : ''}${S.awayOffer ? `<div class="trav"><span class="tic">${ic('pin')}</span><span class="grow"><b>Looks like you’re in ${esc(S.awayOffer.city)}</b><small>Show places to eat and things to do here?</small></span><button class="go" data-act="awayyes">Show</button><button class="x" data-act="awayno" aria-label="Not now">×</button></div>` : ''}${S.away && (S.homeDeck === 'dinner' || S.homeDeck === 'event') ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><small class="muted" style="font-size:12.5px">${ic('pin')} ${S.away.trip ? `Your ${esc(S.away.city)} trip` : `Showing ${esc(S.away.city)} on this phone`}</small><button class="chip" data-act="awayoff" style="padding:5px 12px;font-size:13px">Back to home</button></div>` : ''}${S.homeDeck === 'movie' ? `<div class="row" style="margin:14px 2px 0"><button class="chip" data-act="movielib" style="padding:5px 12px;font-size:13px">${ic('film')} Movie library</button></div>` : ''}${shareChip()}${S.homeDeck === 'art' ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="gallery" style="padding:5px 12px;font-size:13px">${ic('frame')} Our gallery</button><small class="muted" style="font-size:12.5px">No nudges, just likes</small></div>` : ''}${S.homeDeck === 'trip' ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="trips" style="padding:5px 12px;font-size:13px">${ic('heart')} Saved trips</button><button class="chip ${S.tripCity ? 'on' : ''}" data-act="tripcity" style="padding:5px 12px;font-size:13px">${esc(S.tripCity || 'Anywhere')} ▾</button></div>` : ''}
@@ -3683,10 +3748,323 @@ async function guessAnswer(yes) {
   S.gres = await rpc('guess_submit', { p_code: S.code, p_member: S.me, p_answers: S.ga }); render();
 }
 
+// ===== Friends, private groups and group plans (beta) =====
+// A person's account owns their friends, groups and plans. The couple stays a separate link between two people:
+// nothing here reads couple swipes, and a partner only sees a plan they were invited to.
+const FR = { d: null, plan: null, np: null, cities: null, rank: {}, wk: {}, hint: '' };
+const FK = { trip: ['plane', 'A trip with friends', 'Girls or guys trip, a weekend away'], double: ['heart', 'Double date', 'Two couples. Each keeps its own swipes'], dinner: ['dine', 'Friendsgiving or a dinner', 'Pick the place together'],
+  bach: ['spark', 'Bachelorette or bachelor', 'The bride or groom can be kept in the dark'], night: ['moon', 'A night out', 'Friends in town, tonight or this weekend'], wedding: ['gem', 'A wedding', 'One place for the shower, the party and the day'] };
+const FROLES = ['Bride', 'Groom', 'Maid of honor', 'Matron of honor', 'Best man', 'Bridesmaid', 'Groomsman'];
+const frD = iso => new Date(iso + 'T12:00:00');
+const frDay = iso => frD(iso).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+const frWk = iso => { const a = frD(iso), b = new Date(a.getTime() + 2 * 864e5), f = d => d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); return `${f(a)} to ${f(b)}`; };
+const frClock = iso => { const d = new Date(iso); let h = d.getUTCHours(); const m = d.getUTCMinutes(), ap = h >= 12 ? 'pm' : 'am'; h = h % 12 || 12; return `${h}:${String(m).padStart(2, '0')} ${ap}`; };   // arrival times are wall-clock at the destination
+const frNames = a => a.length < 2 ? (a[0] || '') : a.length === 2 ? `${a[0]} and ${a[1]}` : `${a.slice(0, -1).join(', ')} and ${a[a.length - 1]}`;
+const frRpc = (fn, a) => acctRpc(fn, a);
+const frSolo = () => !S.code || !S.me;
+const FWHY = { signin: 'Sign in first.', gone: 'That plan isn’t open to you anymore.', host: 'Only the person who started the plan can do that.', closed: 'That vote has closed.', none: 'Nothing has enough yeses yet. Keep swiping.', alone: 'Wait for at least one friend to join first.',
+  respond: 'Say you’re in first.', nocode: 'No one has that code. Check it with your friend.', self: 'That’s your own code.', max: 'You’ve hit the limit for now.', trip: 'Pick at least one place and one weekend.', surprise: 'This plan is being kept a surprise from them.', nopartner: 'Your partner needs to save their account first.', all: 'Answer for every weekend.', bad: 'That didn’t go through. Try again.' };
+const frWhy = w => toast(FWHY[w] || 'That didn’t go through. Try again.', 3400);
+
+async function frLoad(name) {
+  const r = await frRpc('fr_me', name ? { p_name: name } : {});
+  if (r?.ok) { FR.d = r; const pend = ls.get('fpend');
+    if (pend) { ls.del('fpend'); try { const a = await frRpc('fr_add', { p_code: pend }); if (a?.ok) { toast(`You and ${a.name} are friends now.`, 3400); return frLoad(); } else if (a?.why !== 'self') frWhy(a?.why); } catch {} } }
+  else if (r?.why === 'name') FR.hint = r.hint || '';
+  return r;
+}
+async function frOpen() {
+  if (!S.acct) { S.frAfter = true; return acctSheet(); }
+  try { let r = await frLoad(); if (!r?.ok && r?.why === 'name' && (S.me || r.hint)) r = await frLoad(S.me || r.hint);
+    if (!r?.ok) return r?.why === 'name' ? renderStart() : frWhy(r?.why); } catch { return toast('Could not reach the server. Check your connection.'); }
+  closeSheet(); S.view = 'friends'; render();
+}
+// Signed in, no couple yet: a first name, then a couple, a partner's code, or friends only.
+function renderStart() {
+  const pend = ls.get('fpend'), nm = S.startName ?? (S.acctName || FR.hint || ''), m = S.startMode || '';
+  $app.innerHTML = `<div class="wn wk ob2 full" style="--ka:#ffb547;--kb:#ff4d7e"><div class="wn-in wk-in">
+    <div class="wn-top"><span></span><button data-fr="${m ? 'startback' : 'signout'}">${m ? 'Back' : 'Sign out'}</button></div>
+    <small class="wk-k">You’re signed in</small><h2 class="wk-h">${m === 'new' ? 'Start your couple' : m === 'code' ? 'Got a couple code?' : pend ? 'A friend invited you' : 'Welcome. What’s your first name?'}</h2>
+    <p class="wk-p">${m === 'new' ? 'One more thing and you’re in. You’ll get an invite link for your better half.' : m === 'code' ? 'It comes from your partner’s invite.' : pend ? 'Add your first name and you’re in. No partner needed.' : 'It’s how your partner and your friends will see you.'}</p>
+    <label class="field"><span>Your first name</span><input id="sn" autocomplete="given-name" maxlength="24" placeholder="First name" value="${esc(nm)}"></label>
+    ${m === 'new' ? '<label class="field"><span>Home ZIP, for places near you</span><input id="sz" inputmode="numeric" autocomplete="postal-code" maxlength="5" placeholder="48201"></label>' : ''}
+    ${m === 'code' ? '<label class="field"><span>Code from your partner</span><input id="sc" autocapitalize="characters" autocomplete="off" maxlength="12" placeholder="8 letters and numbers"></label>' : ''}
+    <div class="ob2-sp"></div>
+    ${m ? `<button class="btn wk-cta" data-fr="startgo">${m === 'new' ? 'Start' : 'Join'}</button>`
+      : `<button class="btn wk-cta" data-fr="${pend ? 'startgo' : 'start'}" data-m="${pend ? 'solo' : 'new'}">${pend ? 'Join my friend' : 'Start a couple'}</button>
+         <button class="btn ghost wk-cta" style="margin-top:10px" data-fr="start" data-m="${pend ? 'new' : 'code'}">${pend ? 'Start a couple too' : 'I have a code from my partner'}</button>
+         <button class="jlink" data-fr="${pend ? 'start' : 'startgo'}" data-m="${pend ? 'code' : 'solo'}">${pend ? 'I have a code from my partner' : 'Just here for friends, no partner'}</button>`}
+  </div></div>`;
+}
+async function frStartGo(t) {
+  const m = t.dataset.m || S.startMode, name = (document.getElementById('sn')?.value || '').trim();
+  if (!name) return toast('Enter your first name.');
+  t.disabled = true;
+  try {
+    if (m === 'solo') { const r = await frLoad(name); if (!r?.ok) throw 0; ls.set('solo', '1'); S.startMode = ''; S.view = 'friends'; step('fr_solo'); return render(); }
+    let r;
+    if (m === 'new') { const zip = (document.getElementById('sz')?.value || '').trim(); if (!/^\d{5}$/.test(zip)) { t.disabled = false; return toast('Enter your 5-digit home ZIP code.'); }
+      r = await rpc('create_couple', { p_name: name }); step('created'); rpc('mark_beta', { p_code: r.code }).catch(() => {}); try { await rpc('set_settings', { p_code: r.code, p_settings: { zip } }); } catch {} }
+    else { const code = (document.getElementById('sc')?.value || '').trim().toUpperCase(); if (!code) { t.disabled = false; return toast('Enter the code from your partner.'); }
+      r = await rpc('join_couple', { p_code: code, p_name: name }); r.code = code; step('joined'); }
+    S.code = r.code; S.me = r.name; ls.set('code', r.code); ls.set('name', r.name); ls.set('acctask', '1'); S.startMode = ''; ls.del('solo');
+    await acctLink(); try { await frLoad(r.name); } catch {}
+    S.view = 'home'; S.tab = 'home'; return boot();
+  } catch (er) { t.disabled = false; toast(er ? errMsg(er) : 'That didn’t go through. Try again.'); }
+}
+const frStageText = p => p.status === 'invited' ? 'You’re invited' : (p.flow === 'hub' ? '' : p.flow === 'trip' ? ({ weekend: 'Picking the weekend', city: 'Picking where', stay: `${p.city} · picking the stay`, go: `${p.city} · ${frWk(p.day)}` })[p.stage]
+  : ({ swipe: 'Swiping ideas', vote: 'Voting on the shortlist', decided: 'Decided' })[p.stage] + (p.day ? ' · ' + frDay(p.day) : '')) + (p.flow === 'hub' ? '' : ' · ') + `${p.n} going`;
+const frPlanRow = p => `<button class="yrow" data-fr="plan" data-id="${p.id}"><span class="tic">${ic(FK[p.kind]?.[0] || 'spark')}</span><span class="grow"><b>${esc(p.title)}</b><small>${esc(frStageText(p))}</small></span>${p.todo ? '<i class="frdot" aria-label="Needs you"></i>' : ''}<span class="ych">›</span></button>`;
+function renderFriends() {
+  const d = FR.d; if (!d) return renderStart();
+  const solo = frSolo(), ids = new Set(d.plans.map(p => p.id)), plans = d.plans.filter(p => !p.parent || !ids.has(p.parent)), pn = d.couple?.partner;
+  const gOf = id => d.groups.filter(g => g.members.includes(id)).map(g => g.name).join(', ');
+  $app.innerHTML = `<div class="view fr you"><div class="topbar" style="margin-bottom:6px">${solo ? '' : '<button class="back" data-tab="home" aria-label="Back to you two">‹</button>'}<div class="brand grow">Friends</div><button class="ib" data-fr="refresh" aria-label="Refresh">${ic('repeat')}</button><button class="ib" data-act="acct" aria-label="Your account" style="margin-left:8px">${ic('user')}</button></div>
+    ${solo ? `<button class="frcta" data-fr="couple"><span class="tic">${ic('heart')}</span><span class="grow"><b>Start a couple</b><small>Swipe with your person. It stays separate from friends</small></span><span class="ych">›</span></button>` : ''}
+    <div class="sect">Your plans</div>
+    ${plans.length ? `<div class="ycard">${plans.map(frPlanRow).join('')}</div>` : '<p class="muted frempty">Nothing yet. Start a trip, a dinner or a night out, and invite who you like.</p>'}
+    <button class="btn frnew" data-fr="new">${ic('plus')}Start a plan</button>
+    <div class="sect">Friends</div>
+    <div class="ycard">${d.friends.map(f => `<button class="yrow" data-fr="friend" data-id="${f.id}"><span class="tic">${ic('user')}</span><span class="grow"><b>${esc(f.name)}</b>${gOf(f.id) ? `<small>${esc(gOf(f.id))}</small>` : ''}</span><span class="ych">›</span></button>`).join('')}
+      <button class="yrow" data-fr="invite"><span class="tic">${ic('share')}</span><span class="grow"><b>Invite a friend</b><small>One link. They join with a first name, no partner needed</small></span><span class="ych">›</span></button>
+      <button class="yrow" data-fr="addcode"><span class="tic">${ic('plus')}</span><span class="grow"><b>Enter a friend’s code</b><small>Yours is ${esc(d.me.code)}</small></span><span class="ych">›</span></button></div>
+    <div class="sect">Your private groups</div>
+    <div class="ycard">${d.groups.map(g => `<button class="yrow" data-fr="group" data-id="${g.id}"><span class="tic">${ic('list')}</span><span class="grow"><b>${esc(g.name)}</b><small>${g.members.length ? esc(frNames(g.members.map(id => d.friends.find(f => f.id === id)?.name).filter(Boolean))) : 'Nobody yet'}</small></span><span class="ych">›</span></button>`).join('')}
+      <button class="yrow" data-fr="group"><span class="tic">${ic('plus')}</span><span class="grow"><b>New group</b><small>Local, with kids, wedding party. Sort friends your way</small></span><span class="ych">›</span></button></div>
+    <p class="muted frfine">Only you see your groups and who is in them. Friends never see your couple swipes${pn ? `, and ${esc(pn)} only sees a plan you include ${esc(pn)} in` : ''}.</p></div>`;
+}
+function frGroupSheet(id) {
+  const d = FR.d, g = d.groups.find(x => x.id === id);
+  sheet(`<div class="grab"></div><div class="body acs"><h2>${g ? 'Edit group' : 'New group'}</h2><p class="muted">Only you see this. Use it to invite the right people fast.</p>
+    <input id="gname" class="acin" maxlength="30" placeholder="Local, with kids, wedding party" value="${esc(g?.name || '')}" aria-label="Group name">
+    ${d.friends.length ? `<div class="frpicks">${d.friends.map(f => `<button class="frpick ${g?.members.includes(f.id) ? 'on' : ''}" data-fr="tog" data-id="${f.id}">${esc(f.name)}</button>`).join('')}</div>` : '<p class="muted">Invite a friend first, then sort them into groups.</p>'}
+    <button class="btn" data-fr="groupsave" data-id="${g?.id || ''}">Save</button>${g ? `<button class="jlink" data-fr="groupdel" data-id="${g.id}">Delete this group</button>` : ''}</div>`);
+}
+function frFriendSheet(id) {
+  const f = FR.d.friends.find(x => x.id === id); if (!f) return;
+  sheet(`<div class="grab"></div><div class="body acs"><span class="acsic">${ic('user')}</span><h2>${esc(f.name)}</h2>
+    <p class="muted">${FR.d.groups.some(g => g.members.includes(id)) ? 'In your groups: ' + esc(FR.d.groups.filter(g => g.members.includes(id)).map(g => g.name).join(', ')) + '.' : 'Not in any of your groups yet.'} ${esc(f.name)} can’t see how you sort friends.</p>
+    <button class="btn ghost" data-fr="unfriend" data-id="${id}">Remove ${esc(f.name)}</button></div>`);
+}
+const frLink = () => `${location.origin}${location.pathname}?f=${FR.d.me.code}`;
+async function frInvite() {
+  const text = `Join me on Let’s Together so we can plan things without the group-chat mess. Open the link and add your first name:`;
+  try { if (navigator.share) await navigator.share({ text, url: frLink() }); else { await navigator.clipboard.writeText(`${text}\n${frLink()}`); toast('Invite copied. Paste it into a text.'); } } catch {}
+}
+/* ----- starting a plan ----- */
+const frFridays = () => { const out = [], d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() + ((5 - d.getDay() + 7) % 7 || 7)); for (let i = 0; i < 10; i++) { out.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`); d.setDate(d.getDate() + 7); } return out; };
+function frNpRead() { const n = FR.np; if (!n) return; const g = id => document.getElementById(id);
+  if (g('npt')) n.title = g('npt').value; if (g('npd')) n.day = g('npd').value; if (g('npm')) n.time = g('npm').value; if (g('nps')) n.surprise = g('nps').value;
+  document.querySelectorAll('[data-nprole]').forEach(s => { n.roles[s.dataset.nprole] = s.value; }); }
+async function frNew(parent) {
+  FR.np = { step: 1, kind: '', title: '', cities: new Set(), weekends: new Set(), away: false, day: '', time: '', invite: new Set(parent ? parent.members.filter(m => !m.me).map(m => m.id) : []), partner: false, roles: {}, surprise: '', parent: parent || null };
+  if (!FR.cities) frRpc('fr_cities').then(c => { FR.cities = c || []; if (FR.np?.step === 2) { frNpRead(); frNewSheet(); } }).catch(() => { FR.cities = []; });
+  frNewSheet();
+}
+function frNewSheet() {
+  const n = FR.np, d = FR.d; if (!n) return;
+  if (n.step === 1) return sheet(`<div class="grab"></div><div class="body you"><h2>${n.parent ? 'Add an event' : 'Start a plan'}</h2><p class="muted" style="margin:6px 0 10px">${n.parent ? `Part of ${esc(n.parent.title)}.` : 'What’s it for?'}</p>
+    <div class="ycard">${Object.entries(FK).filter(([k]) => !n.parent || k !== 'wedding').map(([k, v]) => `<button class="yrow" data-fr="npkind" data-k="${k}"><span class="tic">${ic(v[0])}</span><span class="grow"><b>${v[1]}</b><small>${v[2]}</small></span><span class="ych">›</span></button>`).join('')}</div></div>`);
+  const trip = n.kind === 'trip' || (n.kind === 'bach' && n.away), people = n.parent ? n.parent.members.filter(m => !m.me).map(m => ({ id: m.id, name: m.name })) : d.friends, pn = d.couple?.partner;
+  const sel = people.filter(f => n.invite.has(f.id)), roles = n.kind === 'bach' || n.kind === 'wedding';
+  const ph = { trip: 'Nashville girls trip', double: 'Double date', dinner: 'Friendsgiving', bach: 'Dee’s bachelorette', night: 'Friday night out', wedding: 'Dee and Sam’s wedding' }[n.kind];
+  sheet(`<div class="grab"></div><div class="body frnp you"><h2>${FK[n.kind][1]}</h2>
+    <label class="field"><span>Name it</span><input id="npt" maxlength="60" placeholder="${ph}" value="${esc(n.title)}"></label>
+    ${n.kind === 'bach' ? `<div class="yrow frsw1"><span class="grow"><b>It’s a trip away</b><small>Adds the weekend poll, where, the stay and arrivals</small></span><button class="ysw ${n.away ? 'on' : ''}" data-fr="npaway">${n.away ? 'Yes' : 'No'}</button></div>` : ''}
+    ${trip ? `<div class="sect">Where. Pick one, or up to five to vote on</div><div class="frpicks">${FR.cities ? FR.cities.map(c => `<button class="frpick ${n.cities.has(c) ? 'on' : ''}" data-fr="npcity" data-c="${esc(c)}">${esc(c)}</button>`).join('') : '<span class="muted">Loading places…</span>'}</div>
+      <div class="sect">Which weekend. Pick one, or a few to poll</div><div class="frpicks">${frFridays().map(w => `<button class="frpick ${n.weekends.has(w) ? 'on' : ''}" data-fr="npwk" data-w="${w}">${frD(w).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</button>`).join('')}</div>`
+      : n.kind !== 'wedding' ? `<div class="frrow2"><label class="field"><span>Day, if you know it</span><input id="npd" type="date" value="${esc(n.day)}"></label><label class="field"><span>Time</span><input id="npm" type="time" value="${esc(n.time)}"></label></div>` : ''}
+    <div class="sect">Who’s invited</div>
+    ${!n.parent && d.groups.length ? `<div class="frpicks">${d.groups.filter(g => g.members.length).map(g => `<button class="frpick grp ${g.members.every(id => n.invite.has(id)) ? 'on' : ''}" data-fr="npgroup" data-id="${g.id}">${ic('list')}${esc(g.name)}</button>`).join('')}</div>` : ''}
+    ${people.length ? `<div class="frpicks">${people.map(f => `<button class="frpick ${n.invite.has(f.id) ? 'on' : ''}" data-fr="npinv" data-id="${f.id}">${esc(f.name)}</button>`).join('')}</div>` : '<p class="muted">No friends here yet. Start it now and invite people after.</p>'}
+    ${pn ? (d.couple.partner_in ? `<div class="yrow frsw1"><span class="grow"><b>Include ${esc(pn)}</b><small>${esc(pn)} only sees plans you include ${esc(pn)} in</small></span><button class="ysw ${n.partner ? 'on' : ''}" data-fr="nppartner">${n.partner ? 'Yes' : 'No'}</button></div>` : `<p class="muted frfine">${esc(pn)} can be included once ${esc(pn)} saves an account.</p>`) : ''}
+    ${roles ? `<div class="sect">Roles</div>${[{ id: d.me.id, name: 'You' }, ...sel].map(f => `<div class="fropt"><span class="grow">${esc(f.name)}</span><select class="frsel" data-nprole="${f.id}"><option value="">No role</option>${FROLES.map(r => `<option ${n.roles[f.id] === r ? 'selected' : ''}>${r}</option>`).join('')}</select></div>`).join('')}` : ''}
+    ${(n.kind === 'bach' || n.parent) && people.length ? `<label class="field"><span>Keep it a surprise from</span><select id="nps" class="frsel wide"><option value="">Nobody</option>${people.map(f => `<option value="${f.id}" ${n.surprise === f.id ? 'selected' : ''}>${esc(f.name)}</option>`).join('')}</select></label><p class="muted frfine">They won’t see this plan at all, and it never shows up for them.</p>` : ''}
+    <div style="height:14px"></div><button class="btn" data-fr="npgo">Create the plan</button><button class="jlink" data-fr="npback">Back</button></div>`);
+}
+async function frNpGo(t) {
+  frNpRead(); const n = FR.np, trip = n.kind === 'trip' || (n.kind === 'bach' && n.away);
+  if (!n.title.trim()) return toast('Give it a name.');
+  if (trip && (!n.cities.size || !n.weekends.size)) return frWhy('trip');
+  if (n.cities.size > 5) return toast('Pick up to five places.');
+  let time = ''; if (n.time) { let [h, m] = n.time.split(':').map(Number); const ap = h >= 12 ? 'pm' : 'am'; h = h % 12 || 12; time = `${h}:${String(m).padStart(2, '0')} ${ap}`; }
+  t.disabled = true;
+  try {
+    const r = await frRpc('fr_plan_new', { p: { kind: n.kind, title: n.title.trim(), invite: [...n.invite].filter(id => id !== n.surprise), partner: n.partner, cities: trip ? [...n.cities] : [], weekends: trip ? [...n.weekends] : [], day: trip ? null : n.day || null, time,
+      roles: n.roles, surprise_for: n.surprise || null, parent: n.parent?.id || null } });
+    if (!r?.ok) { t.disabled = false; return frWhy(r?.why); }
+    FR.np = null; closeSheet(); step('fr_plan_new'); await frLoad().catch(() => {}); return frOpenPlan(r.id);
+  } catch { t.disabled = false; toast('Could not reach the server. Try again.'); }
+}
+/* ----- one plan ----- */
+async function frOpenPlan(id, quiet) {
+  try { const r = await frRpc('fr_plan', { p_id: id }); if (!r?.ok) { if (!quiet) frWhy(r?.why); FR.plan = null; S.view = 'friends'; await frLoad().catch(() => {}); return render(); }
+    FR.plan = r; FR.wk = {}; S.view = 'fplan'; render(); } catch { if (!quiet) toast('Could not reach the server. Check your connection.'); }
+}
+async function frAct(kind, data, t) {
+  if (t) t.disabled = true;
+  try { const r = await frRpc('fr_plan_act', { p_id: FR.plan.id, p_kind: kind, p_data: data || {} });
+    if (r?.left) { const up = FR.plan.up; FR.plan = null; await frLoad().catch(() => {}); if (up) return frOpenPlan(up.id, true); S.view = 'friends'; return render(); }
+    if (r?.ok && r.id) { FR.plan = r; if (S.view === 'fplan') renderFPlan(); return r; }
+    if (r?.ok) return r;
+    frWhy(r?.why); } catch { toast('Could not reach the server. Try again.'); }
+  if (t) t.disabled = false;
+}
+const frPollOf = k => FR.plan.polls.find(q => q.kind === k);
+const frCheck = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const frStep = (n, title, done, note, body, later) => `<div class="frstep ${done ? 'fdone' : ''} ${later ? 'flater' : ''}"><div class="frsh"><i>${done ? frCheck : n}</i><b>${title}</b>${note ? `<small>${note}</small>` : ''}</div>${body ? `<div class="frsb">${body}</div>` : ''}</div>`;
+function frRanked(q, label) {   // tap in order of preference, then send
+  const p = FR.plan, host = p.owner, opts = q.state === 'runoff' ? q.options.filter(o => q.runoff.includes(o.id)) : q.options;
+  if (q.state === 'runoff') return `<p>It was close. Pick one of the top two.</p><div class="frpicks">${opts.map(o => `<button class="frpick ${q.mine === o.id ? 'on' : ''}" data-fr="runoff" data-q="${q.id}" data-o="${o.id}">${esc(o.label)}</button>`).join('')}</div><p class="muted frfine">${q.voted} of ${p.n} have picked.${host && q.voted ? ` <button class="frlink" data-fr="close" data-q="${q.id}">Close it now</button>` : ''}</p>`;
+  const r = FR.rank[q.id] || (FR.rank[q.id] = Array.isArray(q.mine) ? [...q.mine] : []);
+  return `<p>${label} Tap your first choice, then your second and third.</p>
+    ${opts.map(o => { const i = r.indexOf(o.id); return `<button class="fropt frrank ${i >= 0 ? 'on' : ''}" data-fr="rank" data-q="${q.id}" data-o="${o.id}"><i>${i >= 0 ? i + 1 : ''}</i><span class="grow"><b>${esc(o.label)}</b>${o.sub ? `<small>${esc(o.sub)}</small>` : ''}</span></button>${o.url ? `<a class="frlink" href="${esc(o.url)}" target="_blank" rel="noopener">See it</a>` : ''}`; }).join('')}
+    <button class="btn sm frsend" data-fr="ranksend" data-q="${q.id}">${q.mine ? 'Change my ranking' : 'Send my ranking'}</button>
+    <p class="muted frfine">${q.voted} of ${p.n} have voted. It closes when everyone has.${host && q.voted ? ` <button class="frlink" data-fr="close" data-q="${q.id}">Close it now</button>` : ''}</p>`;
+}
+function frIdeas(p, can) {
+  const left = p.cards.filter(c => c.mine == null).length, byId = Object.fromEntries(p.cards.map(c => [c.id, c])), all = p.allin.map(id => byId[id]).filter(Boolean), most = p.most.map(m => ({ ...byId[m.id], yes: m.yes })).filter(m => m.title);
+  return `${p.cards.length ? `<p>${p.swiped} of ${p.n} have swiped${p.city && p.flow === 'trip' ? ' things to do in ' + esc(p.city) : ''}.</p>` : '<p>No ideas yet. Add the first one.</p>'}
+    ${can && left ? `<button class="btn sm" data-fr="swipe">Swipe ${left} ${left === 1 ? 'idea' : 'ideas'}</button>` : ''}
+    ${all.length ? `<div class="frlist"><b>Everyone’s in</b>${all.map(c => `<span>${esc(c.title)}</span>`).join('')}</div>` : ''}
+    ${most.length ? `<div class="frlist"><b>Most are in</b>${most.map(c => `<span>${esc(c.title)}<em>${c.yes} of ${p.n}</em></span>`).join('')}</div>` : ''}
+    ${can ? `<div class="frrow2 fradd"><input id="fridea" class="frin" maxlength="60" placeholder="Add your own idea" aria-label="Add your own idea"><button class="btn sm ghost" data-fr="idea">Add</button></div>` : ''}
+    <p class="muted frfine">Only counts show. Nobody sees who passed.</p>`;
+}
+function frRides(p) {
+  const fl = p.members.filter(m => m.status === 'in' && m.arrive_at && /fly/i.test(m.arrive_how || '')).sort((a, b) => new Date(a.arrive_at) - new Date(b.arrive_at)), out = []; let g = [];
+  const flush = () => { if (g.length > 1) { const mins = Math.round((new Date(g[g.length - 1].arrive_at) - new Date(g[0].arrive_at)) / 6e4); out.push(`${frNames(g.map(m => m.me ? 'You' : m.name))} land within ${mins < 60 ? Math.max(5, mins) + ' minutes' : 'an hour'}. Wait at the airport and share one ride.`); } g = []; };
+  fl.forEach(m => { if (g.length && new Date(m.arrive_at) - new Date(g[0].arrive_at) > 36e5) flush(); g.push(m); }); flush(); return out;
+}
+function renderFPlan() {
+  const p = FR.plan; if (!p) { S.view = 'friends'; return render(); }
+  const keep = document.querySelector('.view.frp')?.scrollTop || 0, can = p.status === 'in', me = p.members.find(m => m.me), going = p.members.filter(m => m.status === 'in'), wait = p.members.filter(m => m.status === 'invited');
+  const who = m => esc(m.me ? 'You' : m.name) + (m.role ? ` <em>${esc(m.role)}</em>` : '');
+  let body = '';
+  if (!can) body = `<div class="frstep"><div class="frsb" style="margin:0"><b>You’re invited.</b> ${esc(p.members.find(m => m.host)?.name || 'A friend')} started this. Say you’re in to vote and swipe with everyone.<div class="frrow2" style="margin-top:12px"><button class="btn sm" data-fr="respond" data-in="1">I’m in</button><button class="btn sm ghost" data-fr="respond" data-in="0">Can’t make it</button></div></div></div>`;
+  else if (p.flow === 'hub') body = `<div class="sect">Events</div>${p.kids.length ? `<div class="ycard">${p.kids.map(frPlanRow).join('')}</div>` : '<p class="muted frempty">Add the bachelorette or bachelor, the shower and anything else. Each has its own invite list.</p>'}<button class="btn frnew" data-fr="newkid">${ic('plus')}Add an event</button>`;
+  else if (p.flow === 'trip') {
+    const wq = frPollOf('weekend'), cq = frPollOf('city'), sq = frPollOf('stay'), st = p.data.stay, bookedN = going.filter(m => m.booked).length, arr = going.filter(m => m.arrive_at).sort((a, b) => new Date(a.arrive_at) - new Date(b.arrive_at));
+    let wb = ''; if (!p.day && wq) { const mine = { ...(wq.mine || {}), ...FR.wk };
+      wb = `<p>Mark every weekend so the group can find one that works.</p>${wq.options.map(o => { const t = wq.tally?.[o.id]; return `<div class="fropt"><span class="grow"><b>${frWk(o.id)}</b>${t && t.can + t.maybe + t.cant ? `<small>${t.can} can · ${t.maybe} maybe · ${t.cant} can’t</small>` : ''}</span><span class="fr3">${[['can', 'Can'], ['maybe', 'Maybe'], ['cant', 'Can’t']].map(([v, l]) => `<button class="${mine[o.id] === v ? 'on' : ''}" data-fr="wk" data-o="${o.id}" data-v="${v}">${l}</button>`).join('')}</span></div>`; }).join('')}
+        <button class="btn sm frsend" data-fr="wksave" data-q="${wq.id}">${wq.mine ? 'Update my answers' : 'Send my answers'}</button><p class="muted frfine">${wq.voted} of ${p.n} have answered.${p.owner && wq.voted ? ` <button class="frlink" data-fr="close" data-q="${wq.id}">Close it now</button>` : ''}</p>`; }
+    let sb = ''; if (p.city && !st && sq) sb = sq.state === 'collect' ? `${sq.options.length ? sq.options.map(o => `<div class="fropt"><span class="grow"><b>${esc(o.label)}</b><small>${esc([o.sub, o.by ? 'Added by ' + o.by : ''].filter(Boolean).join(' · '))}</small></span>${o.url ? `<a class="frlink" href="${esc(o.url)}" target="_blank" rel="noopener">See it</a>` : ''}</div>`).join('') : '<p>Add the places you’re considering, then vote.</p>'}
+        <input id="frsl" class="frin" maxlength="60" placeholder="4-bedroom house in East Nashville" aria-label="Place to stay"><input id="frss" class="frin" maxlength="80" placeholder="A note: price each, how far" aria-label="Note"><input id="frsu" class="frin" inputmode="url" placeholder="Link to the listing (https://…)" aria-label="Link">
+        <div class="frrow2"><button class="btn sm ghost" data-fr="stayopt">Add a place</button>${p.owner && sq.options.length ? `<button class="btn sm" data-fr="startvote">${sq.options.length === 1 ? 'Go with this one' : 'Start the vote'}</button>` : ''}</div>` : frRanked(sq, 'Where should you stay?');
+    const mineArr = me?.arrive_at ? new Date(me.arrive_at).toISOString().slice(0, 16) : (p.day ? p.day + 'T15:00' : '');
+    body = frStep(1, 'Weekend', !!p.day, p.day ? frWk(p.day) : '', wb)
+      + frStep(2, 'Where', !!p.city, p.city ? esc(p.city) : '', !p.city && cq ? frRanked(cq, 'Where to?') : '')
+      + frStep(3, 'The stay', !!st, st ? esc(st.label) : '', st ? `${st.sub ? `<p>${esc(st.sub)}</p>` : ''}${st.url ? `<a class="btn sm" href="${esc(st.url)}" target="_blank" rel="noopener">Open the listing to book</a>` : '<p class="muted">No link was added. Whoever found it books it.</p>'}` : sb, !p.city)
+      + frStep(4, 'Getting there', going.length > 0 && bookedN === going.length, `${bookedN} of ${going.length} booked`, `<div class="fropt"><span class="grow">Everyone books their own way there.</span><button class="ysw ${me?.booked ? 'on' : ''}" data-fr="booked">${me?.booked ? 'Booked' : 'Not yet'}</button></div>`, !p.city || !p.day)
+      + frStep(5, 'Who gets in when', arr.length > 0 && arr.length === going.length, arr.length ? `${arr.length} of ${going.length} added` : '', `${arr.map(m => `<div class="fropt"><b class="frtime">${frClock(m.arrive_at)}</b><span class="grow">${esc(m.me ? 'You' : m.name)}<small>${esc(m.arrive_how || '')} · ${new Date(m.arrive_at).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' })}</small></span></div>`).join('')}
+          ${frRides(p).map(x => `<p class="frride">${esc(x)}</p>`).join('')}
+          <input id="frat" class="frin" type="datetime-local" value="${mineArr}" aria-label="When you arrive"><div class="frrow2"><select id="frah" class="frsel wide">${['Flying', 'Driving', 'Train or bus'].map(h => `<option ${me?.arrive_how === h ? 'selected' : ''}>${h}</option>`).join('')}</select><button class="btn sm ghost" data-fr="arrive">${me?.arrive_at ? 'Update my arrival' : 'Add my arrival'}</button></div>`, !p.city || !p.day)
+      + frStep(6, 'Things to do', false, p.allin.length ? `${p.allin.length} everyone’s in` : '', p.city ? frIdeas(p, can) : '<p class="muted">Opens as soon as the place is picked.</p>', !p.city);
+  } else {
+    const pq = frPollOf('pick'), pk = p.data.pick;
+    body = (pk ? `<div class="frstep fdone"><div class="frsh"><i>${frCheck}</i><b>It’s decided</b></div><div class="frsb"><h3 class="frpk">${esc(pk.label)}</h3>${pk.sub ? `<p>${esc(pk.sub)}</p>` : ''}<p>${esc([p.day ? frDay(p.day) : '', p.at || ''].filter(Boolean).join(' at ') || 'No day set yet.')}</p>${pk.url ? `<a class="btn sm" href="${esc(pk.url)}" target="_blank" rel="noopener">Open it</a>` : ''}</div></div>` : '')
+      + (!pk ? frStep(1, 'Ideas', !!pq, '', frIdeas(p, can) + (p.owner && !pq ? `<button class="btn sm frsend" data-fr="shortlist">Take the favorites to a vote</button>` : '')) : frStep(1, 'Ideas', true, '', frIdeas(p, false)))
+      + (!pk && pq ? frStep(2, 'The vote', false, `${pq.voted} of ${p.n} voted`, frRanked(pq, 'Rank the shortlist.')) : '');
+  }
+  $app.innerHTML = `<div class="view fr frp you"><div class="topbar"><button class="back" data-fr="back" aria-label="Back">‹</button><div class="grow"></div><button class="ib" data-fr="reload" aria-label="Refresh">${ic('repeat')}</button></div>
+    ${p.up ? `<small class="frup">${esc(p.up.title)}</small>` : ''}<h2 class="frh">${esc(p.title)}</h2>
+    <p class="frwho">${going.map(who).join(', ')}${wait.length ? `<span> · waiting on ${wait.map(m => esc(m.name)).join(', ')}</span>` : ''}</p>
+    ${p.surprise ? `<p class="frsurp">${ic('eye')}Kept a surprise from ${esc(p.surprise)}. ${esc(p.surprise)} can’t see this plan.</p>` : ''}
+    ${p.flow === 'pick' && !p.data.pick && (p.day || p.at) ? `<p class="frwhen">${esc([p.day ? frDay(p.day) : '', p.at || ''].filter(Boolean).join(' at '))}</p>` : ''}
+    ${body}
+    ${can ? `<div class="sect">This plan</div><div class="ycard">
+      ${p.partner && !p.surprise ? (p.partner.has ? `<div class="yrow"><span class="tic">${ic('heart')}</span><span class="grow"><b>Include ${esc(p.partner.name)}</b><small>${p.partner.in ? esc(p.partner.name) + ' is invited' : esc(p.partner.name) + ' can’t see this plan'}</small></span><button class="ysw ${p.partner.in ? 'on' : ''}" data-fr="partner" data-on="${p.partner.in ? 0 : 1}">${p.partner.in ? 'Yes' : 'No'}</button></div>` : `<div class="yrow"><span class="tic">${ic('heart')}</span><span class="grow"><b>Include ${esc(p.partner.name)}</b><small>${esc(p.partner.name)} needs to save an account first</small></span></div>`) : ''}
+      ${p.owner ? `<button class="yrow" data-fr="more"><span class="tic">${ic('plus')}</span><span class="grow"><b>Invite more friends</b></span><span class="ych">›</span></button><button class="yrow" data-fr="cancel"><span class="tic">${ic('x')}</span><span class="grow"><b>Cancel this plan</b><small>Removes it for everyone</small></span></button>`
+        : `<button class="yrow" data-fr="respond" data-in="0"><span class="tic">${ic('x')}</span><span class="grow"><b>Leave this plan</b></span></button>`}</div>` : ''}</div>`;
+  const v = document.querySelector('.view.frp'); if (v && keep) v.scrollTop = keep;
+}
+/* ----- group swipe: one idea at a time, yes or no ----- */
+function renderFSwipe() {
+  const p = FR.plan; if (!p) { S.view = 'friends'; return render(); }
+  const left = p.cards.filter(c => c.mine == null), c = left[0];
+  if (!c) { S.view = 'fplan'; frOpenPlan(p.id, true); return; }
+  $app.innerHTML = `<div class="view fr frsw"><div class="topbar"><button class="back" data-fr="swback" aria-label="Back to the plan">‹</button><div class="grow"><b>${esc(p.title)}</b><small class="frleft">${left.length} to go</small></div></div>
+    <div class="frcard" id="frc">${c.img ? `<img src="${esc(c.img)}" alt="" decoding="async">` : `<span class="frart">${ic(c.kind === 'Eat' ? 'dine' : c.kind === 'Drink' ? 'moon' : 'spark')}</span>`}<div class="frct"><small>${esc(c.kind === 'Idea' ? c.sub : c.kind)}</small><h3>${esc(c.title)}</h3>${c.kind !== 'Idea' && c.sub ? `<p>${esc(c.sub)}</p>` : ''}</div></div>
+    <div class="fracts"><button class="frb" data-fr="sw" data-y="0" aria-label="Not for me">${ic('x')}</button><button class="frb y" data-fr="sw" data-y="1" aria-label="I’m in">${ic('heart')}</button></div>
+    <p class="muted frfine" style="text-align:center">Only counts show. Nobody sees who passed.</p></div>`;
+  const el = document.getElementById('frc'); let g = null;
+  el.addEventListener('pointerdown', e => { g = { x: e.clientX, id: e.pointerId }; el.setPointerCapture?.(e.pointerId); el.style.transition = 'none'; });
+  el.addEventListener('pointermove', e => { if (!g) return; const dx = e.clientX - g.x; el.style.transform = `translateX(${dx}px) rotate(${dx / 22}deg)`; });
+  const up = e => { if (!g) return; const dx = e.clientX - g.x; g = null; if (Math.abs(dx) > 90) return frSwipe(dx > 0); el.style.transition = 'transform .2s ease-out'; el.style.transform = ''; };
+  el.addEventListener('pointerup', up); el.addEventListener('pointercancel', () => { g = null; el.style.transition = 'transform .2s ease-out'; el.style.transform = ''; });
+}
+function frSwipe(yes) {
+  const p = FR.plan, c = p.cards.find(x => x.mine == null), el = document.getElementById('frc'); if (!c || !el || el.dataset.out) return;
+  el.dataset.out = '1'; c.mine = yes; try { navigator.vibrate?.(8); } catch {}
+  frRpc('fr_plan_act', { p_id: p.id, p_kind: 'swipe', p_data: { card: c.id, yes } }).catch(() => { c.mine = null; });
+  el.style.transition = 'transform .18s ease-in, opacity .18s ease-in'; el.style.transform = `translateX(${yes ? 130 : -130}%) rotate(${yes ? 14 : -14}deg)`; el.style.opacity = '0';
+  setTimeout(() => { if (S.view === 'fswipe') renderFSwipe(); }, 180);
+}
+async function frClick(t, ds) {
+  const a = ds.fr, d = FR.d, p = FR.plan;
+  switch (a) {
+    case 'open': return frOpen();
+    case 'refresh': t.disabled = true; try { await frLoad(); } catch {} return render();
+    case 'reload': return frOpenPlan(p.id);
+    case 'signout': try { await sbA.auth.signOut(); } catch {} S.acct = null; FR.d = null; ls.del('solo'); S.startMode = ''; return render();
+    case 'start': S.startName = document.getElementById('sn')?.value || ''; S.startMode = ds.m; return renderStart();
+    case 'startback': S.startName = document.getElementById('sn')?.value || ''; S.startMode = ''; return render();
+    case 'startgo': return frStartGo(t);
+    case 'couple': S.startName = d?.me.name || ''; S.startMode = 'new'; return renderStart();
+    case 'invite': return frInvite();
+    case 'addcode': sheet(`<div class="grab"></div><div class="body acs"><span class="acsic">${ic('user')}</span><h2>Add a friend</h2><p class="muted">Type the code your friend sees on their Friends screen. Yours is <b>${esc(d.me.code)}</b>.</p><input id="fcode" class="acin acnum" autocapitalize="characters" autocomplete="off" maxlength="8" placeholder="6 letters and numbers" aria-label="Friend code"><button class="btn" data-fr="addgo">Add</button></div>`); return setTimeout(() => document.getElementById('fcode')?.focus(), 250);
+    case 'addgo': { const c = (document.getElementById('fcode')?.value || '').trim().toUpperCase(); if (c.length < 4) return toast('Enter your friend’s code.'); t.disabled = true; const r = await frRpc('fr_add', { p_code: c }).catch(() => null); if (!r?.ok) { t.disabled = false; return frWhy(r?.why); } closeSheet(); toast(`You and ${r.name} are friends now.`, 3200); await frLoad(); return render(); }
+    case 'friend': return frFriendSheet(ds.id);
+    case 'unfriend': if (!t.dataset.sure) { t.dataset.sure = '1'; t.textContent = 'Tap again to remove'; return; } await frRpc('fr_unfriend', { p_id: ds.id }).catch(() => {}); closeSheet(); await frLoad(); return render();
+    case 'group': return frGroupSheet(ds.id);
+    case 'tog': return void t.classList.toggle('on');
+    case 'groupsave': { const name = (document.getElementById('gname')?.value || '').trim(); if (!name) return toast('Give the group a name.'); const r = await frRpc('fr_group_save', { p_id: ds.id || null, p_name: name, p_members: [...document.querySelectorAll('.sheet [data-fr=tog].on')].map(x => x.dataset.id) }).catch(() => null); if (!r?.ok) return frWhy(r?.why); closeSheet(); await frLoad(); return render(); }
+    case 'groupdel': if (!t.dataset.sure) { t.dataset.sure = '1'; t.textContent = 'Tap again to delete'; return; } await frRpc('fr_group_save', { p_id: ds.id, p_name: null, p_members: [] }).catch(() => {}); closeSheet(); await frLoad(); return render();
+    case 'new': return frNew();
+    case 'newkid': return frNew({ id: p.id, title: p.title, members: p.members.filter(m => m.status !== 'out') });
+    case 'npkind': FR.np.kind = ds.k; FR.np.step = 2; return frNewSheet();
+    case 'npback': frNpRead(); FR.np.step = 1; return frNewSheet();
+    case 'npaway': frNpRead(); FR.np.away = !FR.np.away; return frNewSheet();
+    case 'nppartner': frNpRead(); FR.np.partner = !FR.np.partner; return frNewSheet();
+    case 'npcity': { const s = FR.np.cities; s.has(ds.c) ? s.delete(ds.c) : s.size < 5 ? s.add(ds.c) : toast('Up to five places.'); return void t.classList.toggle('on', s.has(ds.c)); }
+    case 'npwk': { const s = FR.np.weekends; s.has(ds.w) ? s.delete(ds.w) : s.size < 6 ? s.add(ds.w) : toast('Up to six weekends.'); return void t.classList.toggle('on', s.has(ds.w)); }
+    case 'npinv': { frNpRead(); const s = FR.np.invite; s.has(ds.id) ? s.delete(ds.id) : s.add(ds.id); return frNewSheet(); }
+    case 'npgroup': { frNpRead(); const g = d.groups.find(x => x.id === ds.id), s = FR.np.invite, all = g.members.every(id => s.has(id)); g.members.forEach(id => all ? s.delete(id) : s.add(id)); return frNewSheet(); }
+    case 'npgo': return frNpGo(t);
+    case 'plan': return frOpenPlan(ds.id);
+    case 'back': { const up = p?.up; FR.plan = null; if (up) return frOpenPlan(up.id, true); S.view = 'friends'; try { await frLoad(); } catch {} return render(); }
+    case 'respond': if (ds.in === '0' && p.status === 'in' && !t.dataset.sure) { t.dataset.sure = '1'; t.querySelector('b').textContent = 'Tap again to leave'; return; } return frAct('respond', { in: ds.in === '1' }, t);
+    case 'wk': FR.wk[ds.o] = ds.v; return void t.parentElement.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === t));
+    case 'wksave': { const q = frPollOf('weekend'), v = { ...(q.mine || {}), ...FR.wk }; if (q.options.some(o => !v[o.id])) return frWhy('all'); const r = await frAct('vote', { poll: q.id, v }, t); if (r) { FR.wk = {}; toast(r.day ? `It’s ${frWk(r.day)}.` : 'Sent.'); } return; }
+    case 'rank': { const r = FR.rank[ds.q] || (FR.rank[ds.q] = []), i = r.indexOf(ds.o); i >= 0 ? r.splice(i, 1) : r.length < 3 ? r.push(ds.o) : toast('Three is the most. Tap one to take it off.'); return renderFPlan(); }
+    case 'ranksend': { const r = FR.rank[ds.q] || []; if (!r.length) return toast('Tap at least your first choice.'); const x = await frAct('vote', { poll: ds.q, v: r }, t); if (x) { delete FR.rank[ds.q]; toast('Sent.'); } return; }
+    case 'runoff': return frAct('vote', { poll: ds.q, v: ds.o }, t);
+    case 'close': if (!t.dataset.sure) { t.dataset.sure = '1'; t.textContent = 'Tap again to close'; return; } return frAct('close', { poll: ds.q }, t);
+    case 'stayopt': { const label = (document.getElementById('frsl')?.value || '').trim(), url = (document.getElementById('frsu')?.value || '').trim(); if (!label) return toast('Name the place.'); if (url && !/^https:\/\//i.test(url)) return toast('The link needs to start with https://'); return frAct('stayopt', { label, sub: document.getElementById('frss')?.value || '', url }, t); }
+    case 'startvote': return frAct('startvote', {}, t);
+    case 'booked': return frAct('booked', { on: !p.members.find(m => m.me)?.booked }, t);
+    case 'arrive': { const v = document.getElementById('frat')?.value; if (!v) return toast('Pick the day and time you get in.'); const r = await frAct('arrive', { at: v.slice(0, 16) + ':00Z', how: document.getElementById('frah')?.value }, t); if (r) toast('Saved.'); return; }
+    case 'swipe': S.view = 'fswipe'; return render();
+    case 'swback': return frOpenPlan(p.id, true);
+    case 'sw': return frSwipe(ds.y === '1');
+    case 'idea': { const title = (document.getElementById('fridea')?.value || '').trim(); if (!title) return toast('Type the idea first.'); return frAct('idea', { title }, t); }
+    case 'shortlist': return frAct('shortlist', {}, t);
+    case 'partner': return frAct('partner', { on: ds.on === '1' }, t);
+    case 'more': { const have = new Set(p.members.map(m => m.id)), rest = d.friends.filter(f => !have.has(f.id)); return sheet(`<div class="grab"></div><div class="body acs"><h2>Invite more friends</h2>${rest.length ? `<div class="frpicks">${rest.map(f => `<button class="frpick" data-fr="tog" data-id="${f.id}">${esc(f.name)}</button>`).join('')}</div><button class="btn" data-fr="morego">Invite</button>` : '<p class="muted">Everyone you’re friends with is already here. Invite a new friend from the Friends screen.</p>'}</div>`); }
+    case 'morego': { const ids = [...document.querySelectorAll('.sheet [data-fr=tog].on')].map(x => x.dataset.id); if (!ids.length) return toast('Pick someone.'); closeSheet(); return frAct('invite', { ids }); }
+    case 'cancel': if (!t.dataset.sure) { t.dataset.sure = '1'; t.querySelector('b').textContent = 'Tap again to cancel it for everyone'; return; } return frAct('cancel', {}, t);
+  }
+}
+document.addEventListener('visibilitychange', () => {   // coming back to the app: pick up what friends did meanwhile
+  if (document.visibilityState !== 'visible' || !sbA || !S.acct || $layer.innerHTML || /INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName || '')) return;
+  if (S.view === 'fplan' && FR.plan) frOpenPlan(FR.plan.id, true);
+  else if (FR.d && (S.view === 'friends' || (frSolo() && S.view !== 'fswipe' && !S.startMode))) frLoad().then(() => { if (S.view === 'friends' || frSolo()) render(); }).catch(() => {});
+});
+
 // ===== Accounts =====
 async function acctRpc(fn, args) { const { data, error } = await sbA.rpc(fn, args || {}); if (error) throw error; return data; }
 async function acctInit() {
-  try { const { data } = await sbA.auth.getSession(); const u = data.session?.user; S.acct = u ? { email: u.email || '' } : null; } catch { S.acct = null; }
+  try { const { data } = await sbA.auth.getSession(); const u = data.session?.user; S.acct = u ? { email: u.email || '' } : null; S.acctName = acctNameOf(u); } catch { S.acct = null; }
   if (S.acct && S.code && S.me && ls.get('acctl') !== S.code + '|' + S.me) await acctLink();
 }
 async function acctLink() {
@@ -3714,7 +4092,7 @@ function acctSheet(stage) {
     <button class="btn" data-act="acctverify">Sign in</button>
     <button class="jlink" data-act="acctsend" data-again="1">Send a new code</button></div>`);
   sheet(`<div class="grab"></div><div class="body acs"><span class="acsic">${ic('user')}</span><h2>${S.code && S.me ? 'Save your account' : 'Sign in'}</h2>
-    <p class="muted">${S.code && S.me ? `Sign in once and you can get back to ${who} on any phone. Your couple code still connects you two.` : 'Sign in and we’ll bring back your couple.'}</p>
+    <p class="muted">${S.code && S.me ? (S.frAfter ? 'Friends and group plans belong to you, not to your couple, so they need an account. Your couple code still connects you two.' : `Sign in once and you can get back to ${who} on any phone. Your couple code still connects you two.`) : 'New here or coming back, it’s the same step. If you already have a couple or friends, they come right back.'}</p>
     ${pkOn() ? `<button class="btn acpk" data-act="pksignin">${ic('user')}Sign in with Face ID</button>` : ''}
     ${AUTH.apple ? `<button class="btn acapple" data-act="acctapple"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.4 12.6c0-2.4 2-3.6 2.1-3.7-1.2-1.7-3-1.9-3.6-2-1.5-.2-3 .9-3.8.9-.8 0-2-.9-3.3-.9-1.7 0-3.3 1-4.2 2.5-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8s2 .8 3.3.8c1.4 0 2.3-1.2 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9 0 0-2.8-1.1-2.8-4.2zM14 5.3c.7-.8 1.2-2 1-3.1-1 0-2.2.7-2.9 1.5-.6.7-1.2 1.9-1 3 1.1.1 2.2-.6 2.9-1.4z"/></svg>Continue with Apple</button>` : ''}
     ${AUTH.google ? '<div id="gbtn" class="acg"></div>' : ''}
@@ -3744,12 +4122,13 @@ async function acctVerify(t) {
   return acctDone(data.session.user);
 }
 async function acctDone(u, how) {
-  S.acct = { email: u?.email || '' }; step('acct_saved');
+  S.acct = { email: u?.email || '' }; S.acctName = acctNameOf(u); step('acct_saved');
   if (how !== 'passkey' && pkOn() && !ls.get('pkasked')) setTimeout(() => { if (!$layer.innerHTML) { ls.set('pkasked', '1'); pkOffer(); } }, 1500);
-  if (S.code && S.me) { await acctLink(); closeSheet(); toast('Account saved. You can sign in on any phone now.', 3400); return render(); }
+  if (S.code && S.me) { await acctLink(); closeSheet(); if (S.frAfter) { S.frAfter = false; return frOpen(); } toast('Account saved. You can sign in on any phone now.', 3400); return render(); }
   if (await acctRestore()) { closeSheet(); toast(`Welcome back, ${S.me}.`); return boot(); }
-  closeSheet(); toast('Signed in. Now start a couple or enter your partner’s code.', 3800); return render();
+  closeSheet(); try { const r = await frLoad(); if (r?.ok) ls.set('solo', '1'); } catch {} return render();
 }
+const acctNameOf = u => { const m = u?.user_metadata || {}; return String(m.given_name || (m.full_name || m.name || '').split(' ')[0] || '').slice(0, 24); };
 const loadJs = src => new Promise((ok, no) => { if (document.querySelector(`script[src="${src}"]`)) return ok(); const s = document.createElement('script'); s.src = src; s.async = true; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
 async function nonces() { const raw = [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join(''); const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw)); return { raw, hashed: [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, '0')).join('') }; }
 async function acctApple(t) {
@@ -3991,6 +4370,7 @@ function youHTML() {
     <div class="ycard"><div class="yrow"><span class="tic">${ic('heart')}</span><span class="grow"><b>${esc(S.me)}</b><small>${p ? 'Paired with ' + esc(p) : 'Not paired yet'}</small></span><button class="ysw" data-act="rename">Rename</button></div>
       <div class="yrow"><span class="tic">${ic('share')}</span><span class="grow"><b>${esc(S.code)}</b><small>Your couple code</small></span><button class="ysw" data-act="invite">Invite</button></div>
       ${BETA ? `<button class="yrow" data-act="acct"><span class="tic">${ic('user')}</span><span class="grow"><b>${S.acct ? 'Account saved' : 'Save your account'}</b><small>${S.acct ? esc(S.acct.email || 'Signed in with Apple or Google') : 'So you can sign back in on any phone'}</small></span><span class="ych">›</span></button>
+      <button class="yrow" data-fr="open"><span class="tic">${ic('users')}</span><span class="grow"><b>Friends and group plans</b><small>Trips, dinners and nights out with other people</small></span><span class="ych">›</span></button>
       <button class="yrow" data-act="calsub"><span class="tic">${ic('cal')}</span><span class="grow"><b>Plans in your calendar</b><small>Every plan you both agree to shows up on its own</small></span><span class="ych">›</span></button>` : ''}
       <button class="yrow" data-act="bdays"><span class="tic">${ic('heart')}</span><span class="grow"><b>Birthday and anniversary</b><small>${S.dates?.bday || S.dates?.anniv ? esc([S.dates.bday ? 'Birthday ' + mdText(S.dates.bday) : '', S.dates.anniv ? 'Anniversary ' + mdText(S.dates.anniv) : ''].filter(Boolean).join(' · ')) : 'So you both get a heads-up before the day'}</small></span><span class="ych">›</span></button>
       <button class="yrow" data-tab="lists"><span class="tic">${ic('list')}</span><span class="grow"><b>Your own lists</b><small>Dinners, activities and pantry</small></span><span class="ych">›</span></button>
@@ -4838,12 +5218,13 @@ async function saveAdd(t) {
 /* ---------- events ---------- */
 document.addEventListener('click', async e => {
   if (S.slDrag && Date.now() - S.slDrag < 350 && e.target.closest('.sli')) return;
-  const t = e.target.closest('[data-wk],[data-into],[data-tripclaim],[data-datesok],[data-tripstay],[data-staysave],[data-stayok],[data-sp],[data-pl],[data-inurl],[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-hdeck],[data-like],[data-final],[data-lad],[data-chg],[data-tbpick],[data-g],[data-seenany],[data-padd],[data-lib],[data-libf],[data-tripc],[data-who],[data-gcity],[data-getaway],[data-libc],[data-planf],[data-planact],[data-tripbook],[data-tripinvite],[data-tripsearch],[data-planbook],[data-planpick],[data-tripdates],[data-datesave],[data-tripitem],[data-astack],[data-shpick],[data-feel],[data-seenme],[data-pset],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
+  const t = e.target.closest('[data-wk],[data-into],[data-tripclaim],[data-datesok],[data-tripstay],[data-staysave],[data-stayok],[data-sp],[data-pl],[data-inurl],[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-hdeck],[data-like],[data-final],[data-lad],[data-chg],[data-tbpick],[data-g],[data-seenany],[data-padd],[data-lib],[data-libf],[data-tripc],[data-who],[data-gcity],[data-getaway],[data-libc],[data-planf],[data-planact],[data-tripbook],[data-tripinvite],[data-tripsearch],[data-planbook],[data-planpick],[data-tripdates],[data-datesave],[data-tripitem],[data-astack],[data-shpick],[data-feel],[data-seenme],[data-pset],[data-fr],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
   if (!t) return; const ds = t.dataset;
   try {
     if (ds.who) { const jn = document.getElementById('jn'); if (jn) jn.value = ds.who; return document.getElementById('jgo')?.click(); }
     if (t.id === 'jgo') { const name = document.getElementById('jn').value.trim(), code = document.getElementById('jc').value.trim().toUpperCase(); if (!name || !code) return toast('Enter your name and the couple code.'); t.disabled = true; try { const r = await rpc('join_couple', { p_code: code, p_name: name }); step('joined'); try { document.cookie = 'wlt_inv=; max-age=0; path=/; Secure; SameSite=Lax'; } catch {} S.code = code; S.me = r.name; ls.set('code', code); ls.set('name', r.name); history.replaceState(null, '', location.pathname); await boot(); send({ type: 'joined' }); } catch (er) { t.disabled = false; toast(errMsg(er)); } return; }
     if ('scrim' in ds) return closeSheet();
+    if (ds.fr) return await frClick(t, ds);
     if (ds.pset) { t.parentElement.querySelectorAll('[data-pset]').forEach(x => x.classList.toggle('on', x === t)); return; }
     if (ds.pl) { const [v, a, a2] = ds.pl.split('|'); if (v === 'side') return await sideLikes(a, a2); if (v === 'sidepick') return await sidePick(a, t); if (v === 'tip') { ls.set('pdtip', '1'); return dayEdit(); } return await dayAct(v, a, t); }
     if (ds.inurl) return inboxGo(ds.inurl);
@@ -4940,7 +5321,7 @@ document.addEventListener('click', async e => {
       case 'liketoo': { const c = S.detailCard; if (!c) return; t.disabled = true; try { const r = await rpc('like_card', { p_code: S.code, p_member: S.me, p_card: c.id }); document.querySelector('.lfront')?.remove(); if (r.match) { toast(`You both like ${c.title} now.`, 3500); send({ type: 'shortlist' }); push(`It's a match ${emojiFor(c)}`, `You and ${S.me} both like ${c.title}.`, './'); } refresh().catch(() => {}); } catch { toast('Could not save that like.'); } return S.view === 'trips' ? openTrips() : null; }
       case 'scolater': document.querySelector('.sco')?.remove(); return;
       case 'scratchdone': document.querySelector('.scr')?.remove(); return render();
-      case 'acct': return acctSheet();
+      case 'acct': S.frAfter = false; return acctSheet();
       case 'acctsend': return acctSend(t);
       case 'acctverify': return acctVerify(t);
       case 'acctapple': return acctApple(t);
@@ -4979,7 +5360,7 @@ document.addEventListener('click', async e => {
       case 'solo': { const mine = (S.state.sessions || []).find(x => x.solo && x.my_left > 0); if (mine) return openSession(mine.id); return startSession('movie', { solo: true }, null, false); }
       case 'rewatch': return startSession('movie', { rewatch: true }, 'Watch one again?');
       case 'newcouple': { const name = document.getElementById('jn').value.trim(), jz = document.getElementById('jz');
-        if (!jz) { S.joinMode = 'new'; S.joinForm = true; history.replaceState(null, '', location.pathname); render(); const n2 = document.getElementById('jn'); if (n2) n2.value = name; return toast('Add your first name and home ZIP to start.', 3500); }
+        if (!jz) { S.joinMode = 'new'; S.joinForm = true; history.replaceState(null, '', location.pathname); render(); const n2 = document.getElementById('jn'); if (n2) n2.value = name; return toast(sbA ? 'Sign in to start a new couple.' : 'Add your first name and home ZIP to start.', 3500); }
         if (!name) return toast('Enter your name first.'); const zip = jz.value.trim(); if (!/^\d{5}$/.test(zip)) return toast('Enter your 5-digit home ZIP code.');
         t.disabled = true; try { const r = await rpc('create_couple', { p_name: name }); step('created'); if (BETA) rpc('mark_beta', { p_code: r.code }).catch(() => {}); S.code = r.code; S.me = r.name; ls.set('code', r.code); ls.set('name', r.name); try { await rpc('set_settings', { p_code: r.code, p_settings: { zip } }); } catch {} history.replaceState(null, '', location.pathname); await boot();  } catch (er) { t.disabled = false; toast(errMsg(er)); } return; }
       case 'savesettings': { const root = t.closest('.sheet') || document; const services = [...root.querySelectorAll('[data-svc].on')].map(x => x.dataset.svc); if (!services.length) return toast('Pick at least one streaming service.'); { const z = root.querySelector('#s_zip').value.trim(); if (!/^\d{5}(-\d{4})?$/.test(z) && !(S.settings?.lat && !z)) return toast('Enter your 5-digit home ZIP code.'); } S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { zip: root.querySelector('#s_zip').value.trim(), services, radius_mi: Number(root.querySelector('#s_rad')?.value || 2), setup: true } }); const fromSheet = !!t.closest('.sheet'); closeSheet(); toast('Saved for both of you.'); send({ type: 'joined' }); render(); if (fromSheet) nextOnboard(); return; }
@@ -5283,6 +5664,9 @@ async function boot() {
     if ((!S.code || !S.me) && standalone()) { const a = authCookie.get(); if (a) { try { const ms = await rpc('couple_members', { p_code: a.c }); if (ms.includes(a.n)) { S.code = a.c; S.me = a.n; ls.set('code', a.c); ls.set('name', a.n); } } catch {} } } }
   logOpen(_had ? 'saved' : S.code && S.me ? (_url && standalone() ? 'url' : 'cookie') : 'none', _url, _ck);
   if (sbA) { await acctInit(); if ((!S.code || !S.me) && S.acct) await acctRestore(); }
+  if (sbA) { const fq = (new URLSearchParams(location.search).get('f') || '').trim().toUpperCase();   // a friend's invite link
+    if (/^[A-Z0-9]{4,8}$/.test(fq)) { ls.set('fpend', fq); try { history.replaceState(null, '', location.pathname); } catch {} }
+    if (S.acct && (!S.code || !S.me)) { try { const r = await frLoad(); if (r?.ok) ls.set('solo', '1'); } catch {} } }
   if (!S.code || !S.me) return render();
   if (sbA && !S.acct && !ls.get('acctask')) setTimeout(() => { if (!$layer.innerHTML && S.view === 'home') { ls.set('acctask', '1'); acctSheet(); } }, 1800);
   try { await refresh(); } catch (e) { if (String(e.message).includes('bad_code')) { ls.del('code'); ls.del('name'); authCookie.clear(); S.code = S.me = null; return render(); } $app.innerHTML = `<div class="center"><div class="brand">${BRAND}</div><p class="muted" style="margin:12px 0 18px">Could not reach the server. Check your connection.</p><button class="btn" onclick="location.reload()">Try again</button></div>`; return; }
@@ -5305,7 +5689,7 @@ async function boot() {
   const spq = new URLSearchParams(location.search).get('surprise'); if (spq) history.replaceState(null, '', location.pathname);
   const plq = new URLSearchParams(location.search).get('plan'); S.favAsk = new URLSearchParams(location.search).get('fav') ? plq : null; const plf = new URLSearchParams(location.search).get('planfor'); if (plq || plf) history.replaceState(null, '', location.pathname);
   const idq = new URLSearchParams(location.search).get('idea'); if (idq) history.replaceState(null, '', location.pathname);
-  render(); if (idq) return inboxGo('./?idea=' + encodeURIComponent(idq)); if (rc) return openRec(rc, rk); if (tpq) return openTripPlan(tpq); if (tp) return openGetaway(tp, partner()); if (SHW[shq]) return openShareTab(shq);
+  render(); if (sbA && ls.get('fpend')) return frOpen(); if (idq) return inboxGo('./?idea=' + encodeURIComponent(idq)); if (rc) return openRec(rc, rk); if (tpq) return openTripPlan(tpq); if (tp) return openGetaway(tp, partner()); if (SHW[shq]) return openShareTab(shq);
   if (invq && !partner()) { carrySignIn(); return inviteSheet(); }
   if (gmq) gemOpen();
   if (tlq) tellSheet();
