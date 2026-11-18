@@ -1254,6 +1254,7 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .shrmsg{text-align:left;margin:16px 0 14px;padding:13px 15px;border-radius:18px;background:rgba(45,212,191,.1);font-size:14px;line-height:1.45;color:#e8f9f6}.shrmsg b{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#5eead4;margin-bottom:4px}
 .btn.shrgo{background:linear-gradient(135deg,#2dd4bf,#38bdf8);color:#06262b;box-shadow:0 10px 26px -12px rgba(56,189,248,.8)}
 .shrrow{display:flex;gap:10px;margin-top:10px}.shrrow .btn{flex:1}
+.info.ginfo{pointer-events:auto;cursor:pointer;width:44px;height:44px;right:10px;top:10px}
 </style>
 <script>window.LT_BETA = true;</script>
 <style>body::after{content:'BETA';position:fixed;top:calc(env(safe-area-inset-top) + 2px);left:50%;transform:translateX(-50%);font:700 9px/1 system-ui,sans-serif;letter-spacing:.24em;color:#ffb547;opacity:.85;z-index:99999;pointer-events:none}</style>
@@ -3563,9 +3564,10 @@ function renderGuess() {
   const c = document.querySelector('#gstack .card'); if (!c) return;
   c.querySelectorAll('.stamp.love,.stamp.seen,.gfx,.ehint').forEach(x => x.remove()); const sy = c.querySelector('.stamp.yes'), sn = c.querySelector('.stamp.no'); if (sy) sy.textContent = 'Liked it'; if (sn) sn.textContent = 'Didn’t like it';
   let g = null, done = false; const gyn = `<button class="btn ghost" data-g="0">Didn’t like it</button><button class="btn" data-g="1">Liked it</button>`;
+  const inf = c.querySelector('.info'); if (inf) { inf.classList.add('ginfo'); inf.setAttribute('role', 'button'); inf.setAttribute('aria-label', 'Flip for details'); inf.addEventListener('pointerdown', e => e.stopPropagation()); inf.addEventListener('click', e => { e.stopPropagation(); if (!done) flipCard(c, S.gq[S.gi], gyn); }); }
   c.addEventListener('pointerdown', e => { if (done || e.target.closest('.info,.cback')) return; g = { x: e.clientX, y: e.clientY, dx: 0, t: Date.now() }; c.style.transition = 'none'; try { c.setPointerCapture(e.pointerId); } catch {} });
   c.addEventListener('pointermove', e => { if (!g) return; g.dx = e.clientX - g.x; const dy = (e.clientY - g.y) * .25; c.style.transform = `translate(${g.dx}px,${dy}px) rotate(${g.dx / 18}deg)`; if (sy) sy.style.opacity = Math.max(0, Math.min(1, g.dx / 80)); if (sn) sn.style.opacity = Math.max(0, Math.min(1, -g.dx / 80)); });
-  const up = e => { if (!g) return; const dx = g.dx, tap = Math.abs(dx) < 8 && Math.abs((e?.clientY ?? g.y) - g.y) < 8 && Date.now() - g.t < 350; g = null;
+  const up = e => { if (!g) return; const dx = g.dx, tap = Math.abs(dx) < 12 && Math.abs((e?.clientY ?? g.y) - g.y) < 12 && Date.now() - g.t < 500; g = null;
     if (tap) { c.style.transform = ''; return flipCard(c, S.gq[S.gi], gyn); }
     if (Math.abs(dx) < 70) { c.style.transition = 'transform .28s ease-out'; c.style.transform = ''; if (sy) sy.style.opacity = 0; if (sn) sn.style.opacity = 0; return; }
     done = true; c.style.transition = 'transform .3s ease-in, opacity .3s'; c.style.transform = `translate(${dx > 0 ? 140 : -140}%,30px) rotate(${dx > 0 ? 22 : -22}deg)`; c.style.opacity = .3; try { navigator.vibrate?.(10); } catch {}
