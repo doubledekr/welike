@@ -1135,19 +1135,6 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .triv .gres{margin-top:8px}.triv .gres.me{background:linear-gradient(135deg,rgba(255,181,71,.3),rgba(255,77,126,.26))}
 .teamadd{display:flex;gap:8px;margin-top:12px}.teamadd input{flex:1;min-width:0;background:rgba(255,255,255,.07);border:0;border-radius:14px;padding:13px 14px;font-size:16px;color:var(--text);outline:none}.teamadd .btn{width:auto;flex:none;padding:13px 20px}
 @media (prefers-reduced-motion:reduce){.tvn.pop{animation:none}}
-
-/* play for it: the wait, and quick draw */
-.tbseal{width:150px;height:124px;border-radius:24px;background:linear-gradient(135deg,rgba(255,255,255,.09),rgba(255,255,255,.03));display:flex;flex-direction:column;align-items:center;justify-content:center;animation:tbbeat 1.6s ease-in-out infinite}.tbseal b{font-family:var(--serif);font-weight:400;font-size:54px;line-height:1;color:#ffb547}.tbseal small{color:var(--muted);font-size:12px;margin-top:4px}
-@keyframes tbbeat{0%,100%{transform:scale(1)}14%{transform:scale(1.05)}28%{transform:scale(1)}}
-.tbsteps{display:flex;gap:6px;width:100%;max-width:330px}.tbsteps div{flex:1;font-size:11.5px;color:var(--muted);padding-top:9px;position:relative;opacity:.6}.tbsteps div::before{content:"";position:absolute;left:0;right:0;top:0;height:5px;border-radius:5px;background:rgba(255,255,255,.12)}.tbsteps div.on{color:var(--text);opacity:1}.tbsteps div.on::before{background:linear-gradient(90deg,#ffb547,#ff4d7e)}
-.tbheart{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#ff7a4d,#ff4d7e);box-shadow:0 0 40px -8px rgba(255,90,110,.9);transition:transform .1s;touch-action:manipulation}.tbheart:active{transform:scale(.86)}.tbheart .ic{width:34px;height:34px}
-.tbhk{display:flex;gap:8px;width:100%;max-width:330px}.tbhk .btn{flex:1;padding:12px 8px;font-size:14.5px}
-.tbfly{position:fixed;z-index:1500;top:62%;width:26px;height:26px;animation:tbfly 1.3s ease-out forwards;pointer-events:none}.tbfly svg{width:100%;height:100%;display:block}
-@keyframes tbfly{to{top:6%;opacity:0;transform:scale(.5) translateX(34px) rotate(14deg)}}
-.qdshake{animation:qdshake .5s}@keyframes qdshake{20%{transform:translateX(-9px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
-.gpad.qd{background:rgba(255,255,255,.07);box-shadow:none}.gpad.qd b{font-size:64px}.gpad.qd.hot{background:linear-gradient(135deg,#ffb547,#ff4d7e);box-shadow:0 0 90px -6px rgba(255,120,90,1);transform:scale(1.05)}
-.gres i{font-style:normal}
-@media (prefers-reduced-motion:reduce){.tbseal,.qdshake{animation:none}}
 </style>
 </head>
 <body>
@@ -1256,9 +1243,6 @@ async function onEvent(p) {
     else if (p.k === 'open' && S.tq?.phase === 'wait') trivPoll();
     else if (p.k === 'ans' && S.tq?.phase === 'locked') trivReveal(0);
   }
-  else if (p.type === 'tbs') { if (!S.tbStat || S.tbStat.id !== p.id || p.k > S.tbStat.k) S.tbStat = { id: p.id, k: p.k }; if (S.view === 'game' && S.tb?.id === p.id && S.tb.mine === true && !S.tb.done && S.tb.stage !== 'qd' && !S.playing) render(); }
-  else if (p.type === 'tbh') { if (S.view === 'game' && S.tb?.id === p.id) tbFly(p.m ? 0 : 3); if (p.m) toast(`${p.from}: ${p.m}`, 3000); else if (S.view !== 'game' && Date.now() - (S.tbHeartAt || 0) > 20000) { S.tbHeartAt = Date.now(); toast(`${p.from} is waiting on you for tonight’s pick.`, 4000); } }
-  else if (p.type === 'tb' && p.tie && !(S.view === 'game' && S.tb?.id === p.id) && S.view !== 'trivia' && !S.playing) { closeSheet(); document.querySelector('.lfront')?.remove(); document.querySelector('.match')?.remove(); return openGame(p.id); }
   else if (p.type === 'tb') { if (S.view === 'game' && S.tb?.id === p.id && !S.playing) { S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); render(); }
     else if (S.view === 'swipe' && gameNow()?.id === p.id) { S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); S.tbs = null; render(); } }
   else if (p.type === 'final') { if (S.view !== 'game') showFinal(p.card, !!p.shuffle && S.sess?.id === p.session); }
@@ -3131,11 +3115,8 @@ function gameFrame(body) {
 }
 function renderGame() {
   const t = S.tb; if (!t.game || t.game === 'year') return renderGameYear();
-  clearTimeout(S.tbPollT); clearTimeout(S.qdT);
   if (t.done) return gameDone();
-  if (t.stage === 'qd') return renderQD();
-  if (t.mine === true) return gameWait();
-  if (S.tbSaid !== t.id + t.stage) { S.tbSaid = t.id + t.stage; send({ type: 'tbs', id: t.id, k: 1 }); }
+  if (t.mine === true) return gameFrame(`<span class="badge">${ic('heart')}</span><h3>${t.stage === 'tb' ? 'Tie-breaker answer locked in' : 'Your turn is in'}</h3><p class="muted">Waiting on ${esc(them())}. They got a nudge that it’s their turn, and the result shows here when they finish.</p><button class="btn ghost" data-act="tbnudge">Nudge ${esc(them())} again</button><button class="btn ghost" data-act="tbrefresh">Check again</button>`);
   if (t.game === 'trivia' && t.stage === 'tb') return gameFrame(`<span class="badge">${ic('target')}</span><h3>All square</h3><p class="muted">You tied on points. One sudden-death question decides it: right answer wins, and if you are both right, the faster one takes it.</p><button class="btn" data-act="gplay">Start the tie-breaker</button>`);
   const how = t.game === 'taps' ? `After the countdown, tap the pad as many times as you can in <b>${t.cfg.seconds} seconds</b>.`
     : t.game === 'clock' ? `After the countdown a timer starts and then hides. Tap to stop it as close to <b>${secs(t.cfg.target)} seconds</b> as you can.`
@@ -3144,13 +3125,13 @@ function renderGame() {
 }
 async function gameSubmit(result) {
   const st = document.getElementById('gstage'); if (st) st.innerHTML = '<p class="muted">Sending your result…</p>';
-  try { S.tb = await rpc('tiebreak_submit', { p_code: S.code, p_member: S.me, p_id: S.tb.id, p_result: result }); const tie = S.tb.stage === 'qd'; send({ type: 'tb', id: S.tb.id, tie }); if (tie) push('Dead heat', `You and ${S.me} tied. Quick draw is live right now: first tap after the flash wins, and it won’t wait.`, './?tb=' + S.tb.id); }
+  try { S.tb = await rpc('tiebreak_submit', { p_code: S.code, p_member: S.me, p_id: S.tb.id, p_result: result }); send({ type: 'tb', id: S.tb.id }); }
   catch { toast('Could not send that. Check your connection and tap Check again.', 4500); }
   S.playing = false; if (S.view === 'game') render();
 }
 async function countdown(st) { for (const n of [3, 2, 1]) { st.innerHTML = `<div class="gcount">${n}</div>`; await wait(650); if (!document.body.contains(st)) return false; } return true; }
 async function playGame() {
-  const t = S.tb, st = document.getElementById('gstage'); if (!st || S.playing) return; S.playing = true; send({ type: 'tbs', id: t.id, k: 2 });
+  const t = S.tb, st = document.getElementById('gstage'); if (!st || S.playing) return; S.playing = true;
   if (t.game === 'taps') {
     if (!await countdown(st)) return void (S.playing = false);
     let n = 0; st.innerHTML = `<div class="gbar"><i id="gb"></i></div><button class="gpad" id="gpad"><b id="gn">0</b><small>TAP!</small></button>`;
@@ -3183,36 +3164,11 @@ async function playGame() {
   }
   return gameSubmit(tb ? out[0] : { answers: out });
 }
-// Finished first: your result is sealed, and you can see where the other one is and poke them while you wait.
-function gameWait() { const t = S.tb, k = S.tbStat?.id === t.id ? S.tbStat.k : 0, th = esc(them());
-  gameFrame(`<div class="tbseal"><b>?</b><small>Your ${t.game === 'taps' ? 'taps' : t.game === 'clock' ? 'time' : t.stage === 'tb' ? 'tie-breaker answer' : 'answers'}, sealed</small></div><div class="tbsteps">${['Nudged', 'Opened', 'Playing', 'Done'].map((x, i) => `<div class="${i <= k ? 'on' : ''}">${x}</div>`).join('')}</div><h3 style="font-size:25px">${k === 2 ? `${th} is playing` : k === 1 ? `${th} opened it` : `Waiting on ${th}`}</h3><button class="tbheart" data-act="tbheart" aria-label="Send a heart">${ic('heart')}</button><p class="muted" id="tbwm" style="font-size:13.5px">${k ? 'Tap the heart and it lands on their screen' : 'The result opens here the moment they finish'}</p><div class="tbhk"><button class="btn ghost" data-act="tbheckle" data-m="No pressure">No pressure</button><button class="btn ghost" data-act="tbheckle" data-m="Tick tock">Tick tock</button></div><button class="jlink" data-act="tbnudge">Send ${th} another notification</button>`);
-  S.tbPollT = setTimeout(async () => { if (S.view !== 'game' || S.tb?.id !== t.id || S.playing) return; try { const n = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: t.id }); if (S.tb?.id !== t.id || S.view !== 'game') return; const ch = n.done !== t.done || n.stage !== t.stage || n.mine !== t.mine; S.tb = n; if (ch) return render(); } catch {} gameWaitAgain(); }, 4000); }
-function gameWaitAgain() { clearTimeout(S.tbPollT); const id = S.tb?.id; S.tbPollT = setTimeout(async () => { if (S.view !== 'game' || S.tb?.id !== id || S.playing || S.tb.done || S.tb.stage === 'qd' || S.tb.mine !== true) return; try { const n = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: id }); if (S.tb?.id !== id || S.view !== 'game') return; const ch = n.done !== S.tb.done || n.stage !== S.tb.stage || n.mine !== S.tb.mine; S.tb = n; if (ch) return render(); } catch {} gameWaitAgain(); }, 4000); }
-function tbFly(n = 1) { for (let i = 0; i < n; i++) setTimeout(() => { const h = document.createElement('i'); h.className = 'tbfly'; h.innerHTML = '<svg viewBox="0 0 24 24"><path fill="#ff4d7e" d="M12 21.35l-1.450-1.320C5.400 15.360 2 12.280 2 8.500 2 5.420 4.420 3 7.500 3c1.740 0 3.410.81 4.500 2.090C13.090 3.810 14.760 3 16.500 3 19.580 3 22 5.420 22 8.500c0 3.780-3.400 6.860-8.550 11.540L12 21.350z"/></svg>'; h.style.left = (30 + Math.random() * 40) + '%'; document.body.appendChild(h); setTimeout(() => h.remove(), 1300); }, i * 140); }
-function qdBeep(f = 660, ms = 130) { try { S.ac = S.ac || new (window.AudioContext || window.webkitAudioContext)(); const o = S.ac.createOscillator(), g = S.ac.createGain(), t0 = S.ac.currentTime; o.frequency.value = f; o.connect(g); g.connect(S.ac.destination); g.gain.setValueAtTime(.16, t0); g.gain.exponentialRampToValueAtTime(.001, t0 + ms / 1000); o.start(); o.stop(t0 + ms / 1000); } catch {} try { navigator.vibrate?.(ms > 150 ? 90 : 25); } catch {} }
-// Quick draw: a level score is settled live on both phones. 3-2-1, wait for the flash, first tap wins. Not there for it: out of luck.
-function renderQD() { const t = S.tb, q = t.qd; clearTimeout(S.qdT); S.playing = false;
-  if (S.qdK !== t.id + ':' + q.n) { S.qdK = t.id + ':' + q.n; const off = Date.now() - Date.parse(q.now); S.qd = { start: Date.parse(q.start) + off, flash: Date.parse(q.flash) + off, sent: !!q.mine }; }
-  const d = S.qd, now = Date.now(), r = t.results || {}, ns = Object.keys(r);
-  const tied = t.game === 'taps' ? `${r[ns[0]]?.taps ?? 0} taps each` : t.game === 'clock' ? 'the same distance off' : 'level';
-  if (d.sent || now > d.flash + 3000) { gameFrame(`<span class="badge">${ic('target')}</span><h3>${!d.sent ? 'You missed the draw' : d.ms < 0 ? 'Too soon' : d.ms ? secs(d.ms) + ' s' : 'Your tap is in'}</h3><p class="muted">${!d.sent ? 'It ran without you.' : d.ms < 0 ? 'You tapped before the flash.' : 'Seeing who was faster…'}</p>`); S.qdT = setTimeout(qdCheck, Math.max(350, d.flash + 4300 - now)); return; }
-  if (now < d.start) { gameFrame(`<span class="tvtag win qdshake">Dead heat · ${tied}</span><h3>Quick draw decides it</h3><div class="tvn pop" id="qdn">${Math.max(1, Math.ceil((d.start - now) / 1000))}</div><p class="muted">Wait for the flash, then tap first. Tap early and you lose it.</p>`); qdBeep(); return void qdTick(); }
-  const hot = now >= d.flash;
-  gameFrame(`<button class="gpad qd ${hot ? 'hot' : ''}" id="qdp"><b>${hot ? 'NOW' : '…'}</b><small>${hot ? 'TAP!' : 'WAIT FOR IT'}</small></button>`);
-  document.getElementById('qdp').addEventListener('pointerdown', e => { e.preventDefault(); qdTap(); }, { once: true });
-  S.qdT = setTimeout(() => { if (S.view !== 'game' || S.tb?.id !== t.id || S.tb.stage !== 'qd' || S.qd.sent) return; if (!hot) qdBeep(1320, 220); renderQD(); }, hot ? d.flash + 3030 - now : d.flash - now); }
-function qdTick() { const d = S.qd, left = d.start - Date.now(); if (S.view !== 'game' || S.tb?.stage !== 'qd') return; if (left <= 0) return renderQD();
-  const n = document.getElementById('qdn'), v = String(Math.ceil(left / 1000)); if (n && n.textContent !== v) { n.textContent = v; n.classList.remove('pop'); void n.offsetWidth; n.classList.add('pop'); qdBeep(); } S.qdT = setTimeout(qdTick, Math.min(left, 100)); }
-async function qdTap() { const d = S.qd, id = S.tb.id; if (d.sent) return; d.sent = true; const now = Date.now(); d.ms = now < d.flash ? -1 : Math.max(1, Math.round(now - d.flash)); clearTimeout(S.qdT);
-  const p = document.getElementById('qdp'); if (p) { p.classList.remove('hot'); p.classList.add('hit'); }
-  try { const n = await rpc('tiebreak_qd', { p_code: S.code, p_member: S.me, p_id: id, p_ms: d.ms }); if (S.tb?.id === id) S.tb = n; send({ type: 'tb', id }); } catch {}
-  if (S.view === 'game' && S.tb?.id === id) render(); }
-async function qdCheck() { const id = S.tb?.id; if (!id || S.view !== 'game') return; try { const n = await rpc('tiebreak_qd', { p_code: S.code, p_member: S.me, p_id: id, p_ms: null }); if (S.tb?.id === id) { const was = S.tb; S.tb = n; if (n.stage === 'qd' && !n.done && n.qd?.n === was.qd?.n) { S.qdT = setTimeout(qdCheck, 1500); return; } send({ type: 'tb', id, tie: n.stage === 'qd' }); } } catch { S.qdT = setTimeout(qdCheck, 2500); return; } if (S.view === 'game' && S.tb?.id === id) render(); }
 function gameDone() {
   unshift(); setTimeout(() => { unshift(); document.querySelector('.view.game')?.scrollTo(0, 0); }, 120);
   const t = S.tb, me = S.me, r = t.results || {}, names = Object.keys(r), who = n => n === me ? 'You' : esc(n), iWon = t.winner === me;
   let sum = '';
-  if (t.game === 'taps') sum = names.map(n => `<div class="gres"><b>${who(n)}</b><span><i data-cnt="${r[n].taps ?? 0}">${r[n].taps ?? 0}</i> taps</span></div>`).join('');
+  if (t.game === 'taps') sum = names.map(n => `<div class="gres"><b>${who(n)}</b><span>${r[n].taps ?? 0} taps</span></div>`).join('');
   else if (t.game === 'clock') sum = `<p class="muted" style="margin:0 0 6px">Target ${secs(t.cfg.target)} s</p>` + names.map(n => `<div class="gres"><b>${who(n)}</b><span>${secs(r[n].ms || 0)} s · ${secs(Math.abs((r[n].ms || 0) - t.cfg.target))} off</span></div>`).join('');
   else {
     sum = names.map(n => `<div class="gres"><b>${who(n)}</b><span>${r[n].points ?? 0} point${r[n].points === 1 ? '' : 's'}</span></div>`).join('');
@@ -3224,10 +3180,6 @@ function gameDone() {
   const row = c => `<div class="item"><span style="width:44px;height:62px;border-radius:8px;overflow:hidden;background:var(--surface);flex:none;display:grid;place-items:center;font-size:22px">${c.image ? `<img src="${esc(c.image)}" alt="" style="width:100%;height:100%;object-fit:cover">` : emojiFor(c)}</span><span class="grow"><b>${esc(c.title)}</b><small>${esc(c.subtitle || '')}</small></span>${iWon && !t.pick ? `<button class="btn sm" data-tbpick="${c.id}">Pick</button>` : ''}</div>`;
   const tail = t.pick ? `<h3 class="serif" style="font-size:30px;margin:18px 0 4px;text-align:center">Tonight: ${esc(t.pick.title)}</h3><p class="muted" style="text-align:center">${iWon ? 'Your pick.' : esc(t.winner) + ' picked it.'}</p><div style="height:14px"></div><button class="btn" data-act="home">Done</button>`
     : `<div class="sect" style="margin-top:18px">${iWon ? 'Your choice' : esc(t.winner) + ' is choosing from'}</div>${(t.cards || []).map(row).join('')}${iWon ? '' : '<div style="height:12px"></div><button class="btn ghost" data-act="tbrefresh">Check again</button>'}`;
-  if (names.some(n => r[n].qd)) sum += `<div class="sect" style="margin-top:14px">Dead heat, settled by quick draw</div>` + names.map(n => { const q = r[n].qd || {}; return `<div class="gres"><b>${who(n)}</b><span>${q.gone || q.ms == null ? 'wasn’t there' : q.ms < 0 ? 'jumped the flash' : secs(q.ms) + ' s'}</span></div>`; }).join('');
-  const loser = names.find(n => n !== t.winner); if (loser && !t.pick) sum += `<p class="muted" style="font-size:13.5px;text-align:center;margin-top:10px">${loser === me ? 'You get' : esc(loser) + ' gets'} the consolation prize: picking the snacks.</p>`;
-  const fresh = S.tbRev !== t.id; S.tbRev = t.id;
-  if (fresh) setTimeout(() => { document.querySelectorAll('.view.game [data-cnt]').forEach(el => { const to = Number(el.dataset.cnt); let k = 0; el.textContent = '0'; const iv = setInterval(() => { k = Math.min(to, k + Math.max(1, Math.ceil(to / 22))); el.textContent = k; if (k >= to) clearInterval(iv); }, 45); }); if (iWon) tbFly(6); }, 60);
   const g = GAMES[t.game];
   $app.innerHTML = `<div class="view game"><div class="topbar"><button class="back" data-act="${t.session ? 'swipe' : 'shortlist'}" aria-label="Back">‹</button><div class="grow"><h2>${g[0]}</h2><small>${g[1]}</small></div></div>
     <div class="gwin ${iWon ? 'me' : ''}"><span class="badge">${ic(iWon ? 'star' : 'heart')}</span><h3>${iWon ? 'You win. You pick.' : esc(t.winner) + ' wins and picks.'}</h3></div>${sum}${tail}</div>`;
@@ -4458,8 +4410,6 @@ document.addEventListener('click', async e => {
       case 'unlock': S.unlock = true; S.view = 'home'; S.tab = 'home'; await refresh(); return render();
       case 'tbguess': { const g = parseInt(document.getElementById('tbg').value, 10); if (!(g > 1880 && g < 2100)) return toast('Enter a year.'); S.tb = await rpc('tiebreak_guess', { p_code: S.code, p_member: S.me, p_id: S.tb.id, p_guess: g }); send({ type: 'tb', id: S.tb.id }); return render(); }
       case 'gplay': return playGame();
-      case 'tbheart': { S.tbHearts = (S.tbHearts || 0) + 1; tbFly(1); send({ type: 'tbh', id: S.tb.id }); const m = document.getElementById('tbwm'); if (m) m.textContent = `${S.tbHearts} sent. They show on ${them()}’s screen if the app is open.`; return; }
-      case 'tbheckle': { if (Date.now() - (S.tbHkAt || 0) < 4000) return; S.tbHkAt = Date.now(); send({ type: 'tbh', id: S.tb.id, m: ds.m }); const m = document.getElementById('tbwm'); if (m) m.textContent = `Sent: “${ds.m}”`; return; }
       case 'tbopen': { const g = gameNow(); if (!g) return render(); try { S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: g.id }); } catch { S.tb = g; } S.view = 'game'; return render(); }
       case 'tbjoin': closeSheet(); return openGame(ds.id);
       case 'tbnudge': { const g = S.view === 'game' ? S.tb : gameNow(); if (!g) return; if (Date.now() - (S.tbNudged || 0) < 60000) return toast(`${them()} was just nudged. Give it a minute.`); S.tbNudged = Date.now();
