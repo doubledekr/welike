@@ -1200,6 +1200,10 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .cele.wide{flex-wrap:wrap;border-radius:24px;max-width:min(92%,360px);animation:celein .45s cubic-bezier(.2,1.5,.4,1),celeout .35s 8.6s forwards}
 .cele .cpair{flex:1 0 100%;margin-top:8px;padding:10px 12px;border-radius:16px;background:rgba(255,255,255,.2);color:#fff;text-align:left}
 .cele .cpair b{font-family:inherit;font-weight:600;font-size:13.5px;line-height:1.3;display:block}.cele .cpair small{font-weight:700;font-size:12.5px;margin-top:3px;white-space:normal;max-width:none;text-decoration:underline}
+
+.ideac{display:flex;gap:10px;margin-top:16px}.ideai{flex:1;min-width:0;border-radius:18px;overflow:hidden;background:rgba(255,255,255,.06);text-align:left;padding-bottom:10px}
+.ideai img,.ideai span{display:grid;place-items:center;width:100%;height:96px;object-fit:cover;font-size:34px;background:rgba(255,255,255,.05)}.ideai b{display:block;padding:8px 10px 0;font-size:13.5px;line-height:1.25;font-weight:600}
+.gemfact{font-family:var(--serif);font-size:18px;line-height:1.3;margin-top:8px;color:#ffe2b0}
 </style>
 </head>
 <body>
@@ -1492,8 +1496,8 @@ const homeSig = () => { try { return JSON.stringify([S.state, S.plans, S.share, 
 const swPend = new Set();   // swipes still being saved
 async function refresh() {
   if (swPend.size) await Promise.allSettled([...swPend]);   // a refresh right after the last swipe must include it
-  const [st, pantry, settings, share, plans, inbox, favs, surp, dates, poll, triv] = await Promise.all([rpc('get_state', { p_code: S.code, p_member: S.me }), rpc('get_pantry', { p_code: S.code }), rpc('get_settings', { p_code: S.code }), rpc('share_state', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('plan_list', { p_code: S.code }).catch(() => []), rpc('inbox_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('fav_list', { p_code: S.code }).catch(() => null), rpc('surprise_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('dates_get', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('poll_state', { p_code: S.code }).catch(() => null), rpc('trivia_state', { p_code: S.code, p_member: S.me, p_event: S.trivId || null }).catch(() => null)]);
-  S.surp = surp || S.surp || null; S.dates = dates || S.dates || null; S.poll = poll || null; if (!S.tq) S.triv = triv || null; setTimeout(notifSweep, 400);
+  const [st, pantry, settings, share, plans, inbox, favs, surp, dates, poll, triv, idea] = await Promise.all([rpc('get_state', { p_code: S.code, p_member: S.me }), rpc('get_pantry', { p_code: S.code }), rpc('get_settings', { p_code: S.code }), rpc('share_state', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('plan_list', { p_code: S.code }).catch(() => []), rpc('inbox_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('fav_list', { p_code: S.code }).catch(() => null), rpc('surprise_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('dates_get', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('poll_state', { p_code: S.code }).catch(() => null), rpc('trivia_state', { p_code: S.code, p_member: S.me, p_event: S.trivId || null }).catch(() => null), rpc('idea_today', { p_code: S.code }).catch(() => null)]);
+  S.surp = surp || S.surp || null; S.dates = dates || S.dates || null; S.poll = poll || null; S.idea = idea || null; if (!S.tq) S.triv = triv || null; setTimeout(notifSweep, 400);
   S.state = st; S.plans = plans || []; S.pool = null; if (inbox) S.inbox = inbox; if (favs) S.favs = favs; S.share = share; S.pantry = pantry || []; S.settings = settings || {};
 }
 async function loadSession(id, keep) {
@@ -2032,6 +2036,23 @@ function notifSheet() { step('notif_open'); ls.set('notifAt', String(Date.now())
   sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('bell')}</span><h2>How much should we reach out?</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">This is yours alone. ${partner() ? esc(partner()) + ' picks separately.' : 'Your person picks separately.'}</p></div></div>
     ${notifOpts()}<p class="muted" style="font-size:13px;text-align:center;margin-top:12px">${notifMode() ? '' : 'Until you choose, nothing changes. '}You can switch any time on the You tab, under Notifications.</p><button class="jlink" data-act="closesheet">${notifMode() ? 'Done' : 'Not now'}</button>`); }
 async function notifSet(m) { try { await rpc('notif_set', { p_code: S.code, p_member: S.me, p_mode: m }); } catch { return false; } S.dates = { ...(S.dates || {}), notif: m }; step('notif_' + m); return true; }
+/* ---------- today's idea: one small thing to do together, written from what you've both said yes to ---------- */
+const ideaBanner = () => { const i = S.idea; if (!i || !i.cards?.length || ls.get('ideaoff') === i.id) return '';
+  return `<button class="tripbar kc k-match" data-act="idea" style="width:100%;text-align:left"><span class="tic">${ic('spark')}</span><span class="grow"><b>An idea for you two</b><small>${esc(i.title)}</small></span><span class="go">See</span></button>`; };
+function ideaSheet() { const i = S.idea; if (!i) return; step('idea_open'); S.listCards = i.cards;
+  const when = i.plan_day ? new Date(i.plan_day + 'T12:00').toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' }) : '';
+  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('spark')}</span><h2>${esc(i.title)}</h2><p class="muted" style="margin-top:10px;font-size:15.5px;line-height:1.5;color:var(--text)">${esc(i.body)}</p></div></div>
+    <div class="ideac">${i.cards.map(c => `<button class="ideai" data-detail="${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="">` : `<span>${emojiFor(c)}</span>`}<b>${esc(c.title)}</b></button>`).join('')}</div>
+    <div style="height:14px"></div><button class="btn" data-act="ideaplan">${when ? 'Plan it for ' + esc(when) : 'Plan it'}</button><button class="jlink" data-act="ideaoff">Not this one</button>
+    <p class="muted" style="font-size:12px;text-align:center;margin-top:6px">Put together from things you’ve both said yes to. You can swap anything in the plan.</p>`); }
+async function ideaPlan() { const i = S.idea; if (!i) return; closeSheet(); step('idea_plan'); try { if (!S.pool) await dayPool(); } catch {} S.pool = S.pool || [];
+  for (const c of i.cards) if (!S.pool.some(y => y.id === c.id)) S.pool.push(c);
+  const anchor = i.cards.find(c => isDated(c)) || i.cards.find(c => c.deck !== 'movie') || i.cards[0]; dayDraft({ anchor, day: i.plan_day || null }); const pl = S.pl; if (!pl) return;
+  if (i.plan_day && !pl.fixed && i.plan_day >= pToday()) pl.day = i.plan_day;
+  const ord = ['day', 'drinks', 'dinner', 'evening', 'drinks2', 'drinks3'];
+  for (const c of i.cards) { if (c.id === anchor.id) continue; const s = isBar(c) ? (pl.items.drinks?.card ? 'evening' : 'drinks') : pSlotOf(c); if (pl.items[s]?.card?.id === anchor.id) continue;
+    if (!pl.slots.includes(s)) { pl.slots.push(s); pl.slots.sort((x, y) => ord.indexOf(x) - ord.indexOf(y)); } pl.items[s] = { time: (isDated(c) && evStart(c)) || PSLOT[s][1], card: c, find: false, why: 'both' }; }
+  dayEdit(); }
 /* ---------- community polls: one vote per couple ---------- */
 const pollTodo = q => q ? (q.todo ?? (q.mine ? 0 : 1)) : 0;
 const pollBanner = () => { const q = S.poll; if (!q || !q.open || !pollTodo(q)) return ''; const n = 1 + (q.more || []).length;
@@ -2506,6 +2527,7 @@ function slotHTML(incoming) {
     ['triploc:' + (S.away?.trip || ''), tripLocBanner()],
     ['shr:' + pToday(), shareRemindBanner()],
     ['dates', datesBanner()],
+    ['idea:' + (S.idea?.id || ''), ideaBanner()],
     ['triv:' + (S.triv ? S.triv.id + S.triv.phase : ''), trivBanner()],
     ['poll:' + (S.poll?.id || ''), pollBanner()],
     ['hs', hsBanner()],
@@ -2696,6 +2718,7 @@ function inboxGo(u) {
   if (q.get('tonightwalk')) return twShow();
   if (q.get('trivia')) return openTrivia(q.get('trivia'));
   if (q.get('night')) return nightOpen(q.get('night'));
+  if (q.get('idea')) return ideaSheet();
   if (q.get('poll')) return pollSheet(q.get('poll'));
   if (q.get('bdays')) return bdaysSheet();
   if (q.get('plansurprise')) return surpStart(['birthday', 'anniversary'].includes(q.get('plansurprise')) ? q.get('plansurprise') : undefined);
@@ -4047,7 +4070,7 @@ function gemCover(el, c) { if (!el || el.querySelector('.gcov')) return; const w
   let down = false, lx = 0, ly = 0, moves = 0, done = false; const pt = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; };
   const reveal = () => { if (done) return; done = true; const a = gemSeen(); a.push(c.id); ls.set('gemsc', JSON.stringify(a.slice(-80))); step('gem_scratch'); w.classList.add('off'); setTimeout(() => w.remove(), 560);
     try { el.animate([{ boxShadow: '0 0 0 0 transparent' }, { boxShadow: '0 0 110px 26px rgba(255,181,71,.85), 0 0 30px 6px rgba(255,255,255,.5)', offset: .3 }, { boxShadow: '0 0 0 0 transparent' }], { duration: 1100, easing: 'ease-out' }); navigator.vibrate?.([20, 30, 40]); } catch {}
-    const n = document.createElement('div'); n.className = 'gfact'; n.innerHTML = `<small>Hidden gem</small><b>${esc(c.data?.notes || 'Somewhere most people walk past.')}</b><span>${partner() ? esc(them()) + ' gets this one too.' : 'Most people walk straight past it.'}</span>`; el.appendChild(n); setTimeout(() => n.classList.add('out'), 3600); setTimeout(() => n.remove(), 4200); n.addEventListener('pointerdown', e => { e.stopPropagation(); n.remove(); }); };
+    const n = document.createElement('div'); n.className = 'gfact'; n.innerHTML = `<small>Hidden gem</small><b>${esc(c.data?.fact || c.data?.notes || 'Somewhere most people walk past.')}</b><span>${partner() ? esc(them()) + ' gets this one too.' : 'Most people walk straight past it.'}</span>`; el.appendChild(n); setTimeout(() => n.classList.add('out'), 3600); setTimeout(() => n.remove(), 4200); n.addEventListener('pointerdown', e => { e.stopPropagation(); n.remove(); }); };
   const check = () => { const d = g.getImageData(0, 0, W, H).data; let clear = 0, tot = 0; for (let i = 3; i < d.length; i += 4 * 41) { tot++; if (d[i] < 40) clear++; } if (clear / tot > .4) reveal(); };
   w.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); if (done) return; down = true; [lx, ly] = pt(e); g.beginPath(); g.arc(lx, ly, g.lineWidth / 2, 0, 7); g.fill(); w.classList.add('go'); try { w.setPointerCapture(e.pointerId); } catch {} });
   w.addEventListener('pointermove', e => { if (!down || done) return; e.preventDefault(); const [x, y] = pt(e); g.beginPath(); g.moveTo(lx, ly); g.lineTo(x, y); g.stroke(); lx = x; ly = y; if (++moves % 5 === 0) check(); });
@@ -4303,7 +4326,7 @@ function bookBlock(c, day, time) {
   return '';
 }
 function closeSheet() { $layer.innerHTML = ''; document.querySelector('.a2arrow')?.remove(); tiltWatch(); }
-const gemBlock = d => d?.gem ? `<div class="gemk in">${ic('gem')}<span>Hidden gem</span></div>${d.src ? `<a class="btn ghost" style="display:block;text-align:center;text-decoration:none;margin-top:10px" href="${esc(d.src)}" target="_blank" rel="noopener">Read more on Wikipedia</a>` : ''}<p class="muted" style="font-size:11.5px;text-align:center">Facts from Wikipedia. Photo and hours from Google. Description written by Let’s Together.</p>` : '';
+const gemBlock = d => d?.gem ? `<div class="gemk in">${ic('gem')}<span>Hidden gem</span></div>${d.fact ? `<p class="gemfact">${esc(d.fact)}</p>` : ''}${d.src ? `<a class="btn ghost" style="display:block;text-align:center;text-decoration:none;margin-top:10px" href="${esc(d.src)}" target="_blank" rel="noopener">Read more on Wikipedia</a>` : ''}<p class="muted" style="font-size:11.5px;text-align:center">Facts from Wikipedia. Photo and hours from Google. Description written by Let’s Together.</p>` : '';
 function showDetail(c, back = false) {
   if (!c) return ''; S.detailCard = c;
   if (!back && isRest(c) && !c.data.book_at) bookFetch([c]).then(ok => { if (ok && S.detailCard === c && $layer.querySelector('.sheet')) showDetail(c); }); const d = c.data || {}; let b = '';
@@ -4653,6 +4676,9 @@ document.addEventListener('click', async e => {
       case 'eatsave': { const g = k => [...document.querySelectorAll(`.eatc.on[data-k="${k}"]`)].map(x => x.dataset.v); const v = { cuisines: g('cuisines').slice(0, 10), far: g('far')[0] || '', vibe: g('vibe')[0] || '' }; t.disabled = true;
         try { const tt = await rpc('taste_set', { p_code: S.code, p_member: S.me, p_key: 'eat', p_value: v }); S.dates = { ...(S.dates || {}), taste: tt || { eat: v } }; } catch { t.disabled = false; return toast('That didn’t save. Try again.'); }
         closeSheet(); step('eat_saved'); if (S.sess?.deck === 'dinner' && S.bite) { const sid = S.sess.id; try { await loadSession(sid); drawStack(); eatWhy(sid); } catch {} } return; }
+      case 'idea': return ideaSheet();
+      case 'ideaplan': return ideaPlan();
+      case 'ideaoff': { if (S.idea) ls.set('ideaoff', S.idea.id); closeSheet(); step('idea_off'); return render(); }
       case 'pairplan': return pairPlan();
       case 'pairpeek': return pairPeek();
       case 'gplay': return playGame();
