@@ -380,3 +380,5 @@ do $$ declare f record; begin
 
 -- 18 Nov 2026, second pass: weekly reveal (fr_people.share, fr_reveals, _fr_loves, _fr_reveal, fr_share), a seed card for plans
 -- started from a reveal, and the 'shirts' action. Applied as migration friends_weekly_reveal_shirts; see the project for the live text.
+-- 18 Nov 2026, third pass: who owes what (fr_costs, fr_payments, fr_plan_members.plus, fr_people.pay, _fr_money, fr_pay and the
+-- plus / cost / costdel / claim / paid actions). Applied as migration friends_costs_split.

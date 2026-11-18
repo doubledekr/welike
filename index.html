@@ -1368,6 +1368,10 @@ body:has(#layer>*) #app :is(.brand i,.hdr .ic,.card .art,.btn,.go.blink,.dbg .mo
 .frrev{display:flex;flex-direction:column;gap:4px;align-items:flex-start;padding:16px;border-radius:20px;background:linear-gradient(135deg,rgba(138,92,255,.26),rgba(255,77,126,.2));margin-top:6px}
 .frrev small{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:#d9c8ff}.frrev b{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.15}.frrev span{color:#d9d0dc;font-size:13.5px}.frrev .btn{margin-top:8px}
 .frlook{font-size:13.5px;color:var(--muted);margin-bottom:6px}
+
+.frpaid{color:#bfeee6;font-size:13px;font-weight:700;flex:none}
+.frstepper{display:flex;align-items:center;gap:8px;flex:none}.frstepper button{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.08);font-size:18px;font-weight:700;color:#fff}.frstepper i{font-style:normal;font-weight:700;min-width:26px;text-align:center}
+.frp .fropt .btn.sm{flex:none}
 </style>
 </head>
 <body>
@@ -3770,7 +3774,7 @@ const frSolo = () => !S.code || !S.me;
 const soloMode = () => !!(sbA && S.settings?.solo && !partner());
 const twoOnly = () => soloMode() ? (toast('That one is made for two. Add your person from You whenever you like.', 3800), true) : false;
 const FWHY = { signin: 'Sign in first.', gone: 'That plan isn’t open to you anymore.', host: 'Only the person who started the plan can do that.', closed: 'That vote has closed.', none: 'Nothing has enough yeses yet. Keep swiping.', alone: 'Wait for at least one friend to join first.',
-  respond: 'Say you’re in first.', nocode: 'No one has that code. Check it with your friend.', self: 'That’s your own code.', max: 'You’ve hit the limit for now.', trip: 'Pick at least one place and one weekend.', surprise: 'This plan is being kept a surprise from them.', nopartner: 'Your partner needs to save their account first.', all: 'Answer for every weekend.', link: 'The link needs to start with https://', bad: 'That didn’t go through. Try again.' };
+  respond: 'Say you’re in first.', nocode: 'No one has that code. Check it with your friend.', self: 'That’s your own code.', max: 'You’ve hit the limit for now.', trip: 'Pick at least one place and one weekend.', surprise: 'This plan is being kept a surprise from them.', nopartner: 'Your partner needs to save their account first.', all: 'Answer for every weekend.', link: 'The link needs to start with https://', cost: 'Check the name and the amount.', bad: 'That didn’t go through. Try again.' };
 const frWhy = w => toast(FWHY[w] || 'That didn’t go through. Try again.', 3400);
 
 async function frLoad(name) {
@@ -3989,11 +3993,41 @@ function renderFPlan() {
     ${p.surprise ? `<p class="frsurp">${ic('eye')}Kept a surprise from ${esc(p.surprise)}. ${esc(p.surprise)} can’t see this plan.</p>` : ''}
     ${p.flow === 'pick' && !p.data.pick && (p.day || p.at) ? `<p class="frwhen">${esc([p.day ? frDay(p.day) : '', p.at || ''].filter(Boolean).join(' at '))}</p>` : ''}
     ${body}
+    ${can && p.flow !== 'hub' ? frCosts(p) : ''}
     ${can ? `<div class="sect">This plan</div><div class="ycard">
       ${p.partner && !p.surprise ? (p.partner.has ? `<div class="yrow"><span class="tic">${ic('heart')}</span><span class="grow"><b>Include ${esc(p.partner.name)}</b><small>${p.partner.in ? esc(p.partner.name) + ' is invited' : esc(p.partner.name) + ' can’t see this plan'}</small></span><button class="ysw ${p.partner.in ? 'on' : ''}" data-fr="partner" data-on="${p.partner.in ? 0 : 1}">${p.partner.in ? 'Yes' : 'No'}</button></div>` : `<div class="yrow"><span class="tic">${ic('heart')}</span><span class="grow"><b>Include ${esc(p.partner.name)}</b><small>${esc(p.partner.name)} needs to save an account first</small></span></div>`) : ''}
       ${p.owner ? `<button class="yrow" data-fr="more"><span class="tic">${ic('plus')}</span><span class="grow"><b>Invite more friends</b></span><span class="ych">›</span></button><button class="yrow" data-fr="cancel"><span class="tic">${ic('x')}</span><span class="grow"><b>Cancel this plan</b><small>Removes it for everyone</small></span></button>`
         : `<button class="yrow" data-fr="respond" data-in="0"><span class="tic">${ic('x')}</span><span class="grow"><b>Leave this plan</b></span></button>`}</div>` : ''}</div>`;
   const v = document.querySelector('.view.frp'); if (v && keep) v.scrollTop = keep;
+}
+/* ----- who owes what: the app does the arithmetic and keeps the ticks. It never holds or moves money. ----- */
+const frUsd = c => '$' + (c / 100).toLocaleString('en-US', { minimumFractionDigits: c % 100 ? 2 : 0, maximumFractionDigits: 2 });
+const PAYN = { venmo: 'Venmo', cashapp: 'Cash App', paypal: 'PayPal' };
+const frPayLink = (pay, cents, note) => { const amt = (cents / 100).toFixed(2), h = encodeURIComponent(pay.handle), n = encodeURIComponent(note);
+  return pay.kind === 'venmo' ? `https://venmo.com/?txn=pay&recipients=${h}&amount=${amt}&note=${n}` : pay.kind === 'cashapp' ? `https://cash.app/$${h}/${amt}` : `https://paypal.me/${h}/${amt}`; };
+function frDebts(p) {   // partners on the same plan are one household: their shares show as one line
+  const by = Object.fromEntries(p.members.map(m => [m.id, m])), rows = {};
+  (p.money || []).forEach(x => { const k = (by[x.from]?.house || x.from) + '|' + x.to, r = rows[k] = rows[k] || { to: x.to, from: [], cents: 0, paid: 0 }; r.from.push(x.from); r.cents += x.cents; r.paid += Math.min(x.paid, x.cents); });
+  return Object.values(rows);
+}
+function frCosts(p) {
+  const me = p.members.find(m => m.me), by = Object.fromEntries(p.members.map(m => [m.id, m])), nm = id => by[id]?.me ? 'You' : by[id]?.name || 'Someone';
+  const debts = frDebts(p).sort((a, b) => (b.to === me.id || b.from.includes(me.id)) - (a.to === me.id || a.from.includes(me.id))), owedMe = debts.filter(r => r.to === me.id && r.paid < r.cents);
+  const row = r => { const mine = r.from.includes(me.id), done = r.paid >= r.cents, names = frNames([...r.from].sort((a, b) => (b === me.id) - (a === me.id)).map(nm)), to = by[r.to];
+    return `<div class="fropt"><span class="grow"><b>${esc(names)} ${mine || r.from.length > 1 ? 'owe' : 'owes'} ${r.to === me.id ? 'you' : esc(nm(r.to))} ${frUsd(r.cents)}</b>${mine && !done && !to?.pay ? `<small>Ask ${esc(nm(r.to))} how they’d like to be paid</small>` : ''}</span>${
+      r.to === me.id ? `<button class="ysw ${done ? 'on' : ''}" data-fr="paid" data-from="${r.from.join(',')}" data-on="${done ? 0 : 1}">${done ? 'Paid' : 'Mark paid'}</button>`
+      : done ? '<span class="frpaid">Paid</span>' : mine && to?.pay ? `<a class="btn sm" href="${esc(frPayLink(to.pay, r.cents - r.paid, p.title))}" target="_blank" rel="noopener">Pay on ${PAYN[to.pay.kind]}</a>` : ''}</div>`; };
+  return `<div class="sect">Who owes what</div><div class="frstep" style="margin-top:0"><div class="frsb" style="margin:0">
+    ${p.costs.length ? p.costs.map(c => `<div class="fropt"><span class="grow"><b>${esc(c.label)}</b><small>${frUsd(c.cents)} · ${c.payer === me.id ? 'you' : esc(c.payer_name)} paid · ${c.mode === 'all' ? 'split by everyone' : `${c.claims} in on it`}</small></span>${c.mode === 'claim' ? `<button class="ysw ${c.mine ? 'on' : ''}" data-fr="claim" data-id="${c.id}" data-on="${c.mine ? 0 : 1}">${c.mine ? 'I’m in' : 'Not me'}</button>` : ''}${c.can ? `<button class="frlink" data-fr="costdel" data-id="${c.id}">Remove</button>` : ''}</div>`).join('') : '<p>When someone pays for the stay or anything shared, add it here. Everyone’s share works itself out.</p>'}
+    ${debts.length ? `<div class="frlist"><b>So far</b></div>${debts.map(row).join('')}` : ''}
+    ${owedMe.length ? `<button class="btn sm ghost frsend" data-fr="remind">Send a reminder</button>` : ''}
+    <div class="frlist"><b>Add something you paid for</b></div>
+    <input id="fcl" class="frin" maxlength="50" placeholder="The house, groceries, boat rental" aria-label="What it was" value="${!p.costs.length && p.data.stay ? esc(p.data.stay.label) : ''}">
+    <div class="frrow2"><input id="fca" class="frin" inputmode="decimal" placeholder="Total, like 1200" aria-label="Total paid" style="margin-top:0"><select id="fcm" class="frsel wide"><option value="all">Everyone</option><option value="claim">Only who’s in</option></select></div>
+    <button class="btn sm ghost frsend" data-fr="costadd">Add it</button>
+    <div class="fropt" style="margin-top:8px"><span class="grow"><b>Bringing anyone?</b><small>A plus-one counts as one more share on your side</small></span><span class="frstepper"><button data-fr="plus" data-n="${Math.max(0, me.plus - 1)}" aria-label="One fewer">−</button><i>+${me.plus}</i><button data-fr="plus" data-n="${Math.min(9, me.plus + 1)}" aria-label="One more">+</button></span></div>
+    <button class="fropt" data-fr="payset"><span class="grow"><b>How friends pay you</b><small>${me.pay ? `${PAYN[me.pay.kind]} · ${esc(me.pay.handle)}` : 'Add your Venmo, Cash App or PayPal name so they get a pay button'}</small></span><span class="ych">›</span></button>
+    <p class="muted frfine">The app does the arithmetic. Paying happens in your own payment app, and whoever was owed ticks it off.</p></div></div>`;
 }
 /* ----- group swipe: one idea at a time, yes or no ----- */
 function renderFSwipe() {
@@ -4071,6 +4105,14 @@ async function frClick(t, ds) {
     case 'sw': return frSwipe(ds.y === '1');
     case 'idea': { const title = (document.getElementById('fridea')?.value || '').trim(); if (!title) return toast('Type the idea first.'); return frAct('idea', { title }, t); }
     case 'shortlist': return frAct('shortlist', {}, t);
+    case 'plus': return frAct('plus', { n: Number(ds.n) }, t);
+    case 'costadd': { const label = (document.getElementById('fcl')?.value || '').trim(), amt = parseFloat((document.getElementById('fca')?.value || '').replace(/[$,\s]/g, '')); if (!label) return toast('Say what it was.'); if (!(amt > 0) || amt > 100000) return toast('Enter the total you paid, like 1200.'); return frAct('cost', { label, cents: String(Math.round(amt * 100)), mode: document.getElementById('fcm')?.value }, t); }
+    case 'costdel': if (!t.dataset.sure) { t.dataset.sure = '1'; t.textContent = 'Tap again'; return; } return frAct('costdel', { id: ds.id }, t);
+    case 'claim': return frAct('claim', { id: ds.id, on: ds.on === '1' }, t);
+    case 'paid': { for (const f of ds.from.split(',')) await frAct('paid', { from: f, on: ds.on === '1' }, t); return; }
+    case 'payset': { const me = p.members.find(m => m.me); return sheet(`<div class="grab"></div><div class="body acs"><h2>How friends pay you</h2><p class="muted">Friends who owe you get a button that opens this app with the amount filled in. Only people on your plans see it.</p><select id="pyk" class="frsel wide">${Object.entries(PAYN).map(([k, v]) => `<option value="${k}" ${me.pay?.kind === k ? 'selected' : ''}>${v}</option>`).join('')}</select><input id="pyh" class="acin" autocapitalize="none" autocomplete="off" maxlength="40" placeholder="Your name there, like dave-m" aria-label="Your name in that app" value="${esc(me.pay?.handle || '')}"><button class="btn" data-fr="paysave">Save</button>${me.pay ? '<button class="jlink" data-fr="paysave" data-clear="1">Remove it</button>' : ''}</div>`); }
+    case 'paysave': { const h = ds.clear ? '' : (document.getElementById('pyh')?.value || '').trim().replace(/^[@$]/, ''); if (!ds.clear && !h) return toast('Type your name in that app.'); const r = await frRpc('fr_pay', { p_kind: ds.clear ? null : document.getElementById('pyk')?.value, p_handle: h }).catch(() => null); if (!r?.ok) return frWhy(); closeSheet(); return frOpenPlan(p.id, true); }
+    case 'remind': { const me = p.members.find(m => m.me), by = Object.fromEntries(p.members.map(m => [m.id, m])), lines = frDebts(p).filter(r => r.to === me.id && r.paid < r.cents).map(r => `${frNames(r.from.map(id => by[id]?.name))}: ${frUsd(r.cents - r.paid)}`), text = `${p.title}: here’s where we are.\n${lines.join('\n')}${me.pay ? `\nPay me on ${PAYN[me.pay.kind]}: ${me.pay.handle}` : ''}`; try { if (navigator.share) await navigator.share({ text }); else { await navigator.clipboard.writeText(text); toast('Copied. Paste it into the group text.'); } } catch {} return; }
     case 'partner': return frAct('partner', { on: ds.on === '1' }, t);
     case 'more': { const have = new Set(p.members.map(m => m.id)), rest = d.friends.filter(f => !have.has(f.id)); return sheet(`<div class="grab"></div><div class="body acs"><h2>Invite more friends</h2>${rest.length ? `<div class="frpicks">${rest.map(f => `<button class="frpick" data-fr="tog" data-id="${f.id}">${esc(f.name)}</button>`).join('')}</div><button class="btn" data-fr="morego">Invite</button>` : '<p class="muted">Everyone you’re friends with is already here. Invite a new friend from the Friends screen.</p>'}</div>`); }
     case 'morego': { const ids = [...document.querySelectorAll('.sheet [data-fr=tog].on')].map(x => x.dataset.id); if (!ids.length) return toast('Pick someone.'); closeSheet(); return frAct('invite', { ids }); }
