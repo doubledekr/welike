@@ -3598,7 +3598,8 @@ function youHTML() {
     <div class="ycard"><div class="yrow"><span class="tic">${ic('heart')}</span><span class="grow"><b>${esc(S.me)}</b><small>${p ? 'Paired with ' + esc(p) : 'Not paired yet'}</small></span><button class="ysw" data-act="rename">Rename</button></div>
       <div class="yrow"><span class="tic">${ic('share')}</span><span class="grow"><b>${esc(S.code)}</b><small>Your couple code</small></span><button class="ysw" data-act="invite">Invite</button></div>
       <button class="yrow" data-act="bdays"><span class="tic">${ic('heart')}</span><span class="grow"><b>Birthday and anniversary</b><small>${S.dates?.bday || S.dates?.anniv ? esc([S.dates.bday ? 'Birthday ' + mdText(S.dates.bday) : '', S.dates.anniv ? 'Anniversary ' + mdText(S.dates.anniv) : ''].filter(Boolean).join(' · ')) : 'So you both get a heads-up before the day'}</small></span><span class="ych">›</span></button>
-      <button class="yrow" data-tab="lists"><span class="tic">${ic('list')}</span><span class="grow"><b>Your own lists</b><small>Dinners, activities and pantry</small></span><span class="ych">›</span></button></div>
+      <button class="yrow" data-tab="lists"><span class="tic">${ic('list')}</span><span class="grow"><b>Your own lists</b><small>Dinners, activities and pantry</small></span><span class="ych">›</span></button>
+      ${sw(S.settings?.kids === true, 'kidsset', 'Planning with kids', S.settings?.kids === true ? 'Family films and kid-friendly places, for both of you' : 'Turn on for kid-friendly films, places and ideas', 'heart')}</div>
     <div class="sect">This phone</div>
     <div class="ycard">${pushRow}
       ${sw(tOn, tOn ? 'traveloff' : 'travelon', 'Travel mode', tOn ? 'Asks before showing another city when you’re away' : 'Notice when you open the app in another city', 'plane')}
@@ -4542,6 +4543,8 @@ document.addEventListener('click', async e => {
       case 'liketoo': { const c = S.detailCard; if (!c) return; t.disabled = true; try { const r = await rpc('like_card', { p_code: S.code, p_member: S.me, p_card: c.id }); document.querySelector('.lfront')?.remove(); if (r.match) { toast(`You both like ${c.title} now.`, 3500); send({ type: 'shortlist' }); push(`It's a match ${emojiFor(c)}`, `You and ${S.me} both like ${c.title}.`, './'); } refresh().catch(() => {}); } catch { toast('Could not save that like.'); } return S.view === 'trips' ? openTrips() : null; }
       case 'scolater': document.querySelector('.sco')?.remove(); return;
       case 'scratchdone': document.querySelector('.scr')?.remove(); return render();
+      case 'kidsset': { const on = S.settings?.kids !== true; try { S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { kids: on } }); } catch { return toast('Could not save. Try again.'); }
+        step(on ? 'kids_on' : 'kids_off'); toast(on ? 'Kid-friendly from the next cards on, for both of you.' : 'Back to everything.'); return render(); }
       case 'travelon': return checkTravel(true);
       case 'traveloff': ls.del('travel'); ls.del('away'); S.away = null; S.awayOffer = null; gemAway(); return render();
       case 'awayyes': if (!S.awayOffer) return; S.away = S.awayOffer; ls.set('away', JSON.stringify(S.away)); S.awayOffer = null; gemAway(); if (S.homeDeck !== 'event') S.homeDeck = 'dinner'; toast(`Showing ${S.away.city} on this phone. Home is still saved.`, 3500); return render();
