@@ -2046,7 +2046,8 @@ const ideaBanner = () => { const i = S.idea; if (!i || !i.cards?.length || i.sav
 const wildBanner = () => { const w = S.idea?.wild; if (!w || ls.get('wildoff') === w.id) return '';
   return `<button class="tripbar kc k-match" data-act="wild" style="width:100%;text-align:left"><span class="tic">${ic('spark')}</span><span class="grow"><b>Found for this week</b><small>${esc(w.title)}</small></span><span class="go">See</span></button>`; };
 function wildSheet() { const w = S.idea?.wild; if (!w) return; step('wild_open');
-  const when = w.when ? new Date(w.when + 'T12:00').toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' }) : '';
+  const md = d => new Date(d + 'T12:00').toLocaleDateString([], { month: 'short', day: 'numeric' });
+  const when = w.until && w.when && w.until > w.when ? `${md(w.when)} to ${md(w.until)}` : w.until && !w.when ? `Through ${md(w.until)}` : w.when ? new Date(w.when + 'T12:00').toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' }) : '';
   const A = (url, label, cls) => `<a class="${cls}" href="${esc(url)}" target="_blank" rel="noopener" data-act="wildgo" style="display:block;text-align:center;text-decoration:none">${label}</a>`;
   const main = w.book_url ? A(w.book_url, `Reserve on ${esc(w.book_name || 'the booking page')}`, 'btn') : w.venue_url ? A(w.venue_url, `See it on ${esc(w.venue_host || 'their site')}`, 'btn') : A(w.url, `See it on ${esc(w.source || 'the web')}`, 'btn');
   const more = [w.book_url && w.venue_url ? A(w.venue_url, `Details on ${esc(w.venue_host || 'their site')}`, 'jlink') : '', w.book_url || w.venue_url ? A(w.url, `Where we found it: ${esc(w.source || 'the web')}`, 'jlink') : ''].join('');
