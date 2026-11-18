@@ -2960,7 +2960,15 @@ function showFinal(c, canShuffle = false, pool = null) {
 const GAMES = { taps: ['Tap race', 'Most taps in 3 seconds wins and picks'], clock: ['Stop the clock', 'Closest to the target time wins and picks'], trivia: ['Movie trivia', 'Best of three. Both right? The faster answer takes the point'] };
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const secs = ms => (ms / 1000).toFixed(2);
+// iPhones can leave the whole page pushed upward after fast tapping or a keyboard, which hides the top bar and cuts the bottom
+// off. Pull it back whenever that happens, unless someone is typing.
+function unshift() {
+  const a = document.activeElement; if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return;
+  if (window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || (window.visualViewport && window.visualViewport.offsetTop > 0)) { window.scrollTo(0, 0); document.documentElement.scrollTop = 0; document.body.scrollTop = 0; }
+}
+window.addEventListener('scroll', unshift, { passive: true }); window.visualViewport?.addEventListener('scroll', unshift); document.addEventListener('focusout', () => setTimeout(unshift, 80));
 function gameFrame(body) {
+  unshift();
   const g = GAMES[S.tb.game] || ['Play for it', ''];
   $app.innerHTML = `<div class="view game"><div class="topbar"><button class="back" data-act="${S.tb.session ? 'swipe' : 'shortlist'}" aria-label="Back">‹</button><div class="grow"><h2>${g[0]}</h2><small>${g[1]}</small></div></div><div id="gstage" class="gstage">${body}</div></div>`;
 }
@@ -3016,6 +3024,7 @@ async function playGame() {
   return gameSubmit(tb ? out[0] : { answers: out });
 }
 function gameDone() {
+  unshift(); setTimeout(() => { unshift(); document.querySelector('.view.game')?.scrollTo(0, 0); }, 120);
   const t = S.tb, me = S.me, r = t.results || {}, names = Object.keys(r), who = n => n === me ? 'You' : esc(n), iWon = t.winner === me;
   let sum = '';
   if (t.game === 'taps') sum = names.map(n => `<div class="gres"><b>${who(n)}</b><span>${r[n].taps ?? 0} taps</span></div>`).join('');
