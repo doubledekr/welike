@@ -1440,7 +1440,9 @@ function gameBlock() {
     : [`Your turn: ${g.toLowerCase()}`, `${p} is playing for tonight’s pick. The winner chooses.`, 'Play now', true];
   return `<div class="gnow"><b>${a}</b><small>${b}</small></div><button class="btn ${main ? '' : 'ghost'}" data-act="tbopen">${btn}</button>${!t.done && t.mine === true ? `<button class="btn ghost" data-act="tbnudge">Nudge ${p}</button>` : ''}`;
 }
-async function startSession(deck, filters, note, announce = true) {
+// One round at a time: dealing takes a few seconds, and a second tap in that window used to deal and announce the round again.
+async function startSession(...a) { if (S.starting) return; S.starting = true; try { return await startSession1(...a); } finally { S.starting = false; } }
+async function startSession1(deck, filters, note, announce = true) {
   if (deck === 'mix' || (deck === 'dinner' && (!filters?.kinds?.length || filters.kinds.some(k => k !== 'cook')))) {
     const nb = await nearby();
     if (nb?.error === 'no_location' && deck === 'dinner') toast('Add your ZIP code on the You tab to get restaurants near you.', 4500);
@@ -1450,7 +1452,7 @@ async function startSession(deck, filters, note, announce = true) {
   const r = await rpc('start_session', { p_code: S.code, p_member: S.me, p_deck: deck, p_note: note || null, p_filters: filters || {} });
   if (!r.id) { toast(emptyMsg(deck, filters)); return; }
   if ((deck === 'movie' || deck === 'mix') && !filters?.rewatch && !filters?.wishlist) await taste({ action: 'rank', session: r.id }, 7000);
-  if (announce) {
+  if (announce && !r.dup) {
     send({ type: 'nudge', deck, session: r.id, wishlist: !!filters?.wishlist });
     if (filters?.wishlist) push(`${S.me} shared a wishlist 💌`, `${r.count} movie${r.count > 1 ? 's' : ''} they want to watch. Swipe the ones you would watch too.`, `./?s=${r.id}`);
     else push(`${S.me} nudged you ${filters?.rewatch ? '🔁' : DECKS[deck].em}`, note || `${DECKS[deck].nudge} Swipe and see what you both like.`, `./?s=${r.id}`);
@@ -4247,7 +4249,7 @@ document.addEventListener('click', async e => {
     if (ds.save) return saveAdd(ds.save);
     if (ds.watched) { await rpc('mark_watched', { p_code: S.code, p_session: S.sess.id, p_card: ds.watched }); await loadSession(S.sess.id); S.view = 'matches'; toast('Moved to your Seen folder for both of you.'); return render(); }
     if (ds.unsee) { await rpc('unsee', { p_code: S.code, p_member: S.me, p_card: ds.unsee }); await refresh(); toast(S.view === 'library' ? 'Taken out of your Watched.' : 'Taken out of Seen for you.', 3000); if (S.view === 'library') { document.querySelector('.lfront')?.remove(); return openLibrary(); } return loadList(); }
-    if (ds.chain) { const c = S.matches.find(x => x.id === ds.chain) || document.querySelector('.match')?._card; document.querySelector('.match')?.remove(); if (c?.data?.chain) await startSession(c.data.chain.deck, c.data.chain.filters || {}, `Since we both said ${c.title}`); return; }
+    if (ds.chain) { const c = S.matches.find(x => x.id === ds.chain) || document.querySelector('.match')?._card; document.querySelector('.match')?.remove(); if (S.starting) return; t.disabled = true; if (c?.data?.chain) await startSession(c.data.chain.deck, c.data.chain.filters || {}, `Since we both said ${c.title}`); return; }
     switch (ds.act) {
       case 'home': S.view = 'home'; S.tab = 'home'; S.revEntry = true; await refresh(); return render();
       case 'swipe': S.view = 'swipe'; return render();
