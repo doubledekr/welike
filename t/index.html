@@ -1267,6 +1267,8 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .acg{display:flex;justify-content:center;min-height:44px}
 .acor{margin:2px 0;text-align:center;font-size:12.5px;color:#9a8f97}.acfine{font-size:12.5px!important;text-align:center}
 .pcal{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;min-height:44px;color:#ffe3da;font-weight:600;font-size:14.5px;text-decoration:none}.pcal svg{width:18px;height:18px}
+.acpk{display:flex;align-items:center;justify-content:center;gap:8px}.acpk svg{width:18px;height:18px}
+.pkrow{display:flex;align-items:center;gap:12px;padding:12px 4px}.pkrow>span:first-child{color:#ffe3da}.pkrow svg{width:20px;height:20px}.pkrow b{display:block;font-size:15px}.pkrow small{color:#9a8f97;font-size:13px}
 </style>
 <script>window.LT_BETA = true;</script>
 <style>body::after{content:'BETA';position:fixed;top:calc(env(safe-area-inset-top) + 2px);left:50%;transform:translateX(-50%);font:700 9px/1 system-ui,sans-serif;letter-spacing:.24em;color:#ffb547;opacity:.85;z-index:99999;pointer-events:none}</style>
@@ -1294,8 +1296,8 @@ const CFG = {
 };
 const sb = createClient(CFG.url, CFG.key, { auth: { persistSession: false, autoRefreshToken: false } });
 // Accounts (beta first): a person signs in with Apple, Google or an emailed code. The couple code stays how partners link.
-const AUTH = { apple: '', google: '613628144755-h3npqt0snsmebvaej443jcbd7j4e3pn6.apps.googleusercontent.com' };   // public IDs; an empty one hides its button
-const sbA = window.LT_BETA ? createClient(CFG.url, CFG.key, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'wlt_auth' } }) : null;
+const AUTH = { passkey: false, apple: '', google: '613628144755-h3npqt0snsmebvaej443jcbd7j4e3pn6.apps.googleusercontent.com' };   // public IDs; an empty one hides its button
+const sbA = window.LT_BETA ? createClient(CFG.url, CFG.key, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'wlt_auth', experimental: { passkey: true } } }) : null;
 
 const DECKS = {
   movie:    { label: 'Movie night',  em: '🎬', hint: 'Something to watch',        nudge: 'Movie night?' },
@@ -3618,9 +3620,10 @@ async function acctRestore() {
 }
 function acctSheet(stage) {
   const who = S.code && S.me ? (partner() ? `you and ${esc(them())}` : 'your couple') : 'your couple';
-  if (S.acct) return sheet(`<div class="grab"></div><div class="body acs"><span class="acsic">${ic('user')}</span><h2>Your account is saved</h2>
+  if (S.acct) { sheet(`<div class="grab"></div><div class="body acs"><span class="acsic">${ic('user')}</span><h2>Your account is saved</h2>
     <p class="muted">Signed in as <b>${esc(S.acct.email || 'your Apple or Google account')}</b>. Sign in with it on any phone and you’re back with ${who}.</p>
-    <div style="height:16px"></div><button class="btn ghost" data-act="acctout">Sign out of this account</button></div>`);
+    ${pkOn() ? `<div id="pkrow" class="pkrow"><span>${ic('user')}</span><span class="grow"><b>Face ID sign-in</b><small>Checking…</small></span></div>` : ''}
+    <div style="height:16px"></div><button class="btn ghost" data-act="acctout">Sign out of this account</button></div>`); if (pkOn()) pkRow(); return; }
   if (stage === 'code') return sheet(`<div class="grab"></div><div class="body acs"><span class="acsic">${ic('mail')}</span><h2>Check your email</h2>
     <p class="muted">We sent a 6-digit code to <b>${esc(S.acctEmail)}</b>. It works for 10 minutes.</p>
     <input id="acode" class="acin acnum" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" aria-label="6-digit code">
@@ -3628,9 +3631,10 @@ function acctSheet(stage) {
     <button class="jlink" data-act="acctsend" data-again="1">Send a new code</button></div>`);
   sheet(`<div class="grab"></div><div class="body acs"><span class="acsic">${ic('user')}</span><h2>${S.code && S.me ? 'Save your account' : 'Sign in'}</h2>
     <p class="muted">${S.code && S.me ? `Sign in once and you can get back to ${who} on any phone. Your couple code still connects you two.` : 'Sign in and we’ll bring back your couple.'}</p>
+    ${pkOn() ? `<button class="btn acpk" data-act="pksignin">${ic('user')}Sign in with Face ID</button>` : ''}
     ${AUTH.apple ? `<button class="btn acapple" data-act="acctapple"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.4 12.6c0-2.4 2-3.6 2.1-3.7-1.2-1.7-3-1.9-3.6-2-1.5-.2-3 .9-3.8.9-.8 0-2-.9-3.3-.9-1.7 0-3.3 1-4.2 2.5-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8s2 .8 3.3.8c1.4 0 2.3-1.2 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9 0 0-2.8-1.1-2.8-4.2zM14 5.3c.7-.8 1.2-2 1-3.1-1 0-2.2.7-2.9 1.5-.6.7-1.2 1.9-1 3 1.1.1 2.2-.6 2.9-1.4z"/></svg>Continue with Apple</button>` : ''}
     ${AUTH.google ? '<div id="gbtn" class="acg"></div>' : ''}
-    ${AUTH.apple || AUTH.google ? '<p class="acor">or use your email</p>' : ''}
+    ${AUTH.apple || AUTH.google || pkOn() ? '<p class="acor">or use your email</p>' : ''}
     <input id="aemail" class="acin" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" aria-label="Email" value="${esc(S.acctEmail || '')}">
     <button class="btn ${AUTH.apple || AUTH.google ? 'ghost' : ''}" data-act="acctsend">Email me a code</button>
     <p class="muted acfine">We only use your email to sign you in. Nobody else sees it.</p></div>`);
@@ -3655,8 +3659,9 @@ async function acctVerify(t) {
   if (error || !data?.session) return toast('That code didn’t work. Check it, or send a new one.', 3600);
   return acctDone(data.session.user);
 }
-async function acctDone(u) {
+async function acctDone(u, how) {
   S.acct = { email: u?.email || '' }; step('acct_saved');
+  if (how !== 'passkey' && pkOn() && !ls.get('pkasked')) setTimeout(() => { if (!$layer.innerHTML) { ls.set('pkasked', '1'); pkOffer(); } }, 1500);
   if (S.code && S.me) { await acctLink(); closeSheet(); toast('Account saved. You can sign in on any phone now.', 3400); return render(); }
   if (await acctRestore()) { closeSheet(); toast(`Welcome back, ${S.me}.`); return boot(); }
   closeSheet(); toast('Signed in. Now start a couple or enter your partner’s code.', 3800); return render();
@@ -3685,6 +3690,36 @@ async function acctGoogle() {
     } });
     window.google.accounts.id.renderButton(el, { theme: 'filled_black', size: 'large', shape: 'pill', text: 'continue_with', width: Math.min(360, el.clientWidth || 320) });
   } catch { document.getElementById('gbtn')?.remove(); }
+}
+
+// ===== Passkeys (Face ID / Touch ID). Built and waiting: flip AUTH.passkey once the project has them switched on. =====
+const pkOn = () => !!(AUTH.passkey && sbA && window.PublicKeyCredential);
+function pkOffer() {
+  sheet(`<div class="grab"></div><div class="body acs"><span class="acsic">${ic('user')}</span><h2>Use Face ID next time?</h2>
+    <p class="muted">Sign back in with one look instead of an email code. It stays on your phone and syncs with your iCloud Keychain.</p>
+    <button class="btn" data-act="pkadd">Turn on Face ID sign-in</button><button class="btn ghost" data-act="pkno" style="margin-top:10px">Not now</button></div>`);
+}
+async function pkAdd(t) {
+  if (t) t.disabled = true;
+  const { error } = await sbA.auth.registerPasskey();
+  if (t) t.disabled = false;
+  if (error) { if (/webauthn_credential_exists/.test(error.code || error.message)) { closeSheet(); return toast('Face ID sign-in is already on for this phone.'); }
+    if (/NotAllowed|cancel/i.test(error.name || error.message || '')) return; return toast('Couldn’t turn it on. Try again.', 3200); }
+  step('pk_on'); closeSheet(); toast('Face ID sign-in is on.');
+}
+async function pkSignIn(t) {
+  t.disabled = true;
+  const { data, error } = await sbA.auth.signInWithPasskey();
+  t.disabled = false;
+  if (error || !data?.session) { if (!/NotAllowed|cancel/i.test(error?.name || error?.message || '')) toast('Face ID didn’t find an account here. Use your email instead.', 3800); return; }
+  return acctDone(data.user || data.session.user, 'passkey');
+}
+async function pkRow() {
+  const el = document.getElementById('pkrow'); if (!el) return;
+  let list = []; try { const { data } = await sbA.auth.passkey.list(); list = data || []; } catch {}
+  const r = document.getElementById('pkrow'); if (!r) return;
+  r.querySelector('small').textContent = list.length ? 'On' : 'Sign in with one look instead of a code';
+  r.insertAdjacentHTML('beforeend', list.length ? `<button class="ysw on" data-act="pkdel" data-id="${esc(list[0].id)}">On</button>` : `<button class="ysw" data-act="pkadd">Off</button>`);
 }
 // ===== Calendar =====
 async function calSheet(t) {
@@ -4813,6 +4848,10 @@ document.addEventListener('click', async e => {
       case 'acctapple': return acctApple(t);
       case 'acctout': { try { await sbA.auth.signOut(); } catch {} S.acct = null; ls.del('acctl'); closeSheet(); toast('Signed out of your account. The app stays signed in on this phone.'); return render(); }
       case 'calsub': return calSheet(t);
+      case 'pkadd': return pkAdd(t);
+      case 'pkno': return closeSheet();
+      case 'pksignin': return pkSignIn(t);
+      case 'pkdel': { t.disabled = true; try { await sbA.auth.passkey.delete({ passkeyId: t.dataset.id }); } catch {} toast('Face ID sign-in is off for this account.'); return acctSheet(); }
       case 'calcopy': try { await navigator.clipboard.writeText(S.calLink); toast('Copied. In Google Calendar, add it under Other calendars, From URL.', 4200); } catch { toast('Could not copy. Try again.'); } return;
       case 'kidsset': { const on = S.settings?.kids !== true; try { S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { kids: on } }); } catch { return toast('Could not save. Try again.'); }
         step(on ? 'kids_on' : 'kids_off'); toast(on ? 'Kid-friendly from the next cards on, for both of you.' : 'Back to everything.'); return render(); }
