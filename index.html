@@ -2043,7 +2043,7 @@ async function notifSet(m) { try { await rpc('notif_set', { p_code: S.code, p_me
 const ideaBanner = () => { const i = S.idea; if (!i || !i.cards?.length || i.saved || ls.get('ideaoff') === i.id) return '';
   return `<button class="tripbar kc k-match" data-act="idea" style="width:100%;text-align:left"><span class="tic">${ic('spark')}</span><span class="grow"><b>An idea for you two</b><small>${esc(i.title)}</small></span><span class="go">See</span></button>`; };
 /* a find from the web: one real, dated, local thing that isn't in any deck. The link is the page the search returned. */
-const wildBanner = () => { const w = S.idea?.wild; if (!w || ls.get('wildoff') === w.id) return '';
+const wildBanner = () => { const w = S.idea?.wild; if (!w || w.card || ls.get('wildoff') === w.id) return '';
   return `<button class="tripbar kc k-match" data-act="wild" style="width:100%;text-align:left"><span class="tic">${ic('spark')}</span><span class="grow"><b>Found for this week</b><small>${esc(w.title)}</small></span><span class="go">See</span></button>`; };
 function wildSheet() { const w = S.idea?.wild; if (!w) return; step('wild_open');
   const md = d => new Date(d + 'T12:00').toLocaleDateString([], { month: 'short', day: 'numeric' });
