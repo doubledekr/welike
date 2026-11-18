@@ -1774,6 +1774,13 @@ async function loadBite() {
     if (look) lateFill(deck, r.id, look, bg, res);
   } catch (e) { const st = document.getElementById('stack'); if (st && here()) st.innerHTML = '<div class="done"><p class="muted">Could not load today’s cards. Reopen the app to try again.</p></div>'; }
 }
+// The daily browse has a finish line: two likes. After that it is done for today, with "keep browsing" for anyone who wants more.
+const biteDay = () => { let o = null; try { o = JSON.parse(ls.get('bl') || 'null'); } catch {} const d = new Date().toDateString(); return o && o.d === d ? o : { d, n: {}, more: {} }; };
+const biteSave = o => { try { ls.set('bl', JSON.stringify(o)); } catch {} };
+const biteLike = (deck, by) => { const o = biteDay(); o.n[deck] = Math.max(0, (o.n[deck] || 0) + by); biteSave(o); };
+const biteGoal = () => { if (!S.bite || !S.sess || !S.deck.length) return false; const o = biteDay(); return (o.n[S.sess.deck] || 0) >= 2 && !o.more[S.sess.deck]; };
+function biteGoalHTML() { const p = partner(), names = { movie: 'movies', dinner: 'places', event: 'things to do', trip: 'trips', art: 'artworks' };
+  return `<div class="done goal"><div class="badge">${ic('heart')}</div><h3>That’s two for today</h3><p class="muted">${p ? `If ${esc(p)} likes either of them too, it’s a match.` : 'They’re saved for when your person joins.'} Fresh ${names[S.sess.deck] || 'cards'} tomorrow.</p><button class="btn ghost" data-act="bitemore">Keep browsing</button>${S.hist.length ? '<button class="jlink" data-sw="undo">Undo last swipe</button>' : ''}</div>`; }
 function biteDoneHTML() {
   a2hsMoment('done');
   const names = { movie: 'movies', dinner: 'places to eat', event: 'things to do', trip: 'trip ideas', art: 'artworks' }, extra = !!S.sess?.filters?.extra, none = !S.total, p = partner();
@@ -3836,6 +3843,7 @@ function pilePose(id, i) {
 function drawStack() {
   const st = document.getElementById('stack'); if (!st) return; updateBar(); if (S.deck[0]?.data?.gem) tip1('gem', 'A hidden gem: somewhere most people walk past.');
   const acts = document.getElementById('acts'), seen = document.getElementById('seenb');
+  if (biteGoal()) { S.revEntry = false; acts.style.visibility = 'hidden'; if (seen) seen.style.display = 'none'; return setDone(st, biteGoalHTML()); }
   if (!S.deck.length) {
     if (S.bite) S.revEntry = false;
     acts.style.visibility = 'hidden';
@@ -3955,7 +3963,7 @@ async function commit(verdict) {
   if (busy || !S.deck.length) return; busy = true;
   const card = S.deck[0], el = document.querySelector('#stack .card:not(.under)'), sess = S.sess.id;
   if (el) { const to = verdict === 'no' ? 'translate(-140%,30px) rotate(-24deg)' : verdict === 'love' ? 'translate(0,-140%)' : verdict === 'seen' ? 'translate(0,140%) scale(.8)' : 'translate(140%,30px) rotate(24deg)'; el.style.transition = 'transform .28s ease-in, opacity .28s'; el.style.transform = to; el.style.opacity = '.3'; const st = el.querySelector('.stamp.' + verdict); if (st) st.style.opacity = 1; }
-  S.deck.shift(); S.hist.push({ card, verdict }); setTimeout(undoChip, 320);
+  S.deck.shift(); S.hist.push({ card, verdict }); if (S.bite && (verdict === 'yes' || verdict === 'love')) biteLike(S.sess.deck, 1); setTimeout(undoChip, 320);
   setTimeout(() => { busy = false; if ((S.view === 'swipe' || S.bite) && S.sess?.id === sess && document.getElementById('stack')) drawStack(); }, 230);
   try {
     if (!S.swiped1) { S.swiped1 = true; step('swiped'); }
@@ -3975,7 +3983,7 @@ async function commit(verdict) {
     else if (card.deck === 'movie' && verdict === 'seen' && r.liked_by?.length) toast(`${r.liked_by.join(' and ')} wants to watch ${card.title}. You will find it under Watch it again.`, 5500);
     else if (card.deck !== 'movie' && DWN(card) === 'Been there' && verdict === 'seen' && r.liked_by?.length) toast(`${r.liked_by.join(' and ')} wants to go to ${card.title}. It comes back around so you can say if you’d go again.`, 5500);
     else if (card.deck !== 'movie' && DWN(card) === 'Been there' && verdict !== 'seen' && verdict !== 'no' && r.seen_by?.length) { toast(`${r.seen_by.join(' and ')} has been to ${card.title}. They get asked if they’d go again.`, 5000); push(`${S.me} wants to try ${card.title}`, 'You’ve been there. It’s back in your pile: would you go again?', './'); }
-  } catch (e) { toast('That swipe did not save. Check your connection.'); S.deck.unshift(card); S.hist.pop(); drawStack(); }
+  } catch (e) { toast('That swipe did not save. Check your connection.'); S.deck.unshift(card); S.hist.pop(); if (S.bite && (verdict === 'yes' || verdict === 'love')) biteLike(S.sess.deck, -1); drawStack(); }
 }
 // Events are time sensitive: after liking some, I get asked whether to pass them to my partner before they pass
 const evKey = () => (S.evPend?.count || 0) + '|' + new Date().toDateString();
@@ -4086,7 +4094,7 @@ function againSend() {
 }
 async function undo() {
   const h = S.hist.pop(); if (!h) return toast('Nothing to undo.');
-  try { await rpc('unswipe', { p_code: S.code, p_session: S.sess.id, p_member: S.me, p_card: h.card.id }); S.deck.unshift(h.card); S.matches = S.matches.filter(m => m.id !== h.card.id); if (S.bite) drawStack(); else if (S.view !== 'swipe') { S.view = 'swipe'; renderSwipe(); } else drawStack(); } catch { S.hist.push(h); toast('Could not undo.'); }
+  try { await rpc('unswipe', { p_code: S.code, p_session: S.sess.id, p_member: S.me, p_card: h.card.id }); S.deck.unshift(h.card); S.matches = S.matches.filter(m => m.id !== h.card.id); if (S.bite && (h.verdict === 'yes' || h.verdict === 'love')) biteLike(S.sess.deck, -1); if (S.bite) drawStack(); else if (S.view !== 'swipe') { S.view = 'swipe'; renderSwipe(); } else drawStack(); } catch { S.hist.push(h); toast('Could not undo.'); }
 }
 const chainLabel = c => c.data?.chain ? (c.data.chain.deck === 'movie' ? 'Pick the movie' : c.data.chain.deck === 'event' ? 'Pick an event' : c.data.chain.filters?.kinds?.[0] === 'cook' ? 'Pick what to cook' : c.data.chain.filters?.kinds?.[0] === 'orderin' ? 'Pick where to order from' : 'Pick a place') : null;
 function showMatch(c) {
@@ -4492,6 +4500,7 @@ document.addEventListener('click', async e => {
       case 'guess': return startGuess();
       case 'unlock': S.unlock = true; S.view = 'home'; S.tab = 'home'; await refresh(); return render();
       case 'tbguess': { const g = parseInt(document.getElementById('tbg').value, 10); if (!(g > 1880 && g < 2100)) return toast('Enter a year.'); S.tb = await rpc('tiebreak_guess', { p_code: S.code, p_member: S.me, p_id: S.tb.id, p_guess: g }); send({ type: 'tb', id: S.tb.id }); return render(); }
+      case 'bitemore': { const o = biteDay(); o.more[S.sess.deck] = 1; biteSave(o); step('bite_more'); document.querySelector('#stack > .done')?.remove(); return drawStack(); }
       case 'gplay': return playGame();
       case 'tbheart': { S.tbHearts = (S.tbHearts || 0) + 1; tbFly(1); send({ type: 'tbh', id: S.tb.id }); const m = document.getElementById('tbwm'); if (m) m.textContent = `${S.tbHearts} sent. They show on ${them()}’s screen if the app is open.`; return; }
       case 'tbheckle': { if (Date.now() - (S.tbHkAt || 0) < 4000) return; S.tbHkAt = Date.now(); send({ type: 'tbh', id: S.tb.id, m: ds.m }); const m = document.getElementById('tbwm'); if (m) m.textContent = `Sent: “${ds.m}”`; return; }
