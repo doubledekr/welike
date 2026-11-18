@@ -1150,6 +1150,16 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 @media (prefers-reduced-motion:reduce){.tbseal,.qdshake{animation:none}}
 
 .match.pk .pkby{color:#ffe2b0;font-size:15px;margin-top:2px}
+
+/* keep browsing: steering cards, the reason line, and the three questions for places */
+.whyl{text-align:center;font-size:12.5px;font-weight:600;color:#ffe2b0;margin:2px 0 8px;min-height:16px}
+.done.steer{gap:14px}.steerk{font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
+.steerc{width:min(70vw,250px);aspect-ratio:3/4;border-radius:26px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:10px;padding:20px;text-align:center;color:#fff;background:linear-gradient(150deg,#7a3df0,#ff4d7e 70%,#ffb547);box-shadow:0 0 70px -14px #ff4d7e;animation:steerdrop .55s cubic-bezier(.2,1.5,.4,1)}
+.steerc small{font-size:11.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;opacity:.92}.steerc b{font-family:var(--serif);font-weight:400;font-size:29px;line-height:1.08}.steerc span{font-size:13.5px;opacity:.95}
+@keyframes steerdrop{from{transform:translateY(-110px) rotate(-12deg) scale(.6);opacity:0}}
+.steeryn{display:flex;gap:9px;width:100%;max-width:300px}.steeryn .btn{flex:1;padding:13px 6px}
+.eatcs{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.eatc{padding:10px 14px;border-radius:999px;font-size:14.5px;background:rgba(255,255,255,.07);color:var(--text)}.eatc.on{background:linear-gradient(135deg,#ff7a4d,#ff4d7e);color:#fff;font-weight:700}
+@media (prefers-reduced-motion:reduce){.steerc{animation:none}}
 </style>
 </head>
 <body>
@@ -1518,7 +1528,7 @@ function renderLanding() {
   const top = skip => `<div class="wn-top"><span class="wk-dots">${[1, 2, 3].map(k => `<i class="${k <= i ? 'on' : ''}"></i>`).join('')}</span>${skip ? '<button data-act="ob2go" data-i="3">Skip</button>' : `<button data-act="ob2go" data-i="${i - 1}">Back</button>`}</div>`;
   const code = '<button class="jlink" data-act="getstarted" data-mode="code">I have a code from my partner</button>';
   const body = [
-    () => `<div class="ob2-hello">${MARK}<div class="brand">${BRAND}</div><h1>Stop asking <em>“what do you want to do?”</em></h1><p class="wk-p">A swipe app for two. It only shows what you both said yes to.</p></div><button class="btn wk-cta" data-act="ob2go" data-i="1">See how it works</button>${code}`,
+    () => `<div class="ob2-hello">${MARK}<div class="brand">${BRAND}</div><h1>Stop asking <em>“what do you want to do?”</em></h1><p class="wk-p">Swipe whenever you like. It only shows what you both said yes to, ready for the night you want a plan. Let’s do more together.</p></div><button class="btn wk-cta" data-act="ob2go" data-i="1">See how it works</button>${code}`,
     () => `${top(1)}<small class="wk-k">Try all four</small><h2 class="wk-h">You each swipe on your own</h2><p class="wk-p">Flick this card each way. Nobody sees your swipes unless you both say yes.</p>${ob2SwipeStage()}<button class="btn wk-cta wait" id="wkgo" data-act="ob2go" data-i="2" disabled>Flick the card</button>`,
     () => `${top(1)}<small class="wk-k">Tap both phones</small><h2 class="wk-h">Two yeses make a match</h2><p class="wk-p">Matches land in a shared list, ready for tonight.</p>
       <div class="wk-stage ob2-match"><div class="ob2-two"><button class="ob2-mini" data-w="Hell yeah"><b>You</b><span></span><em>Tap</em></button><button class="ob2-mini" data-w="Maybe"><b>Your person</b><span></span><em>Tap</em></button></div><div class="ob2-hit" id="ob2hit"><b>It’s a match</b><small>Then pick one, shuffle, or let a tie-breaker decide</small></div></div>
@@ -1599,8 +1609,7 @@ function ob2Steps() {
   if (!ls.get('ob2try') && !standalone()) s.push('try');           // someone who came in by invite never saw the card
   if (needInvite()) s.push('invite');
   if (!standalone() && isPhone() && !ls.get('a2hs')) s.push('install');
-  if (needPushAsk()) s.push('push');
-  if (S.dates && !notifMode()) s.push('notif');                                 // on an iPhone this only exists in the Home Screen app, so it waits for the icon
+  if (needPushAsk()) s.push('push');                                 // on an iPhone this only exists in the Home Screen app, so it waits for the icon
   if (datesNeed()) s.push('dates');                                 // the second person in is only asked for what is still missing
   if (needSetup() || needLoc()) s.push('setup');
   return s;
@@ -1772,6 +1781,7 @@ async function loadBite() {
     if ((await loadSession(r.id, here)) === false || !here()) return;
     drawStack();
     if (look) lateFill(deck, r.id, look, bg, res);
+    if (deck === 'dinner' && !away) { eatWhy(r.id); if (!eatAsked() && S.deck.length && !$layer.innerHTML && !document.querySelector('.wn,.match')) setTimeout(() => { if (S.tab === 'home' && S.sess?.id === r.id && !$layer.innerHTML) eatSheet(); }, 700); }
   } catch (e) { const st = document.getElementById('stack'); if (st && here()) st.innerHTML = '<div class="done"><p class="muted">Could not load today’s cards. Reopen the app to try again.</p></div>'; }
 }
 // The daily browse has a finish line: two likes. After that it is done for today, with "keep browsing" for anyone who wants more.
@@ -1780,11 +1790,42 @@ const biteSave = o => { try { ls.set('bl', JSON.stringify(o)); } catch {} };
 const biteLike = (deck, by) => { const o = biteDay(); o.n[deck] = Math.max(0, (o.n[deck] || 0) + by); biteSave(o); };
 const biteGoal = () => { if (!S.bite || !S.sess || !S.deck.length) return false; const o = biteDay(); return (o.n[S.sess.deck] || 0) >= 2 && !o.more[S.sess.deck]; };
 function biteGoalHTML() { const p = partner(), names = { movie: 'movies', dinner: 'places', event: 'things to do', trip: 'trips', art: 'artworks' };
-  return `<div class="done goal"><div class="badge">${ic('heart')}</div><h3>That’s two for today</h3><p class="muted">${p ? `If ${esc(p)} likes either of them too, it’s a match.` : 'They’re saved for when your person joins.'} Fresh ${names[S.sess.deck] || 'cards'} tomorrow.</p><button class="btn ghost" data-act="bitemore">Keep browsing</button>${S.hist.length ? '<button class="jlink" data-sw="undo">Undo last swipe</button>' : ''}</div>`; }
+  return `<div class="done goal"><div class="badge">${ic('heart')}</div><h3>Two saved for your next night</h3><p class="muted">${p ? `If ${esc(p)} likes either of them too, it’s a match.` : 'They’re saved for when your person joins.'} No need to do more. There are more ${names[S.sess.deck] || 'cards'} whenever you feel like it.</p><button class="btn ghost" data-act="bitemore">Keep browsing</button>${S.hist.length ? '<button class="jlink" data-sw="undo">Undo last swipe</button>' : ''}</div>`; }
+// Movies run deep, so keep browsing keeps going: another handful each time, with a steering card now and then to give it a direction.
+const moreOn = () => !!(S.bite && S.sess?.deck === 'movie' && biteDay().more.movie);
+async function moreNext(steer) { const sid = S.sess?.id, st = document.getElementById('stack'); if (!sid || S.moreBusy) return; S.moreBusy = true;
+  try { const r = await rpc('bite_more', { p_code: S.code, p_member: S.me, p_session: sid, p_steer: steer?.filter || null }); if (S.sess?.id !== sid) return;
+    const have = new Set(S.deck.map(c => c.id)), add = (r?.added || []).filter(c => !have.has(c.id));
+    if (!add.length) { S.moreEnd = sid; if (steer) toast('Nothing more on that thread tonight. Back to your usual mix.', 3500); return drawStack(); }
+    if (steer?.why) { S.why = S.why || {}; add.forEach(c => { S.why[c.id] = steer.why; }); }
+    S.deck.push(...add); S.total = (S.total || 0) + add.length; S.moreN = (S.moreN || 0) + 1; st?.querySelector(':scope > .done')?.remove(); drawStack();
+  } catch { toast('Could not load more just now.'); } finally { S.moreBusy = false; } }
+async function moreStop() { const st = document.getElementById('stack'), acts = document.getElementById('acts'); if (!st) return; acts.style.visibility = 'hidden';
+  setDone(st, '<div class="done"><p class="muted">Finding a few more…</p></div>'); let c = null; try { c = await rpc('steer_next', { p_code: S.code, p_member: S.me }); } catch {}
+  if (!moreOn() || S.deck.length) return; S.steer = c; if (!c) return moreNext(null); step('steer_' + c.kind); steerDraw(); }
+function steerDraw(ans) { const c = S.steer, st = document.getElementById('stack'); if (!c || !st) return;
+  const card = (kick, title, sub) => `<div class="steerc"><small>${esc(kick)}</small><b>${esc(title)}</b>${sub ? `<span>${esc(sub)}</span>` : ''}</div>`, yn = '<div class="steeryn"><button class="btn ghost" data-act="steerno">Not tonight</button><button class="btn" data-act="steeryes">Yes</button></div>';
+  let h; if (c.kind === 'trivia' && ans == null) h = `<small class="steerk">${esc(c.kick)}</small><h3 class="gq">${esc(c.title)}</h3><div class="gopts">${(c.options || []).map((o, i) => `<button class="gopt" data-act="steerans" data-i="${i}">${esc(o.t)}</button>`).join('')}</div>`;
+  else if (c.kind === 'trivia') { const ok = !!c.options[ans]?.ok, right = (c.options.find(o => o.ok) || {}).t || ''; h = `<small class="steerk">${ok ? 'You know your ' + esc(c.who) : esc(right)}</small>${card(ok ? 'Since you know them' : 'New to ' + c.who + '?', ok ? 'A few more of theirs?' : 'Start with a few of theirs?', '')}${yn}`; }
+  else h = card(c.kick, c.title, c.sub) + yn;
+  setDone(st, `<div class="done steer">${h}</div>`); try { navigator.vibrate?.([20, 40, 20]); } catch {} }
+// One quiet line above the top card saying why it is there (a steering thread, or the reasons behind a place pick).
+function deckWhy() { const st = document.getElementById('stack'); if (!st) return; let el = document.getElementById('whyl'); const c = S.deck[0], t = c && S.bite && !biteGoal() ? (S.why || {})[c.id] : '';
+  if (!t) return void el?.remove(); if (!el) { el = document.createElement('div'); el.id = 'whyl'; el.className = 'whyl'; st.parentNode.insertBefore(el, st); } el.textContent = t; }
+async function eatWhy(sid) { try { const w = await rpc('bite_why', { p_code: S.code, p_member: S.me, p_session: sid }); if (w && S.sess?.id === sid) { S.why = { ...(S.why || {}), ...w }; deckWhy(); } } catch {} }
+// Places are scarce, so they come as a few considered picks a day. Three quick answers make the picks better.
+const eatAsked = () => !!S.dates?.taste?.eat || Date.now() - Number(ls.get('eatAt') || 0) < 7 * 86400000;
+async function eatSheet() { ls.set('eatAt', String(Date.now())); let opts = []; try { opts = await rpc('eat_options', { p_code: S.code }) || []; } catch {} if (opts.length < 3) return; step('eat_ask');
+  const t = S.dates?.taste?.eat || {}, chip = (k, v, lab, on) => `<button class="eatc ${on ? 'on' : ''}" data-act="eatc" data-k="${k}" data-v="${esc(v)}">${esc(lab)}</button>`;
+  sheet(`<div class="grab"></div><h2>Before your picks</h2><p class="muted" style="margin-top:6px;font-size:14.5px">You get three places a day here, chosen for you, so the good ones last. Three quick taps make them better. Just for you: ${esc(them())} answers their own.</p>
+    <div class="sect" style="margin-top:14px">What do you always say yes to?</div><div class="eatcs">${opts.map(o => chip('cuisines', o, o, (t.cuisines || []).includes(o))).join('')}</div>
+    <div class="sect" style="margin-top:14px">How far for a good dinner?</div><div class="eatcs">${[['2', 'Close by'], ['5', 'A short drive'], ['15', 'Worth the trip']].map(([v, l]) => chip('far', v, l, t.far === v)).join('')}</div>
+    <div class="sect" style="margin-top:14px">Usual night out?</div><div class="eatcs">${[['casual', 'Casual'], ['nice', 'Somewhere nice'], ['mix', 'Depends']].map(([v, l]) => chip('vibe', v, l, t.vibe === v)).join('')}</div>
+    <div style="height:14px"></div><button class="btn" data-act="eatsave">Show my picks</button><button class="jlink" data-act="closesheet">Not now</button>`); }
 function biteDoneHTML() {
   a2hsMoment('done');
   const names = { movie: 'movies', dinner: 'places to eat', event: 'things to do', trip: 'trip ideas', art: 'artworks' }, extra = !!S.sess?.filters?.extra, none = !S.total, p = partner();
-  return `<div class="done"><div class="badge">${ic(DIC[S.sess.deck] || 'film')}</div><h3>${none ? 'Nothing new here today' : `That is today’s handful of ${names[S.sess.deck] || 'cards'}`}</h3>
+  return `<div class="done"><div class="badge">${ic(DIC[S.sess.deck] || 'film')}</div><h3>${none ? 'Nothing new here today' : S.sess.deck === 'dinner' ? 'Those are today’s three picks' : `That is today’s handful of ${names[S.sess.deck] || 'cards'}`}</h3>
     <p class="muted">${none ? (S.sess.deck === 'dinner' ? 'Add your ZIP code in settings to load restaurants near you, or add your own there too.' : 'Check back tomorrow, or add your own in settings.') : 'A fresh handful arrives tomorrow.'}${!extra && p && !none ? ' Play a quick guessing round to unlock a few more now.' : ''}</p>
     ${p ? `<button class="btn ghost" data-act="guess">How well do you know ${esc(p)}?</button>` : ''}<button class="btn shareapp" data-act="shareapp">${ic('share')} Share the app with friends</button>${S.hist.length ? '<button class="btn ghost" data-sw="undo">Undo last swipe</button>' : ''}</div>`;
 }
@@ -2412,9 +2453,8 @@ function slotHTML(incoming) {
     ['trip:' + (planDue() || ''), planBanner()],
     S.evPend && ls.get('evno') !== evKey() ? ['ev:' + evKey(), `<div class="hsb"><span class="tic">${ic('ticket')}</span><span class="grow"><b>You liked ${S.evPend.count > 1 ? S.evPend.count + ' events' : 'an event'} this week</b><small>Send to ${esc(them())} before ${S.evPend.count > 1 ? 'they pass' : 'it passes'}?</small></span><button class="go" data-act="evask">Share</button></div>`] : null,
     ['triploc:' + (S.away?.trip || ''), tripLocBanner()],
-    notifMode() === 'essentials' ? null : ['shr:' + pToday(), shareRemindBanner()],
-    ['notif', notifBanner()],
-    notifMode() === 'essentials' ? null : ['dates', datesBanner()],
+    ['shr:' + pToday(), shareRemindBanner()],
+    ['dates', datesBanner()],
     ['triv:' + (S.triv ? S.triv.id + S.triv.phase : ''), trivBanner()],
     ['poll:' + (S.poll?.id || ''), pollBanner()],
     ['hs', hsBanner()],
@@ -3473,7 +3513,6 @@ function youHTML() {
   return `<div class="you"><div class="brand">You</div>
     <div class="ycard"><div class="yrow"><span class="tic">${ic('heart')}</span><span class="grow"><b>${esc(S.me)}</b><small>${p ? 'Paired with ' + esc(p) : 'Not paired yet'}</small></span><button class="ysw" data-act="rename">Rename</button></div>
       <div class="yrow"><span class="tic">${ic('share')}</span><span class="grow"><b>${esc(S.code)}</b><small>Your couple code</small></span><button class="ysw" data-act="invite">Invite</button></div>
-      <button class="yrow" data-act="notif"><span class="tic">${ic('bell')}</span><span class="grow"><b>Notifications</b><small>${notifMode() ? NOTIF[notifMode()][0] : 'Choose how much you hear from us'}</small></span><span class="ysw">${notifMode() ? 'Change' : 'Choose'}</span></button>
       <button class="yrow" data-act="bdays"><span class="tic">${ic('heart')}</span><span class="grow"><b>Birthday and anniversary</b><small>${S.dates?.bday || S.dates?.anniv ? esc([S.dates.bday ? 'Birthday ' + mdText(S.dates.bday) : '', S.dates.anniv ? 'Anniversary ' + mdText(S.dates.anniv) : ''].filter(Boolean).join(' · ')) : 'So you both get a heads-up before the day'}</small></span><span class="ych">›</span></button>
       <button class="yrow" data-tab="lists"><span class="tic">${ic('list')}</span><span class="grow"><b>Your own lists</b><small>Dinners, activities and pantry</small></span><span class="ych">›</span></button></div>
     <div class="sect">This phone</div>
@@ -3843,7 +3882,9 @@ function pilePose(id, i) {
 function drawStack() {
   const st = document.getElementById('stack'); if (!st) return; updateBar(); if (S.deck[0]?.data?.gem) tip1('gem', 'A hidden gem: somewhere most people walk past.');
   const acts = document.getElementById('acts'), seen = document.getElementById('seenb');
-  if (biteGoal()) { S.revEntry = false; acts.style.visibility = 'hidden'; if (seen) seen.style.display = 'none'; return setDone(st, biteGoalHTML()); }
+  if (biteGoal()) { S.revEntry = false; acts.style.visibility = 'hidden'; if (seen) seen.style.display = 'none'; deckWhy(); return setDone(st, biteGoalHTML()); }
+  if (!S.deck.length && moreOn() && S.moreEnd !== S.sess.id) { S.revEntry = false; if (seen) seen.style.display = 'none'; deckWhy(); return void moreStop(); }
+  deckWhy();
   if (!S.deck.length) {
     if (S.bite) S.revEntry = false;
     acts.style.visibility = 'hidden';
@@ -4501,6 +4542,13 @@ document.addEventListener('click', async e => {
       case 'unlock': S.unlock = true; S.view = 'home'; S.tab = 'home'; await refresh(); return render();
       case 'tbguess': { const g = parseInt(document.getElementById('tbg').value, 10); if (!(g > 1880 && g < 2100)) return toast('Enter a year.'); S.tb = await rpc('tiebreak_guess', { p_code: S.code, p_member: S.me, p_id: S.tb.id, p_guess: g }); send({ type: 'tb', id: S.tb.id }); return render(); }
       case 'bitemore': { const o = biteDay(); o.more[S.sess.deck] = 1; biteSave(o); step('bite_more'); document.querySelector('#stack > .done')?.remove(); return drawStack(); }
+      case 'steeryes': { t.disabled = true; const c = S.steer; S.steer = null; return moreNext(c); }
+      case 'steerno': { t.disabled = true; S.steer = null; return moreNext(null); }
+      case 'steerans': return steerDraw(Number(ds.i));
+      case 'eatc': { if (ds.k === 'cuisines') t.classList.toggle('on'); else { t.parentNode.querySelectorAll('.eatc').forEach(x => x.classList.remove('on')); t.classList.add('on'); } return; }
+      case 'eatsave': { const g = k => [...document.querySelectorAll(`.eatc.on[data-k="${k}"]`)].map(x => x.dataset.v); const v = { cuisines: g('cuisines').slice(0, 10), far: g('far')[0] || '', vibe: g('vibe')[0] || '' }; t.disabled = true;
+        try { const tt = await rpc('taste_set', { p_code: S.code, p_member: S.me, p_key: 'eat', p_value: v }); S.dates = { ...(S.dates || {}), taste: tt || { eat: v } }; } catch { t.disabled = false; return toast('That didn’t save. Try again.'); }
+        closeSheet(); step('eat_saved'); if (S.sess?.deck === 'dinner' && S.bite) { const sid = S.sess.id; try { await loadSession(sid); drawStack(); eatWhy(sid); } catch {} } return; }
       case 'gplay': return playGame();
       case 'tbheart': { S.tbHearts = (S.tbHearts || 0) + 1; tbFly(1); send({ type: 'tbh', id: S.tb.id }); const m = document.getElementById('tbwm'); if (m) m.textContent = `${S.tbHearts} sent. They show on ${them()}’s screen if the app is open.`; return; }
       case 'tbheckle': { if (Date.now() - (S.tbHkAt || 0) < 4000) return; S.tbHkAt = Date.now(); send({ type: 'tbh', id: S.tb.id, m: ds.m }); const m = document.getElementById('tbwm'); if (m) m.textContent = `Sent: “${ds.m}”`; return; }
