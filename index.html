@@ -1207,6 +1207,20 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .pleg{font-size:12px;color:var(--muted);padding:5px 0 5px 62px}.pleg.late{color:#ffb020}
 .twx{display:flex;gap:16px;overflow-x:auto;padding:8px 2px 2px;font-size:12.5px;color:var(--muted);white-space:nowrap}.twx b{display:block;color:var(--text);font-weight:600}
 .tsea{display:block;margin:4px 2px 0;font-size:12px;line-height:1.45;color:var(--muted)}
+.wk-flip{display:grid;place-items:center;min-height:230px;perspective:900px}
+.wk-fc{position:relative;width:160px;height:212px;border-radius:18px;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.3,.7,.25,1);padding:0;background:none}
+.wk-fc.on{transform:rotateY(180deg)}
+.wk-ff,.wk-fb{position:absolute;inset:0;border-radius:18px;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;box-shadow:0 14px 30px rgba(0,0,0,.6),0 0 40px -8px var(--kb)}
+.wk-ff{background:radial-gradient(90% 60% at 50% 30%,#7a4a8f,#2a1638 60%,#140a1c);justify-content:flex-end;padding:14px}
+.wk-ff em,.wk-fb em{font-style:normal;font-size:11.5px;color:rgba(255,255,255,.6);margin-top:8px}.wk-ff em{position:absolute;top:12px;right:14px;margin:0}
+.wk-fb{transform:rotateY(180deg);background:linear-gradient(160deg,#2a1638,#140a1c);padding:16px 14px;gap:7px;text-align:left;font-size:12.5px;color:#e9dfe4}
+.wk-fb b{font-size:13px;color:#fff;margin-bottom:2px}
+.wk-all{min-height:220px;display:grid;place-items:center}
+.wk-steer{margin:10px auto 0;width:220px;padding:26px 18px 18px;border-radius:20px;text-align:center;background:linear-gradient(160deg,#7c3aed,#ec4899 70%,#f6ad55)}
+.wk-steer small{display:block;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:rgba(255,255,255,.9)}
+.wk-steer b{display:block;font-family:'Instrument Serif',Georgia,serif;font-weight:400;font-size:28px;line-height:1.05;margin:10px 0 18px;color:#fff}
+.wk-steer span{display:flex;gap:8px;justify-content:center}.wk-steer i{font-style:normal;font-size:12px;font-weight:700;padding:7px 12px;border-radius:99px;background:rgba(0,0,0,.22);color:#fff}.wk-steer i.on{background:#fff;color:#c2185b}
+@media (prefers-reduced-motion: reduce){.wk-fc{transition:none}}
 </style>
 </head>
 <body>
@@ -1577,7 +1591,7 @@ function renderLanding() {
   const body = [
     () => `<div class="ob2-hello">${MARK}<div class="brand">${BRAND}</div><h1>Stop asking <em>“what do you want to do?”</em></h1><p class="wk-p">Swipe whenever you like. It only shows what you both said yes to, ready for the night you want a plan. Let’s do more together.</p></div><button class="btn wk-cta" data-act="ob2go" data-i="1">See how it works</button>${code}`,
     () => `${top(1)}<small class="wk-k">Try all four</small><h2 class="wk-h">You each swipe on your own</h2><p class="wk-p">Flick this card each way. Nobody sees your swipes unless you both say yes.</p>${ob2SwipeStage()}<button class="btn wk-cta wait" id="wkgo" data-act="ob2go" data-i="2" disabled>Flick the card</button>`,
-    () => `${top(1)}<small class="wk-k">Tap both phones</small><h2 class="wk-h">Two yeses make a match</h2><p class="wk-p">Matches land in a shared list, ready for tonight.</p>
+    () => `${top(1)}<small class="wk-k">Tap both phones</small><h2 class="wk-h">Two yeses make a match</h2><p class="wk-p">Matches land in a shared list, ready for whenever you want a plan.</p>
       <div class="wk-stage ob2-match"><div class="ob2-two"><button class="ob2-mini" data-w="Hell yeah"><b>You</b><span></span><em>Tap</em></button><button class="ob2-mini" data-w="Maybe"><b>Your person</b><span></span><em>Tap</em></button></div><div class="ob2-hit" id="ob2hit"><b>It’s a match</b><small>Then pick one, shuffle, or let a tie-breaker decide</small></div></div>
       <button class="btn wk-cta wait" id="wkgo" data-act="ob2go" data-i="3" disabled>Tap both phones</button>`,
     () => `${top(0)}<small class="wk-k">No email, no password</small><h2 class="wk-h">Start your couple</h2><p class="wk-p">Two things and you’re in. You’ll get an invite link for your better half.</p>
@@ -1591,6 +1605,9 @@ function renderLanding() {
   if (i === 2) { const ms = [...el.querySelectorAll('.ob2-mini')]; ms.forEach(m => m.addEventListener('click', () => { if (m.classList.contains('on')) return; m.classList.add('on'); m.querySelector('span').textContent = m.dataset.w; try { navigator.vibrate?.(10); } catch {}
     if (ms.every(x => x.classList.contains('on'))) setTimeout(() => { const hit = document.getElementById('ob2hit'); if (!hit) return; hit.classList.add('on'); const r = hit.getBoundingClientRect(); confetti(r.left + r.width / 2, r.top, 60); walkOk(); }, 350); })); }
 }
+const flipStage = () => `<div class="wk-stage wk-flip"><button class="wk-fc" id="wkf" aria-label="Flip the card"><span class="wk-ff"><span class="ob2-cap"><i>Movie</i>Friday night pick</span><em>Tap me</em></span><span class="wk-fb"><b>On the back</b><span>Where it’s streaming</span><span>The trailer and who’s in it</span><span>Menus, maps and how to book</span><span>Why it was dealt to you</span><em>Tap to flip back</em></span></button></div>`;
+function flipWire(el) { const c = el.querySelector('#wkf'); if (!c) return; let n = 0;
+  c.addEventListener('click', () => { c.classList.toggle('on'); try { navigator.vibrate?.(10); } catch {} if (++n === 1) walkOk(); }); }
 const ob2SwipeStage = () => `<div class="wk-stage wk-s-swipe"><div class="wk-card" id="wkc"><span class="wk-stamp" id="wks"></span><span class="ob2-cap"><i>Movie</i>Friday night pick</span></div><div class="wk-dirs">${[['l', '←', 'Nah'], ['r', '→', 'Maybe'], ['u', '↑', 'Hell yeah'], ['d', '↓', 'Seen it']].map(([d, a, t]) => `<div data-d="${d}"><b>${a}</b>${t}</div>`).join('')}</div></div>`;
 /* ---------- "pick it tonight": a short playable tour of choosing in the moment, opened from a nudge ---------- */
 const TW = ['pile', 'swipe', 'games', 'race', 'pick'];
@@ -1653,6 +1670,7 @@ function twDraw() {
 const ob2Need = () => !ls.get('ob2') && !ls.get('coach');
 function ob2Steps() {
   const s = [];
+  if (!ls.get('ob2flip')) s.push('flip');                            // first: swipe whenever, and tap to flip
   if (!ls.get('ob2try') && !standalone()) s.push('try');           // someone who came in by invite never saw the card
   if (needInvite()) s.push('invite');
   if (!standalone() && isPhone() && !ls.get('a2hs')) s.push('install');
@@ -1664,10 +1682,10 @@ function ob2Steps() {
 function ob2Show() {
   const steps = ob2Steps(); if (!steps.length) { ls.set('ob2', '1'); ls.set('coach', '1'); return false; }
   document.querySelector('.wn')?.remove(); closeSheet(); const el = document.createElement('div'); el.className = 'wn wk ob2'; document.body.appendChild(el);
-  S.ob2 = { i: 0, steps, loc: false }; ob2Draw(); return true;
+  S.ob2 = { i: 0, steps, loc: false, kids: S.settings?.kids === true }; ob2Draw(); return true;
 }
 function ob2End() {
-  const loc = S.ob2?.loc; S.ob2 = null; ls.set('ob2', '1'); ls.set('coach', '1'); ls.set('ob2try', '1'); a2hsArrow(''); document.querySelector('.wn.ob2')?.remove();
+  const loc = S.ob2?.loc; S.ob2 = null; ls.set('ob2', '1'); ls.set('coach', '1'); ls.set('ob2try', '1'); ls.set('ob2flip', '1'); a2hsArrow(''); document.querySelector('.wn.ob2')?.remove();
   if (S.view === 'home' && S.tab === 'home') render();
   if (loc) return locAsk(); if (needLoc()) ls.set('askedloc', '1');
   nextOnboard();
@@ -1677,16 +1695,17 @@ function ob2Skip() {   // "Later" on a step: remember it was offered, so it does
   const k = S.ob2?.steps[S.ob2.i];
   if (k === 'invite') inviteAsked(); if (k === 'install') { ls.set('a2ask', String(Date.now())); step('a2hs_later'); }
   if (k === 'push') { ls.set('pushnoAt', String(Date.now())); ls.set('askedpush', '1'); step('push_no'); }
-  if (k === 'setup') ls.set('setupskip', '1'); if (k === 'try') ls.set('ob2try', '1'); if (k === 'dates') ls.set('datesAt', String(Date.now()));
+  if (k === 'setup') ls.set('setupskip', '1'); if (k === 'try') ls.set('ob2try', '1'); if (k === 'flip') ls.set('ob2flip', '1'); if (k === 'dates') ls.set('datesAt', String(Date.now()));
   ob2Next();
 }
 function ob2Draw() {
   const el = document.querySelector('.wn.ob2'), o = S.ob2; if (!el || !o) return; const k = o.steps[o.i], n = o.steps.length, p = partner(), last = o.i === n - 1;
-  const C = { try: ['#ffb547', '#ff7a4d'], invite: ['#ff7a4d', '#ff4d7e'], install: ['#2dd4bf', '#4d9bff'], push: ['#ffb547', '#ff4d7e'], notif: ['#ffb547', '#ff4d7e'], dates: ['#ff7a9c', '#ff4d7e'], setup: ['#ffb547', '#ff7a4d'] }[k];
+  const C = { flip: ['#ff7a9c', '#ff4d7e'], try: ['#ffb547', '#ff7a4d'], invite: ['#ff7a4d', '#ff4d7e'], install: ['#2dd4bf', '#4d9bff'], push: ['#ffb547', '#ff4d7e'], notif: ['#ffb547', '#ff4d7e'], dates: ['#ff7a9c', '#ff4d7e'], setup: ['#ffb547', '#ff7a4d'] }[k];
   const kick = (x = '') => `<small class="wk-k">Step ${o.i + 1} of ${n}${x}</small>`, sp = '<div class="ob2-sp"></div>';
   step('ob2_' + k);
   const body = {
-    try: () => `${kick()}<h2 class="wk-h">First, how the cards work</h2><p class="wk-p">Flick this card each way. ${esc(p || 'Your person')} never sees your swipes unless you both say yes.</p>${ob2SwipeStage()}<button class="btn wk-cta wait" id="wkgo" data-act="ob2try" disabled>Flick the card</button>`,
+    flip: () => `${kick()}<h2 class="wk-h">Tap a card to flip it</h2><p class="wk-p">Swipe whenever you have a minute, no homework. When a card catches your eye, tap it for the details.</p>${flipStage()}<button class="btn wk-cta wait" id="wkgo" data-act="ob2flip" disabled>Tap the card</button>`,
+    try: () => `${kick()}<h2 class="wk-h">Now, how the cards work</h2><p class="wk-p">Flick this card each way. ${esc(p || 'Your person')} never sees your swipes unless you both say yes.</p>${ob2SwipeStage()}<button class="btn wk-cta wait" id="wkgo" data-act="ob2try" disabled>Flick the card</button>`,
     invite: () => `${kick()}<h2 class="wk-h">Bring your person in</h2><p class="wk-p">Nothing can match until you’re both here. The link fills in the code for them.</p>
       <div class="ob2-code">${esc(S.code)}<small>Your couple code</small></div><div class="wk-bub ob2-msg"><b>Your text</b>Join me on Let’s Together so we can stop asking “what do you want to do?”</div>${sp}
       <button class="btn wk-cta" data-act="ob2inv" data-how="${isPhone() ? 'text' : 'share'}">${isPhone() ? 'Text the invite' : 'Copy the invite'}</button>${isPhone() ? '<button class="jlink" data-act="ob2inv" data-how="share">Send another way</button>' : ''}`,
@@ -1694,8 +1713,8 @@ function ob2Draw() {
       return `${kick(' · This ' + (IOS ? 'iPhone' : 'phone'))}<h2 class="wk-h">Put it on your Home Screen</h2><p class="wk-p">Full screen, and the way ${esc(p || 'your person')} reaches you with a nudge.</p>
       ${bip ? '' : `<div class="steps ob2-steps">${g.html}<div class="step"><span class="num">✓</span><span>Open it from the new icon. It picks up right here</span></div></div>`}${sp}
       ${bip ? '<button class="btn wk-cta" data-act="ob2inst">Install</button>' : '<button class="btn wk-cta" data-act="ob2a2">I’ve added it</button>'}<button class="jlink" data-act="ob2skip">Keep going in the browser</button>`; },
-    push: () => `${kick()}<h2 class="wk-h">Hear when you match</h2><p class="wk-p">Only these. No marketing, ever.</p>
-      ${[['It’s a match', 'You both liked Jazz night, Friday'], [`${esc(p || 'Your person')} sent you a trailer`, 'Quick yes or no?'], ['A hidden gem dropped', 'Scratch it together']].map(([a, b], j) => `<div class="ob2-push" style="animation-delay:${.15 + j * .22}s">${MARK}<span><b>${a}</b><small>${b}</small></span></div>`).join('')}${sp}
+    push: () => `${kick()}<h2 class="wk-h">Hear what’s worth hearing</h2><p class="wk-p">Matches, what ${esc(p || 'your person')} saved, plans you’ve both said yes to, and the odd hidden gem or trivia night. Never marketing.</p>
+      ${[['It’s a match', 'You both liked Jazz night, Friday'], [`${esc(p || 'Your person')} saved a few things today`, '2 movies and a place to eat'], ['A night you’ve both said yes to', 'Tacos, then a movie at home. Plan it?']].map(([a, b], j) => `<div class="ob2-push" style="animation-delay:${.15 + j * .22}s">${MARK}<span><b>${a}</b><small>${b}</small></span></div>`).join('')}${sp}
       <button class="btn wk-cta" data-act="ob2push">Turn on nudges</button>`,
     notif: () => `${kick()}<h2 class="wk-h">How much should we reach out?</h2><p class="wk-p">Yours alone. ${esc(p || 'Your person')} picks separately, and you can switch any time on the You tab.</p>${notifOpts('ob2notif')}${sp}`,
     dates: () => { const d = S.dates || {}, both = !d.bday && !d.anniv;
@@ -1705,12 +1724,14 @@ function ob2Draw() {
       return `${kick()}<h2 class="wk-h">${svc ? 'What can you watch?' : 'Make it local'}</h2><p class="wk-p">${svc ? 'Movie cards only show things on the services you have. It applies to both of you.' : 'Places and events start from where you really are.'}</p>
       ${svc ? `<div class="ob2-svc">${all.map(x => `<button class="${on.includes(x) ? 'on' : ''}" data-svc="${esc(x)}">${esc(x)}</button>`).join('')}</div>` : ''}
       ${svc && zip ? '<label class="field"><span>Home ZIP, for places near you</span><input id="s_zip" inputmode="numeric" autocomplete="postal-code" maxlength="5" placeholder="48201"></label>' : ''}
+      <div class="ob2-row"><span class="grow"><b>Planning with kids?</b><small>Family films and kid-friendly places, for both of you</small></span><button class="ob2-sw ${o.kids ? 'on' : ''}" data-act="ob2kids">${o.kids ? 'On' : 'Turn on'}</button></div>
       ${needLoc() ? `<div class="ob2-row"><span class="grow"><b>Use my location</b><small>Places start from where you really are. Only checked when the app is open</small></span><button class="ob2-sw ${o.loc ? 'on' : ''}" data-act="ob2loc">${o.loc ? 'On' : 'Turn on'}</button></div>` : ''}${sp}
       <button class="btn wk-cta" data-act="ob2save">Start swiping</button>`; },
   }[k]();
   el.style.setProperty('--ka', C[0]); el.style.setProperty('--kb', C[1]);
   el.innerHTML = `<div class="wn-in wk-in"><div class="wn-top"><span class="wk-dots">${o.steps.map((_, j) => `<i class="${j <= o.i ? 'on' : ''}"></i>`).join('')}</span><button data-act="ob2skip" aria-label="Later">${k === 'invite' && Number(ls.get('invN') || 0) === 0 && standalone() ? 'Already sent' : 'Later'}</button></div>${body}</div>`;
   if (k === 'try') wkSwipeWire(el, 'Seen it');
+  if (k === 'flip') flipWire(el);
 }
 // One line the first time something newer turns up, rather than explaining everything on day one.
 function tip1(key, msg) { if (ls.get('tip_' + key) || !ls.get('ob2') || document.querySelector('.wn')) return; ls.set('tip_' + key, '1'); setTimeout(() => toast(msg, 5200), 600); }
@@ -2772,11 +2793,7 @@ function inboxGo(u) {
 /* ---------- what's new ---------- */
 // Shown once per person (kept on the account, so Safari and the Home Screen app agree) to people who were already
 // here before the update. Someone who has just joined got the intro tour and does not need a second one.
-const NEWS = { v: 'n4-walk', since: '2026-11-17T07:30:00Z', cards: [
-  ['list', 'Weekend plans, made for you', 'Wednesday evening, a plan for Saturday shows up: something to do, a drink or two, dinner. Friday afternoon, one for that night. All from what you both like, with one spot left open to swipe on together. Sunday stays free.'],
-  ['heart', 'Favorites come back', 'Tap the star on a place you love. It can come back in a future plan, next to something new. Already have plans? One tap, and that day is left alone.'],
-  ['spark', 'Make it yours', 'In settings: when Friday starts, your favorite kind of Friday, how much to spend, foods to skip, or no bars at all. Or turn weekend plans off.'],
-] };
+const NEWS = { v: 'n5-browse', since: '2026-11-18T14:00:00Z' };
 function newsDue() { const b = S.inbox; return !!b && b.news !== NEWS.v && !!b.joined && new Date(b.joined) < new Date(NEWS.since); }
 function newsShow(force) {
   if (!force && (!newsDue() || S.view !== 'home' || $layer.innerHTML || document.querySelector('.coach,.scr,.sco,.match,.lfront,.wn'))) return false;
@@ -2785,12 +2802,11 @@ function newsShow(force) {
 }
 /* ---------- what's new, as a walkthrough you play with: one tap or swipe per screen ---------- */
 const WALK = [
-  { k: 'swipe', a: '#ffb547', b: '#ff7a4d', kick: 'Try all four', h: 'Swipe says more now', p: 'Flick this card each way. It comes back until you’ve tried them all.', wait: 'Flick the card' },
-  { k: 'gem', a: '#ff7a9c', b: '#ff4d7e', kick: 'Scratch it', h: 'Places most people walk past', p: 'Hidden gems turn up in your piles, and now and then as a scratch card you both get.', wait: 'Scratch the card' },
-  { k: 'into', a: '#ff7a4d', b: '#ff4d7e', kick: 'Hell yeah on an event', h: 'Your partner hears right away', p: 'No waiting for a match. They get three ways to answer.', wait: 'Tap an answer' },
-  { k: 'trip', a: '#2dd4bf', b: '#4d9bff', kick: 'Tap to claim', h: 'Say “I’m on it” before you book', p: 'Agree on dates, then claim flights or the stay so only one of you pays.', wait: 'Tap the pill' },
-  { k: 'gold', a: '#f6d77a', b: '#b8862b', kick: 'Once a month', h: 'Plan a date they don’t see coming', p: 'Find the gold card in Tonight. They get a scratch card when it’s time.', wait: 'Pull the bow' },
-  { k: 'end', a: '#ffb547', b: '#ff4d7e', kick: 'That’s it', h: 'Today’s cards are waiting', p: 'Swipe a few and see what you both like.' },
+  { k: 'flip', a: '#ff7a9c', b: '#ff4d7e', kick: 'Tap the card', h: 'Details are on the back now', p: 'Tap any card to flip it: where it’s streaming, the trailer, menus, maps and how to book. Tap again to flip back.', wait: 'Tap the card' },
+  { k: 'all', a: '#ffb547', b: '#ff7a4d', kick: 'One pile', h: 'Everything starts in All', p: 'Movies, places, things to do and trips, mixed together. The other tabs are still there when you want just one kind.', open: true },
+  { k: 'steer', a: '#ff7a4d', b: '#ff4d7e', kick: 'Keep browsing', h: 'Steer the next few', p: 'After a run of cards, a question card can point the next ones somewhere: more from an actor you know, or more of a kind of place you like.', open: true },
+  { k: 'kids', a: '#2dd4bf', b: '#4d9bff', kick: 'One switch', h: 'Planning with kids?', p: 'Turn it on and you both get family films and kid-friendly places. It’s also on the You tab.', open: true },
+  { k: 'end', a: '#ffb547', b: '#ff4d7e', kick: 'That’s it', h: 'Swipe whenever you like', p: 'No homework. Your likes turn into plans when you want them.' },
 ];
 function walkShow() {
   document.querySelector('.wn')?.remove(); closeSheet();
@@ -2803,6 +2819,10 @@ function walkDraw() {
   const el = document.querySelector('.wn.wk'), w = S.walk; if (!el || !w) return; const st = WALK[w.i], last = w.i === WALK.length - 1, T = esc(them()), me = esc(S.me || 'You');
   const stage = {
     swipe: () => `<div class="wk-card" id="wkc"><span class="wk-stamp" id="wks"></span></div><div class="wk-dirs">${[['l', '←', 'Nah'], ['r', '→', 'Maybe'], ['u', '↑', 'Hell yeah'], ['d', '↓', 'Been there']].map(([d, a, t]) => `<div data-d="${d}"><b>${a}</b>${t}</div>`).join('')}</div>`,
+    flip: () => flipStage().replace('wk-stage wk-flip', 'wk-flip'),
+    all: () => `<div class="tw-pile wk-all"><i style="background:linear-gradient(160deg,#3d8f86,#16454a);transform:rotate(-9deg) translate(-26px,6px)"></i><i style="background:linear-gradient(160deg,#8f6a3d,#4a3216);transform:rotate(7deg) translate(24px,4px)"></i><button tabindex="-1"><small>Everything</small>All</button></div>`,
+    steer: () => `<div class="wk-steer"><small>You know your Tom Cruise</small><b>A few more of his?</b><span><i>Not now</i><i class="on">Yes</i></span></div>`,
+    kids: () => `<div class="ob2-row" style="margin-top:0"><span class="grow"><b>Planning with kids</b><small>For both of you</small></span><button class="ob2-sw ${S.settings?.kids === true ? 'on' : ''}" data-act="walkkids">${S.settings?.kids === true ? 'On' : 'Turn on'}</button></div>`,
     gem: () => { const g = w.gem; return `<div class="wk-gem" id="wkg">${g?.image ? `<img src="${esc(g.image)}" alt="">` : ''}<span class="gfx"><i></i><i></i><i></i><i></i><i></i></span><span class="wk-gcap"><span class="gemk">${ic('gem')}<span>Hidden gem</span></span><b>${esc(g?.title || 'A real one near you')}</b></span><canvas id="wkv"></canvas></div>`; },
     into: () => `<div class="wk-bub me"><b>You</b>Hell yeah: Jazz night, Friday</div><div class="wk-bub"><b>${T}’s phone</b>${me} seems really into this.<div class="wk-three"><button data-wk="in">I’m in. Plan it</button><button data-wk="cant">Can’t make it</button><button data-wk="no">Not for me</button></div></div><div id="wkr"></div>`,
     trip: () => `<div id="wkb" class="wk-ban">${T}’s phone · Leave the flights to ${me}.</div><div class="wk-step"><span class="grow"><b>Dates</b><small>Dec 11 to 13 · Agreed</small></span><span class="tpill on">Agreed</span></div><div class="wk-step"><span class="grow"><b>Flights</b><small id="wkfs">Nobody’s on it yet</small></span><button class="tpill go wk-pulse" id="wkp" data-wk="claim">I’m on it</button></div><div class="wk-step" style="opacity:.6"><span class="grow"><b>A place to stay</b><small>${T}’s on it</small></span></div>`,
@@ -2813,7 +2833,8 @@ function walkDraw() {
   el.style.setProperty('--ka', st.a); el.style.setProperty('--kb', st.b);
   el.innerHTML = `<div class="wn-in wk-in"><div class="wn-top"><span class="wk-dots">${WALK.slice(0, -1).map((_, i) => `<i class="${i <= w.i - (last ? 1 : 0) ? 'on' : ''}"></i>`).join('')}</span>${last ? '<span></span>' : '<button data-act="newsdone" aria-label="Skip">Skip</button>'}</div>
     <small class="wk-k">${st.kick}</small><h2 class="wk-h">${st.h}</h2><p class="wk-p">${st.p}</p><div class="wk-stage wk-s-${st.k}">${stage}</div>
-    ${pushOff ? `<button class="btn wk-cta" data-act="walkpush">Turn on nudges</button><div style="height:8px"></div><button class="btn ghost" data-act="newsdone">Show me today’s cards</button>` : last ? `<button class="btn wk-cta" data-act="newsdone">Show me today’s cards</button>` : `<button class="btn wk-cta wait" id="wkgo" data-act="walknext" disabled>${st.wait}</button>`}</div>`;
+    ${pushOff ? `<button class="btn wk-cta" data-act="walkpush">Turn on nudges</button><div style="height:8px"></div><button class="btn ghost" data-act="newsdone">Start swiping</button>` : last ? `<button class="btn wk-cta" data-act="newsdone">Start swiping</button>` : st.open ? `<button class="btn wk-cta" data-act="walknext">Next</button>` : `<button class="btn wk-cta wait" id="wkgo" data-act="walknext" disabled>${st.wait}</button>`}</div>`;
+  if (st.k === 'flip') flipWire(el);
   if (st.k === 'swipe') { wkSwipeWire(el);
   } else if (st.k === 'gem') {
     const cv = document.getElementById('wkv'), box = cv.parentElement.getBoundingClientRect(), Wd = cv.width = Math.round(box.width), H = cv.height = Math.round(box.height), x = cv.getContext('2d');
@@ -4679,18 +4700,23 @@ document.addEventListener('click', async e => {
       case 'twgo': return twEnd(true);
       case 'ob2go': S.obI = Number(ds.i) || 0; if (S.obI >= 2) ls.set('ob2try', '1'); return render();
       case 'ob2try': ls.set('ob2try', '1'); return ob2Next();
+      case 'ob2flip': ls.set('ob2flip', '1'); return ob2Next();
       case 'ob2skip': return ob2Skip();
       case 'ob2inv': { inviteAsked(); if (ds.how === 'text') { const body = encodeURIComponent(`${inviteMsg()}\n${inviteLink()}`); location.href = /iphone|ipad|ipod|macintosh/i.test(navigator.userAgent) ? `sms:&body=${body}` : `sms:?body=${body}`; return setTimeout(ob2Next, 1200); }
         try { if (navigator.share) await navigator.share({ text: inviteMsg() + '\n' + inviteLink() }); else { await navigator.clipboard.writeText(`${inviteMsg()}\n${inviteLink()}`); toast('Invite and code copied.'); } } catch {} return ob2Next(); }
       case 'ob2inst': if (bip) { const e = bip; bip = null; try { e.prompt(); await e.userChoice; } catch {} } ls.set('a2ask', String(Date.now())); return ob2Next();
       case 'ob2a2': ls.set('a2hs', String(Date.now())); step('a2hs_done'); return ob2Next();
       case 'ob2push': ls.set('askedpush', '1'); step('push_yes'); t.disabled = true; await enablePush().catch(() => {}); return ob2Next();
+      case 'ob2kids': if (S.ob2) { S.ob2.kids = !S.ob2.kids; t.classList.toggle('on', S.ob2.kids); t.textContent = S.ob2.kids ? 'On' : 'Turn on'; } return;
       case 'ob2loc': if (S.ob2) { S.ob2.loc = !S.ob2.loc; t.classList.toggle('on', S.ob2.loc); t.textContent = S.ob2.loc ? 'On' : 'Turn on'; } return;
       case 'ob2save': { const root = t.closest('.wn'), services = [...root.querySelectorAll('[data-svc].on')].map(x => x.dataset.svc), zi = root.querySelector('#s_zip'), z = zi ? zi.value.trim() : (S.settings?.zip || '');
         if (zi && !/^\d{5}$/.test(z)) return toast('Enter your 5-digit home ZIP code.');
+        if (S.ob2 && S.ob2.kids !== (S.settings?.kids === true)) { try { S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { kids: S.ob2.kids } }); step(S.ob2.kids ? 'kids_on' : 'kids_off'); } catch {} }
         if (services.length) { t.disabled = true; try { S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { zip: z, services, radius_mi: Number(S.settings?.radius_mi || 2), setup: true } }); send({ type: 'joined' }); } catch {} }
         else if (root.querySelector('[data-svc]')) { if (zi) { try { S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { zip: z } }); } catch {} } ls.set('setupskip', '1'); }
         return ob2Next(); }
+      case 'walkkids': { const on = S.settings?.kids !== true; t.disabled = true; try { S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { kids: on } }); step(on ? 'kids_on' : 'kids_off'); } catch { t.disabled = false; return toast('Could not save. Try again.'); }
+        t.disabled = false; t.classList.toggle('on', on); t.textContent = on ? 'On' : 'Turn on'; return; }
       case 'walknext': if (S.walk && S.walk.i < WALK.length - 1) { S.walk.i++; walkDraw(); } return;
       case 'walkpush': document.querySelector('.wn')?.remove(); S.walk = null; ls.set('askedpush', '1'); await enablePush().catch(() => {}); return S.view === 'home' && S.tab === 'home' ? render() : null;
       case 'newsdone': S.walk = null; document.querySelector('.wn')?.remove(); return S.view === 'home' && S.tab === 'home' ? render() : null;
