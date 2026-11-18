@@ -1271,6 +1271,16 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .pkrow{display:flex;align-items:center;gap:12px;padding:12px 4px}.pkrow>span:first-child{color:#ffe3da}.pkrow svg{width:20px;height:20px}.pkrow b{display:block;font-size:15px}.pkrow small{color:#9a8f97;font-size:13px}
 /* banners in the reminder row sit inside a scrolling strip, which cuts an outer glow off square: no outer glow there */
 .sli>.tripbar,.sli>.tripbar.kc,.sli>.inrow.kc{box-shadow:none}
+/* flowers: placeholders while loading, then each bouquet fades in where its placeholder was */
+.flph{display:block;width:100%;aspect-ratio:1;border-radius:14px;background:rgba(255,255,255,.07);overflow:hidden}
+.fli .flph img{display:block;width:100%;height:100%;aspect-ratio:auto;border-radius:0;opacity:0;transition:opacity .4s ease}.fli .flph img.in{opacity:1}
+.fli.in{animation:flin .38s ease both;animation-delay:calc(var(--i,0) * 45ms)}
+.fli.sk{animation:flsk 1.3s ease-in-out infinite;animation-delay:calc(var(--i,0) * 90ms)}
+.fli.sk i{display:block;height:11px;border-radius:6px;background:rgba(255,255,255,.08);margin-top:9px;width:78%}.fli.sk i.s{width:34%;margin-top:6px}
+#flbody{min-height:52vh}
+@keyframes flin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes flsk{0%,100%{opacity:.45}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.fli.in,.fli.sk{animation:none}.fli .flph img{transition:none}}
 </style>
 </head>
 <body>
@@ -2142,14 +2152,21 @@ const FLC = [['an', 'Anniversary'], ['bd', 'Birthday'], ['lr', 'Love & romance']
 const flBanner = () => !BETA ? '' : `<button class="tripbar kc k-match" data-act="flowers" style="width:100%;text-align:left"><span class="tic">${ic('heart')}</span><span class="grow"><b>Send flowers</b><small>Test mode: browse, pick a day, see the total</small></span><span class="go">Try</span></button>`;
 async function flCall(body) { const r = await sb.functions.invoke('flowers', { body: { code: S.code, ...body } }); if (r.error) throw r.error; return r.data; }
 async function flOpen(cat) { if (!BETA) return; S.fl = S.fl || { cat: 'an' }; if (cat) S.fl.cat = cat; step('fl_open');
-  sheet(`<div class="grab"></div>${flHead()}<p class="muted" style="text-align:center;margin:30px 0">Loading flowers…</p>`);
-  try { const d = await flCall({ action: 'products', category: S.fl.cat, count: 12 }); S.fl.list = d.products || []; S.fl.n = d.total || 0; } catch { S.fl.list = null; }
-  if (!document.querySelector('.flg, .sheet')) return; flList(); }
+  // The sheet opens at full height straight away with soft placeholders where each bouquet will land; only the grid is
+  // swapped when the answer arrives, so nothing jumps. Changing occasion keeps the sheet and swaps the grid the same way.
+  const want = S.fl.cat, body = document.getElementById('flbody');
+  if (body) { document.querySelectorAll('.sheet [data-act="flcat"]').forEach(b => b.classList.toggle('on', b.dataset.k === want)); body.innerHTML = flSkel(); }
+  else sheet(`<div class="grab"></div>${flHead()}<div id="flbody">${flSkel()}</div>`);
+  let list = null, n = 0; try { const d = await flCall({ action: 'products', category: want, count: 12 }); list = d.products || []; n = d.total || 0; } catch {}
+  if (S.fl.cat !== want) return; S.fl.list = list; S.fl.n = n;
+  const b2 = document.getElementById('flbody'); if (b2) b2.innerHTML = flGrid(); }
+const flSkel = () => `<div class="flg">${Array.from({ length: 8 }, (_, i) => `<div class="fli sk" style="--i:${i}"><span class="flph"></span><i></i><i class="s"></i></div>`).join('')}</div>`;
 const flHead = () => `<h2>Send flowers</h2><p class="muted" style="margin-top:6px;font-size:13.5px">Florist One, in test mode. Nothing here places an order.</p>
   <div class="pdays">${FLC.map(([k, t]) => `<button class="chip ${S.fl?.cat === k ? 'on' : ''}" data-act="flcat" data-k="${k}">${esc(t)}</button>`).join('')}</div>`;
-function flList() { const L = S.fl.list;
-  sheet(`<div class="grab"></div>${flHead()}${L == null ? '<p class="muted" style="text-align:center;margin:30px 0">Couldn’t reach Florist One. Try again in a bit.</p>' : !L.length ? '<p class="muted" style="text-align:center;margin:30px 0">Nothing in this one right now.</p>'
-    : `<div class="flg">${L.map((x, i) => `<button class="fli" data-act="flpick" data-i="${i}"><img src="${esc(x.small || x.image)}" alt="" loading="lazy"><b>${esc(x.name)}</b><small>$${Number(x.price).toFixed(2)}</small></button>`).join('')}</div><p class="muted" style="font-size:12px;text-align:center;margin-top:10px">${S.fl.n} in this occasion. Showing the first ${L.length}.</p>`}`); }
+function flList() { sheet(`<div class="grab"></div>${flHead()}<div id="flbody">${flGrid()}</div>`); }
+function flGrid() { const L = S.fl.list;
+  return (`${L == null ? '<p class="muted" style="text-align:center;margin:30px 0">Couldn’t reach Florist One. Try again in a bit.</p>' : !L.length ? '<p class="muted" style="text-align:center;margin:30px 0">Nothing in this one right now.</p>'
+    : `<div class="flg">${L.map((x, i) => `<button class="fli in" style="--i:${i}" data-act="flpick" data-i="${i}"><span class="flph"><img src="${esc(x.small || x.image)}" alt="" onload="this.classList.add('in')"></span><b>${esc(x.name)}</b><small>$${Number(x.price).toFixed(2)}</small></button>`).join('')}</div><p class="muted" style="font-size:12px;text-align:center;margin-top:10px">${S.fl.n} in this occasion. Showing the first ${L.length}.</p>`}`); }
 async function flPick(i) { const x = S.fl.list?.[i]; if (!x) return; S.fl.pick = x; S.fl.tot = null; S.fl.zip = S.fl.zip || S.settings?.zip || ''; step('fl_pick'); flItem();
   if (/^\d{5}$/.test(S.fl.zip)) flDates(); }
 async function flDates() { const z = S.fl.zip; S.fl.dates = null; try { const d = await flCall({ action: 'dates', zip: z }); if (S.fl.zip === z) S.fl.dates = d.ok ? d.dates : []; } catch { S.fl.dates = []; } if (document.getElementById('flz')) flItem(); }
