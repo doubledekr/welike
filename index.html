@@ -1117,6 +1117,8 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .tw-fin{margin:16px auto 0;width:158px;height:204px;border-radius:18px;background:radial-gradient(90% 60% at 50% 30%,#7a4a8f,#2a1638 60%,#140a1c);box-shadow:0 0 60px -6px #ff4d7e;position:relative;animation:wkpop3 .5s cubic-bezier(.3,1.5,.5,1) both}.tw-fin b{position:absolute;left:13px;bottom:13px;font-family:var(--serif);font-weight:400;font-size:19px}
 @keyframes wkpop3{from{opacity:0;transform:scale(.7) rotate(-6deg)}to{opacity:1;transform:none}}
 .gnow{border-radius:16px;padding:13px 14px;margin:8px 0 2px;background:linear-gradient(135deg,rgba(255,181,71,.2),rgba(255,77,126,.14));text-align:left}.gnow b{display:block;font-size:16px}.gnow small{display:block;color:var(--muted);font-size:13.5px;margin-top:2px;line-height:1.35}
+.pollo{position:relative;display:flex;align-items:center;width:100%;margin-top:8px;padding:14px 14px;border-radius:16px;background:rgba(255,255,255,.06);font-size:15px;text-align:left;overflow:hidden}.pollo i{position:absolute;left:0;top:0;bottom:0;background:rgba(255,255,255,.07);border-radius:16px}.pollo span{position:relative;flex:1}.pollo b{position:relative;color:var(--muted);font-weight:600}
+.pollo.on{background:linear-gradient(135deg,rgba(255,181,71,.34),rgba(255,77,126,.3));font-weight:700}.pollo.on i{background:rgba(255,255,255,.12)}
 </style>
 </head>
 <body>
@@ -1389,8 +1391,8 @@ const homeSig = () => { try { return JSON.stringify([S.state, S.plans, S.share, 
 const swPend = new Set();   // swipes still being saved
 async function refresh() {
   if (swPend.size) await Promise.allSettled([...swPend]);   // a refresh right after the last swipe must include it
-  const [st, pantry, settings, share, plans, inbox, favs, surp, dates] = await Promise.all([rpc('get_state', { p_code: S.code, p_member: S.me }), rpc('get_pantry', { p_code: S.code }), rpc('get_settings', { p_code: S.code }), rpc('share_state', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('plan_list', { p_code: S.code }).catch(() => []), rpc('inbox_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('fav_list', { p_code: S.code }).catch(() => null), rpc('surprise_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('dates_get', { p_code: S.code, p_member: S.me }).catch(() => null)]);
-  S.surp = surp || S.surp || null; S.dates = dates || S.dates || null;
+  const [st, pantry, settings, share, plans, inbox, favs, surp, dates, poll] = await Promise.all([rpc('get_state', { p_code: S.code, p_member: S.me }), rpc('get_pantry', { p_code: S.code }), rpc('get_settings', { p_code: S.code }), rpc('share_state', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('plan_list', { p_code: S.code }).catch(() => []), rpc('inbox_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('fav_list', { p_code: S.code }).catch(() => null), rpc('surprise_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('dates_get', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('poll_state', { p_code: S.code }).catch(() => null)]);
+  S.surp = surp || S.surp || null; S.dates = dates || S.dates || null; S.poll = poll || null;
   S.state = st; S.plans = plans || []; S.pool = null; if (inbox) S.inbox = inbox; if (favs) S.favs = favs; S.share = share; S.pantry = pantry || []; S.settings = settings || {};
 }
 async function loadSession(id, keep) {
@@ -1793,6 +1795,22 @@ function bdaysSheet() {
 }
 const datesBanner = () => { if (!datesNeed() || Date.now() - Number(ls.get('datesAt') || 0) < 14 * 86400000) return ''; const d = S.dates;
   return `<button class="nudge slim" data-act="bdays"><span class="grow"><b>Add your ${!d.bday && !d.anniv ? 'birthday and anniversary' : !d.bday ? 'birthday' : 'anniversary'}</b><small> · ${esc(them())} gets a heads-up before the day</small></span><span class="go">Add</span></button>`; };
+/* ---------- community polls: one vote per couple ---------- */
+const pollBanner = () => { const q = S.poll; if (!q || !q.open || q.mine) return '';
+  return `<button class="tripbar kc k-match" data-act="poll" data-id="${esc(q.id)}" style="width:100%;text-align:left"><span class="tic">${ic('spark')}</span><span class="grow"><b>${esc(q.title)}</b><small>The community is voting. One vote per couple</small></span><span class="go">Vote</span></button>`; };
+async function pollSheet(id) {
+  let q; try { q = await rpc('poll_state', { p_code: S.code, p_id: id || null }); } catch {} if (!q) return toast('That vote has closed.');
+  if (S.poll?.id === q.id || !S.poll) S.poll = q; step('poll_open'); pollDraw(q);
+}
+function pollDraw(q) {
+  const p = partner(), tally = q.tally, top = tally ? Math.max(1, ...Object.values(tally)) : 1;
+  const row = o => { const mine = q.mine === o.k, n = tally ? (tally[o.k] || 0) : 0;
+    return `<button class="pollo ${mine ? 'on' : ''}" data-act="pollvote" data-id="${esc(q.id)}" data-k="${esc(o.k)}" ${q.open ? '' : 'disabled'}>${tally ? `<i style="width:${Math.round(n / top * 100)}%"></i>` : ''}<span>${esc(o.t)}</span>${tally ? `<b>${n}</b>` : ''}</button>`; };
+  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('spark')}</span><h2>${esc(q.title)}</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">${esc(q.body || '')}</p></div></div>
+    <div class="sect" style="margin-top:14px">${q.mine ? `Your vote${q.by && q.by !== S.me ? `, set by ${esc(q.by)}` : ''}` : 'Pick a night'}</div>${(q.options || []).map(row).join('')}
+    <p class="muted" style="font-size:13px;text-align:center;margin-top:12px">${!q.open ? 'Voting has closed.' : q.mine ? `${q.voted} couple${q.voted === 1 ? ' has' : 's have'} voted. ${p ? `You and ${esc(p)} share one vote, and either of you can change it.` : 'You can change it until voting closes.'}` : `One vote per couple${p ? `, so check with ${esc(p)}` : ''}. Results show once you vote.`}</p>
+    <button class="jlink" data-act="closesheet">${q.mine ? 'Done' : 'Not now'}</button>`);
+}
 // "Know a couple who'd love this?": opened from the share nudge. One of them sets it up, then brings their partner in.
 const TELL = 'You two should try Let’s Together. You each swipe on movies, places to eat and things to do, and it only shows what you both said yes to. One of you starts it and adds it to your Home Screen, then sends the other your couple code. It’s still in testing, so you’d be one of the first.';
 function tellSheet() {
@@ -2240,6 +2258,7 @@ function slotHTML(incoming) {
     ['triploc:' + (S.away?.trip || ''), tripLocBanner()],
     ['shr:' + pToday(), shareRemindBanner()],
     ['dates', datesBanner()],
+    ['poll:' + (S.poll?.id || ''), pollBanner()],
     ['hs', hsBanner()],
   ].filter(x => x && x[1] && !gone[x[0]]);
   setTimeout(surpGreet, 600);
@@ -2426,6 +2445,7 @@ function inboxGo(u) {
   if (q.get('gem')) return gemOpen();
   if (q.get('tell')) return tellSheet();
   if (q.get('tonightwalk')) return twShow();
+  if (q.get('poll')) return pollSheet(q.get('poll'));
   if (q.get('bdays')) return bdaysSheet();
   if (q.get('plansurprise')) return surpStart(['birthday', 'anniversary'].includes(q.get('plansurprise')) ? q.get('plansurprise') : undefined);
   if (q.get('occasion')) return occSheet(q.get('occasion'));
@@ -3725,6 +3745,22 @@ function attachDrag(el) {
   el.addEventListener('pointerdown', down); el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
 }
 let busy = false;
+// A daily handful that is not landing keeps going. As the cards run out, the backend may quietly deal a few more onto the
+// end of the stack (it decides: a threshold of one or two likes, drawn per handful, then until one more like or 30 cards).
+async function biteStretch(sid) {
+  S.strDone = S.strDone || {}; if (S.stretching || S.strDone[sid]) return; S.stretching = true;
+  try {
+    if (swPend.size) await Promise.allSettled([...swPend]);
+    const r = await rpc('bite_stretch', { p_code: S.code, p_member: S.me, p_session: sid });
+    if (r?.done) S.strDone[sid] = true;
+    if (r?.added?.length && S.sess?.id === sid) {
+      const have = new Set(S.deck.map(c => c.id)), was = S.deck.length;
+      for (const c of r.added) if (!have.has(c.id) && !S.hist.some(x => x.card.id === c.id)) S.deck.push(c);
+      S.total = r.total || S.total;
+      if (document.getElementById('stack') && S.view === 'home' && S.tab === 'home') { if (was <= 1 && !busy) drawStack(); else updateBar(); }
+    }
+  } catch {} finally { S.stretching = false; }
+}
 async function commit(verdict) {
   if (busy || !S.deck.length) return; busy = true;
   const card = S.deck[0], el = document.querySelector('#stack .card:not(.under)'), sess = S.sess.id;
@@ -3736,6 +3772,7 @@ async function commit(verdict) {
     if ((verdict === 'yes' || verdict === 'love') && isRest(card)) bookFetch([card]);
     const pr = rpc('swipe', { p_code: S.code, p_session: sess, p_member: S.me, p_card: card.id, p_verdict: verdict }); swPend.add(pr);
     let r; try { r = await pr; } finally { swPend.delete(pr); }
+    if (S.bite && S.sess?.id === sess && S.deck.length <= 2) biteStretch(sess);
     const ss = (S.state?.sessions || []).find(x => x.id === sess); if (ss) ss.my_left = S.deck.length;   // Home and the inbox see it right away
     send({ type: 'swipe', session: sess, left: S.deck.length });
     if (S.bite && card.deck === 'event') { if (r.match) push(`You matched on an event ${emojiFor(card)}`, `You and ${S.me} both want to go to ${card.title}.`, './'); else if (verdict === 'yes' || verdict === 'love') S.evLiked = true; if (r.keen && r.weeks === 3 && !r.match && partner()) keenNudge(card, r.weeks); if (!S.deck.length && S.evLiked) { S.evLiked = false; evPeek(true); } }
@@ -4204,6 +4241,9 @@ document.addEventListener('click', async e => {
       case 'occ': return occSheet(ds.occ);
       case 'occsurp': closeSheet(); return surpStart('anniversary');
       case 'occday': { closeSheet(); if (!S.pool) await dayPool(); return dayDraft({ mode: 'out', day: ds.day }); }
+      case 'poll': return pollSheet(ds.id);
+      case 'pollvote': { t.disabled = true; let q; try { q = await rpc('poll_vote', { p_code: S.code, p_member: S.me, p_id: ds.id, p_choice: ds.k }); } catch { t.disabled = false; return toast('That vote didn’t save. Try again.'); }
+        S.poll = q; step('poll_vote'); send({ type: 'plan', city: '', action: 'poll' }); pollDraw(q); if (S.view === 'home' && S.tab === 'home') render(); return; }
       case 'bdays': return bdaysSheet();
       case 'bdayssave': { t.disabled = true; const ok = await datesSave(t.closest('.sheet')); t.disabled = false; if (!ok) return; closeSheet(); toast('Saved. You’ll both get a heads-up before the day.', 3500); if (S.view === 'home') render(); return; }
       case 'bdayslater': ls.set('datesAt', String(Date.now())); closeSheet(); if (S.view === 'home' && S.tab === 'home') render(); return;
@@ -4425,6 +4465,7 @@ async function boot() {
   const gmq = new URLSearchParams(location.search).get('gem'); if (gmq) history.replaceState(null, '', location.pathname);
   const tlq = new URLSearchParams(location.search).get('tell'); if (tlq) history.replaceState(null, '', location.pathname);
   const twq = new URLSearchParams(location.search).get('tonightwalk'); if (twq) history.replaceState(null, '', location.pathname);
+  const pollq = new URLSearchParams(location.search).get('poll'); if (pollq) history.replaceState(null, '', location.pathname);
   const dtq = new URLSearchParams(location.search).get('bdays'), psq = new URLSearchParams(location.search).get('plansurprise'), ocq = new URLSearchParams(location.search).get('occasion'); if (dtq || psq || ocq) history.replaceState(null, '', location.pathname);
   const spq = new URLSearchParams(location.search).get('surprise'); if (spq) history.replaceState(null, '', location.pathname);
   const plq = new URLSearchParams(location.search).get('plan'); S.favAsk = new URLSearchParams(location.search).get('fav') ? plq : null; const plf = new URLSearchParams(location.search).get('planfor'); if (plq || plf) history.replaceState(null, '', location.pathname);
@@ -4433,6 +4474,7 @@ async function boot() {
   if (gmq) gemOpen();
   if (tlq) tellSheet();
   if (twq) twShow();
+  if (pollq) pollSheet(pollq);
   if (dtq) bdaysSheet(); else if (psq) surpStart(['birthday', 'anniversary'].includes(psq) ? psq : undefined); else if (ocq) occSheet(ocq);
   if (itq) intoSheet(itq);
   if (spq) { carrySignIn(); return surpView(spq); }
