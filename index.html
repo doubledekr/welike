@@ -2040,23 +2040,40 @@ function notifSheet() { step('notif_open'); ls.set('notifAt', String(Date.now())
     ${notifOpts()}<p class="muted" style="font-size:13px;text-align:center;margin-top:12px">${notifMode() ? '' : 'Until you choose, nothing changes. '}You can switch any time on the You tab, under Notifications.</p><button class="jlink" data-act="closesheet">${notifMode() ? 'Done' : 'Not now'}</button>`); }
 async function notifSet(m) { try { await rpc('notif_set', { p_code: S.code, p_member: S.me, p_mode: m }); } catch { return false; } S.dates = { ...(S.dates || {}), notif: m }; step('notif_' + m); return true; }
 /* ---------- today's idea: one small thing to do together, written from what you've both said yes to ---------- */
-const ideaBanner = () => { const i = S.idea; if (!i || !i.cards?.length || ls.get('ideaoff') === i.id) return '';
+const ideaBanner = () => { const i = S.idea; if (!i || !i.cards?.length || i.saved || ls.get('ideaoff') === i.id) return '';
   return `<button class="tripbar kc k-match" data-act="idea" style="width:100%;text-align:left"><span class="tic">${ic('spark')}</span><span class="grow"><b>An idea for you two</b><small>${esc(i.title)}</small></span><span class="go">See</span></button>`; };
 /* a find from the web: one real, dated, local thing that isn't in any deck. The link is the page the search returned. */
 const wildBanner = () => { const w = S.idea?.wild; if (!w || ls.get('wildoff') === w.id) return '';
   return `<button class="tripbar kc k-match" data-act="wild" style="width:100%;text-align:left"><span class="tic">${ic('spark')}</span><span class="grow"><b>Found for this week</b><small>${esc(w.title)}</small></span><span class="go">See</span></button>`; };
 function wildSheet() { const w = S.idea?.wild; if (!w) return; step('wild_open');
   const when = w.when ? new Date(w.when + 'T12:00').toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' }) : '';
-  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('spark')}</span><h2>${esc(w.title)}</h2>${when ? `<p class="muted" style="margin-top:6px;font-size:14px">${esc(when)}</p>` : ''}<p class="muted" style="margin-top:10px;font-size:15.5px;line-height:1.5;color:var(--text)">${esc(w.body)}</p></div></div>
-    <div style="height:14px"></div><a class="btn" href="${esc(w.url)}" target="_blank" rel="noopener" data-act="wildgo" style="display:block;text-align:center;text-decoration:none">See it on ${esc(w.source || 'the web')}</a><button class="jlink" data-act="wildoff">Not this one</button>
+  const A = (url, label, cls) => `<a class="${cls}" href="${esc(url)}" target="_blank" rel="noopener" data-act="wildgo" style="display:block;text-align:center;text-decoration:none">${label}</a>`;
+  const main = w.book_url ? A(w.book_url, `Reserve on ${esc(w.book_name || 'the booking page')}`, 'btn') : w.venue_url ? A(w.venue_url, `See it on ${esc(w.venue_host || 'their site')}`, 'btn') : A(w.url, `See it on ${esc(w.source || 'the web')}`, 'btn');
+  const more = [w.book_url && w.venue_url ? A(w.venue_url, `Details on ${esc(w.venue_host || 'their site')}`, 'jlink') : '', w.book_url || w.venue_url ? A(w.url, `Where we found it: ${esc(w.source || 'the web')}`, 'jlink') : ''].join('');
+  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('spark')}</span><h2>${esc(w.title)}</h2>${when || w.address ? `<p class="muted" style="margin-top:6px;font-size:14px">${esc([when, w.address].filter(Boolean).join(' · '))}</p>` : ''}<p class="muted" style="margin-top:10px;font-size:15.5px;line-height:1.5;color:var(--text)">${esc(w.body)}</p></div></div>
+    <div style="height:14px"></div>${main}${more}<button class="jlink" data-act="wildoff">Not this one</button>
     <p class="muted" style="font-size:12px;text-align:center;margin-top:6px">Found on the web, not in your decks. Check the page for times before you go.</p>`); }
-function ideaSheet() { const i = S.idea; if (!i?.cards?.length) return; step('idea_open'); S.listCards = i.cards;
-  const when = i.plan_day ? new Date(i.plan_day + 'T12:00').toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' }) : '';
+/* the days an idea can actually happen: a dated event only on its date; places on days they are open at a usual hour */
+function ideaDays(i) { const t = pToday(), dated = i.cards.filter(isDated);
+  if (dated.length) { const d = dated[0].event_date; return d >= t && dated.every(c => c.event_date === d) ? [d] : []; }
+  const out = []; for (let n = 0; n < 14 && out.length < 9; n++) { const d = pAdd(t, n);
+    if (i.cards.every(c => c.deck === 'movie' || openAt(c, d, isBar(c) ? '18:00' : c.deck === 'dinner' ? '19:00' : '14:00', 60) !== false)) out.push(d); }
+  return out; }
+const savedIdeas = () => (S.idea?.saved || []).filter(x => x.cards?.length);
+const savedBanner = () => { const sv = savedIdeas(); if (!sv.length) return '';
+  return `<button class="tripbar kc k-match" data-act="ideasaved" style="width:100%;text-align:left"><span class="tic">${ic('spark')}</span><span class="grow"><b>Saved for later${sv.length > 1 ? ' · ' + sv.length : ''}</b><small>${esc(sv[0].title)}</small></span><span class="go">See</span></button>`; };
+function ideaSheet(i = S.idea) { if (!i?.cards?.length) return; step('idea_open'); S.listCards = i.cards; S.ideaCur = i;
+  const days = ideaDays(i), pick = days.includes(i.plan_day) ? i.plan_day : days[0], dated = i.cards.some(isDated);
+  const lab = d => `${pDayName(d)}${pDayName(d) === dfmt(d) ? '' : ' · ' + dfmt(d)}`;
+  const whenRow = !days.length ? `<p class="muted" style="text-align:center;font-size:14px;margin-top:14px">${dated ? 'The date for this one has passed.' : 'Nothing here is open on the same day in the next two weeks.'}</p>`
+    : days.length === 1 ? `<p class="muted" style="text-align:center;font-size:14px;margin-top:14px">${dated ? 'It’s on ' : 'The one day it all lines up: '}${esc(lab(days[0]))}.</p><input type="hidden" id="ideaday" value="${days[0]}">`
+    : `<label class="field" style="margin-top:14px"><span>When</span><select id="ideaday">${days.map(d => `<option value="${d}" ${d === pick ? 'selected' : ''}>${esc(lab(d))}</option>`).join('')}</select></label>`;
   sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('spark')}</span><h2>${esc(i.title)}</h2><p class="muted" style="margin-top:10px;font-size:15.5px;line-height:1.5;color:var(--text)">${esc(i.body)}</p></div></div>
     <div class="ideac">${i.cards.map(c => `<button class="ideai" data-detail="${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="">` : `<span>${emojiFor(c)}</span>`}<b>${esc(c.title)}</b></button>`).join('')}</div>
-    <div style="height:14px"></div><button class="btn" data-act="ideaplan">${when ? 'Plan it for ' + esc(when) : 'Plan it'}</button><button class="jlink" data-act="ideaoff">Not this one</button>
-    <p class="muted" style="font-size:12px;text-align:center;margin-top:6px">Put together from things you’ve both said yes to. You can swap anything in the plan.</p>`); }
-async function ideaPlan() { const i = S.idea; if (!i) return; closeSheet(); step('idea_plan'); try { if (!S.pool) await dayPool(); } catch {} S.pool = S.pool || [];
+    ${whenRow}<div style="height:12px"></div>${days.length ? `<button class="btn" data-act="ideaplan">Plan it</button><div style="height:10px"></div>` : ''}
+    ${i.saved ? '' : `<button class="btn ghost" data-act="ideasave">Save for later</button>`}<button class="jlink" data-act="ideaoff">${i.saved ? 'Remove from saved' : 'Not this one'}</button>
+    <p class="muted" style="font-size:12px;text-align:center;margin-top:6px">Put together from things you’ve both said yes to. ${days.length > 1 ? 'The days listed are ones when everything here is open. ' : ''}You can swap anything in the plan.</p>`); }
+async function ideaPlan() { const i0 = S.ideaCur || S.idea; if (!i0) return; const day = document.getElementById('ideaday')?.value || i0.plan_day || null, i = { ...i0, plan_day: day }; closeSheet(); step('idea_plan'); try { if (!S.pool) await dayPool(); } catch {} S.pool = S.pool || [];
   for (const c of i.cards) if (!S.pool.some(y => y.id === c.id)) S.pool.push(c);
   const anchor = i.cards.find(c => isDated(c)) || i.cards.find(c => c.deck !== 'movie') || i.cards[0]; dayDraft({ anchor, day: i.plan_day || null }); const pl = S.pl; if (!pl) return;
   if (i.plan_day && !pl.fixed && i.plan_day >= pToday()) pl.day = i.plan_day;
@@ -2546,6 +2563,7 @@ function slotHTML(incoming) {
     ['dates', datesBanner()],
     ['idea:' + (S.idea?.id || ''), ideaBanner()],
     ['wild:' + (S.idea?.wild?.id || ''), wildBanner()],
+    ['isv:' + savedIdeas().map(x => x.id).join(), savedBanner()],
     ['triv:' + (S.triv ? S.triv.id + S.triv.phase : ''), trivBanner()],
     ['poll:' + (S.poll?.id || ''), pollBanner()],
     ['hs', hsBanner()],
@@ -2736,7 +2754,7 @@ function inboxGo(u) {
   if (q.get('tonightwalk')) return twShow();
   if (q.get('trivia')) return openTrivia(q.get('trivia'));
   if (q.get('night')) return nightOpen(q.get('night'));
-  if (q.get('idea')) return q.get('idea') === 'wild' ? wildSheet() : ideaSheet();
+  if (q.get('idea')) { const go = () => q.get('idea') === 'wild' ? wildSheet() : ideaSheet(); if (S.idea) return go(); return rpc('idea_today', { p_code: S.code }).then(x => { S.idea = x || null; go(); }).catch(() => {}); }
   if (q.get('poll')) return pollSheet(q.get('poll'));
   if (q.get('bdays')) return bdaysSheet();
   if (q.get('plansurprise')) return surpStart(['birthday', 'anniversary'].includes(q.get('plansurprise')) ? q.get('plansurprise') : undefined);
@@ -4707,7 +4725,10 @@ document.addEventListener('click', async e => {
       case 'wildgo': step('wild_go'); return;
       case 'wildoff': { if (S.idea?.wild) ls.set('wildoff', S.idea.wild.id); closeSheet(); step('wild_off'); return render(); }
       case 'ideaplan': return ideaPlan();
-      case 'ideaoff': { if (S.idea) ls.set('ideaoff', S.idea.id); closeSheet(); step('idea_off'); return render(); }
+      case 'ideasaved': return ideaSheet(savedIdeas()[0]);
+      case 'ideasave': { const i = S.ideaCur; if (!i) return; t.disabled = true; try { S.idea = await rpc('idea_save', { p_code: S.code, p_id: i.id, p_on: true }); } catch { t.disabled = false; return toast('Could not save. Try again.'); }
+        closeSheet(); step('idea_save'); toast('Saved. It’ll wait on your home screen until you plan it.', 2800); return render(); }
+      case 'ideaoff': { const i = S.ideaCur || S.idea; if (i?.saved) { try { S.idea = await rpc('idea_save', { p_code: S.code, p_id: i.id, p_on: false }); } catch {} } else if (i) ls.set('ideaoff', i.id); closeSheet(); step('idea_off'); return render(); }
       case 'pairplan': return pairPlan();
       case 'pairpeek': return pairPeek();
       case 'gplay': return playGame();
