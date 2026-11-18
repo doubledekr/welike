@@ -1323,7 +1323,7 @@ body:has(#layer>*) #app :is(.brand i,.hdr .ic,.card .art,.btn,.go.blink,.dbg .mo
 .frrow2{display:flex;gap:10px;align-items:flex-end}.frrow2>*{flex:1;min-width:0}.frrow2 .btn{flex:none}
 .frrow2 .field input{width:100%;box-sizing:border-box;color:#fff;border:0;font:500 16px Inter,system-ui,sans-serif;min-height:46px}
 .frsel{flex:none;height:42px;border:0;border-radius:12px;background:rgba(255,255,255,.08);color:#fff;font:500 15px Inter,system-ui,sans-serif;padding:0 10px;max-width:56%}
-.frsel.wide{width:100%;max-width:none;height:48px}.frrow2 .frsel.wide{height:42px}.frsb>#frat{margin-top:10px}
+.frsel.wide{width:100%;max-width:none;height:48px}.frrow2 .frsel.wide{height:42px;width:auto;min-width:0;flex:1}.fr a.btn{text-decoration:none;display:inline-block;text-align:center}.frsb>#frat{margin-top:10px}
 .frin{height:46px;border:0;border-radius:12px;background:rgba(255,255,255,.07);color:#fff;font:500 16px Inter,system-ui,sans-serif;padding:0 14px;width:100%;box-sizing:border-box;margin-top:8px}
 .fradd{margin-top:10px}.fradd .frin{margin-top:0}.fradd+.btn{margin-top:10px}.frsb>.frin:first-of-type{margin-top:10px}.frsb .frrow2{margin-top:10px}
 .frup{display:block;color:var(--muted);font-size:12px;letter-spacing:1.2px;text-transform:uppercase;margin-top:10px}
@@ -1364,6 +1364,10 @@ body:has(#layer>*) #app :is(.brand i,.hdr .ic,.card .art,.btn,.go.blink,.dbg .mo
 .fracts{display:flex;justify-content:center;gap:30px;margin:18px 0 6px}
 .frb{width:66px;height:66px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.08);color:#fff}.frb .ic{width:28px;height:28px}
 .frb.y{background:linear-gradient(135deg,#ff7a4d,#ff4d7e)}
+
+.frrev{display:flex;flex-direction:column;gap:4px;align-items:flex-start;padding:16px;border-radius:20px;background:linear-gradient(135deg,rgba(138,92,255,.26),rgba(255,77,126,.2));margin-top:6px}
+.frrev small{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:#d9c8ff}.frrev b{font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.15}.frrev span{color:#d9d0dc;font-size:13.5px}.frrev .btn{margin-top:8px}
+.frlook{font-size:13.5px;color:var(--muted);margin-bottom:6px}
 </style>
 </head>
 <body>
@@ -3761,7 +3765,7 @@ const frNames = a => a.length < 2 ? (a[0] || '') : a.length === 2 ? `${a[0]} and
 const frRpc = (fn, a) => acctRpc(fn, a);
 const frSolo = () => !S.code || !S.me;
 const FWHY = { signin: 'Sign in first.', gone: 'That plan isn’t open to you anymore.', host: 'Only the person who started the plan can do that.', closed: 'That vote has closed.', none: 'Nothing has enough yeses yet. Keep swiping.', alone: 'Wait for at least one friend to join first.',
-  respond: 'Say you’re in first.', nocode: 'No one has that code. Check it with your friend.', self: 'That’s your own code.', max: 'You’ve hit the limit for now.', trip: 'Pick at least one place and one weekend.', surprise: 'This plan is being kept a surprise from them.', nopartner: 'Your partner needs to save their account first.', all: 'Answer for every weekend.', bad: 'That didn’t go through. Try again.' };
+  respond: 'Say you’re in first.', nocode: 'No one has that code. Check it with your friend.', self: 'That’s your own code.', max: 'You’ve hit the limit for now.', trip: 'Pick at least one place and one weekend.', surprise: 'This plan is being kept a surprise from them.', nopartner: 'Your partner needs to save their account first.', all: 'Answer for every weekend.', link: 'The link needs to start with https://', bad: 'That didn’t go through. Try again.' };
 const frWhy = w => toast(FWHY[w] || 'That didn’t go through. Try again.', 3400);
 
 async function frLoad(name) {
@@ -3816,16 +3820,18 @@ const frPlanRow = p => `<button class="yrow" data-fr="plan" data-id="${p.id}"><s
 function renderFriends() {
   const d = FR.d; if (!d) return renderStart();
   const solo = frSolo(), ids = new Set(d.plans.map(p => p.id)), plans = d.plans.filter(p => !p.parent || !ids.has(p.parent)), pn = d.couple?.partner;
-  const gOf = id => d.groups.filter(g => g.members.includes(id)).map(g => g.name).join(', ');
+  const gOf = id => d.groups.filter(g => g.members.includes(id)).map(g => g.name).join(', '), rv = d.reveal?.friends?.length ? d.reveal : null;
   $app.innerHTML = `<div class="view fr you"><div class="topbar" style="margin-bottom:6px">${solo ? '' : '<button class="back" data-tab="home" aria-label="Back to you two">‹</button>'}<div class="brand grow">Friends</div><button class="ib" data-fr="refresh" aria-label="Refresh">${ic('repeat')}</button><button class="ib" data-act="acct" aria-label="Your account" style="margin-left:8px">${ic('user')}</button></div>
     ${solo ? `<button class="frcta" data-fr="couple"><span class="tic">${ic('heart')}</span><span class="grow"><b>Start a couple</b><small>Swipe with your person. It stays separate from friends</small></span><span class="ych">›</span></button>` : ''}
+    ${rv ? `<div class="frrev"><small>This week</small><b>You and ${esc(frNames(rv.friends.map(f => f.name)))} ${rv.friends.length > 1 ? 'all' : 'both'} love ${esc(rv.title)}</b>${rv.sub ? `<span>${esc(rv.sub)}</span>` : ''}<button class="btn sm" data-fr="revealgo">${rv.deck === 'trip' ? 'Plan the trip' : 'Plan a hang'}</button></div>` : ''}
     <div class="sect">Your plans</div>
     ${plans.length ? `<div class="ycard">${plans.map(frPlanRow).join('')}</div>` : '<p class="muted frempty">Nothing yet. Start a trip, a dinner or a night out, and invite who you like.</p>'}
     <button class="btn frnew" data-fr="new">${ic('plus')}Start a plan</button>
     <div class="sect">Friends</div>
     <div class="ycard">${d.friends.map(f => `<button class="yrow" data-fr="friend" data-id="${f.id}"><span class="tic">${ic('user')}</span><span class="grow"><b>${esc(f.name)}</b>${gOf(f.id) ? `<small>${esc(gOf(f.id))}</small>` : ''}</span><span class="ych">›</span></button>`).join('')}
       <button class="yrow" data-fr="invite"><span class="tic">${ic('share')}</span><span class="grow"><b>Invite a friend</b><small>One link. They join with a first name, no partner needed</small></span><span class="ych">›</span></button>
-      <button class="yrow" data-fr="addcode"><span class="tic">${ic('plus')}</span><span class="grow"><b>Enter a friend’s code</b><small>Yours is ${esc(d.me.code)}</small></span><span class="ych">›</span></button></div>
+      <button class="yrow" data-fr="addcode"><span class="tic">${ic('plus')}</span><span class="grow"><b>Enter a friend’s code</b><small>Yours is ${esc(d.me.code)}</small></span><span class="ych">›</span></button>
+      <div class="yrow"><span class="tic">${ic('spark')}</span><span class="grow"><b>Match with friends</b><small>${d.share ? 'Once a week you see one thing you and a friend both love' : 'Once a week, one thing you and a friend both love. Nothing else is shared'}</small></span><button class="ysw ${d.share ? 'on' : ''}" data-fr="share">${d.share ? 'On' : 'Off'}</button></div></div>
     <div class="sect">Your private groups</div>
     <div class="ycard">${d.groups.map(g => `<button class="yrow" data-fr="group" data-id="${g.id}"><span class="tic">${ic('list')}</span><span class="grow"><b>${esc(g.name)}</b><small>${g.members.length ? esc(frNames(g.members.map(id => d.friends.find(f => f.id === id)?.name).filter(Boolean))) : 'Nobody yet'}</small></span><span class="ych">›</span></button>`).join('')}
       <button class="yrow" data-fr="group"><span class="tic">${ic('plus')}</span><span class="grow"><b>New group</b><small>Local, with kids, wedding party. Sort friends your way</small></span><span class="ych">›</span></button></div>
@@ -3854,8 +3860,9 @@ const frFridays = () => { const out = [], d = new Date(); d.setHours(12, 0, 0, 0
 function frNpRead() { const n = FR.np; if (!n) return; const g = id => document.getElementById(id);
   if (g('npt')) n.title = g('npt').value; if (g('npd')) n.day = g('npd').value; if (g('npm')) n.time = g('npm').value; if (g('nps')) n.surprise = g('nps').value;
   document.querySelectorAll('[data-nprole]').forEach(s => { n.roles[s.dataset.nprole] = s.value; }); }
-async function frNew(parent) {
-  FR.np = { step: 1, kind: '', title: '', cities: new Set(), weekends: new Set(), away: false, day: '', time: '', invite: new Set(parent ? parent.members.filter(m => !m.me).map(m => m.id) : []), partner: false, roles: {}, surprise: '', parent: parent || null };
+async function frNew(parent, pre) {
+  FR.np = { seed: null, step: 1, kind: '', title: '', cities: new Set(), weekends: new Set(), away: false, day: '', time: '', invite: new Set(parent ? parent.members.filter(m => !m.me).map(m => m.id) : []), partner: false, roles: {}, surprise: '', parent: parent || null };
+  if (pre) { Object.assign(FR.np, { step: 2, kind: pre.kind, title: pre.title, seed: pre.seed || null, invite: new Set(pre.invite) }); if (pre.city) FR.np.cities.add(pre.city); }
   if (!FR.cities) frRpc('fr_cities').then(c => { FR.cities = c || []; if (FR.np?.step === 2) { frNpRead(); frNewSheet(); } }).catch(() => { FR.cities = []; });
   frNewSheet();
 }
@@ -3889,7 +3896,7 @@ async function frNpGo(t) {
   t.disabled = true;
   try {
     const r = await frRpc('fr_plan_new', { p: { kind: n.kind, title: n.title.trim(), invite: [...n.invite].filter(id => id !== n.surprise), partner: n.partner, cities: trip ? [...n.cities] : [], weekends: trip ? [...n.weekends] : [], day: trip ? null : n.day || null, time,
-      roles: n.roles, surprise_for: n.surprise || null, parent: n.parent?.id || null } });
+      roles: n.roles, surprise_for: n.surprise || null, parent: n.parent?.id || null, seed: trip ? null : n.seed } });
     if (!r?.ok) { t.disabled = false; return frWhy(r?.why); }
     FR.np = null; closeSheet(); step('fr_plan_new'); await frLoad().catch(() => {}); return frOpenPlan(r.id);
   } catch { t.disabled = false; toast('Could not reach the server. Try again.'); }
@@ -3946,7 +3953,10 @@ function renderFPlan() {
     let wb = ''; if (!p.day && wq) { const mine = { ...(wq.mine || {}), ...FR.wk };
       wb = `<p>Mark every weekend so the group can find one that works.</p>${wq.options.map(o => { const t = wq.tally?.[o.id]; return `<div class="fropt"><span class="grow"><b>${frWk(o.id)}</b>${t && t.can + t.maybe + t.cant ? `<small>${t.can} can · ${t.maybe} maybe · ${t.cant} can’t</small>` : ''}</span><span class="fr3">${[['can', 'Can'], ['maybe', 'Maybe'], ['cant', 'Can’t']].map(([v, l]) => `<button class="${mine[o.id] === v ? 'on' : ''}" data-fr="wk" data-o="${o.id}" data-v="${v}">${l}</button>`).join('')}</span></div>`; }).join('')}
         <button class="btn sm frsend" data-fr="wksave" data-q="${wq.id}">${wq.mine ? 'Update my answers' : 'Send my answers'}</button><p class="muted frfine">${wq.voted} of ${p.n} have answered.${p.owner && wq.voted ? ` <button class="frlink" data-fr="close" data-q="${wq.id}">Close it now</button>` : ''}</p>`; }
-    let sb = ''; if (p.city && !st && sq) sb = sq.state === 'collect' ? `${sq.options.length ? sq.options.map(o => `<div class="fropt"><span class="grow"><b>${esc(o.label)}</b><small>${esc([o.sub, o.by ? 'Added by ' + o.by : ''].filter(Boolean).join(' · '))}</small></span>${o.url ? `<a class="frlink" href="${esc(o.url)}" target="_blank" rel="noopener">See it</a>` : ''}</div>`).join('') : '<p>Add the places you’re considering, then vote.</p>'}
+    const end = p.day ? new Date(frD(p.day).getTime() + 2 * 864e5).toISOString().slice(0, 10) : '', dq = p.day ? `&startDate=${p.day}&endDate=${end}` : '', nG = Math.max(2, going.length);
+    const look = [`<a class="frlink" href="https://www.vrbo.com/search?destination=${encodeURIComponent(p.city || '')}${dq}&adults=${nG}" target="_blank" rel="noopener">Whole houses on Vrbo</a>`, `<a class="frlink" href="https://www.expedia.com/Hotel-Search?destination=${encodeURIComponent(p.city || '')}${dq}&adults=2" target="_blank" rel="noopener">Hotels on Expedia</a>`];
+    if (going.length < 5) look.reverse();
+    let sb = ''; if (p.city && !st && sq) sb = sq.state === 'collect' ? `<p class="frlook">Look for ${nG}: ${look.join(' · ')}</p>${sq.options.length ? sq.options.map(o => `<div class="fropt"><span class="grow"><b>${esc(o.label)}</b><small>${esc([o.sub, o.by ? 'Added by ' + o.by : ''].filter(Boolean).join(' · '))}</small></span>${o.url ? `<a class="frlink" href="${esc(o.url)}" target="_blank" rel="noopener">See it</a>` : ''}</div>`).join('') : '<p>Add the places you’re considering, then vote.</p>'}
         <input id="frsl" class="frin" maxlength="60" placeholder="4-bedroom house in East Nashville" aria-label="Place to stay"><input id="frss" class="frin" maxlength="80" placeholder="A note: price each, how far" aria-label="Note"><input id="frsu" class="frin" inputmode="url" placeholder="Link to the listing (https://…)" aria-label="Link">
         <div class="frrow2"><button class="btn sm ghost" data-fr="stayopt">Add a place</button>${p.owner && sq.options.length ? `<button class="btn sm" data-fr="startvote">${sq.options.length === 1 ? 'Go with this one' : 'Start the vote'}</button>` : ''}</div>` : frRanked(sq, 'Where should you stay?');
     const mineArr = me?.arrive_at ? new Date(me.arrive_at).toISOString().slice(0, 16) : (p.day ? p.day + 'T15:00' : '');
@@ -3957,7 +3967,9 @@ function renderFPlan() {
       + frStep(5, 'Who gets in when', arr.length > 0 && arr.length === going.length, arr.length ? `${arr.length} of ${going.length} added` : '', `${arr.map(m => `<div class="fropt"><b class="frtime">${frClock(m.arrive_at)}</b><span class="grow">${esc(m.me ? 'You' : m.name)}<small>${esc(m.arrive_how || '')} · ${new Date(m.arrive_at).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' })}</small></span></div>`).join('')}
           ${frRides(p).map(x => `<p class="frride">${esc(x)}</p>`).join('')}
           <input id="frat" class="frin" type="datetime-local" value="${mineArr}" aria-label="When you arrive"><div class="frrow2"><select id="frah" class="frsel wide">${['Flying', 'Driving', 'Train or bus'].map(h => `<option ${me?.arrive_how === h ? 'selected' : ''}>${h}</option>`).join('')}</select><button class="btn sm ghost" data-fr="arrive">${me?.arrive_at ? 'Update my arrival' : 'Add my arrival'}</button></div>`, !p.city || !p.day)
-      + frStep(6, 'Things to do', false, p.allin.length ? `${p.allin.length} everyone’s in` : '', p.city ? frIdeas(p, can) : '<p class="muted">Opens as soon as the place is picked.</p>', !p.city);
+      + frStep(6, 'Things to do', false, p.allin.length ? `${p.allin.length} everyone’s in` : '', p.city ? frIdeas(p, can) : '<p class="muted">Opens as soon as the place is picked.</p>', !p.city)
+      + (p.data.shirts ? `<div class="frstep"><div class="frsh"><b>Trip shirts</b></div><div class="frsb"><p>Pick your own size and pay for your own.</p><div class="frrow2"><a class="btn sm" href="${esc(p.data.shirts)}" target="_blank" rel="noopener">Pick my size</a>${p.owner ? '<button class="frlink" data-fr="shirtsoff">Remove the link</button>' : ''}</div></div></div>`
+        : p.owner && p.city && p.day && (frD(p.day) - Date.now()) / 864e5 >= 10 ? `<div class="frstep"><div class="frsh"><b>Trip shirts</b><small>Optional</small></div><div class="frsb"><p>Design one shirt and start a group order. Everyone picks their own size and pays for their own, so nobody fronts the money.</p><a class="frlink" href="https://www.customink.com/" target="_blank" rel="noopener">Design it at Custom Ink</a><input id="frshu" class="frin" inputmode="url" placeholder="Paste the group order link (https://…)" aria-label="Group order link"><button class="btn sm ghost frsend" data-fr="shirts">Share it with the group</button></div></div>` : '');
   } else {
     const pq = frPollOf('pick'), pk = p.data.pick;
     body = (pk ? `<div class="frstep fdone"><div class="frsh"><i>${frCheck}</i><b>It’s decided</b></div><div class="frsb"><h3 class="frpk">${esc(pk.label)}</h3>${pk.sub ? `<p>${esc(pk.sub)}</p>` : ''}<p>${esc([p.day ? frDay(p.day) : '', p.at || ''].filter(Boolean).join(' at ') || 'No day set yet.')}</p>${pk.url ? `<a class="btn sm" href="${esc(pk.url)}" target="_blank" rel="noopener">Open it</a>` : ''}</div></div>` : '')
@@ -4019,6 +4031,10 @@ async function frClick(t, ds) {
     case 'groupsave': { const name = (document.getElementById('gname')?.value || '').trim(); if (!name) return toast('Give the group a name.'); const r = await frRpc('fr_group_save', { p_id: ds.id || null, p_name: name, p_members: [...document.querySelectorAll('.sheet [data-fr=tog].on')].map(x => x.dataset.id) }).catch(() => null); if (!r?.ok) return frWhy(r?.why); closeSheet(); await frLoad(); return render(); }
     case 'groupdel': if (!t.dataset.sure) { t.dataset.sure = '1'; t.textContent = 'Tap again to delete'; return; } await frRpc('fr_group_save', { p_id: ds.id, p_name: null, p_members: [] }).catch(() => {}); closeSheet(); await frLoad(); return render();
     case 'new': return frNew();
+    case 'revealgo': { const r = d.reveal, trip = r.deck === 'trip'; return frNew(null, { kind: trip ? 'trip' : r.deck === 'dinner' ? 'dinner' : 'night', title: trip ? `${r.city} trip` : r.title, seed: trip ? null : r.card, city: trip ? r.city : null, invite: r.friends.map(f => f.id) }); }
+    case 'share': { t.disabled = true; const on = !d.share, r = await frRpc('fr_share', { p_on: on }).catch(() => null); if (!r?.ok) { t.disabled = false; return frWhy(); } await frLoad().catch(() => {}); render(); return toast(on ? (FR.d.reveal?.friends?.length ? 'On. Here’s this week’s.' : 'On. When you and a friend both love something, it shows here.') : 'Off. Nothing you love is matched with friends.', 3600); }
+    case 'shirts': { const url = (document.getElementById('frshu')?.value || '').trim(); if (!/^https:\/\//i.test(url)) return frWhy('link'); return frAct('shirts', { url }, t); }
+    case 'shirtsoff': if (!t.dataset.sure) { t.dataset.sure = '1'; t.textContent = 'Tap again to remove'; return; } return frAct('shirts', { url: '' }, t);
     case 'newkid': return frNew({ id: p.id, title: p.title, members: p.members.filter(m => m.status !== 'out') });
     case 'npkind': FR.np.kind = ds.k; FR.np.step = 2; return frNewSheet();
     case 'npback': frNpRead(); FR.np.step = 1; return frNewSheet();

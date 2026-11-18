@@ -377,3 +377,6 @@ do $$ declare f record; begin
     execute format('revoke all on function %s from public, anon, authenticated', f.sig);
     if f.proname like 'fr\_%' then execute format('grant execute on function %s to authenticated', f.sig); end if;
   end loop; end $$;
+
+-- 18 Nov 2026, second pass: weekly reveal (fr_people.share, fr_reveals, _fr_loves, _fr_reveal, fr_share), a seed card for plans
+-- started from a reveal, and the 'shirts' action. Applied as migration friends_weekly_reveal_shirts; see the project for the live text.
