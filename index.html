@@ -1221,6 +1221,11 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .wk-steer b{display:block;font-family:'Instrument Serif',Georgia,serif;font-weight:400;font-size:28px;line-height:1.05;margin:10px 0 18px;color:#fff}
 .wk-steer span{display:flex;gap:8px;justify-content:center}.wk-steer i{font-style:normal;font-size:12px;font-weight:700;padding:7px 12px;border-radius:99px;background:rgba(0,0,0,.22);color:#fff}.wk-steer i.on{background:#fff;color:#c2185b}
 @media (prefers-reduced-motion: reduce){.wk-fc{transition:none}}
+.flg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.fli{display:flex;flex-direction:column;text-align:left;padding:0;background:none;color:var(--text)}.fli img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px;background:#fff}
+.fli b{font-size:13.5px;font-weight:600;margin-top:7px;line-height:1.25}.fli small{color:var(--muted);font-size:12.5px;margin-top:2px}
+.flhero{width:100%;max-height:300px;object-fit:contain;border-radius:16px;background:#fff}
+.fltot{margin-top:14px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.05);font-size:14px;font-variant-numeric:tabular-nums}.fltot div{display:flex;justify-content:space-between;padding:3px 0;color:var(--muted)}.fltot .sum{color:var(--text);font-weight:700;border-top:1px solid rgba(255,255,255,.08);margin-top:5px;padding-top:8px}
 </style>
 </head>
 <body>
@@ -2081,6 +2086,38 @@ function ideaDays(i) { const t = pToday(), dated = i.cards.filter(isDated);
   const out = []; for (let n = 0; n < 14 && out.length < 9; n++) { const d = pAdd(t, n);
     if (i.cards.every(c => c.deck === 'movie' || openAt(c, d, isBar(c) ? '18:00' : c.deck === 'dinner' ? '19:00' : '14:00', 60) !== false)) out.push(d); }
   return out; }
+/* ---------- flowers: Florist One, test mode, only in the beta copy at /t. Browse, pick a day, see the total. Never orders. ---------- */
+const BETA = !!window.LT_BETA;
+const FLC = [['an', 'Anniversary'], ['bd', 'Birthday'], ['lr', 'Love & romance'], ['ao', 'Just because'], ['ty', 'Thank you']];
+const flBanner = () => !BETA ? '' : `<button class="tripbar kc k-match" data-act="flowers" style="width:100%;text-align:left"><span class="tic">${ic('heart')}</span><span class="grow"><b>Send flowers</b><small>Test mode: browse, pick a day, see the total</small></span><span class="go">Try</span></button>`;
+async function flCall(body) { const r = await sb.functions.invoke('flowers', { body: { code: S.code, ...body } }); if (r.error) throw r.error; return r.data; }
+async function flOpen(cat) { if (!BETA) return; S.fl = S.fl || { cat: 'an' }; if (cat) S.fl.cat = cat; step('fl_open');
+  sheet(`<div class="grab"></div>${flHead()}<p class="muted" style="text-align:center;margin:30px 0">Loading flowers…</p>`);
+  try { const d = await flCall({ action: 'products', category: S.fl.cat, count: 12 }); S.fl.list = d.products || []; S.fl.n = d.total || 0; } catch { S.fl.list = null; }
+  if (!document.querySelector('.flg, .sheet')) return; flList(); }
+const flHead = () => `<h2>Send flowers</h2><p class="muted" style="margin-top:6px;font-size:13.5px">Florist One, in test mode. Nothing here places an order.</p>
+  <div class="pdays">${FLC.map(([k, t]) => `<button class="chip ${S.fl?.cat === k ? 'on' : ''}" data-act="flcat" data-k="${k}">${esc(t)}</button>`).join('')}</div>`;
+function flList() { const L = S.fl.list;
+  sheet(`<div class="grab"></div>${flHead()}${L == null ? '<p class="muted" style="text-align:center;margin:30px 0">Couldn’t reach Florist One. Try again in a bit.</p>' : !L.length ? '<p class="muted" style="text-align:center;margin:30px 0">Nothing in this one right now.</p>'
+    : `<div class="flg">${L.map((x, i) => `<button class="fli" data-act="flpick" data-i="${i}"><img src="${esc(x.small || x.image)}" alt="" loading="lazy"><b>${esc(x.name)}</b><small>$${Number(x.price).toFixed(2)}</small></button>`).join('')}</div><p class="muted" style="font-size:12px;text-align:center;margin-top:10px">${S.fl.n} in this occasion. Showing the first ${L.length}.</p>`}`); }
+async function flPick(i) { const x = S.fl.list?.[i]; if (!x) return; S.fl.pick = x; S.fl.tot = null; S.fl.zip = S.fl.zip || S.settings?.zip || ''; step('fl_pick'); flItem();
+  if (/^\d{5}$/.test(S.fl.zip)) flDates(); }
+async function flDates() { const z = S.fl.zip; S.fl.dates = null; try { const d = await flCall({ action: 'dates', zip: z }); if (S.fl.zip === z) S.fl.dates = d.ok ? d.dates : []; } catch { S.fl.dates = []; } if (document.getElementById('flz')) flItem(); }
+function flItem() { const x = S.fl.pick, t = S.fl.tot, D = S.fl.dates, money = v => v == null ? '—' : '$' + Number(v).toFixed(2);
+  const dl = D == null ? (/^\d{5}$/.test(S.fl.zip) ? '<p class="muted" style="font-size:13px">Checking delivery days…</p>' : '') : !D.length ? '<p class="muted" style="font-size:13px">No delivery days found for that ZIP.</p>'
+    : `<label class="field"><span>Delivery day</span><select id="fld">${D.slice(0, 21).map(d => `<option value="${d}" ${d === S.fl.day ? 'selected' : ''}>${esc(new Date(d + 'T12:00').toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }))}</option>`).join('')}</select></label>`;
+  sheet(`<div class="grab"></div><button class="jlink" data-act="flback" style="margin:0 0 6px;text-align:left">‹ Back to ${esc((FLC.find(c => c[0] === S.fl.cat) || [])[1] || 'flowers')}</button>
+    <img class="flhero" src="${esc(x.image)}" alt=""><h2 style="margin-top:12px">${esc(x.name)}</h2><p class="muted" style="margin-top:4px">$${Number(x.price).toFixed(2)}${x.size ? ' · ' + esc(x.size) : ''}</p>
+    <p style="font-size:14.5px;line-height:1.5;margin-top:10px">${esc(x.about || '')}</p>
+    <label class="field"><span>Deliver to ZIP</span><input id="flz" inputmode="numeric" maxlength="5" value="${esc(S.fl.zip)}" placeholder="48201"></label>${dl}
+    ${t ? `<div class="fltot">${[['Flowers', t.subtotal], ['Delivery', t.delivery], ['Tax', t.tax]].map(([a, b]) => `<div><span>${a}</span><span>${money(b)}</span></div>`).join('')}<div class="sum"><span>Total</span><span>${money(t.total)}</span></div></div>` : ''}
+    <div style="height:12px"></div><button class="btn" data-act="fltotal">${t ? 'Update the total' : 'See the total'}</button>
+    <div style="height:10px"></div><button class="btn ghost" disabled>Checkout isn’t connected in this test</button>
+    <p class="muted" style="font-size:12px;text-align:center;margin-top:8px">Prices, delivery days and totals come from Florist One’s test mode. No order is placed and nothing is charged.</p>`); }
+async function flTotal(btn) { const x = S.fl.pick, z = (document.getElementById('flz')?.value || '').trim(); S.fl.day = document.getElementById('fld')?.value || S.fl.day;
+  if (!/^\d{5}$/.test(z)) return toast('Enter a 5-digit ZIP code.'); if (z !== S.fl.zip) { S.fl.zip = z; S.fl.tot = null; return flDates(); }
+  btn.disabled = true; try { const d = await flCall({ action: 'total', products: [{ code: x.code, price: x.price, zip: z }] }); if (!d.ok) { btn.disabled = false; return toast(d.error ? 'Florist One says: ' + d.error : 'Couldn’t get a total.'); } S.fl.tot = d; step('fl_total'); } catch { btn.disabled = false; return toast('Couldn’t reach Florist One.'); }
+  flItem(); }
 const savedIdeas = () => (S.idea?.saved || []).filter(x => x.cards?.length);
 const savedBanner = () => { const sv = savedIdeas(); if (!sv.length) return '';
   return `<button class="tripbar kc k-match" data-act="ideasaved" style="width:100%;text-align:left"><span class="tic">${ic('spark')}</span><span class="grow"><b>Saved for later${sv.length > 1 ? ' · ' + sv.length : ''}</b><small>${esc(sv[0].title)}</small></span><span class="go">See</span></button>`; };
@@ -2583,6 +2620,7 @@ function slotHTML(incoming) {
     ['triploc:' + (S.away?.trip || ''), tripLocBanner()],
     ['shr:' + pToday(), shareRemindBanner()],
     ['dates', datesBanner()],
+    ['flw', flBanner()],
     ['idea:' + (S.idea?.id || ''), ideaBanner()],
     ['wild:' + (S.idea?.wild?.id || ''), wildBanner()],
     ['isv:' + savedIdeas().map(x => x.id).join(), savedBanner()],
@@ -4753,6 +4791,11 @@ document.addEventListener('click', async e => {
       case 'wildgo': step('wild_go'); return;
       case 'wildoff': { if (S.idea?.wild) ls.set('wildoff', S.idea.wild.id); closeSheet(); step('wild_off'); return render(); }
       case 'ideaplan': return ideaPlan();
+      case 'flowers': return flOpen();
+      case 'flcat': return flOpen(ds.k);
+      case 'flpick': return flPick(Number(ds.i));
+      case 'flback': return flList();
+      case 'fltotal': return flTotal(t);
       case 'ideasaved': return ideaSheet(savedIdeas()[0]);
       case 'ideasave': { const i = S.ideaCur; if (!i) return; t.disabled = true; try { S.idea = await rpc('idea_save', { p_code: S.code, p_id: i.id, p_on: true }); } catch { t.disabled = false; return toast('Could not save. Try again.'); }
         closeSheet(); step('idea_save'); toast('Saved. It’ll wait on your home screen until you plan it.', 2800); return render(); }
