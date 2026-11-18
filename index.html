@@ -1372,6 +1372,10 @@ body:has(#layer>*) #app :is(.brand i,.hdr .ic,.card .art,.btn,.go.blink,.dbg .mo
 .frpaid{color:#bfeee6;font-size:13px;font-weight:700;flex:none}
 .frstepper{display:flex;align-items:center;gap:8px;flex:none}.frstepper button{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.08);font-size:18px;font-weight:700;color:#fff}.frstepper i{font-style:normal;font-weight:700;min-width:26px;text-align:center}
 .frp .fropt .btn.sm{flex:none}
+
+.frfind{display:flex;flex-direction:column;gap:4px;padding:14px;border-radius:20px;background:linear-gradient(135deg,rgba(45,212,191,.16),rgba(77,155,255,.14));margin-top:10px}
+.frfind small{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:#bfeee6}.frfind b{font-size:16px}.frfind>span{color:#d9d0dc;font-size:14px;line-height:1.4}.frfind .frrow2{margin-top:8px;align-items:center}.frfind .frrow2>*{flex:none}
+.frlist em button{font-size:12.5px}
 </style>
 </head>
 <body>
@@ -3978,7 +3982,7 @@ function renderFPlan() {
       + frStep(5, 'Who gets in when', arr.length > 0 && arr.length === going.length, arr.length ? `${arr.length} of ${going.length} added` : '', `${arr.map(m => `<div class="fropt"><b class="frtime">${frClock(m.arrive_at)}</b><span class="grow">${esc(m.me ? 'You' : m.name)}<small>${esc(m.arrive_how || '')} · ${new Date(m.arrive_at).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' })}</small></span></div>`).join('')}
           ${frRides(p).map(x => `<p class="frride">${esc(x)}</p>`).join('')}
           <input id="frat" class="frin" type="datetime-local" value="${mineArr}" aria-label="When you arrive"><div class="frrow2"><select id="frah" class="frsel wide">${['Flying', 'Driving', 'Train or bus'].map(h => `<option ${me?.arrive_how === h ? 'selected' : ''}>${h}</option>`).join('')}</select><button class="btn sm ghost" data-fr="arrive">${me?.arrive_at ? 'Update my arrival' : 'Add my arrival'}</button></div>`, !p.city || !p.day)
-      + frStep(6, 'Things to do', false, p.allin.length ? `${p.allin.length} everyone’s in` : '', p.city ? frIdeas(p, can) : '<p class="muted">Opens as soon as the place is picked.</p>', !p.city)
+      + frStep(6, 'Things to do', false, p.allin.length ? `${p.allin.length} everyone’s in` : '', p.city ? frIdeas(p, can) + frMaybe(p) : '<p class="muted">Opens as soon as the place is picked.</p>', !p.city)
       + (p.data.shirts ? `<div class="frstep"><div class="frsh"><b>Trip shirts</b></div><div class="frsb"><p>Pick your own size and pay for your own.</p><div class="frrow2"><a class="btn sm" href="${esc(p.data.shirts)}" target="_blank" rel="noopener">Pick my size</a>${p.owner ? '<button class="frlink" data-fr="shirtsoff">Remove the link</button>' : ''}</div></div></div>`
         : p.owner && p.city && p.day && (frD(p.day) - Date.now()) / 864e5 >= 10 ? `<div class="frstep"><div class="frsh"><b>Trip shirts</b><small>Optional</small></div><div class="frsb"><p>Design one shirt and start a group order. Everyone picks their own size and pays for their own, so nobody fronts the money.</p><a class="frlink" href="https://www.customink.com/" target="_blank" rel="noopener">Design it at Custom Ink</a><input id="frshu" class="frin" inputmode="url" placeholder="Paste the group order link (https://…)" aria-label="Group order link"><button class="btn sm ghost frsend" data-fr="shirts">Share it with the group</button></div></div>` : '');
   } else {
@@ -3992,6 +3996,7 @@ function renderFPlan() {
     <p class="frwho">${going.map(who).join(', ')}${wait.length ? `<span> · waiting on ${wait.map(m => esc(m.name)).join(', ')}</span>` : ''}</p>
     ${p.surprise ? `<p class="frsurp">${ic('eye')}Kept a surprise from ${esc(p.surprise)}. ${esc(p.surprise)} can’t see this plan.</p>` : ''}
     ${p.flow === 'pick' && !p.data.pick && (p.day || p.at) ? `<p class="frwhen">${esc([p.day ? frDay(p.day) : '', p.at || ''].filter(Boolean).join(' at '))}</p>` : ''}
+    ${can ? frFinds(p) : ''}
     ${body}
     ${can && p.flow !== 'hub' ? frCosts(p) : ''}
     ${can ? `<div class="sect">This plan</div><div class="ycard">
@@ -4029,6 +4034,14 @@ function frCosts(p) {
     <button class="fropt" data-fr="payset"><span class="grow"><b>How friends pay you</b><small>${me.pay ? `${PAYN[me.pay.kind]} · ${esc(me.pay.handle)}` : 'Add your Venmo, Cash App or PayPal name so they get a pay button'}</small></span><span class="ych">›</span></button>
     <p class="muted frfine">The app does the arithmetic. Paying happens in your own payment app, and whoever was owed ticks it off.</p></div></div>`;
 }
+/* ----- the planning helper's finds: at most two waiting, each a tap to put to the group, park, or pass ----- */
+function frFinds(p) {
+  const nw = (p.finds || []).filter(f => f.status === 'new');
+  if (!nw.length) return p.flow === 'trip' && !(p.finds || []).length && !p.data.stay ? '<p class="muted frfine">Looking for things that fit this trip. They’ll show up here as they’re found.</p>' : '';
+  return nw.map(f => `<div class="frfind"><small>${f.kind === 'season' ? 'Worth knowing' : f.kind === 'gem' ? 'Found a hidden gem' : 'Found for your group'}</small><b>${esc(f.title)}</b>${f.body ? `<span>${esc(f.body)}</span>` : ''}
+    <div class="frrow2">${f.card ? `<button class="btn sm" data-fr="find" data-id="${f.id}" data-do="add">Put it to the group</button><button class="btn sm ghost" data-fr="find" data-id="${f.id}" data-do="maybe">Maybe pile</button>` : ''}<button class="frlink" data-fr="find" data-id="${f.id}" data-do="no">${f.card ? 'Skip it' : 'Got it'}</button></div></div>`).join('');
+}
+const frMaybe = p => { const m = (p.finds || []).filter(f => f.status === 'maybe'); return m.length ? `<div class="frlist"><b>Maybe pile</b>${m.map(f => `<span>${esc(f.title)}<em><button class="frlink" data-fr="find" data-id="${f.id}" data-do="add">Put it to the group</button> · <button class="frlink" data-fr="find" data-id="${f.id}" data-do="no">Drop</button></em></span>`).join('')}</div>` : ''; };
 /* ----- group swipe: one idea at a time, yes or no ----- */
 function renderFSwipe() {
   const p = FR.plan; if (!p) { S.view = 'friends'; return render(); }
@@ -4105,6 +4118,7 @@ async function frClick(t, ds) {
     case 'sw': return frSwipe(ds.y === '1');
     case 'idea': { const title = (document.getElementById('fridea')?.value || '').trim(); if (!title) return toast('Type the idea first.'); return frAct('idea', { title }, t); }
     case 'shortlist': return frAct('shortlist', {}, t);
+    case 'find': { const r = await frAct('find', { id: ds.id, do: ds.do }, t); if (r && ds.do === 'add') toast('Added. Everyone can swipe on it now.', 3000); return; }
     case 'plus': return frAct('plus', { n: Number(ds.n) }, t);
     case 'costadd': { const label = (document.getElementById('fcl')?.value || '').trim(), amt = parseFloat((document.getElementById('fca')?.value || '').replace(/[$,\s]/g, '')); if (!label) return toast('Say what it was.'); if (!(amt > 0) || amt > 100000) return toast('Enter the total you paid, like 1200.'); return frAct('cost', { label, cents: String(Math.round(amt * 100)), mode: document.getElementById('fcm')?.value }, t); }
     case 'costdel': if (!t.dataset.sure) { t.dataset.sure = '1'; t.textContent = 'Tap again'; return; } return frAct('costdel', { id: ds.id }, t);

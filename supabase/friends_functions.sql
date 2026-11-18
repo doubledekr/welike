@@ -382,3 +382,5 @@ do $$ declare f record; begin
 -- started from a reveal, and the 'shirts' action. Applied as migration friends_weekly_reveal_shirts; see the project for the live text.
 -- 18 Nov 2026, third pass: who owes what (fr_costs, fr_payments, fr_plan_members.plus, fr_people.pay, _fr_money, fr_pay and the
 -- plus / cost / costdel / claim / paid actions). Applied as migration friends_costs_split.
+-- 18 Nov 2026, fourth pass: the planning helper's first version (fr_finds, fr_plans.scouted_at, _fr_scout, the 'find' action).
+-- Applied as migration friends_plan_scout.
