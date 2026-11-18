@@ -1192,6 +1192,14 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .card .gfact small{display:block;font-size:11.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#ffb547}.card .gfact b{display:block;font-family:var(--serif);font-weight:400;font-size:19px;line-height:1.2;margin:4px 0}.card .gfact span{font-size:12.5px;color:var(--muted)}
 @keyframes gfin{from{opacity:0;transform:translateY(-16px) scale(.96)}}
 @media (prefers-reduced-motion:reduce){.card .flipsh{display:none}}
+
+/* matches, celebrated by how they landed */
+.cele.gem{background:linear-gradient(135deg,#ffb547,#ff7a4d);box-shadow:0 0 54px -2px rgba(255,181,71,.95)}
+.cele.love{background:linear-gradient(135deg,#7a3df0,#ff4d7e 60%,#ffb547);box-shadow:0 0 70px 0 rgba(255,77,126,.95);animation:celein .45s cubic-bezier(.2,1.5,.4,1),celelove .7s ease-in-out 2,celeout .35s 5.6s forwards}
+@keyframes celelove{50%{transform:translateX(-50%) scale(1.07)}}
+.cele.wide{flex-wrap:wrap;border-radius:24px;max-width:min(92%,360px);animation:celein .45s cubic-bezier(.2,1.5,.4,1),celeout .35s 8.6s forwards}
+.cele .cpair{flex:1 0 100%;margin-top:8px;padding:10px 12px;border-radius:16px;background:rgba(255,255,255,.2);color:#fff;text-align:left}
+.cele .cpair b{font-family:inherit;font-weight:600;font-size:13.5px;line-height:1.3;display:block}.cele .cpair small{font-weight:700;font-size:12.5px;margin-top:3px;white-space:normal;max-width:none;text-decoration:underline}
 </style>
 </head>
 <body>
@@ -4090,7 +4098,7 @@ async function commit(verdict) {
     // Hell yeah on a dated event: the other person hears about it straight away and is asked to build a plan around it
     if (card.deck === 'event' && !card.data?.place && verdict === 'love' && !r.match && partner()) { push(`${S.me} seems really into this`, `${card.title}, ${card.data?.flex ? 'this week' : fmtDate(card.event_date)}. Take a look and say if you’re in.`, `./?into=${card.id}`); toast(`${them()} gets told you’re really into it.`, 3200); }
     if (S.bite && r.before && !r.match && partner() && (card.deck === 'event' || card.deck === 'dinner') && !(r.keen && r.weeks === 3) && !$layer.innerHTML) againSheet(card);
-    if (r.match && S.bite) { S.state.counts.shortlist = (S.state.counts.shortlist || 0) + 1; const hm = S.state.counts.hearts ||= {}; hm[card.deck] = (hm[card.deck] || 0) + 1; paintHearts(); toast(`You have both liked ${card.title}. It will come up first next round.`, 3500); send({ type: 'shortlist' }); }
+    if (r.match && S.bite) { S.state.counts.shortlist = (S.state.counts.shortlist || 0) + 1; const hm = S.state.counts.hearts ||= {}; hm[card.deck] = (hm[card.deck] || 0) + 1; paintHearts(); showMatch({ ...card, loves: verdict === 'love' ? 1 : 0 }); send({ type: 'shortlist' }); }
     else if (r.match) { const m = { ...card, loves: verdict === 'love' ? 1 : 0 }; S.matches.unshift(m); updateBar(); send({ type: 'match', session: sess, card: m }); push(`It's a match ${emojiFor(card)}`, `You and ${S.me} both said yes to ${card.title}.`, `./?s=${sess}`); showMatch(m); }
     if (card.deck === 'movie' && r.seen_by?.length) toast(verdict === 'seen' ? `${r.seen_by.join(' and ')} has seen ${card.title} too. It is in Watched for you both. Worth a rewatch?` : `Heads up: ${r.seen_by.join(' and ')} has already seen ${card.title}. Ask how it was.`, 5500);
     else if (card.deck === 'movie' && verdict === 'seen' && r.liked_by?.length) toast(`${r.liked_by.join(' and ')} wants to watch ${card.title}. You will find it under Watch it again.`, 5500);
@@ -4210,17 +4218,37 @@ async function undo() {
   try { await rpc('unswipe', { p_code: S.code, p_session: S.sess.id, p_member: S.me, p_card: h.card.id }); S.deck.unshift(h.card); S.matches = S.matches.filter(m => m.id !== h.card.id); if (S.bite && (h.verdict === 'yes' || h.verdict === 'love')) biteLike(S.sess.deck, -1); if (S.bite) drawStack(); else if (S.view !== 'swipe') { S.view = 'swipe'; renderSwipe(); } else drawStack(); } catch { S.hist.push(h); toast('Could not undo.'); }
 }
 const chainLabel = c => c.data?.chain ? (c.data.chain.deck === 'movie' ? 'Pick the movie' : c.data.chain.deck === 'event' ? 'Pick an event' : c.data.chain.filters?.kinds?.[0] === 'cook' ? 'Pick what to cook' : c.data.chain.filters?.kinds?.[0] === 'orderin' ? 'Pick where to order from' : 'Pick a place') : null;
+// A match is celebrated by how it landed: a like, a love from both of you, a hidden gem, or something happening this week.
+// Then it offers the next step: plan it, or pair it with something a short walk away.
 function showMatch(c) {
   document.querySelector('.cele')?.remove();
-  const m = document.createElement('div'); m.className = 'cele';
+  const m = document.createElement('div'); m.className = 'cele' + (c.data?.gem ? ' gem' : '');
   const bits = Array.from({ length: 12 }, (_, i) => { const a = i / 12 * 6.283, r = 70 + (i % 3) * 26; return `<i style="--x:${Math.round(Math.cos(a) * r)}px;--y:${Math.round(Math.sin(a) * r * .7)}px;--c:${['#ffd0a8', '#fff', '#ffc65c', '#ff9db8'][i % 4]}"></i>`; }).join('');
-  const day = partner() && !S.sess?.filters?.plan && (c.deck === 'event' || (c.deck === 'dinner' && c.kind !== 'cook')) && !c.data?.away;
-  m.innerHTML = `${bits}<span class="hb">${ic('heart')}</span><span><b>It’s a match</b><small>${esc(c.title)}</small></span>${day ? `<button class="cgo" data-pl="around|${c.id}">Make a day of it</button>` : ''}`;
-  if (day) (S.listCards = S.listCards || []).push(c);
-  document.body.appendChild(m); setTimeout(() => m.remove(), day ? 6000 : 2800);
+  const canDay = partner() && !S.sess?.filters?.plan && (c.deck === 'event' || (c.deck === 'dinner' && c.kind !== 'cook')) && !c.data?.away;
+  const days = c.event_date && !c.data?.place ? Math.round((new Date(c.event_date + 'T12:00') - new Date(pToday() + 'T12:00')) / 864e5) : null, soon = days != null && days >= 0 && days <= 7;
+  const when = soon ? (days === 0 ? 'It’s today' : days === 1 ? 'It’s tomorrow' : 'It’s ' + new Date(c.event_date + 'T12:00').toLocaleDateString([], { weekday: 'long' })) : '';
+  m.innerHTML = `${bits}<span class="hb">${ic(c.data?.gem ? 'gem' : 'heart')}</span><span class="ctx"><b>${c.data?.gem ? 'A gem you both want' : 'It’s a match'}</b><small>${esc(c.title)}</small></span>${canDay ? `<button class="cgo" data-pl="around|${c.id}">${soon ? when + '. Plan it?' : 'Make a day of it'}</button>` : ''}`;
+  if (canDay) (S.listCards = S.listCards || []).push(c);
+  document.body.appendChild(m); let gone = setTimeout(() => m.remove(), canDay ? 6000 : 2800);
   a2hsMoment('match');
   try { navigator.vibrate?.([30, 40, 60]); } catch {}
+  if (c.data?.gem) tbFly(5);
+  if (!c.id) return;
+  rpc('match_extra', { p_code: S.code, p_member: S.me, p_card: c.id }).then(x => { if (!x || !m.isConnected) return;
+    if (x.loves >= 2) { m.classList.add('love'); m.querySelector('.ctx b').textContent = 'You both loved this'; tbFly(10); try { navigator.vibrate?.([40, 50, 40, 50, 90]); } catch {} }
+    const n = x.near; if (n?.card && canDay && !soon) { const mi = Number(n.miles), far = mi < .08 ? 'next door to' : mi < .2 ? 'a block or two from' : 'a short walk from'; S.pair = { a: c, b: n.card, kind: n.kind };
+      const row = document.createElement('button'); row.className = 'cpair'; row.dataset.act = n.kind === 'peek' ? 'pairpeek' : 'pairplan';
+      row.innerHTML = n.kind === 'peek' ? `<b>There’s a spot ${mi < .08 ? 'next door' : mi < .2 ? 'a block or two away' : 'a short walk away'} worth a look</b><small>Take a look</small>` : `<b>It’s ${far} ${esc(n.card.title)}${n.kind === 'both' ? ', which you both like' : ', which you liked'}</b><small>Make it a night</small>`;
+      m.classList.add('wide'); m.appendChild(row); clearTimeout(gone); gone = setTimeout(() => m.remove(), 9000); step('pair_' + n.kind); }
+  }).catch(() => {});
 }
+async function pairPlan() { const p = S.pair; document.querySelector('.cele')?.remove(); if (!p) return; try { if (!S.pool) await dayPool(); } catch {} S.pool = S.pool || [];
+  for (const x of [p.a, p.b]) if (!S.pool.some(y => y.id === x.id)) S.pool.push(x);
+  dayDraft({ anchor: p.a }); const pl = S.pl, s = isBar(p.b) ? 'drinks' : pSlotOf(p.b); if (!pl || pl.items[s]?.card?.id === p.a.id) return;
+  if (!pl.slots.includes(s)) { pl.slots.push(s); const ord = ['day', 'drinks', 'dinner', 'evening', 'drinks2', 'drinks3']; pl.slots.sort((x, y) => ord.indexOf(x) - ord.indexOf(y)); }
+  pl.items[s] = { time: PSLOT[s][1], card: p.b, find: false }; dayEdit(); }
+function pairPeek() { const p = S.pair; document.querySelector('.cele')?.remove(); if (!p || !S.deck || !document.getElementById('stack')) return;
+  S.deck = S.deck.filter(x => x.id !== p.b.id); S.deck.unshift(p.b); (S.why = S.why || {})[p.b.id] = 'A short walk from ' + p.a.title; drawStack(); }
 function endMatchesHTML() {
   const ms = [...S.matches].sort((x, y) => (y.loves || 0) - (x.loves || 0)), many = ms.length > 1; S.listCards = ms;
   return `<div class="mrow ${many ? (ms.length === 2 ? 'two' : '') : 'one'}">${ms.map((c, i) => { const cl = chainLabel(c); return `<div class="mcard"><button class="mimg" data-detail="${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="">` : emojiFor(c)}</button><b>${esc(c.title)}</b>${c.loves >= 2 ? '<small class="lv">★ You both loved it</small>' : c.loves === 1 ? '<small class="lv">★ One of you loved it</small>' : ''}${c.deck === 'movie' && i < 3 ? `<small data-why="${c.id}" style="display:none"></small>` : ''}<button class="btn sm" data-final="${c.id}">${many ? 'Choose this' : 'Lock it in'}</button>${cl ? `<button class="btn ghost sm" data-chain="${c.id}">${cl} →</button>` : ''}</div>`; }).join('')}</div>
@@ -4623,6 +4651,8 @@ document.addEventListener('click', async e => {
       case 'eatsave': { const g = k => [...document.querySelectorAll(`.eatc.on[data-k="${k}"]`)].map(x => x.dataset.v); const v = { cuisines: g('cuisines').slice(0, 10), far: g('far')[0] || '', vibe: g('vibe')[0] || '' }; t.disabled = true;
         try { const tt = await rpc('taste_set', { p_code: S.code, p_member: S.me, p_key: 'eat', p_value: v }); S.dates = { ...(S.dates || {}), taste: tt || { eat: v } }; } catch { t.disabled = false; return toast('That didn’t save. Try again.'); }
         closeSheet(); step('eat_saved'); if (S.sess?.deck === 'dinner' && S.bite) { const sid = S.sess.id; try { await loadSession(sid); drawStack(); eatWhy(sid); } catch {} } return; }
+      case 'pairplan': return pairPlan();
+      case 'pairpeek': return pairPeek();
       case 'gplay': return playGame();
       case 'tbheart': { S.tbHearts = (S.tbHearts || 0) + 1; tbFly(1); send({ type: 'tbh', id: S.tb.id }); const m = document.getElementById('tbwm'); if (m) m.textContent = `${S.tbHearts} sent. They show on ${them()}’s screen if the app is open.`; return; }
       case 'tbheckle': { if (Date.now() - (S.tbHkAt || 0) < 4000) return; S.tbHkAt = Date.now(); send({ type: 'tbh', id: S.tb.id, m: ds.m }); const m = document.getElementById('tbwm'); if (m) m.textContent = `Sent: “${ds.m}”`; return; }
