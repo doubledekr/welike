@@ -1226,6 +1226,34 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .fli b{font-size:13.5px;font-weight:600;margin-top:7px;line-height:1.25}.fli small{color:var(--muted);font-size:12.5px;margin-top:2px}
 .flhero{width:100%;max-height:300px;object-fit:contain;border-radius:16px;background:#fff}
 .fltot{margin-top:14px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.05);font-size:14px;font-variant-numeric:tabular-nums}.fltot div{display:flex;justify-content:space-between;padding:3px 0;color:var(--muted)}.fltot .sum{color:var(--text);font-weight:700;border-top:1px solid rgba(255,255,255,.08);margin-top:5px;padding-top:8px}
+/* Header: icons only, each with a soft glow; no bubbles behind them. */
+.hdr{gap:0}
+.hdr .ib,.hdr .ib.bell.lv1,.hdr .ib.bell.lv2,.hdr .ib.bell.lv3,.hdr .ib.bell.kc.lv1,.hdr .ib.bell.kc.lv2,.hdr .ib.bell.kc.lv3{width:40px;height:40px;border-radius:50%;background:none!important;box-shadow:none!important;animation:none!important;transform:none;color:#ffe3da;font-size:21px}
+.hdr .ib .ic{stroke-width:2.1;filter:drop-shadow(0 0 3px rgba(255,180,160,.55)) drop-shadow(0 0 9px rgba(255,120,140,.25))}
+.hdr .ib .ic path,.hdr .ib[data-act="search"] .ic path{fill:none}
+.hdr .ib[data-act="search"] .ic,.hdr .ib[data-tab="you"] .ic{stroke-width:2.1}
+.hdr .ib[data-tab="you"] .ic{font-size:22px}
+.hdr .ib:active .ic{transform:scale(.9)}
+.hdr .ib.shr{color:#5eead4}
+.hdr .ib.shr .ic{animation:shrg 2s ease-in-out infinite}
+.hdr .ib.shr.done .ic{animation:none;filter:drop-shadow(0 0 3px rgba(94,234,212,.8)) drop-shadow(0 0 8px rgba(56,189,248,.45))}
+@keyframes shrg{0%,100%{filter:drop-shadow(0 0 2px rgba(94,234,212,.9)) drop-shadow(0 0 6px rgba(56,189,248,.6))}50%{filter:drop-shadow(0 0 5px rgba(94,234,212,1)) drop-shadow(0 0 14px rgba(56,189,248,.9))}}
+/* the bell: 1 = something new to read (solid amber, steady glow), 2 = waiting on you (a little ring), 3 = waiting and soon (rings faster). A kind of message tints it. */
+.hdr .ib.bell.lv1,.hdr .ib.bell.lv2,.hdr .ib.bell.lv3{color:#ffd23f}
+.hdr .ib.bell.kc.lv1,.hdr .ib.bell.kc.lv2,.hdr .ib.bell.kc.lv3{color:var(--ka)}
+.hdr .ib.bell.lv1 .ic path,.hdr .ib.bell.lv2 .ic path,.hdr .ib.bell.lv3 .ic path{fill:currentColor}
+.hdr .ib.bell.lv1 .ic,.hdr .ib.bell.lv2 .ic,.hdr .ib.bell.lv3 .ic{filter:drop-shadow(0 0 3px currentColor) drop-shadow(0 0 10px currentColor);transform-origin:50% 12%}
+.hdr .ib.bell.lv2 .ic{animation:bellr 2.4s ease-in-out infinite}
+.hdr .ib.bell.lv3 .ic{animation:bellr 1.2s ease-in-out infinite}
+@keyframes bellr{0%,46%,100%{transform:rotate(0)}6%{transform:rotate(-14deg)}14%{transform:rotate(11deg)}22%{transform:rotate(-7deg)}30%{transform:rotate(3deg)}}
+.hdr .bell i{right:1px;top:2px}
+@media (prefers-reduced-motion:reduce){.hdr .ib .ic{animation:none!important}}
+@media (max-width:380px){.hdr .ib,.hdr .ib.bell.lv1,.hdr .ib.bell.lv2,.hdr .ib.bell.lv3,.hdr .ib.bell.kc.lv1,.hdr .ib.bell.kc.lv2,.hdr .ib.bell.kc.lv3{width:35px}}
+.shrs{text-align:center;padding-top:6px}.shrs h2{font-size:28px;line-height:1.12;margin:6px 0 8px}.shrs p.muted{font-size:14.5px;line-height:1.5}
+.shrbig{font-size:52px;color:#5eead4;stroke-width:1.7;filter:drop-shadow(0 0 8px rgba(94,234,212,.8))}
+.shrmsg{text-align:left;margin:16px 0 14px;padding:13px 15px;border-radius:18px;background:rgba(45,212,191,.1);font-size:14px;line-height:1.45;color:#e8f9f6}.shrmsg b{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#5eead4;margin-bottom:4px}
+.btn.shrgo{background:linear-gradient(135deg,#2dd4bf,#38bdf8);color:#06262b;box-shadow:0 10px 26px -12px rgba(56,189,248,.8)}
+.shrrow{display:flex;gap:10px;margin-top:10px}.shrrow .btn{flex:1}
 </style>
 </head>
 <body>
@@ -1261,7 +1289,7 @@ const DECKS = {
   mix:      { label: 'Surprise me',  em: '🎲', hint: 'A bit of everything',       nudge: 'Surprise me' },
 };
 const ICONS = {
-  x: 'M6 6l12 12M18 6L6 18', moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z', sun: 'M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4', gear: 'M18.93 9.39 L21.41 10.09 L21.41 13.91 L18.93 14.61 L18.74 15.05 L20.00 17.30 L17.30 20.00 L15.05 18.74 L14.61 18.93 L13.91 21.41 L10.09 21.41 L9.39 18.93 L8.95 18.74 L6.70 20.00 L4.00 17.30 L5.26 15.05 L5.07 14.61 L2.59 13.91 L2.59 10.09 L5.07 9.39 L5.26 8.95 L4.00 6.70 L6.70 4.00 L8.95 5.26 L9.39 5.07 L10.09 2.59 L13.91 2.59 L14.61 5.07 L15.05 5.26 L17.30 4.00 L20.00 6.70 L18.74 8.95Z M15.10 12a3.1 3.1 0 1 0 -6.20 0a3.1 3.1 0 1 0 6.20 0z', heart: 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z',
+  x: 'M6 6l12 12M18 6L6 18', moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z', sun: 'M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4', gear: 'M10.11 4.95 L10.16 1.56 L13.84 1.56 L13.89 4.95 A7.3 7.3 0 0 1 15.65 5.68 L18.08 3.32 L20.68 5.92 L18.32 8.35 A7.3 7.3 0 0 1 19.05 10.11 L22.44 10.16 L22.44 13.84 L19.05 13.89 A7.3 7.3 0 0 1 18.32 15.65 L20.68 18.08 L18.08 20.68 L15.65 18.32 A7.3 7.3 0 0 1 13.89 19.05 L13.84 22.44 L10.16 22.44 L10.11 19.05 A7.3 7.3 0 0 1 8.35 18.32 L5.92 20.68 L3.32 18.08 L5.68 15.65 A7.3 7.3 0 0 1 4.95 13.89 L1.56 13.84 L1.56 10.16 L4.95 10.11 A7.3 7.3 0 0 1 5.68 8.35 L3.32 5.92 L5.92 3.32 L8.35 5.68 A7.3 7.3 0 0 1 10.11 4.95Z M15.10 12a3.1 3.1 0 1 0-6.20 0a3.1 3.1 0 1 0 6.20 0z', heart: 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z',
   star: 'M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8-5.3-2.8-5.3 2.8 1-5.8-4.2-4.1 5.9-.9z',
   eye: 'M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12zM12 9.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z',
   undo: 'M9 14L4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11',
@@ -1713,7 +1741,7 @@ function ob2Draw() {
     try: () => `${kick()}<h2 class="wk-h">Now, how the cards work</h2><p class="wk-p">Flick this card each way. ${esc(p || 'Your person')} never sees your swipes unless you both say yes.</p>${ob2SwipeStage()}<button class="btn wk-cta wait" id="wkgo" data-act="ob2try" disabled>Flick the card</button>`,
     invite: () => `${kick()}<h2 class="wk-h">Bring your person in</h2><p class="wk-p">Nothing can match until you’re both here. The link fills in the code for them.</p>
       <div class="ob2-code">${esc(S.code)}<small>Your couple code</small></div><div class="wk-bub ob2-msg"><b>Your text</b>Join me on Let’s Together so we can stop asking “what do you want to do?”</div>${sp}
-      <button class="btn wk-cta" data-act="ob2inv" data-how="${isPhone() ? 'text' : 'share'}">${isPhone() ? 'Text the invite' : 'Copy the invite'}</button>${isPhone() ? '<button class="jlink" data-act="ob2inv" data-how="share">Send another way</button>' : ''}`,
+      <button class="btn wk-cta" data-act="ob2inv" data-how="${isPhone() ? 'text' : 'share'}">${isPhone() ? 'Text the invite' : 'Copy the invite'}</button>${isPhone() ? '<button class="jlink" data-act="ob2inv" data-how="share">Other apps</button>' : ''}`,
     install: () => { carrySignIn(); const g = a2hsSteps(); setTimeout(() => S.ob2 && S.ob2.steps[S.ob2.i] === 'install' && !bip && a2hsArrow(g.arrow), 50);
       return `${kick(' · This ' + (IOS ? 'iPhone' : 'phone'))}<h2 class="wk-h">Put it on your Home Screen</h2><p class="wk-p">Full screen, and the way ${esc(p || 'your person')} reaches you with a nudge.</p>
       ${bip ? '' : `<div class="steps ob2-steps">${g.html}<div class="step"><span class="num">✓</span><span>Open it from the new icon. It picks up right here</span></div></div>`}${sp}
@@ -1798,6 +1826,7 @@ function homeHTML() {
   return `<div class="home">
     <div class="row hdr"><div class="brand grow hb">${MARK}<span>${BRAND}</span></div>
       <button class="ib" data-act="search" aria-label="Search movies">${ic('search')}</button>
+      <button class="ib shr ${ls.get('shared') ? 'done' : ''}" data-act="sharefriends" aria-label="Share Let’s Together with friends">${ic('share')}</button>
       ${bellHTML()}<button class="ib" data-tab="you" aria-label="You and settings">${ic('gear')}</button></div>${slotHTML(incoming)}
     <div class="seg" style="margin:12px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="kc k-${CK[k]} ${S.homeDeck === k ? 'on' : ''}">${l}${heartTag(k)}</button>`).join('')}</div>${scratchShow() && !S.awayOffer ? `<button class="scratch-pill" data-act="scratch">${ic('spark')}<span><b>A scratch card is waiting</b><small>One thing ${esc(p)} is in on</small></span><i>Scratch</i></button>` : ''}${S.awayOffer ? `<div class="trav"><span class="tic">${ic('pin')}</span><span class="grow"><b>Looks like you’re in ${esc(S.awayOffer.city)}</b><small>Show places to eat and things to do here?</small></span><button class="go" data-act="awayyes">Show</button><button class="x" data-act="awayno" aria-label="Not now">×</button></div>` : ''}${S.away && (S.homeDeck === 'dinner' || S.homeDeck === 'event') ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><small class="muted" style="font-size:12.5px">${ic('pin')} ${S.away.trip ? `Your ${esc(S.away.city)} trip` : `Showing ${esc(S.away.city)} on this phone`}</small><button class="chip" data-act="awayoff" style="padding:5px 12px;font-size:13px">Back to home</button></div>` : ''}${S.homeDeck === 'movie' ? `<div class="row" style="margin:14px 2px 0"><button class="chip" data-act="movielib" style="padding:5px 12px;font-size:13px">${ic('film')} Movie library</button></div>` : ''}${shareChip()}${S.homeDeck === 'art' ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="gallery" style="padding:5px 12px;font-size:13px">${ic('frame')} Our gallery</button><small class="muted" style="font-size:12.5px">No nudges, just likes</small></div>` : ''}${S.homeDeck === 'trip' ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="trips" style="padding:5px 12px;font-size:13px">${ic('heart')} Saved trips</button><button class="chip ${S.tripCity ? 'on' : ''}" data-act="tripcity" style="padding:5px 12px;font-size:13px">${esc(S.tripCity || 'Anywhere')} ▾</button></div>` : ''}
     <div class="stack" id="stack" style="margin:16px 0 16px">${S.doneHtml?.[S.homeDeck]?.day === new Date().toDateString() ? S.doneHtml[S.homeDeck].html : ''}</div>
@@ -2118,6 +2147,21 @@ async function flTotal(btn) { const x = S.fl.pick, z = (document.getElementById(
   if (!/^\d{5}$/.test(z)) return toast('Enter a 5-digit ZIP code.'); if (z !== S.fl.zip) { S.fl.zip = z; S.fl.tot = null; return flDates(); }
   btn.disabled = true; try { const d = await flCall({ action: 'total', products: [{ code: x.code, price: x.price, zip: z }] }); if (!d.ok) { btn.disabled = false; return toast(d.error ? 'Florist One says: ' + d.error : 'Couldn’t get a total.'); } S.fl.tot = d; step('fl_total'); } catch { btn.disabled = false; return toast('Couldn’t reach Florist One.'); }
   flItem(); }
+/* ---------- share the app with friends: they start a couple of their own ---------- */
+const friendLink = () => 'https://letstogether.app/?from=share';
+const friendText = () => 'We’ve been using Let’s Together to stop asking “what do you want to do?” You each swipe, and it only shows what you both said yes to.';
+function friendSheet() { step('share_open');
+  sheet(`<div class="grab"></div><div class="shrs"><svg class="ic shrbig" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS.share}"/></svg>
+    <h2>Know a couple who can never decide?</h2><p class="muted">Send them Let’s Together. They start a couple of their own, so one more pair stops asking “what do you want to do?”</p>
+    <div class="shrmsg"><b>Your text</b>${esc(friendText())} letstogether.app</div>
+    <button class="btn shrgo" data-act="sharehow" data-how="text">Text a friend</button>
+    <div class="shrrow"><button class="btn ghost" data-act="sharehow" data-how="copy">Copy link</button><button class="btn ghost" data-act="sharehow" data-how="share">Other apps</button></div>
+    <p class="muted" style="font-size:12px;margin-top:12px">This doesn’t connect them to you two. Your swipes stay private.</p></div>`); }
+async function friendHow(how) { const msg = `${friendText()}\n${friendLink()}`; step('share_' + how);
+  const done = () => { if (!ls.get('shared')) { ls.set('shared', '1'); document.querySelectorAll('.hdr .ib.shr').forEach(b => b.classList.add('done')); } };
+  if (how === 'text') { done(); const body = encodeURIComponent(msg); location.href = /iphone|ipad|ipod|macintosh/i.test(navigator.userAgent) ? `sms:&body=${body}` : `sms:?body=${body}`; return; }
+  if (how === 'copy') { try { await navigator.clipboard.writeText(msg); done(); toast('Copied. Paste it anywhere.'); } catch { toast('Couldn’t copy. Try Send another way.'); } return; }
+  try { if (navigator.share) { await navigator.share({ text: friendText(), url: friendLink() }); done(); } else { await navigator.clipboard.writeText(msg); done(); toast('Copied. Paste it anywhere.'); } } catch {} }
 const savedIdeas = () => (S.idea?.saved || []).filter(x => x.cards?.length);
 const savedBanner = () => { const sv = savedIdeas(); if (!sv.length) return '';
   return `<button class="tripbar kc k-match" data-act="ideasaved" style="width:100%;text-align:left"><span class="tic">${ic('spark')}</span><span class="grow"><b>Saved for later${sv.length > 1 ? ' · ' + sv.length : ''}</b><small>${esc(sv[0].title)}</small></span><span class="go">See</span></button>`; };
@@ -2168,7 +2212,7 @@ function tellSheet() {
   sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('heart')}</span><h2>Know a couple who’d love this?</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">Send it to one of them. They do the rest.</p></div>
     <div class="steps" style="text-align:left;margin-top:14px"><div class="step"><span class="num">1</span><span>You send the link to <b>one</b> of them</span></div><div class="step"><span class="num">2</span><span>They start a couple and add it to their Home Screen</span></div><div class="step"><span class="num">3</span><span>They pass their code to their partner</span></div></div>
     <button class="btn" style="margin-top:18px" data-act="tellsend" data-how="${isPhone() ? 'text' : 'share'}">${isPhone() ? 'Text them the link' : 'Copy the link'}</button>
-    ${isPhone() ? '<button class="btn ghost" style="margin-top:10px" data-act="tellsend" data-how="share">Send another way</button>' : ''}
+    ${isPhone() ? '<button class="btn ghost" style="margin-top:10px" data-act="tellsend" data-how="share">Other apps</button>' : ''}
     <button class="jlink" data-act="closesheet">Not now</button></div>`);
 }
 function tonightSheet() {
@@ -4793,6 +4837,8 @@ document.addEventListener('click', async e => {
       case 'wildgo': step('wild_go'); return;
       case 'wildoff': { if (S.idea?.wild) ls.set('wildoff', S.idea.wild.id); closeSheet(); step('wild_off'); return render(); }
       case 'ideaplan': return ideaPlan();
+      case 'sharefriends': return friendSheet();
+      case 'sharehow': return friendHow(ds.how);
       case 'flowers': return flOpen();
       case 'flcat': return flOpen(ds.k);
       case 'flpick': return flPick(Number(ds.i));
