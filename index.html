@@ -1160,6 +1160,12 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .steeryn{display:flex;gap:9px;width:100%;max-width:300px}.steeryn .btn{flex:1;padding:13px 6px}
 .eatcs{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.eatc{padding:10px 14px;border-radius:999px;font-size:14.5px;background:rgba(255,255,255,.07);color:var(--text)}.eatc.on{background:linear-gradient(135deg,#ff7a4d,#ff4d7e);color:#fff;font-weight:700}
 @media (prefers-reduced-motion:reduce){.steerc{animation:none}}
+
+/* card details: facts read as one quiet line, not a row of pills */
+.sheet .body .tags{gap:2px 0;align-items:center;margin-top:12px}
+.sheet .body .tags .tag{background:none;-webkit-backdrop-filter:none;backdrop-filter:none;padding:0;border-radius:0;font-size:14.5px;font-weight:500;color:var(--muted)}
+.sheet .body .tags .tag:not(:last-child)::after{content:"·";margin:0 8px;opacity:.6}
+.sheet .body .tags .tag.loc{color:#7fe3d3;font-weight:600}
 </style>
 </head>
 <body>
@@ -4243,7 +4249,7 @@ function showDetail(c) {
       ${d.url ? `<div style="height:10px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.url)}" target="_blank" rel="noopener">View at the museum</a>` : ''}
       <p class="muted" style="font-size:11.5px;text-align:center">Public-domain image, courtesy of ${esc(d.museum || 'the museum')}.</p>`;
   } else if (c.deck === 'trip') {
-    b = `<div class="tags">${c.kind ? `<span class="tag">${esc(c.kind)}</span>` : ''}${d.rating ? `<span class="tag">★ ${d.rating}${d.reviews ? ` (${Number(d.reviews).toLocaleString()})` : ''}</span>` : ''}${d.minutes ? `<span class="tag">${fmtMins(d.minutes)}</span>` : ''}${d.price ? `<span class="tag">from $${d.price}</span>` : ''}${d.price_level ? `<span class="tag">${esc(d.price_level)}</span>` : ''}${d.locals ? '<span class="tag loc">Locals love it</span>' : ''}</div>
+    b = `<div class="tags">${c.kind && !(c.subtitle || '').includes(c.kind) ? `<span class="tag">${esc(c.kind)}</span>` : ''}${d.rating ? `<span class="tag">★ ${d.rating}${d.reviews ? ` (${Number(d.reviews).toLocaleString()})` : ''}</span>` : ''}${d.minutes ? `<span class="tag">${fmtMins(d.minutes)}</span>` : ''}${d.price ? `<span class="tag">from $${d.price}</span>` : ''}${d.price_level ? `<span class="tag">${esc(d.price_level)}</span>` : ''}${d.locals ? '<span class="tag loc">Locals love it</span>' : ''}</div>
       ${d.address && d.locals ? `<p class="muted" style="font-size:14px">${esc(d.address)}</p>` : ''}${d.notes ? `<p>${esc(d.notes)}</p>` : ''}${gemBlock(d)}${d.place ? `${d.url ? `<div style="height:18px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.url)}" target="_blank" rel="noopener">Visit website</a>` : ''}${d.maps ? `<div style="height:10px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.maps)}" target="_blank" rel="noopener">See it on Google Maps</a>` : ''}${d.photo_credit ? `<p class="muted" style="font-size:11.5px;text-align:center">Photo: ${esc(d.photo_credit)} on Google</p>` : ''}`
       : `${d.url ? `<div style="height:18px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.url)}" target="_blank" rel="noopener">View on Viator</a>` : ''}
       <p class="muted" style="font-size:11.5px;text-align:center">Experiences from Viator. Let’s Together may earn a commission if you book.</p>`}`;
