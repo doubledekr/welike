@@ -1095,6 +1095,22 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 @keyframes spH{from{opacity:0;transform:scale(0)}to{opacity:1;transform:none}}@keyframes spBt{50%{transform:scale(1.16)}}
 @keyframes spN{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.splash .mark,.splash .sA,.splash .sB,.splash .sO,.splash .sH,.splash .brand{animation:none}}
+
+/* pick-it-tonight tour */
+.tw-pile i,.tw-pile button{position:absolute;left:50%;top:14px;width:156px;height:208px;margin-left:-78px;border-radius:20px;box-shadow:0 14px 30px rgba(0,0,0,.6)}
+.tw-pile button{background:linear-gradient(160deg,#ff7a4d,#ff4d7e);display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;padding:16px;font-family:var(--serif);font-size:24px;color:#fff;animation:wkpulse2 1.6s ease-in-out infinite;transition:transform .35s cubic-bezier(.3,1.4,.5,1),opacity .35s}
+.tw-pile button small{font:11px/1.6 var(--sans);letter-spacing:1.4px;text-transform:uppercase;opacity:.85}.tw-pile button.go{transform:translateY(-26px) scale(1.12);opacity:0;animation:none}
+.tw-sw{min-height:340px}.tw-sw .wk-card{top:34px}.tw-sw .wk-stamp.on{opacity:1}.tw-them{text-align:center;font-size:13px;color:var(--muted)}.tw-them b{color:#fff;font-weight:600;margin-right:5px}
+.tw-sw .ob2-hit{position:absolute;left:0;right:0;bottom:0;margin:0;pointer-events:none}
+.tw-two{display:flex;gap:8px;margin-top:14px}.tw-two span{flex:1;height:84px;border-radius:14px;position:relative;background:radial-gradient(90% 60% at 50% 30%,#7a4a8f,#2a1638 60%,#140a1c);box-shadow:0 0 24px -8px #ff4d7e}.tw-two span+span{background:radial-gradient(90% 60% at 50% 30%,#8f6a3d,#4a3216 55%,#261a0c)}.tw-two b{position:absolute;left:10px;bottom:9px;font-family:var(--serif);font-weight:400;font-size:15px}
+.tw-gm{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:16px;background:rgba(255,255,255,.06);margin-top:8px;font-size:14px;line-height:1.3}.tw-gm.on{background:rgba(255,181,71,.16)}.tw-gm small{display:block;color:var(--muted);font-size:12px}
+.tw-gm i{width:32px;height:32px;border-radius:11px;background:linear-gradient(135deg,var(--ka),var(--kb));flex:none;display:grid;place-items:center;font-style:normal;color:#1c0a12;font-weight:800}
+.tw-race{text-align:center;margin-top:14px}.tw-cnt{font:800 78px/1 var(--sans);font-variant-numeric:tabular-nums}.tw-bar{height:10px;border-radius:9px;background:rgba(255,255,255,.1);margin-top:10px;overflow:hidden}.tw-bar i{display:block;height:100%;width:0;border-radius:9px;background:linear-gradient(90deg,var(--ka),var(--kb))}
+.tw-vs{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-top:12px}.tw-vs b{color:#fff;font-size:16px;font-variant-numeric:tabular-nums}
+.tw-pad{display:block;width:100%;margin-top:16px;height:108px;border-radius:24px;background:linear-gradient(135deg,var(--ka),var(--kb));color:#1c0a12;font:800 22px var(--sans);letter-spacing:1px;box-shadow:0 0 44px -8px var(--kb);touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.tw-pad.hit{animation:twhit .12s ease}.tw-pad.done{opacity:.6}@keyframes twhit{50%{transform:scale(.96)}}
+.tw-fin{margin:16px auto 0;width:158px;height:204px;border-radius:18px;background:radial-gradient(90% 60% at 50% 30%,#7a4a8f,#2a1638 60%,#140a1c);box-shadow:0 0 60px -6px #ff4d7e;position:relative;animation:wkpop3 .5s cubic-bezier(.3,1.5,.5,1) both}.tw-fin b{position:absolute;left:13px;bottom:13px;font-family:var(--serif);font-weight:400;font-size:19px}
+@keyframes wkpop3{from{opacity:0;transform:scale(.7) rotate(-6deg)}to{opacity:1;transform:none}}
 </style>
 </head>
 <body>
@@ -1435,6 +1451,63 @@ function renderLanding() {
     if (ms.every(x => x.classList.contains('on'))) setTimeout(() => { const hit = document.getElementById('ob2hit'); if (!hit) return; hit.classList.add('on'); const r = hit.getBoundingClientRect(); confetti(r.left + r.width / 2, r.top, 60); walkOk(); }, 350); })); }
 }
 const ob2SwipeStage = () => `<div class="wk-stage wk-s-swipe"><div class="wk-card" id="wkc"><span class="wk-stamp" id="wks"></span><span class="ob2-cap"><i>Movie</i>Friday night pick</span></div><div class="wk-dirs">${[['l', '←', 'Nah'], ['r', '→', 'Maybe'], ['u', '↑', 'Hell yeah'], ['d', '↓', 'Seen it']].map(([d, a, t]) => `<div data-d="${d}"><b>${a}</b>${t}</div>`).join('')}</div></div>`;
+/* ---------- "pick it tonight": a short playable tour of choosing in the moment, opened from a nudge ---------- */
+const TW = ['pile', 'swipe', 'games', 'race', 'pick'];
+function twShow() {
+  document.querySelector('.wn')?.remove(); closeSheet(); document.querySelector('.match')?.remove();
+  const el = document.createElement('div'); el.className = 'wn wk ob2 tw'; document.body.appendChild(el); S.tw = { i: 0, won: true }; step('tw_open'); twDraw();
+}
+function twEnd(go) { document.querySelector('.wn.tw')?.remove(); S.tw = null; if (go) { step('tw_start'); if (S.view !== 'home') { S.view = 'home'; render(); } tonightSheet(); } }
+function twNext() { const o = S.tw; if (!o) return; if (++o.i >= TW.length) return twEnd(false); twDraw(); }
+function twDraw() {
+  const el = document.querySelector('.wn.tw'), o = S.tw; if (!el || !o) return; const k = TW[o.i], p = partner() || 'Your person';
+  const C = { pile: ['#ffb547', '#ff7a4d'], swipe: ['#ff7a9c', '#ff4d7e'], games: ['#ffb547', '#ff4d7e'], race: ['#ff7a4d', '#ff4d7e'], pick: ['#ff7a9c', '#ff4d7e'] }[k];
+  const wait = t => `<button class="btn wk-cta wait" id="wkgo" data-act="twnext" disabled>${t}</button>`;
+  const body = {
+    pile: () => `<small class="wk-k">Tap the card</small><h2 class="wk-h">Pick tonight, not someday</h2><p class="wk-p">Tonight deals you both the same short stack, right now.</p>
+      <div class="wk-stage tw-pile"><i style="background:linear-gradient(160deg,#3d8f86,#16454a);transform:rotate(-9deg) translate(-26px,6px)"></i><i style="background:linear-gradient(160deg,#8f6a3d,#4a3216);transform:rotate(7deg) translate(24px,4px)"></i><button id="twm"><small>Tonight</small>Movies</button></div>${wait('Tap Movies')}`,
+    swipe: () => `<small class="wk-k">Flick three cards</small><h2 class="wk-h">Same stack, same moment</h2><p class="wk-p">From the couch or across town. Matches pop as they happen.</p>
+      <div class="wk-stage tw-sw"><div class="tw-them"><b>${esc(p)}</b><span id="twt">is swiping too…</span></div><div class="wk-card" id="twc"><span class="wk-stamp" id="tws"></span><span class="ob2-cap"><i>Movie</i><em id="twn" style="font-style:normal">Neon Harbor</em></span></div><div class="ob2-hit" id="twh"><b>It’s a match</b><small id="twhs"></small></div></div>${wait('Flick the card')}`,
+    games: () => `<small class="wk-k">Two matches, one night</small><h2 class="wk-h">Can’t choose? Play for it</h2><p class="wk-p">Pick one yourselves, shuffle, or let a quick game decide. The winner picks.</p>
+      <div class="tw-two"><span><b>Neon Harbor</b></span><span><b>Paper Moons</b></span></div>
+      ${Object.values(GAMES).map(([a, b], j) => `<div class="tw-gm ${j ? '' : 'on'}"><i>${j + 1}</i><span><b>${a}</b><small>${b}</small></span></div>`).join('')}<div class="ob2-sp"></div><button class="btn wk-cta" data-act="twnext">Try the tap race</button>`,
+    race: () => `<small class="wk-k" id="twk">Tap race · 3 seconds</small><h2 class="wk-h">Tap as fast as you can</h2>
+      <div class="tw-race"><div class="tw-cnt" id="twn2">0</div><div class="tw-bar"><i id="twb"></i></div><div class="tw-vs"><span>You <b id="twy">0</b></span><span>${esc(p)} <b id="twp">0</b></span></div></div>
+      <button class="tw-pad" id="twpad">TAP</button><div class="ob2-sp"></div>${wait('Tap the big button')}`,
+    pick: () => `<small class="wk-k">${o.won ? 'You won the tap race' : `${esc(p)} took that one`}</small><h2 class="wk-h">Tonight’s pick</h2>
+      <div class="tw-fin" id="twf"><b>${o.won ? 'Neon Harbor' : 'Paper Moons'}</b></div><p class="wk-p" style="text-align:center;margin-top:14px">The winner chooses and the other gets a nudge with the pick. Movie night, settled.</p><div class="ob2-sp"></div>
+      <button class="btn wk-cta" data-act="twgo">Start a real round</button><button class="jlink" data-act="twskip">Later</button>`,
+  }[k]();
+  el.style.setProperty('--ka', C[0]); el.style.setProperty('--kb', C[1]);
+  el.innerHTML = `<div class="wn-in wk-in"><div class="wn-top"><span class="wk-dots">${TW.map((_, j) => `<i class="${j <= o.i ? 'on' : ''}"></i>`).join('')}</span><button data-act="twskip">Skip</button></div>${body}</div>`;
+  if (k === 'pile') el.querySelector('#twm').addEventListener('click', e => { e.currentTarget.classList.add('go'); try { navigator.vibrate?.(12); } catch {} setTimeout(twNext, 380); });
+  if (k === 'swipe') {   // any flick counts; the pretend partner answers each one, and two of the three match
+    const c = el.querySelector('#twc'), s = el.querySelector('#tws'), names = ['Neon Harbor', 'The Long Table', 'Paper Moons'], theirs = ['Hell yeah', 'Nah', 'Maybe']; let n = 0, g = null, m = 0;
+    const word = (dx, dy) => Math.abs(dy) > Math.abs(dx) ? (dy < 0 ? 'Hell yeah' : 'Seen it') : dx > 0 ? 'Maybe' : 'Nah';
+    c.addEventListener('pointerdown', e => { if (n >= 3) return; g = { x: e.clientX, y: e.clientY }; try { c.setPointerCapture(e.pointerId); } catch {} c.style.transition = 'none'; });
+    c.addEventListener('pointermove', e => { if (!g) return; const dx = e.clientX - g.x, dy = e.clientY - g.y; c.style.transform = `translate(${dx}px,${dy}px) rotate(${dx / 14}deg)`; const far = Math.hypot(dx, dy) > 30; s.textContent = far ? word(dx, dy) : ''; s.classList.toggle('on', far); });
+    const up = e => { if (!g) return; const dx = e.clientX - g.x, dy = e.clientY - g.y; g = null; c.style.transition = 'transform .25s ease, opacity .25s';
+      if (Math.hypot(dx, dy) < 34) { c.style.transform = ''; s.classList.remove('on'); return; }
+      const w = word(dx, dy), yes = w === 'Hell yeah' || w === 'Maybe', their = theirs[n], hit = yes && their !== 'Nah'; if (hit) m++;
+      c.style.transform = `translate(${dx * 5}px,${dy * 5}px) rotate(${dx / 6}deg)`; c.style.opacity = '0'; try { navigator.vibrate?.(10); } catch {}
+      el.querySelector('#twt').textContent = `said ${their} to ${names[n]}`;
+      const hb = el.querySelector('#twh'); if (hit) { el.querySelector('#twhs').textContent = `${names[n]} · ${m} match${m > 1 ? 'es' : ''} so far`; hb.classList.add('on'); const r = hb.getBoundingClientRect(); confetti(r.left + r.width / 2, r.top, 40); } else hb.classList.remove('on');
+      n++; const go = el.querySelector('#wkgo'); if (n < 3) go.textContent = `${3 - n} more to flick`;
+      setTimeout(() => { if (!c.isConnected) return; if (n >= 3) { c.style.display = 'none'; return walkOk(); } c.style.transition = 'none'; c.style.transform = 'scale(.9)'; s.classList.remove('on'); el.querySelector('#twn').textContent = names[n]; requestAnimationFrame(() => { c.style.transition = 'transform .25s ease, opacity .25s'; c.style.transform = ''; c.style.opacity = '1'; }); }, 420); };
+    c.addEventListener('pointerup', up); c.addEventListener('pointercancel', up);
+  }
+  if (k === 'race') {   // three seconds from the first tap; the pretend partner lands on 14
+    const pad = el.querySelector('#twpad'); let n = 0, t0 = 0, over = false, raf = 0;
+    const tick = () => { const t = Math.min(1, (performance.now() - t0) / 3000); if (!pad.isConnected) return;
+      el.querySelector('#twb').style.width = (t * 100) + '%'; el.querySelector('#twp').textContent = Math.round(14 * t); el.querySelector('#twk').textContent = `Tap race · ${(3 - t * 3).toFixed(1)}s left`;
+      if (t < 1) return void (raf = requestAnimationFrame(tick));
+      over = true; o.won = n >= 14; pad.classList.add('done'); pad.textContent = o.won ? 'You win' : `${p} wins`; el.querySelector('#twk').textContent = 'Tap race · time'; try { navigator.vibrate?.([20, 40, 20]); } catch {}
+      const go = el.querySelector('#wkgo'); go.disabled = false; go.classList.remove('wait'); go.textContent = 'See tonight’s pick'; };
+    pad.addEventListener('pointerdown', e => { e.preventDefault(); if (over) return; if (!t0) { t0 = performance.now(); raf = requestAnimationFrame(tick); el.querySelector('#wkgo').textContent = 'Keep tapping'; }
+      n++; el.querySelector('#twn2').textContent = n; el.querySelector('#twy').textContent = n; pad.classList.remove('hit'); void pad.offsetWidth; pad.classList.add('hit'); });
+  }
+  if (k === 'pick') setTimeout(() => { const f = document.getElementById('twf'); if (!f) return; const r = f.getBoundingClientRect(); confetti(r.left + r.width / 2, r.top + 20, 70); }, 250);
+}
 /* ---------- first run, after sign-up: one strip instead of a pile of sheets ---------- */
 const ob2Need = () => !ls.get('ob2') && !ls.get('coach');
 function ob2Steps() {
@@ -2324,6 +2397,7 @@ function inboxGo(u) {
   if (q.get('into')) return intoSheet(q.get('into'));
   if (q.get('gem')) return gemOpen();
   if (q.get('tell')) return tellSheet();
+  if (q.get('tonightwalk')) return twShow();
   if (q.get('bdays')) return bdaysSheet();
   if (q.get('plansurprise')) return surpStart(['birthday', 'anniversary'].includes(q.get('plansurprise')) ? q.get('plansurprise') : undefined);
   if (q.get('occasion')) return occSheet(q.get('occasion'));
@@ -4083,6 +4157,9 @@ document.addEventListener('click', async e => {
       case 'bdayssave': { t.disabled = true; const ok = await datesSave(t.closest('.sheet')); t.disabled = false; if (!ok) return; closeSheet(); toast('Saved. You’ll both get a heads-up before the day.', 3500); if (S.view === 'home') render(); return; }
       case 'bdayslater': ls.set('datesAt', String(Date.now())); closeSheet(); if (S.view === 'home' && S.tab === 'home') render(); return;
       case 'ob2dates': { t.disabled = true; const ok = await datesSave(t.closest('.wn')); t.disabled = false; if (!ok) return; ls.set('datesAt', String(Date.now())); return ob2Next(); }
+      case 'twnext': return twNext();
+      case 'twskip': step('tw_skip'); return twEnd(false);
+      case 'twgo': return twEnd(true);
       case 'ob2go': S.obI = Number(ds.i) || 0; if (S.obI >= 2) ls.set('ob2try', '1'); return render();
       case 'ob2try': ls.set('ob2try', '1'); return ob2Next();
       case 'ob2skip': return ob2Skip();
@@ -4292,6 +4369,7 @@ async function boot() {
   const itq = new URLSearchParams(location.search).get('into'); if (itq) history.replaceState(null, '', location.pathname);
   const gmq = new URLSearchParams(location.search).get('gem'); if (gmq) history.replaceState(null, '', location.pathname);
   const tlq = new URLSearchParams(location.search).get('tell'); if (tlq) history.replaceState(null, '', location.pathname);
+  const twq = new URLSearchParams(location.search).get('tonightwalk'); if (twq) history.replaceState(null, '', location.pathname);
   const dtq = new URLSearchParams(location.search).get('bdays'), psq = new URLSearchParams(location.search).get('plansurprise'), ocq = new URLSearchParams(location.search).get('occasion'); if (dtq || psq || ocq) history.replaceState(null, '', location.pathname);
   const spq = new URLSearchParams(location.search).get('surprise'); if (spq) history.replaceState(null, '', location.pathname);
   const plq = new URLSearchParams(location.search).get('plan'); S.favAsk = new URLSearchParams(location.search).get('fav') ? plq : null; const plf = new URLSearchParams(location.search).get('planfor'); if (plq || plf) history.replaceState(null, '', location.pathname);
@@ -4299,6 +4377,7 @@ async function boot() {
   if (invq && !partner()) { carrySignIn(); return inviteSheet(); }
   if (gmq) gemOpen();
   if (tlq) tellSheet();
+  if (twq) twShow();
   if (dtq) bdaysSheet(); else if (psq) surpStart(['birthday', 'anniversary'].includes(psq) ? psq : undefined); else if (ocq) occSheet(ocq);
   if (itq) intoSheet(itq);
   if (spq) { carrySignIn(); return surpView(spq); }
