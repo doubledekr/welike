@@ -1292,7 +1292,7 @@ const CFG = {
 };
 const sb = createClient(CFG.url, CFG.key, { auth: { persistSession: false, autoRefreshToken: false } });
 // Accounts (beta first): a person signs in with Apple, Google or an emailed code. The couple code stays how partners link.
-const AUTH = { apple: '', google: '' };   // public IDs; an empty one hides its button
+const AUTH = { apple: '', google: '613628144755-h3npqt0snsmebvaej443jcbd7j4e3pn6.apps.googleusercontent.com' };   // public IDs; an empty one hides its button
 const sbA = window.LT_BETA ? createClient(CFG.url, CFG.key, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'wl_auth' } }) : null;
 
 const DECKS = {
