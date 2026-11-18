@@ -1292,6 +1292,19 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .pdays,.lact{padding-top:6px;padding-bottom:14px;margin-top:6px;margin-bottom:-10px}
 .pdays .chip.on,.lact .chip.on,.pdays .pill.hot,.lact .pill.hot{box-shadow:0 3px 10px -3px rgba(255,90,100,.7)}
 .mrow{padding-top:10px;padding-bottom:18px}.trow{padding-top:10px;padding-bottom:20px}
+
+/* lean: pulsing glows fade a ready-made shadow in and out (opacity only) instead of redrawing the shadow every frame */
+@keyframes glo{0%,100%{opacity:0}50%{opacity:1}}
+.tripbar .go.blink,.inrow.p2,.inrow.p3,.inrow.kc.p1,.inrow.kc.p2,.inrow.kc.p3{animation:none;position:relative}
+.tripbar .go.blink::after,.inrow.p2::before,.inrow.p3::before,.inrow.kc.p1::before,.inrow.kc.p2::before,.inrow.kc.p3::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;animation:glo 2.4s ease-in-out infinite;will-change:opacity}
+.tripbar .go.blink::after{box-shadow:0 0 16px 3px var(--kg,rgba(120,200,255,.8))}
+.inrow.p2::before,.inrow.p3::before{box-shadow:0 0 18px -2px rgba(255,90,110,.55)}
+.inrow.kc.p1::before,.inrow.kc.p2::before,.inrow.kc.p3::before{box-shadow:0 0 20px -3px var(--kg)}
+.inrow.p3::before,.inrow.kc.p3::before{animation-duration:1.2s}
+.sli>.inrow::before{display:none}
+/* lean: only the card on top bobs; nothing behind an open sheet keeps animating */
+.card:not(.tl) .art{animation:none}
+body:has(#layer>*) #app :is(.brand i,.hdr .ic,.card .art,.btn,.go.blink,.dbg .mos>div),body:has(#layer>*) #app :is(.btn,.go.blink)::after{animation-play-state:paused}
 </style>
 <script>window.LT_BETA = true;</script>
 <style>body::after{content:'BETA';position:fixed;top:calc(env(safe-area-inset-top) + 2px);left:50%;transform:translateX(-50%);font:700 9px/1 system-ui,sans-serif;letter-spacing:.24em;color:#ffb547;opacity:.85;z-index:99999;pointer-events:none}</style>
@@ -3800,11 +3813,10 @@ function perfTab(deck, t0) {
   const r = Math.round(performance.now() - t0), st = document.getElementById('stack'), was = st ? st.innerHTML.length : 0; let f = null, c = st?.querySelector('.card') ? 0 : null, gap = 0, last = performance.now();
   const tick = () => { const n = performance.now(); if (f === null) f = Math.round(n - t0); gap = Math.max(gap, Math.round(n - last)); last = n;
     const s2 = document.getElementById('stack'); if (c === null && s2 && s2.querySelector('.card') && s2.innerHTML.length !== was) c = Math.round(n - t0);
-    if (n - t0 < 5000 && S.homeDeck === deck) requestAnimationFrame(tick); else perfSend({ k: 'tab', deck, render: r, frame: f, card: c, gap, left: S.homeDeck !== deck ? 1 : 0 }); };
+    if (n - t0 < 2500 && S.homeDeck === deck) requestAnimationFrame(tick); else perfSend({ k: 'tab', deck, render: r, frame: f, card: c, gap, left: S.homeDeck !== deck ? 1 : 0 }); };
   requestAnimationFrame(tick);
 }
-if (BETA) { let last = performance.now(), sent = 0; const w = () => { const n = performance.now(), g = n - last; last = n; if (g > 700 && g < 30000 && document.visibilityState === 'visible' && sent++ < 12) perfSend({ k: 'stall', ms: Math.round(g), deck: S.homeDeck, sheet: $layer?.innerHTML ? 1 : 0 }); requestAnimationFrame(w); }; requestAnimationFrame(w);
-  document.addEventListener('visibilitychange', () => { last = performance.now(); });
+if (BETA) {
   addEventListener('error', e => perfSend({ k: 'err', m: String(e.message || '').slice(0, 160), l: e.lineno }));
   addEventListener('unhandledrejection', e => perfSend({ k: 'rej', m: String(e.reason?.message || e.reason || '').slice(0, 160) })); }
 // ===== Calendar =====
@@ -4272,6 +4284,7 @@ function tiltOri(e) {
   if (TILT.bx == null) { TILT.bx = e.gamma; TILT.by = e.beta; }
   TILT.bx += (e.gamma - TILT.bx) * .008; TILT.by += (e.beta - TILT.by) * .008;   // however it's held becomes "level" after a moment
   TILT.rawx = clamp1((e.gamma - TILT.bx) / 22); TILT.rawy = clamp1((e.beta - TILT.by) / 22);
+  if (!TILT.raf && Math.abs(TILT.rawx - TILT.x) + Math.abs(TILT.rawy - TILT.y) > .02) TILT.raf = requestAnimationFrame(tiltFrame);
 }
 async function tiltGrant() {
   if (!tiltPerm()) return true;
@@ -4283,12 +4296,12 @@ function tiltFrame(now) {
   TILT.raf = 0;
   const els = tiltTargets();
   if (!els.length || document.visibilityState !== 'visible' || tiltStill()) { if (TILT.lis) { removeEventListener('deviceorientation', tiltOri); TILT.lis = false; } return; }
-  let gx, gy;
-  if (now - TILT.last < 1500) { gx = TILT.rawx; gy = TILT.rawy; }
-  else { const t = now / 1000; gx = Math.sin(t * .5) * .5; gy = Math.sin(t * .37 + 1) * .4; }   // no sensor: a slow drift
+  const live = now - TILT.last < 1500, gx = live ? TILT.rawx : 0, gy = live ? TILT.rawy : 0;   // no sensor: the light rests
   const px = TILT.x, py = TILT.y; TILT.x += (gx - px) * .12; TILT.y += (gy - py) * .12;
-  if (Math.abs(TILT.x - (TILT.sx ?? 9)) + Math.abs(TILT.y - (TILT.sy ?? 9)) > .004 || !els[0].style.getPropertyValue('--tx')) { TILT.sx = TILT.x; TILT.sy = TILT.y; els.forEach(el => { el.style.setProperty('--tx', TILT.x.toFixed(3)); el.style.setProperty('--ty', TILT.y.toFixed(3)); }); }
+  const fresh = TILT.for !== els[0];
+  if (fresh || Math.abs(TILT.x - (TILT.sx ?? 9)) + Math.abs(TILT.y - (TILT.sy ?? 9)) > .004) { TILT.for = els[0]; TILT.sx = TILT.x; TILT.sy = TILT.y; const x = TILT.x.toFixed(3), y = TILT.y.toFixed(3); els.forEach(el => { const g = el.querySelector('.gls'); if (g) { g.style.setProperty('--tx', x); g.style.setProperty('--ty', y); } }); }
   goldStep(TILT.x, TILT.y, Math.hypot(TILT.x - px, TILT.y - py) * 60);
+  if (!fresh && Math.abs(gx - TILT.x) + Math.abs(gy - TILT.y) < .006) return;   // settled: stop until the phone moves again
   TILT.raf = requestAnimationFrame(tiltFrame);
 }
 function tiltWatch() {
