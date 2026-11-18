@@ -1204,6 +1204,9 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .ideac{display:flex;gap:10px;margin-top:16px}.ideai{flex:1;min-width:0;border-radius:18px;overflow:hidden;background:rgba(255,255,255,.06);text-align:left;padding-bottom:10px}
 .ideai img,.ideai span{display:grid;place-items:center;width:100%;height:96px;object-fit:cover;font-size:34px;background:rgba(255,255,255,.05)}.ideai b{display:block;padding:8px 10px 0;font-size:13.5px;line-height:1.25;font-weight:600}
 .gemfact{font-family:var(--serif);font-size:18px;line-height:1.3;margin-top:8px;color:#ffe2b0}
+.pleg{font-size:12px;color:var(--muted);padding:5px 0 5px 62px}.pleg.late{color:#ffb020}
+.twx{display:flex;gap:16px;overflow-x:auto;padding:8px 2px 2px;font-size:12.5px;color:var(--muted);white-space:nowrap}.twx b{display:block;color:var(--text);font-weight:600}
+.tsea{display:block;margin:4px 2px 0;font-size:12px;line-height:1.45;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -2369,17 +2372,23 @@ const WX = {};
 async function pWeather(p) {
   const days = Math.round((new Date(p.day + 'T12:00') - new Date(pToday() + 'T12:00')) / 864e5); if (days < 0 || days > 6) return null;
   if (pShape(p) === 'in' || (p.mode === 'in' && !p.items.some(i => i.card && isBar(i.card)))) return null;
+  if (p.weather?.hi != null) { const g = p.weather, c = String(g.cond || ''); return pWxText(p, { hi: g.hi, lo: g.lo ?? g.hi, rain: g.rain || 0, wind: g.wind || 0, code: /snow|flurr|sleet/i.test(c) ? 71 : /clear|sunny/i.test(c) ? 0 : 3 }); }
   const at = p.items.map(i => i.card).find(c => c?.data?.lat != null)?.data || (S.settings?.lat != null ? S.settings : null); if (!at) return null;
   const k = `${p.day}|${(+at.lat).toFixed(2)}|${(+at.lng).toFixed(2)}`;
   if (!WX[k]) WX[k] = fetch(`https://api.open-meteo.com/v1/forecast?latitude=${(+at.lat).toFixed(3)}&longitude=${(+at.lng).toFixed(3)}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code,wind_speed_10m_max&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto&start_date=${p.day}&end_date=${p.day}`)
     .then(r => r.ok ? r.json() : null).then(j => j?.daily ? { hi: j.daily.temperature_2m_max[0], lo: j.daily.temperature_2m_min[0], rain: j.daily.precipitation_probability_max[0] || 0, code: j.daily.weather_code[0], wind: j.daily.wind_speed_10m_max[0] || 0 } : null).catch(() => null);
   const w = await WX[k]; if (!w || w.hi == null) return null;
+  return pWxText(p, w);
+}
+function pWxText(p, w) {
   const out = p.items.some(i => i.card && OUTDOOR.test(`${i.card.kind || ''} ${i.card.title || ''} ${i.card.subtitle || ''}`)), eve = p.auto === 'fri' || !p.items.some(i => i.slot === 'day' && i.card);
   const hi = Math.round(w.hi), lo = Math.round(w.lo), feel = eve ? Math.round((hi + lo) / 2) : hi, snow = [71, 73, 75, 77, 85, 86].includes(w.code), rain = !snow && w.rain >= 50;
   const sky = snow ? 'snow' : rain ? 'rain likely' : w.rain >= 25 ? 'a chance of rain' : w.code <= 1 ? 'clear skies' : 'clouds';
   const wear = feel < 35 ? 'a warm coat, a hat and gloves' : feel < 50 ? 'a warm jacket' : feel < 62 ? 'a light jacket or layers' : feel < 80 ? 'whatever’s comfortable' : 'something light, and bring water';
   return `${hi}° / ${lo}° and ${sky}. ${out ? 'Part of this is outside: ' : ''}${out ? wear : wear[0].toUpperCase() + wear.slice(1)}${rain || snow ? ', plus an umbrella' : ''}${w.wind >= 20 && feel < 60 ? '. It’ll be windy' : ''}.`;
 }
+const pLeg = (p, i) => { const l = i.card && (p.legs || []).find(x => x.from === i.card.id); if (!l) return '';
+  return `<div class="pleg${l.late ? ' late' : ''}">${l.min} min ${l.mode === 'walk' ? 'walk' : 'drive'} to the next stop${l.late ? ' · that’s tight, so leave a little early or move the time' : ''}</div>`; };
 function pWeatherFill(p) { pWeather(p).then(t => { const el = document.getElementById('pwx'); if (t && el && S.plView === p.id) { el.textContent = t; el.hidden = false; } }).catch(() => {}); }
 function plansForm() {
   const st = S.settings || {}, off = st.plans_off === true, fs = st.friday_start || '18:30', ff = st.friday_fav || '', pr = st.plan_price || '', favs = S.favs || [];
@@ -2421,7 +2430,7 @@ function daySheet(id) {
   if (!$layer.querySelector('.sheet #pwx') || S.kgId !== id) { S.kgId = id; S.kgAt = Date.now(); }
   sheet(`<div class="grab"></div><div class="body"><h2>${auto ? pAutoName(p) + (pDayName(p.day) !== dfmt(p.day) ? ' · ' + pDayName(p.day) : '') : pDayName(p.day) + (p.mode === 'in' ? ': a night in' : '')}</h2><p class="muted" style="margin-top:6px;font-size:14px">${auto ? (solo ? 'Put together from what you like.' : `Put together from what you both like${p.by !== 'auto' ? `, then changed by ${p.by === S.me ? 'you' : esc(p.by)}` : ''}. Swap anything you like.`) : `${p.by === S.me ? 'You' : esc(p.by)} put this together${pDayName(p.day) !== dfmt(p.day) ? ' for ' + esc(dfmt(p.day)) : ''}.`}</p>
     <div id="pwx" class="pwx" hidden></div>
-    <div style="margin-top:8px">${p.items.map(row).join('')}</div>${shapes}
+    <div style="margin-top:8px">${p.items.map(i => row(i) + pLeg(p, i)).join('')}</div>${shapes}
     ${near.length ? `<p class="muted" style="margin-top:12px;font-size:13px">Also a short walk away, and you both like them: ${near.map(x => `${esc(x.c.title)} (${x.mi} mi)`).join(', ')}.</p>` : ''}${acts}</div>`);
   { const sc = $layer.querySelector('.scrim'), el = (Date.now() - S.kgAt) / 1000, on = el < 1.9;   // a redraw while it is still arriving carries on from where it was
     sc?.classList.add('kc', 'k-' + pKind(p), on ? 'kglow' : 'kset'); if (on) { sc.style.setProperty('--ke', el + 's'); sc.querySelectorAll('.prow').forEach((r, i) => r.style.setProperty('--i', i)); } }
@@ -3060,9 +3069,14 @@ function planSheet(city) {
   const it = planItems(city), P = planParts(city), p = partner(), dates = planDates(city), E = esc(city);
   const { total, done } = planProg(city), M = planMeta(city), ok = planOk(city), T = esc(them());
   const img = c => c.image ? `<img src="${esc(c.image)}" alt="">` : `<span class="pimg">${ic(c.deck === 'art' ? 'frame' : 'ticket')}</span>`;
+  if (!S.wxAt || Date.now() - S.wxAt > 30 * 6e4) { S.wxAt = Date.now(); rpc('wx_get', { p_code: S.code }).then(w => { S.wx = w || {}; if ((S.wx.trips?.[city] || S.wx.seasons?.[city]) && S.sheetKind === 'plan' && S.bookCity === city && document.querySelector('.trp .tring')) planSheet(city); }).catch(() => {}); }
+  const wxDays = (S.wx?.trips?.[city] || []).filter(d => M.from && d.date >= M.from && d.date <= (M.to || M.from));
+  const wxStrip = wxDays.length ? `<div class="twx">${wxDays.map(d => `<span><b>${new Date(d.date + 'T12:00').toLocaleDateString([], { weekday: 'short', day: 'numeric' })}</b>${d.hi}° / ${d.lo}°${d.rain >= 30 ? ` · ${d.rain}% rain` : ''}</span>`).join('')}</div>` : '';
+  const sea = S.wx?.seasons?.[city], seaLine = sea && !it.flights ? `<small class="tsea">Flights are usually cheapest in ${esc(sea.cheap)}. The weather is usually best in ${esc(sea.best)}.${sea.sweet ? ` Both at once: ${esc(sea.sweet)}.` : ''} A general pattern, not live prices.</small>` : '';
+  const stayLeg = c => { const l = M.stay?.ok && M.stay?.legs?.[c.id]; return l ? ` · ${l.min} min ${l.mode} from ${esc(String(M.stay.name).split(',')[0])}` : ''; };
   const whose = c => c.who === 'both' ? 'You both picked this' : P.picks[c.id] ? `Added by ${esc(P.picks[c.id])}` : c.who === 'them' ? `${esc(p || 'Partner')} likes this` : 'Your pick';
   const price = c => c.data?.price ? ` · from $${c.data.price}` : '';
-  const todoRow = c => `<div class="prow">${img(c)}<span class="grow"><b>${esc(c.title)}</b><small>${it[c.id] && planWho(city, c.id)?.by ? `Booked by ${esc(planWho(city, c.id).by)} · ${tDay(planWho(city, c.id).at)}` : whose(c) + price(c)}</small></span>${it[c.id] ? `<button class="pill hot" data-tripitem="${E}|${c.id}" aria-label="Booked">Booked</button>` : c.data?.place ? (c.data.maps ? `<a class="btn sm ghost" href="${esc(c.data.maps)}" target="_blank" rel="noopener">Map</a>` : '') : `<button class="btn sm" data-planbook="${E}|${c.id}">Book</button>`}</div>`;
+  const todoRow = c => `<div class="prow">${img(c)}<span class="grow"><b>${esc(c.title)}</b><small>${it[c.id] && planWho(city, c.id)?.by ? `Booked by ${esc(planWho(city, c.id).by)} · ${tDay(planWho(city, c.id).at)}` : whose(c) + price(c) + stayLeg(c)}</small></span>${it[c.id] ? `<button class="pill hot" data-tripitem="${E}|${c.id}" aria-label="Booked">Booked</button>` : c.data?.place ? (c.data.maps ? `<a class="btn sm ghost" href="${esc(c.data.maps)}" target="_blank" rel="noopener">Map</a>` : '') : `<button class="btn sm" data-planbook="${E}|${c.id}">Book</button>`}</div>`;
   const maybeRow = c => `<div class="prow dim">${img(c)}<span class="grow"><b>${esc(c.title)}</b><small>${whose(c)}${c.deck === 'trip' ? price(c) : c.data?.museum ? ' · ' + esc(c.data.museum) : ''}</small></span><button class="btn ghost sm" data-planpick="${E}|${c.id}">Add</button></div>`;
   if (!S.tripGems?.[city]) rpc('trip_gems', { p_code: S.code, p_city: city }).then(g => { (S.tripGems ||= {})[city] = g || []; if ((g || []).length && S.sheetKind === 'plan' && S.bookCity === city && document.querySelector('.trp .tring')) planSheet(city); }).catch(() => { (S.tripGems ||= {})[city] = []; });
   const gemRow = c => `<div class="prow">${img(c)}<span class="grow"><b>${esc(c.title)}</b><small>${esc(c.data?.notes || '')}</small></span><button class="btn ghost sm" data-planpick="${E}|${c.id}">Add</button></div>`;
@@ -3080,8 +3094,8 @@ function planSheet(city) {
     if (cl) return step(icn, t, `${esc(cl.by)} is booking this · ${tAgo(cl.at)}`, `<button class="tpill them" data-tripsearch="${E}|${k}">${esc(cl.by)}’s on it</button>`, 'claim', k === 'stay' ? stayLine : '');
     return step(icn, t, 'Nobody’s on it yet', `<button class="tpill go" data-tripclaim="${E}|${k}|1">I’m on it</button>`, '', k === 'stay' ? stayLine : ''); };
   sheet(`<div class="grab"></div><div class="trp kc k-book"><div class="row" style="gap:12px"><span class="grow"><small class="tkick">Your trip</small><h2>${E}</h2></span><span class="tring" style="--p:${Math.round(100 * done / Math.max(total, 1))}%"><i>${done}/${total}</i></span></div>
-    ${dStep}
-    ${bStep('flights', 'plane', 'Flights')}
+    ${dStep}${wxStrip}
+    ${bStep('flights', 'plane', 'Flights')}${seaLine}
     ${bStep('stay', 'pin', 'A place to stay')}
     <div class="sect">Things to do</div>
     ${P.todo.length ? P.todo.map(todoRow).join('') : `<p class="muted" style="font-size:14px">Nothing on the plan yet. Add from the picks below, or swipe more ${E} ideas on the Trips tab.</p>`}
