@@ -2825,6 +2825,7 @@ function slotHTML(incoming) {
   const p = partner(), s = incoming[0], gone = slGone();
   const items = [
     !p && !soloMode() ? ['pin:invite', `<button class="nudge slim" data-act="invite"><span class="grow"><b>Invite your other half</b><small> · nothing matches until you are both in</small></span><span class="go">Send link</span></button>`] : null,
+    soloMode() && !(FR.d?.friends || []).length ? ['frinv:1', `<button class="nudge slim" data-fr="soloinvite"><span class="grow"><b>Invite a friend</b><small> · plan a night out or a trip without the group-chat mess</small></span><span class="go">Send link</span></button>`] : null,
     standalone() && pushState() === 'default' ? ['pin:push', `<button class="nudge slim" data-act="pushyes"><span class="grow"><b>Nudges are off on this phone</b><small> · you won’t hear when ${esc(p || 'your other half')} sends something</small></span><span class="go">Turn on</span></button>`] : null,
     ['sp:' + surpKey(), surpBanner()],
     ['occ:' + (occTop() ? occTop().k + occTop().day : ''), occBanner()],
@@ -2871,6 +2872,7 @@ const dayHomeKey = () => { const ps = S.plans || [], t = pToday(); const p = ps.
 // lv 3: has a clock on it, or no partner yet.  lv 2: my person is waiting on me.  lv 1: good to know.
 function waiting() {
   const out = [], t = pToday(), st = S.state || {};
+  if (soloMode() && !(FR.d?.friends || []).length) out.push({ k: 'frinvite', lv: 2, ic: 'users', t: 'Invite a friend', s: 'Plan a night out or a trip together.', a: 'data-fr="soloinvite"', go: 'Send link' });
   if (!partner() && !soloMode()) out.push({ k: 'invite', lv: 3, ic: 'heart', t: 'Invite your other half', s: 'Nothing can match until you are both in.', a: 'data-act="invite"', go: 'Send link' });
   for (const p of S.plans || []) {
     if (p.day >= t && (p.status === 'sent' || p.status === 'agreed') && (p.bookable || []).some(id => !p.booked?.[id])) out.push({ k: 'pb' + p.id + Object.keys(p.booked || {}).length, lv: 2, ic: 'ticket', t: `Book ahead for ${pDayLow(p.day)}`, s: 'Tap Booked once it’s done, so you both know.', a: `data-pl="view|${p.id}"`, go: 'Book' });
@@ -3828,6 +3830,7 @@ function renderFriends() {
   $app.innerHTML = `<div class="view fr you"><div class="topbar" style="margin-bottom:6px">${solo ? '' : '<button class="back" data-tab="home" aria-label="Back to you two">‹</button>'}<div class="brand grow">Friends</div><button class="ib" data-fr="refresh" aria-label="Refresh">${ic('repeat')}</button><button class="ib" data-act="acct" aria-label="Your account" style="margin-left:8px">${ic('user')}</button></div>
     ${solo ? `<button class="frcta" data-fr="couple"><span class="tic">${ic('heart')}</span><span class="grow"><b>Set up your own decks</b><small>Movies, places and trips to swipe on your own, or with your person later</small></span><span class="ych">›</span></button>` : ''}
     ${rv ? `<div class="frrev"><small>This week</small><b>You and ${esc(frNames(rv.friends.map(f => f.name)))} ${rv.friends.length > 1 ? 'all' : 'both'} love ${esc(rv.title)}</b>${rv.sub ? `<span>${esc(rv.sub)}</span>` : ''}<button class="btn sm" data-fr="revealgo">${rv.deck === 'trip' ? 'Plan the trip' : 'Plan a hang'}</button></div>` : ''}
+    ${!d.friends.length ? `<button class="frcta" data-fr="invite"><span class="tic">${ic('share')}</span><span class="grow"><b>Invite your first friend</b><small>One link. They join with a first name, no partner needed</small></span><span class="ych">›</span></button>` : ''}
     <div class="sect">Your plans</div>
     ${plans.length ? `<div class="ycard">${plans.map(frPlanRow).join('')}</div>` : '<p class="muted frempty">Nothing yet. Start a trip, a dinner or a night out, and invite who you like.</p>'}
     <button class="btn frnew" data-fr="new">${ic('plus')}Start a plan</button>
@@ -4026,6 +4029,7 @@ async function frClick(t, ds) {
     case 'startgo': return frStartGo(t);
     case 'couple': S.startName = d?.me.name || ''; S.startMode = 'solo'; return renderStart();
     case 'invite': return frInvite();
+    case 'soloinvite': { closeSheet(); if (!d) { try { const r = await frLoad(); if (!r?.ok) await frLoad(S.me); } catch {} } if (!FR.d) return frOpen(); return frInvite(); }
     case 'addcode': sheet(`<div class="grab"></div><div class="body acs"><span class="acsic">${ic('user')}</span><h2>Add a friend</h2><p class="muted">Type the code your friend sees on their Friends screen. Yours is <b>${esc(d.me.code)}</b>.</p><input id="fcode" class="acin acnum" autocapitalize="characters" autocomplete="off" maxlength="8" placeholder="6 letters and numbers" aria-label="Friend code"><button class="btn" data-fr="addgo">Add</button></div>`); return setTimeout(() => document.getElementById('fcode')?.focus(), 250);
     case 'addgo': { const c = (document.getElementById('fcode')?.value || '').trim().toUpperCase(); if (c.length < 4) return toast('Enter your friend’s code.'); t.disabled = true; const r = await frRpc('fr_add', { p_code: c }).catch(() => null); if (!r?.ok) { t.disabled = false; return frWhy(r?.why); } closeSheet(); toast(`You and ${r.name} are friends now.`, 3200); await frLoad(); return render(); }
     case 'friend': return frFriendSheet(ds.id);
@@ -5689,6 +5693,7 @@ async function boot() {
   if (sbA && !S.acct && !ls.get('acctask')) setTimeout(() => { if (!$layer.innerHTML && S.view === 'home') { ls.set('acctask', '1'); acctSheet(); } }, 1800);
   try { await refresh(); } catch (e) { if (String(e.message).includes('bad_code')) { ls.del('code'); ls.del('name'); authCookie.clear(); S.code = S.me = null; return render(); } $app.innerHTML = `<div class="center"><div class="brand">${BRAND}</div><p class="muted" style="margin:12px 0 18px">Could not reach the server. Check your connection.</p><button class="btn" onclick="location.reload()">Try again</button></div>`; return; }
   connect(); resavePush();
+  if (sbA && S.acct && S.settings?.solo && !partner() && !FR.d) frLoad().then(r => { if (r?.ok && S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) render(); }).catch(() => {});
   if (S.settings?.solo && partner()) rpc('set_settings', { p_code: S.code, p_settings: { solo: false } }).then(x => { if (x) S.settings = x; }).catch(() => {});
   const s = new URLSearchParams(location.search).get('s');
   if (s) { history.replaceState(null, '', location.pathname); return openSession(s); }
