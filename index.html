@@ -1114,6 +1114,7 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .tw-pad.hit{animation:twhit .12s ease}.tw-pad.done{opacity:.6}@keyframes twhit{50%{transform:scale(.96)}}
 .tw-fin{margin:16px auto 0;width:158px;height:204px;border-radius:18px;background:radial-gradient(90% 60% at 50% 30%,#7a4a8f,#2a1638 60%,#140a1c);box-shadow:0 0 60px -6px #ff4d7e;position:relative;animation:wkpop3 .5s cubic-bezier(.3,1.5,.5,1) both}.tw-fin b{position:absolute;left:13px;bottom:13px;font-family:var(--serif);font-weight:400;font-size:19px}
 @keyframes wkpop3{from{opacity:0;transform:scale(.7) rotate(-6deg)}to{opacity:1;transform:none}}
+.gnow{border-radius:16px;padding:13px 14px;margin:8px 0 2px;background:linear-gradient(135deg,rgba(255,181,71,.2),rgba(255,77,126,.14));text-align:left}.gnow b{display:block;font-size:16px}.gnow small{display:block;color:var(--muted);font-size:13.5px;margin-top:2px;line-height:1.35}
 </style>
 </head>
 <body>
@@ -1206,8 +1207,9 @@ async function onEvent(p) {
   else if (p.type === 'narrow') { toast(`${p.from} picked what they are in the mood for. Open the round and tap Narrow it down to add yours.`, 6000); if (S.view === 'swipe' && S.sess?.id === p.session) { try { await loadSession(p.session); S.view = 'swipe'; drawStack(); } catch {} } }
   else if (p.type === 'shortlist') { await refresh(); paintHearts(); }
   else if (p.type === 'dayplan') { await refresh(); toast(p.resp === 'yes' ? `${p.from} is in for ${pDayLow(p.day)}.` : p.resp === 'drop' ? `${p.from} passed on the plan for ${pDayLow(p.day)}.` : p.resp === 'pick' ? `${p.from} picked something for your plan.` : p.resp === 'busy' ? `${p.from} says you already have plans ${pDayLow(p.day)}.` : p.resp === 'book' ? `${p.from} booked something for ${pDayLow(p.day)}.` : p.resp ? '' : `${p.from} ${p.edit ? 'changed the plan for' : 'planned'} ${pDayLow(p.day)}. Take a look.`, 4500); if (S.view === 'home' && !document.querySelector('.scrim')) render(); else if (S.plView === p.id && document.querySelector('[data-pl^="resp"],[data-pl="edit"]')) daySheet(p.id); }
-  else if (p.type === 'game') { if (p.lib || (S.view === 'swipe' && S.sess?.id === p.session)) { closeSheet(); document.querySelector('.lfront')?.remove(); if (p.lib) toast(`${p.from} picked a few. Quick game: the winner chooses tonight.`, 4500); S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); S.view = 'game'; render(); } else toast(`${p.from} wants to play for tonight’s pick. Open the round to join.`, 5000); }
-  else if (p.type === 'tb') { if (S.view === 'game' && S.tb?.id === p.id && !S.playing) { S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); render(); } }
+  else if (p.type === 'game') { if (p.lib || (S.view === 'swipe' && S.sess?.id === p.session)) { closeSheet(); document.querySelector('.lfront')?.remove(); if (p.lib) toast(`${p.from} picked a few. Quick game: the winner chooses tonight.`, 4500); S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); S.view = 'game'; render(); } else if (S.view === 'home' && !$layer.innerHTML && !document.querySelector('.wn,.match')) sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('spark')}</span><h2>Your turn</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">${esc(p.from)} started a quick game for tonight’s pick. You each play on your own phone, and the winner chooses.</p></div></div><button class="btn" style="margin-top:16px" data-act="tbjoin" data-id="${esc(p.id)}">Play now</button><button class="jlink" data-act="closesheet">Later</button>`); else toast(`${p.from} started a game for tonight’s pick. It’s your turn.`, 5000); }
+  else if (p.type === 'tb') { if (S.view === 'game' && S.tb?.id === p.id && !S.playing) { S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); render(); }
+    else if (S.view === 'swipe' && gameNow()?.id === p.id) { S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); S.tbs = null; render(); } }
   else if (p.type === 'final') { if (S.view !== 'game') showFinal(p.card, !!p.shuffle && S.sess?.id === p.session); }
   else if (p.type === 'rec') { try { navigator.vibrate?.(40); } catch {} recSheet(p.card, p.from, p.keen); }
   else if (p.type === 'recreply') recReply(p);
@@ -1387,8 +1389,21 @@ async function loadSession(id, keep) {
   S.sess = d.session; S.deck = d.deck; S.matches = d.matches; S.total = d.total; S.theirLeft = d.their_left; S.solo = !!d.session.solo; S.rewatch = !!d.session.filters?.rewatch; S.bite = !!d.session.filters?.bite; S.hist = [];
 }
 async function openSession(id) {
-  try { closeSheet(); await loadSession(id); S.view = 'swipe'; S.skips = []; render(); }
+  try { closeSheet(); await loadSession(id); S.skips = [];
+    // a game already running for this round: someone who has not played yet lands straight in it, since that is the thing waiting on them
+    S.tbs = await rpc('tiebreak_open', { p_code: S.code, p_member: S.me, p_session: id }).catch(() => null);
+    if (S.tbs && !S.tbs.done && S.tbs.mine !== true && !S.tbs.pick) { S.tb = S.tbs; S.view = 'game'; return render(); }
+    S.view = 'swipe'; render(); }
   catch (e) { toast('That round is no longer available.'); S.view = 'home'; render(); }
+}
+// The game being played for the round on screen, if any, and the block that replaces the "play for it" menu while it runs.
+const gameNow = () => { const id = S.sess?.id; return [S.tb, S.tbs].find(t => t && id && t.session === id && !t.pick) || null; };
+function gameBlock() {
+  const t = gameNow(), g = (GAMES[t.game] || ['Quick game'])[0], p = esc(them());
+  const [a, b, btn, main] = t.done ? (t.winner === S.me ? [`You won the ${g.toLowerCase()}`, 'Choose tonight’s pick.', 'Choose the pick', true] : [`${p} won the ${g.toLowerCase()}`, `${p} is choosing tonight’s pick.`, 'See the result', false])
+    : t.mine === true ? [`${g} in progress`, `Your turn is in. Waiting on ${p} to play.`, 'Open the game', false]
+    : [`Your turn: ${g.toLowerCase()}`, `${p} is playing for tonight’s pick. The winner chooses.`, 'Play now', true];
+  return `<div class="gnow"><b>${a}</b><small>${b}</small></div><button class="btn ${main ? '' : 'ghost'}" data-act="tbopen">${btn}</button>${!t.done && t.mine === true ? `<button class="btn ghost" data-act="tbnudge">Nudge ${p}</button>` : ''}`;
 }
 async function startSession(deck, filters, note, announce = true) {
   if (deck === 'mix' || (deck === 'dinner' && (!filters?.kinds?.length || filters.kinds.some(k => k !== 'cook')))) {
@@ -2878,6 +2893,7 @@ const CUISINES = ['Pizza', 'Mexican', 'Thai', 'Chinese', 'Sushi', 'Burger', 'Ita
 const EVTYPES = ['Music', 'Comedy', 'Trivia', 'Arts and Film', 'Sports and Games', 'Seasonal', 'Special Event'];
 function ladderHTML(waiting) {
   if (S.solo || !partner()) return '';
+  if (gameNow()) return gameBlock();
   if (S.sess.filters?.plan) return `<div class="kv" style="margin:6px 0 0">No match yet for this spot</div>
     <button class="btn" data-pl="side|${S.sess.filters.plan}|${S.sess.filters.slot}">Pick from each other’s likes</button>
     <button class="btn ghost" data-act="more">Deal 8 more picks</button>
@@ -2925,7 +2941,7 @@ async function ladder(kind, btn) {
   if (kind === 'game') {
     S.tb = await rpc('tiebreak_start', { p_code: S.code, p_member: S.me, p_session: sess.id });
     send({ type: 'game', session: sess.id, id: S.tb.id });
-    if (!S.tb.mine && !S.tb.done) push(`${S.me} wants to play for it`, 'A quick game. The winner picks tonight.', `./?s=${sess.id}`);
+    if (!S.tb.mine && !S.tb.done) push(`Your turn: ${(GAMES[S.tb.game] || ['a quick game'])[0].toLowerCase()}`, `${S.me} is playing for tonight’s pick. It takes seconds, and the winner chooses. Tap to play.`, `./?tb=${S.tb.id}`);
     S.view = 'game'; return render();
   }
   if (kind === 'pick') {
@@ -2951,7 +2967,7 @@ function gameFrame(body) {
 function renderGame() {
   const t = S.tb; if (!t.game || t.game === 'year') return renderGameYear();
   if (t.done) return gameDone();
-  if (t.mine === true) return gameFrame(`<span class="badge">${ic('heart')}</span><h3>${t.stage === 'tb' ? 'Tie-breaker answer locked in' : 'Your turn is in'}</h3><p class="muted">Waiting on ${esc(them())}. They play on their own phone, and the result shows here when they finish.</p><button class="btn ghost" data-act="tbrefresh">Check again</button>`);
+  if (t.mine === true) return gameFrame(`<span class="badge">${ic('heart')}</span><h3>${t.stage === 'tb' ? 'Tie-breaker answer locked in' : 'Your turn is in'}</h3><p class="muted">Waiting on ${esc(them())}. They got a nudge that it’s their turn, and the result shows here when they finish.</p><button class="btn ghost" data-act="tbnudge">Nudge ${esc(them())} again</button><button class="btn ghost" data-act="tbrefresh">Check again</button>`);
   if (t.game === 'trivia' && t.stage === 'tb') return gameFrame(`<span class="badge">${ic('target')}</span><h3>All square</h3><p class="muted">You tied on points. One sudden-death question decides it: right answer wins, and if you are both right, the faster one takes it.</p><button class="btn" data-act="gplay">Start the tie-breaker</button>`);
   const how = t.game === 'taps' ? `After the countdown, tap the pad as many times as you can in <b>${t.cfg.seconds} seconds</b>.`
     : t.game === 'clock' ? `After the countdown a timer starts and then hides. Tap to stop it as close to <b>${secs(t.cfg.target)} seconds</b> as you can.`
@@ -3841,7 +3857,7 @@ function showMatch(c) {
 function endMatchesHTML() {
   const ms = [...S.matches].sort((x, y) => (y.loves || 0) - (x.loves || 0)), many = ms.length > 1; S.listCards = ms;
   return `<div class="mrow ${many ? (ms.length === 2 ? 'two' : '') : 'one'}">${ms.map((c, i) => { const cl = chainLabel(c); return `<div class="mcard"><button class="mimg" data-detail="${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="">` : emojiFor(c)}</button><b>${esc(c.title)}</b>${c.loves >= 2 ? '<small class="lv">★ You both loved it</small>' : c.loves === 1 ? '<small class="lv">★ One of you loved it</small>' : ''}${c.deck === 'movie' && i < 3 ? `<small data-why="${c.id}" style="display:none"></small>` : ''}<button class="btn sm" data-final="${c.id}">${many ? 'Choose this' : 'Lock it in'}</button>${cl ? `<button class="btn ghost sm" data-chain="${c.id}">${cl} →</button>` : ''}</div>`; }).join('')}</div>
-    ${many && !S.solo ? '<button class="btn ghost" data-lad="game">Play for it</button><button class="btn ghost" data-lad="pick">Pick one at random</button>' : ''}`;
+    ${gameNow() ? gameBlock() : many && !S.solo ? '<button class="btn ghost" data-lad="game">Play for it</button><button class="btn ghost" data-lad="pick">Pick one at random</button>' : ''}`;
 }
 async function pickNext() {
   const c = await rpc('pick_next', { p_code: S.code, p_session: S.sess.id, p_skip: S.skips || [] });
@@ -4214,6 +4230,10 @@ document.addEventListener('click', async e => {
       case 'unlock': S.unlock = true; S.view = 'home'; S.tab = 'home'; await refresh(); return render();
       case 'tbguess': { const g = parseInt(document.getElementById('tbg').value, 10); if (!(g > 1880 && g < 2100)) return toast('Enter a year.'); S.tb = await rpc('tiebreak_guess', { p_code: S.code, p_member: S.me, p_id: S.tb.id, p_guess: g }); send({ type: 'tb', id: S.tb.id }); return render(); }
       case 'gplay': return playGame();
+      case 'tbopen': { const g = gameNow(); if (!g) return render(); try { S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: g.id }); } catch { S.tb = g; } S.view = 'game'; return render(); }
+      case 'tbjoin': closeSheet(); return openGame(ds.id);
+      case 'tbnudge': { const g = S.view === 'game' ? S.tb : gameNow(); if (!g) return; if (Date.now() - (S.tbNudged || 0) < 60000) return toast(`${them()} was just nudged. Give it a minute.`); S.tbNudged = Date.now();
+        push(`Your turn: ${(GAMES[g.game] || ['a quick game'])[0].toLowerCase()}`, `${S.me} has played and is waiting on you. The winner picks tonight.`, `./?tb=${g.id}`); return toast(`Nudged ${them()}.`); }
       case 'tbrefresh': S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: S.tb.id }); return render();
       case 'add': return addSheet();
       case 'savepantry': { const items = document.getElementById('pt').value.split(/\n|,/).map(s => s.replace(/^[\s\-•*\d.x×]+(?=\D)/i, '').replace(/\$\s?\d+(\.\d+)?/g, '').trim()).filter(s => s.length > 1).map(item => ({ item })); const n = await rpc('set_pantry', { p_code: S.code, p_items: items }); await refresh(); toast(`${n} pantry items saved.`); return loadList(); }
