@@ -1119,6 +1119,22 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .gnow{border-radius:16px;padding:13px 14px;margin:8px 0 2px;background:linear-gradient(135deg,rgba(255,181,71,.2),rgba(255,77,126,.14));text-align:left}.gnow b{display:block;font-size:16px}.gnow small{display:block;color:var(--muted);font-size:13.5px;margin-top:2px;line-height:1.35}
 .pollo{position:relative;display:flex;align-items:center;width:100%;margin-top:8px;padding:14px 14px;border-radius:16px;background:rgba(255,255,255,.06);font-size:15px;text-align:left;overflow:hidden}.pollo i{position:absolute;left:0;top:0;bottom:0;background:rgba(255,255,255,.07);border-radius:16px}.pollo span{position:relative;flex:1}.pollo b{position:relative;color:var(--muted);font-weight:600}
 .pollo.on{background:linear-gradient(135deg,rgba(255,181,71,.34),rgba(255,77,126,.3));font-weight:700}.pollo.on i{background:rgba(255,255,255,.12)}
+
+/* trivia night */
+.pollo small{display:block;color:var(--muted);font-size:12.5px;font-weight:400;margin-top:2px}.pollo.on small{color:rgba(255,255,255,.8)}
+.triv .gstage{justify-content:flex-start;padding-top:20px;gap:13px}
+.tvscore{flex:none;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.07);font-size:13px;color:var(--muted)}.tvscore b{color:#fff;font-size:15px}
+.tvmov{display:flex;align-items:center;gap:12px;width:100%;max-width:350px;padding:10px;border-radius:18px;background:rgba(255,255,255,.05);text-align:left}.tvmov img{width:52px;height:74px;object-fit:cover;border-radius:10px;flex:none}.tvmov b{display:block;font-size:15.5px;margin:1px 0}.tvmov small{display:block;color:var(--muted);font-size:12.5px}
+.tvhow{width:100%;max-width:350px;text-align:left;display:grid;gap:9px}.tvhow p{font-size:14.5px;line-height:1.45;color:var(--muted);max-width:none}.tvhow b{color:var(--text)}
+.tvstats{display:flex;gap:8px;width:100%;max-width:350px}.tvstats div{flex:1;padding:11px 6px;border-radius:16px;background:rgba(255,255,255,.05)}.tvstats b{display:block;font-size:22px;line-height:1.1}.tvstats small{color:var(--muted);font-size:12px}
+.tvtag{font-weight:800;letter-spacing:.3px;font-size:13.5px;padding:7px 14px;border-radius:999px;background:rgba(255,255,255,.08);color:var(--muted)}.tvtag.win{background:linear-gradient(135deg,rgba(255,181,71,.4),rgba(255,77,126,.36));color:#fff}
+.tvn{font-family:var(--serif);font-size:128px;line-height:1;min-height:128px;background:linear-gradient(135deg,#ffb547,#ff4d7e);-webkit-background-clip:text;background-clip:text;color:transparent}.tvn.pop{animation:tvpop .5s cubic-bezier(.2,1.4,.4,1)}@keyframes tvpop{from{transform:scale(.55);opacity:.2}}
+.tvbar{width:100%;max-width:350px;height:6px;border-radius:6px;background:rgba(255,255,255,.08);overflow:hidden}.tvbar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#ffb547,#ff4d7e);transform-origin:left;animation:tvbar 4s linear forwards}@keyframes tvbar{to{transform:scaleX(0)}}
+.triv .gopt em{font-style:normal;display:block;font-size:12px;font-weight:600;opacity:.9;margin-top:3px}
+.triv .gopt.right,.triv .gopt.right:disabled{opacity:1;background:linear-gradient(135deg,#2dd4bf,#1fa97c);color:#fff}.triv .gopt.wrong:disabled{opacity:.6}
+.triv .gres{margin-top:8px}.triv .gres.me{background:linear-gradient(135deg,rgba(255,181,71,.3),rgba(255,77,126,.26))}
+.teamadd{display:flex;gap:8px;margin-top:12px}.teamadd input{flex:1;min-width:0;background:rgba(255,255,255,.07);border:0;border-radius:14px;padding:13px 14px;font-size:16px;color:var(--text);outline:none}.teamadd .btn{width:auto;flex:none;padding:13px 20px}
+@media (prefers-reduced-motion:reduce){.tvn.pop{animation:none}}
 </style>
 </head>
 <body>
@@ -1220,6 +1236,13 @@ async function onEvent(p) {
   else if (p.type === 'shortlist') { await refresh(); paintHearts(); }
   else if (p.type === 'dayplan') { await refresh(); toast(p.resp === 'yes' ? `${p.from} is in for ${pDayLow(p.day)}.` : p.resp === 'drop' ? `${p.from} passed on the plan for ${pDayLow(p.day)}.` : p.resp === 'pick' ? `${p.from} picked something for your plan.` : p.resp === 'busy' ? `${p.from} says you already have plans ${pDayLow(p.day)}.` : p.resp === 'book' ? `${p.from} booked something for ${pDayLow(p.day)}.` : p.resp ? '' : `${p.from} ${p.edit ? 'changed the plan for' : 'planned'} ${pDayLow(p.day)}. Take a look.`, 4500); if (S.view === 'home' && !document.querySelector('.scrim')) render(); else if (S.plView === p.id && document.querySelector('[data-pl^="resp"],[data-pl="edit"]')) daySheet(p.id); }
   else if (p.type === 'game') { if (p.lib || (S.view === 'swipe' && S.sess?.id === p.session)) { closeSheet(); document.querySelector('.lfront')?.remove(); if (p.lib) toast(`${p.from} picked a few. Quick game: the winner chooses tonight.`, 4500); S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); S.view = 'game'; render(); } else if (S.view === 'home' && !$layer.innerHTML && !document.querySelector('.wn,.match')) sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('spark')}</span><h2>Your turn</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">${esc(p.from)} started a quick game for tonight’s pick. You each play on your own phone, and the winner chooses.</p></div></div><button class="btn" style="margin-top:16px" data-act="tbjoin" data-id="${esc(p.id)}">Play now</button><button class="jlink" data-act="closesheet">Later</button>`); else toast(`${p.from} started a game for tonight’s pick. It’s your turn.`, 5000); }
+  else if (p.type === 'triv') {
+    if (p.k === 'team') { if (document.querySelector('[data-act="teamlike"],#teamin')) teamSheet(); else if (S.view === 'trivia' && !S.tq) { await trivLoad(); render(); } return; }
+    if (!S.triv || S.triv.id !== p.event) { if (p.k !== 'ready' || S.tq) return; S.trivId = p.event; await trivLoad(); if (!S.triv) { S.trivId = null; return; } }
+    if (p.k === 'ready') { if (S.view === 'trivia' && !S.tq) { await trivLoad(); render(); } else if (S.view === 'trivia' && S.tq?.phase === 'wait') trivPoll(); else if (S.view !== 'trivia') { toast(`${p.from} is ready for trivia question ${p.n}. Tap Trivia night on Home.`, 5500); if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) render(); } }
+    else if (p.k === 'open' && S.tq?.phase === 'wait') trivPoll();
+    else if (p.k === 'ans' && S.tq?.phase === 'locked') trivReveal(0);
+  }
   else if (p.type === 'tb') { if (S.view === 'game' && S.tb?.id === p.id && !S.playing) { S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); render(); }
     else if (S.view === 'swipe' && gameNow()?.id === p.id) { S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); S.tbs = null; render(); } }
   else if (p.type === 'final') { if (S.view !== 'game') showFinal(p.card, !!p.shuffle && S.sess?.id === p.session); }
@@ -1391,8 +1414,8 @@ const homeSig = () => { try { return JSON.stringify([S.state, S.plans, S.share, 
 const swPend = new Set();   // swipes still being saved
 async function refresh() {
   if (swPend.size) await Promise.allSettled([...swPend]);   // a refresh right after the last swipe must include it
-  const [st, pantry, settings, share, plans, inbox, favs, surp, dates, poll] = await Promise.all([rpc('get_state', { p_code: S.code, p_member: S.me }), rpc('get_pantry', { p_code: S.code }), rpc('get_settings', { p_code: S.code }), rpc('share_state', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('plan_list', { p_code: S.code }).catch(() => []), rpc('inbox_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('fav_list', { p_code: S.code }).catch(() => null), rpc('surprise_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('dates_get', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('poll_state', { p_code: S.code }).catch(() => null)]);
-  S.surp = surp || S.surp || null; S.dates = dates || S.dates || null; S.poll = poll || null;
+  const [st, pantry, settings, share, plans, inbox, favs, surp, dates, poll, triv] = await Promise.all([rpc('get_state', { p_code: S.code, p_member: S.me }), rpc('get_pantry', { p_code: S.code }), rpc('get_settings', { p_code: S.code }), rpc('share_state', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('plan_list', { p_code: S.code }).catch(() => []), rpc('inbox_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('fav_list', { p_code: S.code }).catch(() => null), rpc('surprise_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('dates_get', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('poll_state', { p_code: S.code }).catch(() => null), rpc('trivia_state', { p_code: S.code, p_member: S.me, p_event: S.trivId || null }).catch(() => null)]);
+  S.surp = surp || S.surp || null; S.dates = dates || S.dates || null; S.poll = poll || null; if (!S.tq) S.triv = triv || null;
   S.state = st; S.plans = plans || []; S.pool = null; if (inbox) S.inbox = inbox; if (favs) S.favs = favs; S.share = share; S.pantry = pantry || []; S.settings = settings || {};
 }
 async function loadSession(id, keep) {
@@ -1445,6 +1468,7 @@ function render() {
   if (S.view === 'swipe') return renderSwipe();
   if (S.view === 'matches') return renderMatches();
   if (S.view === 'game') return renderGame();
+  if (S.view === 'trivia') return renderTrivia();
   if (S.view === 'library') return renderLibrary();
   if (S.view === 'trips') return renderTrips();
   if (S.view === 'gallery') return renderGallery();
@@ -1795,22 +1819,105 @@ function bdaysSheet() {
 }
 const datesBanner = () => { if (!datesNeed() || Date.now() - Number(ls.get('datesAt') || 0) < 14 * 86400000) return ''; const d = S.dates;
   return `<button class="nudge slim" data-act="bdays"><span class="grow"><b>Add your ${!d.bday && !d.anniv ? 'birthday and anniversary' : !d.bday ? 'birthday' : 'anniversary'}</b><small> · ${esc(them())} gets a heads-up before the day</small></span><span class="go">Add</span></button>`; };
+/* ---------- trivia night: every couple a team, one shared clock ---------- */
+const trivT = d => new Date(d).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+const trivDay = d => { const x = new Date(d), days = Math.round((new Date(x).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 86400000); return (days === 0 ? 'Tonight' : days === 1 ? 'Tomorrow' : x.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' })) + ' at ' + trivT(d); };
+const tvOrd = n => n + (n % 100 > 10 && n % 100 < 14 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th');
+const tvArgs = x => ({ p_code: S.code, p_member: S.me, p_event: S.triv.id, ...x });
+async function trivLoad() { let t = null; try { t = await rpc('trivia_state', { p_code: S.code, p_member: S.me, p_event: S.trivId || null }); } catch { return S.triv; } S.triv = t; return t; }
+const trivBanner = () => { const t = S.triv; if (!t || (t.phase === 'after' && !t.played)) return ''; const live = t.phase === 'live';
+  const sub = t.phase === 'before' ? `${trivDay(t.starts)}${t.movie?.title ? ' · ' + t.movie.title : ''}` : live ? (t.next ? `Question ${t.next.n} of ${t.questions} is waiting` : t.done >= t.questions ? `All ${t.questions} answered · ${t.score} points` : `Next round opens at ${trivT(t.next_round_at)}`) : `Final scores are in · your team scored ${t.score}`;
+  return `<button class="tripbar kc k-match" data-act="triv" style="width:100%;text-align:left"><span class="tic">${ic('spark')}</span><span class="grow"><b>${live ? 'Trivia night is on' : t.phase === 'before' ? 'Trivia night' : 'Trivia night: results'}</b><small>${esc(sub)}</small></span><span class="go">${live && t.next ? 'Play' : 'Open'}</span></button>`; };
+async function openTrivia(id) { if (id) S.trivId = id; S.tq = null; const t = await trivLoad(); if (!t) { S.trivId = null; return toast('Trivia night isn’t open right now.'); } closeSheet(); step('triv_open'); S.view = 'trivia'; render(); }
+function trivFrame(body) { unshift(); const t = S.triv, q = S.tq;
+  const sub = t.phase === 'before' ? (t.team ? esc(t.team) : 'Every couple a team') : t.phase === 'after' ? 'Final scores' : q ? `Question ${q.n} of ${t.questions}` : t.team ? esc(t.team) : `Round ${Math.min(t.unlocked, t.rounds)} of ${t.rounds}`;
+  $app.innerHTML = `<div class="view game triv"><div class="topbar"><button class="back" data-act="home" aria-label="Back">‹</button><div class="grow"><h2>${esc(t.title)}</h2><small>${sub}</small></div>${t.phase !== 'before' ? `<span class="tvscore"><b>${t.score}</b> pts</span>` : ''}</div><div id="gstage" class="gstage">${body}</div></div>`; }
+const trivMovie = (t, lab) => t.movie?.title ? `<div class="tvmov">${t.movie.image ? `<img src="${esc(t.movie.image)}" alt="">` : ''}<span><small>${lab}</small><b>${esc(t.movie.title)}</b><small>${esc(t.movie.sub || '')}</small></span></div>` : '';
+const trivTeamRow = t => `<button class="jlink" data-act="trivteam">${t.team ? `Team ${esc(t.team)} · change` : 'Pick your team name'}</button>`;
+function renderTrivia() { const t = S.triv; if (!t) { S.view = 'home'; return render(); }
+  clearTimeout(S.tvT); if (S.tq) return trivDraw();
+  const p = partner(), stats = `<div class="tvstats"><div><b>${t.score}</b><small>points</small></div>${t.solo ? '' : `<div><b>${t.sync}</b><small>in sync</small></div>`}<div><b>${t.done}/${t.questions}</b><small>answered</small></div></div>`;
+  if (t.phase === 'before') return trivFrame(`<span class="badge">${ic('spark')}</span><h3>${trivDay(t.starts)}</h3>${trivMovie(t, 'The movie')}<div class="tvhow"><p><b>Same movie, your own couch.</b> Press play when it suits you. The questions aren’t about the movie, so nobody has to keep pace.</p><p><b>${t.questions} questions in ${t.rounds} rounds.</b> A new round opens every ${t.gap} minutes and stays open.</p><p><b>4 seconds each.</b> ${t.solo ? 'A right answer is 2 points.' : 'You each answer on your own phone. The same right answer is 3 points. Split, with one of you right, is 1.'}</p></div>${trivTeamRow(t)}<p class="muted" style="font-size:13px">You’ll get one notification when round 1 opens.</p>`);
+  if (t.phase === 'live') {
+    if (t.next) { const pr = p && (t.next.ready || []).includes(p);
+      return trivFrame(`${stats}<h3>${t.done ? `Question ${t.next.n} of ${t.questions}` : 'Round 1 is open'}</h3><p class="muted">${t.solo ? 'The question shows for a moment, then you get 4 seconds to answer.' : pr ? `${esc(p)} is ready and waiting on you.` : `Grab ${esc(them())}. The question lands on both phones at the same moment, then you each get 4 seconds.`}</p><button class="btn" data-act="trivready">I’m ready</button>${trivMovie(t, 'Tonight’s movie')}${trivTeamRow(t)}`); }
+    if (t.done < t.questions) { S.tvT = setTimeout(async () => { await trivLoad(); if (S.view === 'trivia' && !S.tq) render(); }, Math.max(1500, Math.min(30000, Date.parse(t.next_round_at) - Date.parse(t.now) + 800)));
+      return trivFrame(`${stats}<span class="badge">${ic('film')}</span><h3>Round ${t.unlocked} done</h3><p class="muted">Back to the movie. Round ${t.unlocked + 1} opens at ${trivT(t.next_round_at)} and waits for you.</p>${trivTeamRow(t)}`); }
+    return trivFrame(`${stats}<span class="badge">${ic('heart')}</span><h3>That’s all ${t.questions}</h3><p class="muted">${t.test ? 'That was the practice run. On the night, the final standings show here when it wraps up.' : `Final standings show here when the night wraps up at ${trivT(t.ends)}.`}</p>${trivTeamRow(t)}`);
+  }
+  const b = t.board || [];
+  trivFrame(`<span class="badge">${ic('heart')}</span><h3>${!t.played ? 'The night is over' : t.rank === 1 ? 'You won the night' : `You finished ${tvOrd(t.rank)}`}</h3>${t.played ? stats : ''}<div style="width:100%;max-width:350px">${b.map(r => `<div class="gres ${r.me ? 'me' : ''}"><b>${r.rank}. ${esc(r.name)}</b><span>${r.pts} pts${r.sync ? ` · ${r.sync} in sync` : ''}</span></div>`).join('')}</div><p class="muted">Together, the community scored ${t.total} points.</p>`);
+}
+async function trivReady(solo) { const t = S.triv, nx = t?.next; if (!S.tq) { if (!nx) return; S.tq = { qid: nx.qid, n: nx.n, phase: 'wait', since: Date.now() }; }
+  const q = S.tq; if (q.openAt) return; let r;
+  try { r = await rpc('trivia_go', tvArgs({ p_qid: q.qid, p_solo: !!solo })); } catch { S.tq = null; await trivLoad(); return render(); }
+  if (S.tq !== q) return; if (!q.told) { q.told = true; step('triv_ready'); send({ type: 'triv', k: 'ready', event: t.id, qid: q.qid, n: q.n }); }
+  trivTake(r); }
+function trivTake(r) { const q = S.tq; if (!q || !r || q.qid !== r.qid || q.openAt) return;
+  if (r.open_at) { q.q = r.q; q.openAt = Date.now() + (Date.parse(r.open_at) - Date.parse(r.now)); send({ type: 'triv', k: 'open', event: S.triv.id, qid: q.qid }); return trivRun(); }
+  q.phase = 'wait'; if (S.view === 'trivia') trivDraw(); clearTimeout(S.tvT); S.tvT = setTimeout(trivPoll, 1500); }
+async function trivPoll() { const q = S.tq; if (!q || q.openAt || S.view !== 'trivia') return; clearTimeout(S.tvT);
+  try { const r = await rpc('trivia_go', tvArgs({ p_qid: q.qid, p_solo: false })); if (S.tq === q) trivTake(r); } catch { S.tvT = setTimeout(trivPoll, 2500); } }
+function trivRun() { const q = S.tq; if (!q || S.view !== 'trivia') return; clearTimeout(S.tvT); const left = q.openAt - Date.now();
+  if (left > 0) { if (q.phase !== 'count') { q.phase = 'count'; trivDraw(); } const n = document.getElementById('tvn'), v = String(Math.max(1, Math.ceil(left / 1000))); if (n && n.textContent !== v) { n.textContent = v; n.classList.remove('pop'); void n.offsetWidth; n.classList.add('pop'); } S.tvT = setTimeout(trivRun, Math.min(left, 100)); return; }
+  if (left > -4000 && q.pick == null) { if (q.phase !== 'open') { q.phase = 'open'; trivDraw(); } S.tvT = setTimeout(trivRun, Math.min(250, left + 4020)); return; }
+  if (q.phase !== 'done') { if (q.phase !== 'locked') { q.phase = 'locked'; trivDraw(); } trivReveal(0); } }
+async function trivPick(i) { const q = S.tq; if (!q || q.phase !== 'open' || q.pick != null) return; q.pick = i; q.phase = 'locked'; clearTimeout(S.tvT);
+  document.querySelectorAll('#gstage .gopt').forEach((b, k) => { b.disabled = true; if (k === i) b.classList.add('on'); });
+  const note = document.getElementById('tvnote'); if (note) note.textContent = 'Locked in';
+  try { const r = await rpc('trivia_answer', tvArgs({ p_qid: q.qid, p_choice: i })); if (r && r.ok === false) q.late = true; } catch { q.late = true; }
+  send({ type: 'triv', k: 'ans', event: S.triv.id, qid: q.qid }); trivReveal(0); }
+async function trivReveal(n) { const q = S.tq; if (!q || q.phase === 'done' || q.revBusy) return; q.revBusy = true; clearTimeout(S.tvR); let r = null;
+  try { r = await rpc('trivia_reveal', tvArgs({ p_qid: q.qid })); } catch {} q.revBusy = false; if (S.tq !== q) return;
+  if (!r || r.wait) { if (n > 16) { S.tq = null; await trivLoad(); return render(); } S.tvR = setTimeout(() => trivReveal(n + 1), Math.min(1200, Math.max(250, r?.ms || 700))); return; }
+  q.phase = 'done'; q.rev = r; S.triv = r.state; step('triv_answer'); if (S.view === 'trivia') trivDraw(); }
+function trivDraw() { const q = S.tq, t = S.triv, p = partner(); if (!q) return renderTrivia();
+  if (q.phase === 'wait') { const late = Date.now() - q.since > 11000, solo = document.getElementById('tvsolo'); if (solo) { solo.style.display = late ? '' : 'none'; return; }
+    return trivFrame(`<span class="badge">${ic('heart')}</span><h3>You’re ready</h3><p class="muted">Waiting on ${esc(them())} to tap ready on their phone. Question ${q.n} opens for you both the moment they do.</p><button class="btn ghost" data-act="trivnudge">Nudge ${esc(them())}</button><button class="jlink" data-act="trivsolo" id="tvsolo" ${late ? '' : 'style="display:none"'}>Go without ${esc(them())}</button>`); }
+  if (q.phase === 'count') return trivFrame(`<span class="tvtag">${q.q.kind === 'community' ? 'From this community' : 'Get ready'}</span><h3 class="gq">${esc(q.q.text)}</h3><div class="tvn pop" id="tvn">${Math.max(1, Math.ceil((q.openAt - Date.now()) / 1000))}</div><p class="muted">The answers show in a moment. Then it’s 4 seconds.</p>`);
+  if (q.phase === 'open' || q.phase === 'locked') { const left = Math.max(0, q.openAt + 4000 - Date.now());
+    trivFrame(`<h3 class="gq">${esc(q.q.text)}</h3><div class="tvbar"><i style="animation-duration:${left}ms"></i></div><div class="gopts">${q.q.o.map((o, i) => `<button class="gopt ${q.pick === i ? 'on' : ''}" data-o="${i}" ${q.phase === 'locked' ? 'disabled' : ''}>${esc(o)}</button>`).join('')}</div><p class="muted" id="tvnote">${q.phase === 'locked' ? (q.pick == null ? 'Time’s up' : 'Locked in') : ''}</p>`);
+    if (q.phase === 'open') document.querySelectorAll('#gstage .gopt').forEach(b => b.addEventListener('pointerdown', e => { e.preventDefault(); trivPick(Number(b.dataset.o)); }, { once: true }));
+    return; }
+  const r = q.rev, picks = r.picks || {}, names = [S.me, t.solo ? null : p].filter(Boolean), nm = n => n === S.me ? 'You' : esc(n);
+  const who = i => names.filter(n => picks[n] === i).map(nm).join(' and '), out = names.filter(n => picks[n] == null), hero = names.find(n => picks[n] === r.a);
+  const tag = r.pts === 3 ? 'In sync · +3' : r.pts === 2 ? 'Got it · +2' : r.pts === 1 ? 'Covered · +1' : r.sync ? 'In sync, and both wrong' : 'Missed';
+  const line = r.pts === 3 ? 'Same answer, and right.' : r.pts === 1 ? `${nm(hero)} had it.` : out.length === names.length ? 'The clock won that one.' : out.length ? `${nm(out[0])} ran out of time.` : '';
+  trivFrame(`<span class="tvtag ${r.pts ? 'win' : ''}">${tag}</span><h3 class="gq">${esc(r.text)}</h3><div class="gopts">${r.o.map((o, i) => `<button class="gopt ${i === r.a ? 'right' : who(i) ? 'wrong' : ''}" disabled>${esc(o)}${who(i) ? `<em>${who(i)}</em>` : ''}</button>`).join('')}</div><p class="muted">${line ? line + ' ' : ''}${esc(r.fact || '')}</p>${t.next ? `<button class="btn" data-act="trivnext">Ready for question ${t.next.n}</button><button class="jlink" data-act="trivhub">Back to the movie</button>` : `<button class="btn" data-act="trivhub">${t.done >= t.questions ? 'See how you did' : 'Round done'}</button>`}`);
+}
+async function teamSheet(r) { if (!r) { try { r = await rpc('team_act', { p_code: S.code, p_member: S.me, p_action: 'get' }); } catch { return toast('Could not load that. Try again in a moment.'); } }
+  S.team = r; if (S.triv) S.triv.team = r.name || null; const p = partner(), mine = (r.opts || []).filter(o => o.by === S.me).length, keep = document.querySelector('.sheet')?.scrollTop || 0;
+  const row = o => { const l = r.likes?.[o.t] || [], me = l.includes(S.me), th = p && l.includes(p);
+    return `<button class="pollo ${r.name === o.t ? 'on' : ''}" data-act="teamlike" data-t="${esc(o.t)}"><span>${esc(o.t)}<small>${r.name === o.t ? 'Your team name' : me ? `You like it${p ? `. Waiting on ${esc(p)}` : ''}` : th ? `${esc(p)} likes it. Tap if you do too` : 'Tap to like'}</small></span></button>`; };
+  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><h2>${r.name ? esc(r.name) : 'Name your team'}</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">${r.name ? 'That’s your team on the scoreboard.' : p ? `Suggest up to three each. The first one you and ${esc(p)} both like is your team.` : 'Suggest a name, then tap it to make it yours.'}</p></div></div>
+    ${(r.opts || []).map(row).join('')}
+    ${mine < 3 && !r.name ? `<div class="teamadd"><input id="teamin" maxlength="24" placeholder="A team name" autocomplete="off" autocapitalize="words" enterkeyhint="done"><button class="btn" data-act="teamadd">Add</button></div>` : ''}
+    ${r.name ? `<button class="jlink" data-act="teamreset">Pick a different one</button>` : ''}<button class="jlink" data-act="closesheet">Done</button>`);
+  const sh = document.querySelector('.sheet'); if (sh && keep) sh.scrollTop = keep; }
+async function teamDo(action, text) { let r; try { r = await rpc('team_act', { p_code: S.code, p_member: S.me, p_action: action, p_text: text || null }); }
+  catch (e) { const m = String(e?.message || ''); return toast(m.includes('too_many') ? 'That’s your three. Like one of them, or one of theirs.' : m.includes('bad_name') ? 'Try 3 to 24 letters, and keep it friendly.' : 'That didn’t save. Try again.'); }
+  send({ type: 'triv', k: 'team' }); if (r.name && S.settings) S.settings.team = r; teamSheet(r); if (S.view === 'trivia' && !S.tq) { const keep = $layer.innerHTML; render(); $layer.innerHTML = keep; } }
 /* ---------- community polls: one vote per couple ---------- */
-const pollBanner = () => { const q = S.poll; if (!q || !q.open || q.mine) return '';
-  return `<button class="tripbar kc k-match" data-act="poll" data-id="${esc(q.id)}" style="width:100%;text-align:left"><span class="tic">${ic('spark')}</span><span class="grow"><b>${esc(q.title)}</b><small>The community is voting. One vote per couple</small></span><span class="go">Vote</span></button>`; };
+const pollTodo = q => q ? (q.todo ?? (q.mine ? 0 : 1)) : 0;
+const pollBanner = () => { const q = S.poll; if (!q || !q.open || !pollTodo(q)) return ''; const n = 1 + (q.more || []).length;
+  return `<button class="tripbar kc k-match" data-act="poll" data-id="${esc(q.id)}" style="width:100%;text-align:left"><span class="tic">${ic('spark')}</span><span class="grow"><b>${esc(q.title)}</b><small>${q.mine ? `${pollTodo(q)} more to vote on` : n > 1 ? 'Vote on the night, the time and the movie' : 'The community is voting. One vote per couple'}</small></span><span class="go">Vote</span></button>`; };
 async function pollSheet(id) {
   let q; try { q = await rpc('poll_state', { p_code: S.code, p_id: id || null }); } catch {} if (!q) return toast('That vote has closed.');
   if (S.poll?.id === q.id || !S.poll) S.poll = q; step('poll_open'); pollDraw(q);
 }
 function pollDraw(q) {
-  const p = partner(), tally = q.tally, top = tally ? Math.max(1, ...Object.values(tally)) : 1;
-  const row = o => { const mine = q.mine === o.k, n = tally ? (tally[o.k] || 0) : 0;
-    return `<button class="pollo ${mine ? 'on' : ''}" data-act="pollvote" data-id="${esc(q.id)}" data-k="${esc(o.k)}" ${q.open ? '' : 'disabled'}>${tally ? `<i style="width:${Math.round(n / top * 100)}%"></i>` : ''}<span>${esc(o.t)}</span>${tally ? `<b>${n}</b>` : ''}</button>`; };
+  const p = partner(), parts = [q, ...(q.more || [])], keep = document.querySelector('.sheet')?.scrollTop || 0, todo = pollTodo(q);
+  const part = (x, i) => { const tally = x.tally, top = tally ? Math.max(1, ...Object.values(tally)) : 1;
+    const row = o => { const mine = x.mine === o.k, n = tally ? (tally[o.k] || 0) : 0;
+      return `<button class="pollo ${mine ? 'on' : ''}" data-act="pollvote" data-id="${esc(x.id)}" data-k="${esc(o.k)}" ${x.open ? '' : 'disabled'}>${tally ? `<i style="width:${Math.round(n / top * 100)}%"></i>` : ''}<span>${esc(o.t)}${o.s ? `<small>${esc(o.s)}</small>` : ''}</span>${tally ? `<b>${n}</b>` : ''}</button>`; };
+    return `<div class="sect" style="margin-top:${i ? 20 : 14}px">${i ? esc(x.title) : parts.length > 1 ? 'Which night' : x.mine ? 'Your vote' : 'Pick a night'}${x.mine && x.by && x.by !== S.me ? ` · set by ${esc(x.by)}` : ''}</div>${(x.options || []).map(row).join('')}`; };
   sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('spark')}</span><h2>${esc(q.title)}</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">${esc(q.body || '')}</p></div></div>
-    <div class="sect" style="margin-top:14px">${q.mine ? `Your vote${q.by && q.by !== S.me ? `, set by ${esc(q.by)}` : ''}` : 'Pick a night'}</div>${(q.options || []).map(row).join('')}
-    <p class="muted" style="font-size:13px;text-align:center;margin-top:12px">${!q.open ? 'Voting has closed.' : q.mine ? `${q.voted} couple${q.voted === 1 ? ' has' : 's have'} voted. ${p ? `You and ${esc(p)} share one vote, and either of you can change it.` : 'You can change it until voting closes.'}` : `One vote per couple${p ? `, so check with ${esc(p)}` : ''}. Results show once you vote.`}</p>
-    <button class="jlink" data-act="closesheet">${q.mine ? 'Done' : 'Not now'}</button>`);
+    ${parts.map(part).join('')}
+    <p class="muted" style="font-size:13px;text-align:center;margin-top:14px">${!q.open ? 'Voting has closed.' : !todo ? `${q.voted} couple${q.voted === 1 ? ' has' : 's have'} voted. ${p ? `You and ${esc(p)} share one vote, and either of you can change it.` : 'You can change it until voting closes.'}` : `One vote per couple${p ? `, so check with ${esc(p)}` : ''}. Results show as you vote.`}</p>
+    <button class="jlink" data-act="closesheet">${!todo ? 'Done' : 'Not now'}</button>`);
+  const sh = document.querySelector('.sheet'); if (sh && keep) sh.scrollTop = keep;
 }
+
 // "Know a couple who'd love this?": opened from the share nudge. One of them sets it up, then brings their partner in.
 const TELL = 'You two should try Let’s Together. You each swipe on movies, places to eat and things to do, and it only shows what you both said yes to. One of you starts it and adds it to your Home Screen, then sends the other your couple code. It’s still in testing, so you’d be one of the first.';
 function tellSheet() {
@@ -2258,6 +2365,7 @@ function slotHTML(incoming) {
     ['triploc:' + (S.away?.trip || ''), tripLocBanner()],
     ['shr:' + pToday(), shareRemindBanner()],
     ['dates', datesBanner()],
+    ['triv:' + (S.triv ? S.triv.id + S.triv.phase : ''), trivBanner()],
     ['poll:' + (S.poll?.id || ''), pollBanner()],
     ['hs', hsBanner()],
   ].filter(x => x && x[1] && !gone[x[0]]);
@@ -2445,6 +2553,7 @@ function inboxGo(u) {
   if (q.get('gem')) return gemOpen();
   if (q.get('tell')) return tellSheet();
   if (q.get('tonightwalk')) return twShow();
+  if (q.get('trivia')) return openTrivia(q.get('trivia'));
   if (q.get('poll')) return pollSheet(q.get('poll'));
   if (q.get('bdays')) return bdaysSheet();
   if (q.get('plansurprise')) return surpStart(['birthday', 'anniversary'].includes(q.get('plansurprise')) ? q.get('plansurprise') : undefined);
@@ -4241,6 +4350,16 @@ document.addEventListener('click', async e => {
       case 'occ': return occSheet(ds.occ);
       case 'occsurp': closeSheet(); return surpStart('anniversary');
       case 'occday': { closeSheet(); if (!S.pool) await dayPool(); return dayDraft({ mode: 'out', day: ds.day }); }
+      case 'triv': return openTrivia();
+      case 'trivready': t.disabled = true; return trivReady(false);
+      case 'trivsolo': t.disabled = true; return trivReady(true);
+      case 'trivnext': t.disabled = true; S.tq = null; if (!S.triv?.next) return render(); return trivReady(false);
+      case 'trivhub': S.tq = null; await trivLoad(); return render();
+      case 'trivnudge': { if (Date.now() - (S.tvNudged || 0) < 30000) return toast(`${them()} was just nudged. Give it a moment.`); S.tvNudged = Date.now(); push('Trivia: you’re up', `${S.me} is ready for question ${S.tq?.n || ''} and waiting on you.`.replace('  ', ' '), './?trivia=' + S.triv.id); return toast(`Nudged ${them()}.`); }
+      case 'trivteam': return teamSheet();
+      case 'teamadd': { const v = (document.getElementById('teamin')?.value || '').trim(); if (v.length < 3) return toast('Give it at least 3 letters.'); return teamDo('add', v); }
+      case 'teamlike': return teamDo('like', ds.t);
+      case 'teamreset': return teamDo('reset');
       case 'poll': return pollSheet(ds.id);
       case 'pollvote': { t.disabled = true; let q; try { q = await rpc('poll_vote', { p_code: S.code, p_member: S.me, p_id: ds.id, p_choice: ds.k }); } catch { t.disabled = false; return toast('That vote didn’t save. Try again.'); }
         S.poll = q; step('poll_vote'); send({ type: 'plan', city: '', action: 'poll' }); pollDraw(q); if (S.view === 'home' && S.tab === 'home') render(); return; }
@@ -4465,7 +4584,7 @@ async function boot() {
   const gmq = new URLSearchParams(location.search).get('gem'); if (gmq) history.replaceState(null, '', location.pathname);
   const tlq = new URLSearchParams(location.search).get('tell'); if (tlq) history.replaceState(null, '', location.pathname);
   const twq = new URLSearchParams(location.search).get('tonightwalk'); if (twq) history.replaceState(null, '', location.pathname);
-  const pollq = new URLSearchParams(location.search).get('poll'); if (pollq) history.replaceState(null, '', location.pathname);
+  const pollq = new URLSearchParams(location.search).get('poll'), trvq = new URLSearchParams(location.search).get('trivia'); if (pollq || trvq) history.replaceState(null, '', location.pathname);
   const dtq = new URLSearchParams(location.search).get('bdays'), psq = new URLSearchParams(location.search).get('plansurprise'), ocq = new URLSearchParams(location.search).get('occasion'); if (dtq || psq || ocq) history.replaceState(null, '', location.pathname);
   const spq = new URLSearchParams(location.search).get('surprise'); if (spq) history.replaceState(null, '', location.pathname);
   const plq = new URLSearchParams(location.search).get('plan'); S.favAsk = new URLSearchParams(location.search).get('fav') ? plq : null; const plf = new URLSearchParams(location.search).get('planfor'); if (plq || plf) history.replaceState(null, '', location.pathname);
@@ -4475,6 +4594,7 @@ async function boot() {
   if (tlq) tellSheet();
   if (twq) twShow();
   if (pollq) pollSheet(pollq);
+  if (trvq) openTrivia(trvq);
   if (dtq) bdaysSheet(); else if (psq) surpStart(['birthday', 'anniversary'].includes(psq) ? psq : undefined); else if (ocq) occSheet(ocq);
   if (itq) intoSheet(itq);
   if (spq) { carrySignIn(); return surpView(spq); }
