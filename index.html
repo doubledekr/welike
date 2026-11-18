@@ -2196,6 +2196,12 @@ async function dayStart() {
       <div class="trow parow">${anch.map(c => tile(c, true)).join('')}${mine.map(c => tile(c, false)).join('')}</div>` : `<p class="muted" style="margin-top:18px;font-size:13.5px">Nothing liked in Eat or Go out yet. You can still start a plan and find places together as you go.</p>`}
   </div>`);
 }
+// From the weekly "a night you've both said yes to" message: open a plan with the place and the movie or event already in it.
+async function nightOpen(ids) { if (!partner()) return; const [a, b] = String(ids || '').split(','); closeSheet(); try { if (!S.pool) await dayPool(); } catch {}
+  const place = (S.pool || []).find(x => x.id === a), other = (S.pool || []).find(x => x.id === b); step('night_open');
+  if (!place && !other) return dayStart(); dayDraft({ anchor: other || place });
+  if (place && other && S.pl && !isBar(other)) { const pl = S.pl; if (other.deck === 'movie' && !pFits(place, 'dinner', pl.day, 'in')) { pl.mode = 'out'; pl.slots = ['dinner', 'evening']; pl.items = { evening: { time: PSLOT.evening[1], card: other, find: false, why: 'both' } }; }   // dinner out, then the movie at home
+    if (!pl.slots.includes('dinner')) pl.slots.unshift('dinner'); pl.items.dinner = { time: PSLOT.dinner[1], card: place, find: false, why: 'both' }; dayEdit(); } }
 function dayDraft({ mode = 'out', anchor = null, plan = null, day = null }) {
   const now = pNow(), t = pToday();
   if (plan) {
@@ -2644,6 +2650,7 @@ function inboxGo(u) {
   if (q.get('tell')) return tellSheet();
   if (q.get('tonightwalk')) return twShow();
   if (q.get('trivia')) return openTrivia(q.get('trivia'));
+  if (q.get('night')) return nightOpen(q.get('night'));
   if (q.get('poll')) return pollSheet(q.get('poll'));
   if (q.get('bdays')) return bdaysSheet();
   if (q.get('plansurprise')) return surpStart(['birthday', 'anniversary'].includes(q.get('plansurprise')) ? q.get('plansurprise') : undefined);
@@ -4646,7 +4653,7 @@ setInterval(() => { if (document.visibilityState === 'visible') { checkVersion()
 setTimeout(checkVersion, 4000);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && S.bookCity && S.bookTouched && document.querySelector('.bookframe')) S.bookLeft = true; if (document.visibilityState === 'visible' && S.bookLeft) setTimeout(bookBack, 400); if (document.visibilityState === 'hidden' && updReady && S.view === 'home' && !$layer.innerHTML && !document.querySelector('.match,.lfront,.coach,.wn,.scr,.sco,.bookframe')) reloadKeep(); if (document.visibilityState === 'visible') { returnAt = Date.now(); tryUpdate(true); evPeek(); checkVersion(true); checkTravel(); S.peekTried = false; scratchCheck(); } });
 document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && S.code && S.me) { try { const was = homeSig(); await refresh(); bellSync(); if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) { if (homeSig() !== was) render(); } else if (S.view === 'swipe' && S.sess) { const d = await rpc('get_session', { p_code: S.code, p_session: S.sess.id, p_member: S.me }); S.theirLeft = d.their_left; S.total = d.total; if (d.matches.length !== S.matches.length) { S.matches = d.matches; } if (d.deck.length !== S.deck.length && !busy) { S.deck = d.deck; drawStack(); } else updateBar(); } } catch {} } });
-if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); navigator.serviceWorker.addEventListener('message', e => { if (e.data?.pushed) return inboxPoll(); const u = e.data?.open; if (u) { const q = new URL(u).searchParams, s = q.get('s'), r = q.get('rec'), g = q.get('tb'); if (s && S.me) openSession(s); else if (r && S.me) openRec(r, q.get('keen')); else if (g && S.me) openGame(g); else if (q.get('reveal') && S.me) { prepRevealTest(); render(); }
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); navigator.serviceWorker.addEventListener('message', e => { if (e.data?.pushed) return inboxPoll(); const u = e.data?.open; if (u) { const q = new URL(u).searchParams, s = q.get('s'), r = q.get('rec'), g = q.get('tb'); if (s && S.me) openSession(s); else if (r && S.me) openRec(r, q.get('keen')); else if (g && S.me) openGame(g); else if (q.get('night') && S.me) nightOpen(q.get('night')); else if (q.get('trivia') && S.me) openTrivia(q.get('trivia')); else if (q.get('reveal') && S.me) { prepRevealTest(); render(); }
     else if (q.get('surprise') && S.me) surpOpen(q.get('surprise'));
     else if (q.get('plan') && S.me) { S.favAsk = q.get('fav') ? q.get('plan') : null; dayAct('view', q.get('plan')).catch(() => {}); } else if (q.get('planfor') && S.me) dayAct('around', q.get('planfor')).catch(() => {}); else if (q.get('invite') && S.me) { if (!partner()) inviteSheet(); } else if (q.get('tripplan') && S.me) openTripPlan(q.get('tripplan')); else if (q.get('trip') && S.me) openGetaway(q.get('trip'), partner()); else if (SHW[q.get('share')] && S.me) openShareTab(q.get('share')); } }); }
 
@@ -4728,7 +4735,7 @@ async function boot() {
   const gmq = new URLSearchParams(location.search).get('gem'); if (gmq) history.replaceState(null, '', location.pathname);
   const tlq = new URLSearchParams(location.search).get('tell'); if (tlq) history.replaceState(null, '', location.pathname);
   const twq = new URLSearchParams(location.search).get('tonightwalk'); if (twq) history.replaceState(null, '', location.pathname);
-  const pollq = new URLSearchParams(location.search).get('poll'), trvq = new URLSearchParams(location.search).get('trivia'); if (pollq || trvq) history.replaceState(null, '', location.pathname);
+  const pollq = new URLSearchParams(location.search).get('poll'), trvq = new URLSearchParams(location.search).get('trivia'), ntq = new URLSearchParams(location.search).get('night'); if (pollq || trvq || ntq) history.replaceState(null, '', location.pathname);
   const dtq = new URLSearchParams(location.search).get('bdays'), psq = new URLSearchParams(location.search).get('plansurprise'), ocq = new URLSearchParams(location.search).get('occasion'); if (dtq || psq || ocq) history.replaceState(null, '', location.pathname);
   const spq = new URLSearchParams(location.search).get('surprise'); if (spq) history.replaceState(null, '', location.pathname);
   const plq = new URLSearchParams(location.search).get('plan'); S.favAsk = new URLSearchParams(location.search).get('fav') ? plq : null; const plf = new URLSearchParams(location.search).get('planfor'); if (plq || plf) history.replaceState(null, '', location.pathname);
@@ -4739,6 +4746,7 @@ async function boot() {
   if (twq) twShow();
   if (pollq) pollSheet(pollq);
   if (trvq) openTrivia(trvq);
+  if (ntq) nightOpen(ntq);
   if (dtq) bdaysSheet(); else if (psq) surpStart(['birthday', 'anniversary'].includes(psq) ? psq : undefined); else if (ocq) occSheet(ocq);
   if (itq) intoSheet(itq);
   if (spq) { carrySignIn(); return surpView(spq); }
