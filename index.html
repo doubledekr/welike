@@ -1148,6 +1148,8 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .gpad.qd{background:rgba(255,255,255,.07);box-shadow:none}.gpad.qd b{font-size:64px}.gpad.qd.hot{background:linear-gradient(135deg,#ffb547,#ff4d7e);box-shadow:0 0 90px -6px rgba(255,120,90,1);transform:scale(1.05)}
 .gres i{font-style:normal}
 @media (prefers-reduced-motion:reduce){.tbseal,.qdshake{animation:none}}
+
+.match.pk .pkby{color:#ffe2b0;font-size:15px;margin-top:2px}
 </style>
 </head>
 <body>
@@ -1234,14 +1236,23 @@ function errMsg(e) { const m = (e?.message || String(e)); if (m.includes('bad_co
 /* ---------- realtime + push ---------- */
 function connect() {
   if (S.chan) sb.removeChannel(S.chan);
-  S.chan = sb.channel('wl-' + S.code, { config: { broadcast: { self: false } } });
-  S.chan.on('broadcast', { event: 'ev' }, ({ payload }) => onEvent(payload)).subscribe();
+  S.chan = sb.channel('wl-' + S.code, { config: { broadcast: { self: false }, presence: { key: S.me } } });
+  S.chan.on('broadcast', { event: 'ev' }, ({ payload }) => onEvent(payload)).subscribe(st => { if (st === 'SUBSCRIBED') hereSync(); });
 }
 function send(p) { try { S.chan?.send({ type: 'broadcast', event: 'ev', payload: { ...p, from: S.me } }); } catch {} }
-function push(title, body, url) { sb.functions.invoke('nudge', { body: { code: S.code, member: S.me, title, body, url } }).catch(() => {}); }
+// Who has the app open and on screen right now. A round's messages skip the lock screen for someone already looking at it.
+function hereSync() { try { if (document.visibilityState === 'visible') S.chan?.track?.({ at: Date.now() }); else S.chan?.untrack?.(); } catch {} }
+document.addEventListener('visibilitychange', hereSync);
+const partnerHere = () => { try { const p = partner(), st = S.chan?.presenceState?.() || {}; return !!(p && st[p] && st[p].length); } catch { return false; } };
+// round: every message about one round shares a slot on the lock screen, so the newest replaces the last one.
+function push(title, body, url, o) { const round = o?.round || null; sb.functions.invoke('nudge', { body: { code: S.code, member: S.me, title, body, url, ...(round ? { round, quiet: partnerHere() } : {}) } }).catch(() => {}); }
+const pickWord = (deck, f) => f?.rewatch ? 'a rewatch' : ({ movie: 'a movie', dinner: 'somewhere to eat', activity: 'something to do', event: 'an event', mix: 'something for tonight', trip: 'a trip', art: 'some art' })[deck] || 'something';
+// Clear delivered notifications for rounds that are already settled, so the lock screen never asks for something that is done.
+async function notifSweep() { try { const reg = await navigator.serviceWorker?.getRegistration(); const ns = (await reg?.getNotifications?.()) || []; if (!ns.length) return;
+  const ss = S.state?.sessions || []; for (const n of ns) { const r = n.data?.round; if (!r) continue; const x = ss.find(z => z.id === r); if (!x || x.filters?.final || (!(x.my_left > 0) && !/^(Your turn|Dead heat)/.test(n.title || ''))) n.close(); } } catch {} }
 async function onEvent(p) {
   if (!p || p.from === S.me) return;
-  if (p.type === 'nudge') { toast(p.matched ? `${p.from} wants to pick from your matches. Swipe what you feel like right now.` : p.again ? `${p.from} is still hoping you will look at the ${p.share === 'dinner' ? 'places' : 'events'} they sent` : p.share === 'dinner' ? `${p.from} sent you places they want to try` : p.evshare ? `${p.from} sent you events they liked` : p.wishlist ? `${p.from} shared a wishlist with you` : `${p.from} nudged you: ${DECKS[p.deck]?.label || 'something'}`, 4000); await refresh(); if (S.view === 'home') render(); }
+  if (p.type === 'nudge') { toast(p.matched ? `${p.from} wants to pick from your matches. Swipe what you feel like right now.` : p.again ? `${p.from} is still hoping you will look at the ${p.share === 'dinner' ? 'places' : 'events'} they sent` : p.share === 'dinner' ? `${p.from} sent you places they want to try` : p.evshare ? `${p.from} sent you events they liked` : p.wishlist ? `${p.from} shared a wishlist with you` : `${p.from} wants to pick ${pickWord(p.deck)}`, 4000); await refresh(); if (S.view === 'home') render(); }
   else if (p.type === 'match') { if (S.view === 'swipe' && S.sess?.id === p.session) { S.matches.unshift(p.card); showMatch(p.card); } else toast(`Match with ${p.from}: ${p.card.title}`, 4000); refresh().then(() => S.view === 'home' && render()); }
   else if (p.type === 'more' && S.view === 'swipe' && S.sess?.id === p.session) { await loadSession(p.session); renderSwipe(); }
   else if (p.type === 'swipe') { if (S.view === 'swipe' && S.sess?.id === p.session) { S.theirLeft = p.left; updateBar(); } }
@@ -1258,6 +1269,7 @@ async function onEvent(p) {
   }
   else if (p.type === 'tbs') { if (!S.tbStat || S.tbStat.id !== p.id || p.k > S.tbStat.k) S.tbStat = { id: p.id, k: p.k }; if (S.view === 'game' && S.tb?.id === p.id && S.tb.mine === true && !S.tb.done && S.tb.stage !== 'qd' && !S.playing) render(); }
   else if (p.type === 'tbh') { if (S.view === 'game' && S.tb?.id === p.id) tbFly(p.m ? 0 : 3); if (p.m) toast(`${p.from}: ${p.m}`, 3000); else if (S.view !== 'game' && Date.now() - (S.tbHeartAt || 0) > 20000) { S.tbHeartAt = Date.now(); toast(`${p.from} is waiting on you for tonight’s pick.`, 4000); } }
+  else if (p.type === 'tb' && p.picked) { try { const t = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); if (S.view === 'game' && S.tb?.id === p.id) { S.tb = t; render(); } else if (S.view === 'swipe' && gameNow()?.id === p.id) { S.tb = t; S.tbs = null; render(); } if (S.view !== 'trivia' && !S.playing) pickReveal(t); } catch {} }
   else if (p.type === 'tb' && p.tie && !(S.view === 'game' && S.tb?.id === p.id) && S.view !== 'trivia' && !S.playing) { closeSheet(); document.querySelector('.lfront')?.remove(); document.querySelector('.match')?.remove(); return openGame(p.id); }
   else if (p.type === 'tb') { if (S.view === 'game' && S.tb?.id === p.id && !S.playing) { S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); render(); }
     else if (S.view === 'swipe' && gameNow()?.id === p.id) { S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); S.tbs = null; render(); } }
@@ -1431,7 +1443,7 @@ const swPend = new Set();   // swipes still being saved
 async function refresh() {
   if (swPend.size) await Promise.allSettled([...swPend]);   // a refresh right after the last swipe must include it
   const [st, pantry, settings, share, plans, inbox, favs, surp, dates, poll, triv] = await Promise.all([rpc('get_state', { p_code: S.code, p_member: S.me }), rpc('get_pantry', { p_code: S.code }), rpc('get_settings', { p_code: S.code }), rpc('share_state', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('plan_list', { p_code: S.code }).catch(() => []), rpc('inbox_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('fav_list', { p_code: S.code }).catch(() => null), rpc('surprise_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('dates_get', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('poll_state', { p_code: S.code }).catch(() => null), rpc('trivia_state', { p_code: S.code, p_member: S.me, p_event: S.trivId || null }).catch(() => null)]);
-  S.surp = surp || S.surp || null; S.dates = dates || S.dates || null; S.poll = poll || null; if (!S.tq) S.triv = triv || null;
+  S.surp = surp || S.surp || null; S.dates = dates || S.dates || null; S.poll = poll || null; if (!S.tq) S.triv = triv || null; setTimeout(notifSweep, 400);
   S.state = st; S.plans = plans || []; S.pool = null; if (inbox) S.inbox = inbox; if (favs) S.favs = favs; S.share = share; S.pantry = pantry || []; S.settings = settings || {};
 }
 async function loadSession(id, keep) {
@@ -1471,7 +1483,7 @@ async function startSession1(deck, filters, note, announce = true) {
   if (announce && !r.dup) {
     send({ type: 'nudge', deck, session: r.id, wishlist: !!filters?.wishlist });
     if (filters?.wishlist) push(`${S.me} shared a wishlist 💌`, `${r.count} movie${r.count > 1 ? 's' : ''} they want to watch. Swipe the ones you would watch too.`, `./?s=${r.id}`);
-    else push(`${S.me} nudged you ${filters?.rewatch ? '🔁' : DECKS[deck].em}`, note || `${DECKS[deck].nudge} Swipe and see what you both like.`, `./?s=${r.id}`);
+    else push(`${S.me} wants to pick ${pickWord(deck, filters)}`, note || `${DECKS[deck].nudge} Swipe and see what you both like.`, `./?s=${r.id}`, { round: r.id });
   }
   if (filters?.wishlist) { closeSheet(); await refresh(); S.view = 'home'; S.tab = 'home'; render(); return toast(`Sent ${r.count} movie${r.count > 1 ? 's' : ''} to ${them()}. You will see matches as they pick.`, 4000); }
   closeSheet(); await openSession(r.id);
@@ -1587,7 +1599,8 @@ function ob2Steps() {
   if (!ls.get('ob2try') && !standalone()) s.push('try');           // someone who came in by invite never saw the card
   if (needInvite()) s.push('invite');
   if (!standalone() && isPhone() && !ls.get('a2hs')) s.push('install');
-  if (needPushAsk()) s.push('push');                                 // on an iPhone this only exists in the Home Screen app, so it waits for the icon
+  if (needPushAsk()) s.push('push');
+  if (S.dates && !notifMode()) s.push('notif');                                 // on an iPhone this only exists in the Home Screen app, so it waits for the icon
   if (datesNeed()) s.push('dates');                                 // the second person in is only asked for what is still missing
   if (needSetup() || needLoc()) s.push('setup');
   return s;
@@ -1613,7 +1626,7 @@ function ob2Skip() {   // "Later" on a step: remember it was offered, so it does
 }
 function ob2Draw() {
   const el = document.querySelector('.wn.ob2'), o = S.ob2; if (!el || !o) return; const k = o.steps[o.i], n = o.steps.length, p = partner(), last = o.i === n - 1;
-  const C = { try: ['#ffb547', '#ff7a4d'], invite: ['#ff7a4d', '#ff4d7e'], install: ['#2dd4bf', '#4d9bff'], push: ['#ffb547', '#ff4d7e'], dates: ['#ff7a9c', '#ff4d7e'], setup: ['#ffb547', '#ff7a4d'] }[k];
+  const C = { try: ['#ffb547', '#ff7a4d'], invite: ['#ff7a4d', '#ff4d7e'], install: ['#2dd4bf', '#4d9bff'], push: ['#ffb547', '#ff4d7e'], notif: ['#ffb547', '#ff4d7e'], dates: ['#ff7a9c', '#ff4d7e'], setup: ['#ffb547', '#ff7a4d'] }[k];
   const kick = (x = '') => `<small class="wk-k">Step ${o.i + 1} of ${n}${x}</small>`, sp = '<div class="ob2-sp"></div>';
   step('ob2_' + k);
   const body = {
@@ -1628,6 +1641,7 @@ function ob2Draw() {
     push: () => `${kick()}<h2 class="wk-h">Hear when you match</h2><p class="wk-p">Only these. No marketing, ever.</p>
       ${[['It’s a match', 'You both liked Jazz night, Friday'], [`${esc(p || 'Your person')} sent you a trailer`, 'Quick yes or no?'], ['A hidden gem dropped', 'Scratch it together']].map(([a, b], j) => `<div class="ob2-push" style="animation-delay:${.15 + j * .22}s">${MARK}<span><b>${a}</b><small>${b}</small></span></div>`).join('')}${sp}
       <button class="btn wk-cta" data-act="ob2push">Turn on nudges</button>`,
+    notif: () => `${kick()}<h2 class="wk-h">How much should we reach out?</h2><p class="wk-p">Yours alone. ${esc(p || 'Your person')} picks separately, and you can switch any time on the You tab.</p>${notifOpts('ob2notif')}${sp}`,
     dates: () => { const d = S.dates || {}, both = !d.bday && !d.anniv;
       return `${kick()}<h2 class="wk-h">${both ? 'Dates worth remembering' : !d.bday ? 'When’s your birthday?' : 'When’s your anniversary?'}</h2><p class="wk-p">${!d.bday ? `${esc(p || 'Your person')} gets a quiet heads-up two weeks before, with a way to plan the day.` : 'You both get a heads-up two weeks before, with a way to plan the day.'}${d.anniv && p ? ` ${esc(p)} already added your anniversary: ${mdText(d.anniv)}.` : ''}</p>
       ${datesFields(true)}<p class="ob2-fine">Only the two of you see these. No birth year is asked for.</p>${sp}<button class="btn wk-cta" data-act="ob2dates">Save</button>`; },
@@ -1915,6 +1929,16 @@ async function teamSheet(r) { if (!r) { try { r = await rpc('team_act', { p_code
 async function teamDo(action, text) { let r; try { r = await rpc('team_act', { p_code: S.code, p_member: S.me, p_action: action, p_text: text || null }); }
   catch (e) { const m = String(e?.message || ''); return toast(m.includes('too_many') ? 'That’s your three. Like one of them, or one of theirs.' : m.includes('bad_name') ? 'Try 3 to 24 letters, and keep it friendly.' : 'That didn’t save. Try again.'); }
   send({ type: 'triv', k: 'team' }); if (r.name && S.settings) S.settings.team = r; teamSheet(r); if (S.view === 'trivia' && !S.tq) { const keep = $layer.innerHTML; render(); $layer.innerHTML = keep; } }
+/* ---------- how much to hear from the app: each person picks for themselves ---------- */
+const NOTIF = { essentials: ['Just the essentials', 'When your person wants to decide something now, when there’s a result, and dates you’d hate to miss. Nothing else.'], all: ['Keep me in the loop', 'All of that, plus the daily handful, community nights and reminders.'] };
+const notifMode = () => S.dates?.notif || null;
+const notifOpts = (act = 'notifset') => Object.entries(NOTIF).map(([k, [t, d]]) => `<button class="pollo ${notifMode() === k ? 'on' : ''}" data-act="${act}" data-m="${k}"><span>${t}<small>${d}</small></span></button>`).join('');
+const notifBanner = () => { if (!S.dates || notifMode() || Date.now() - Number(ls.get('notifAt') || 0) < 14 * 86400000) return '';
+  return `<button class="nudge slim" data-act="notif"><span class="grow"><b>New: choose how much you hear from us</b><small> · just the essentials, or everything</small></span><span class="go">Choose</span></button>`; };
+function notifSheet() { step('notif_open'); ls.set('notifAt', String(Date.now()));
+  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('bell')}</span><h2>How much should we reach out?</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">This is yours alone. ${partner() ? esc(partner()) + ' picks separately.' : 'Your person picks separately.'}</p></div></div>
+    ${notifOpts()}<p class="muted" style="font-size:13px;text-align:center;margin-top:12px">${notifMode() ? '' : 'Until you choose, nothing changes. '}You can switch any time on the You tab, under Notifications.</p><button class="jlink" data-act="closesheet">${notifMode() ? 'Done' : 'Not now'}</button>`); }
+async function notifSet(m) { try { await rpc('notif_set', { p_code: S.code, p_member: S.me, p_mode: m }); } catch { return false; } S.dates = { ...(S.dates || {}), notif: m }; step('notif_' + m); return true; }
 /* ---------- community polls: one vote per couple ---------- */
 const pollTodo = q => q ? (q.todo ?? (q.mine ? 0 : 1)) : 0;
 const pollBanner = () => { const q = S.poll; if (!q || !q.open || !pollTodo(q)) return ''; const n = 1 + (q.more || []).length;
@@ -2376,13 +2400,14 @@ function slotHTML(incoming) {
     ['sp:' + surpKey(), surpBanner()],
     ['occ:' + (occTop() ? occTop().k + occTop().day : ''), occBanner()],
     ['day:' + dayHomeKey(), dayHome()],
-    s ? ['ses:' + s.id, `<button class="nudge slim" data-open="${s.id}"><span class="grow"><b>${s.from === 'Let’s Together' ? 'Swipe to fill your plan' : esc(s.from) + ' ' + (s.filters?.evshare ? 'liked events this week' : s.filters?.share ? 'liked places to eat' : s.filters?.wishlist ? 'shared a wishlist' : s.filters?.plan ? 'needs a pick for your plan' : 'nudged you')}</b><small> · ${esc(s.filters?.evshare ? 'before they pass' : s.filters?.share ? 'for some time soon' : s.filters?.wishlist ? 'movies to pick from' : s.note || DECKS[s.deck].label)} · ${s.my_left} to swipe</small></span><span class="go">Swipe</span></button>`] : null,
+    s ? ['ses:' + s.id, `<button class="nudge slim" data-open="${s.id}"><span class="grow"><b>${s.from === 'Let’s Together' ? 'Swipe to fill your plan' : esc(s.from) + ' ' + (s.filters?.evshare ? 'liked events this week' : s.filters?.share ? 'liked places to eat' : s.filters?.wishlist ? 'shared a wishlist' : s.filters?.plan ? 'needs a pick for your plan' : 'wants to pick ' + pickWord(s.deck, s.filters))}</b><small> · ${esc(s.filters?.evshare ? 'before they pass' : s.filters?.share ? 'for some time soon' : s.filters?.wishlist ? 'movies to pick from' : s.note || DECKS[s.deck].label)}</small></span><span class="go">Swipe</span></button>`] : null,
     ['tripinv:' + (Object.entries(planInvites()).find(([, v]) => v?.by && v.by !== S.me)?.[0] || ''), inviteBanner()],
     ['trip:' + (planDue() || ''), planBanner()],
     S.evPend && ls.get('evno') !== evKey() ? ['ev:' + evKey(), `<div class="hsb"><span class="tic">${ic('ticket')}</span><span class="grow"><b>You liked ${S.evPend.count > 1 ? S.evPend.count + ' events' : 'an event'} this week</b><small>Send to ${esc(them())} before ${S.evPend.count > 1 ? 'they pass' : 'it passes'}?</small></span><button class="go" data-act="evask">Share</button></div>`] : null,
     ['triploc:' + (S.away?.trip || ''), tripLocBanner()],
-    ['shr:' + pToday(), shareRemindBanner()],
-    ['dates', datesBanner()],
+    notifMode() === 'essentials' ? null : ['shr:' + pToday(), shareRemindBanner()],
+    ['notif', notifBanner()],
+    notifMode() === 'essentials' ? null : ['dates', datesBanner()],
     ['triv:' + (S.triv ? S.triv.id + S.triv.phase : ''), trivBanner()],
     ['poll:' + (S.poll?.id || ''), pollBanner()],
     ['hs', hsBanner()],
@@ -2422,7 +2447,7 @@ function waiting() {
     else if (p.day === t && p.status === 'agreed') out.push({ k: 'pt' + p.id, lv: 1, ic: 'list', t: p.mode === 'in' ? 'Tonight: your night in' : 'Today’s plan', s: pSum(p), a: `data-pl="view|${p.id}"`, go: 'Open' });
     else if (p.day < t && p.status === 'agreed' && !p.auto) out.push({ k: 'pw' + p.id, lv: 1, ic: 'list', t: 'Yesterday’s plan: did you go?', s: 'One tap.', a: `data-pl="view|${p.id}"`, go: 'Answer' });
   }
-  for (const s of (st.sessions || []).filter(s => s.from !== S.me && s.my_left > 0).slice(0, 3)) out.push({ k: 's' + s.id, lv: 2, ic: DIC[s.deck] || 'spark', t: s.from === 'Let’s Together' ? 'Swipe to fill your plan' : `${s.from} ${s.filters?.evshare ? 'sent events they liked' : s.filters?.share ? 'sent places to try' : s.filters?.wishlist ? 'shared a wishlist' : s.filters?.plan ? 'needs a pick for your plan' : 'nudged you'}`, s: `${s.note ? s.note + ' · ' : ''}${s.my_left} to swipe`, a: `data-open="${s.id}"`, go: 'Swipe' });
+  for (const s of (st.sessions || []).filter(s => s.from !== S.me && s.my_left > 0).slice(0, 3)) out.push({ k: 's' + s.id, lv: 2, ic: DIC[s.deck] || 'spark', t: s.from === 'Let’s Together' ? 'Swipe to fill your plan' : `${s.from} ${s.filters?.evshare ? 'sent events they liked' : s.filters?.share ? 'sent places to try' : s.filters?.wishlist ? 'shared a wishlist' : s.filters?.plan ? 'needs a pick for your plan' : 'wants to pick ' + pickWord(s.deck, s.filters)}`, s: s.note || 'Ready when you are', a: `data-open="${s.id}"`, go: 'Swipe' });
   const ti = Object.entries(planInvites()).find(([, v]) => v?.by && v.by !== S.me);
   if (ti) out.push({ k: 'ti' + ti[0], lv: 2, ic: 'plane', t: `${ti[1].by} wants to plan ${ti[0]}`, s: 'Say yes or not yet.', a: `data-tripinvite="${esc(ti[0])}"`, go: 'Look' });
   for (const x of surpItems()) { const w = surpWait(x); if (w) out.push(w); }
@@ -2736,7 +2761,7 @@ async function intoSheet(id) {
 async function openRec(id, keen) {
   try { const c = await rpc('get_card', { p_code: S.code, p_id: id }); if (c) recSheet(c, partner(), Number(keen) || 0); } catch {}
 }
-async function openGame(id) { try { S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: id }); S.view = 'game'; } catch { S.view = 'home'; } render(); }
+async function openGame(id) { try { S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: id }); S.view = 'game'; } catch { S.view = 'home'; } render(); if (S.view === 'game' && S.tb?.pick && ls.get('pkseen') !== S.tb.id) pickReveal(S.tb); }
 function recReply(p) {
   const c = p.card; if (!c) return;
   if (p.yes) { closeSheet(); showMatch(c); return showFinal(c); }
@@ -3098,15 +3123,20 @@ async function ladder(kind, btn) {
   if (kind === 'game') {
     S.tb = await rpc('tiebreak_start', { p_code: S.code, p_member: S.me, p_session: sess.id });
     send({ type: 'game', session: sess.id, id: S.tb.id });
-    if (!S.tb.mine && !S.tb.done) push(`Your turn: ${(GAMES[S.tb.game] || ['a quick game'])[0].toLowerCase()}`, `${S.me} is playing for tonight’s pick. It takes seconds, and the winner chooses. Tap to play.`, `./?tb=${S.tb.id}`);
+    if (!S.tb.mine && !S.tb.done) push(`Your turn: ${(GAMES[S.tb.game] || ['a quick game'])[0].toLowerCase()}`, `${S.me} is playing for tonight’s pick. It takes seconds, and the winner chooses. Tap to play.`, `./?tb=${S.tb.id}`, { round: S.tb?.session || S.sess?.id });
     S.view = 'game'; return render();
   }
   if (kind === 'pick') {
     S.skips = []; const c = await pickNext(); if (!c) return toast('Nothing to pick from yet.');
-    send({ type: 'final', card: c, shuffle: true, session: sess.id }); push(`Tonight: ${c.title}`, 'Let’s Together picked it for you both.', `./?s=${sess.id}`);
+    send({ type: 'final', card: c, shuffle: true, session: sess.id }); push(`Tonight: ${c.title}`, 'Let’s Together picked it for you both.', `./?s=${sess.id}`, { round: sess.id });
     return showFinal(c, true);
   }
 }
+// The winner's pick, held full screen on both phones until someone taps it away.
+function pickReveal(t) { const c = t?.pick; if (!c || S.pkSeen === t.id) return; S.pkSeen = t.id; try { ls.set('pkseen', t.id); } catch {}
+  showFinal(c); const m = document.querySelector('.match'); if (!m) return; m.classList.add('pk');
+  m.querySelector('h3')?.insertAdjacentHTML('afterend', `<p class="pkby">${t.winner === S.me ? 'You won, and this is your pick' : esc(t.winner || 'They') + ' won and picked it'}${c.deck === 'movie' && c.kind ? ' · on ' + esc(c.kind) : ''}</p>`);
+  if (typeof tbFly === 'function') tbFly(8); try { navigator.vibrate?.([30, 50, 30]); } catch {} }
 function showFinal(c, canShuffle = false, pool = null) {
   document.querySelector('.match')?.remove(); document.querySelector('.lfront')?.remove(); closeSheet();
   const m = document.createElement('div'); m.className = 'match';
@@ -3144,7 +3174,7 @@ function renderGame() {
 }
 async function gameSubmit(result) {
   const st = document.getElementById('gstage'); if (st) st.innerHTML = '<p class="muted">Sending your result…</p>';
-  try { S.tb = await rpc('tiebreak_submit', { p_code: S.code, p_member: S.me, p_id: S.tb.id, p_result: result }); const tie = S.tb.stage === 'qd'; send({ type: 'tb', id: S.tb.id, tie }); if (tie) push('Dead heat', `You and ${S.me} tied. Quick draw is live right now: first tap after the flash wins, and it won’t wait.`, './?tb=' + S.tb.id); }
+  try { S.tb = await rpc('tiebreak_submit', { p_code: S.code, p_member: S.me, p_id: S.tb.id, p_result: result }); const tie = S.tb.stage === 'qd'; send({ type: 'tb', id: S.tb.id, tie }); if (tie) push('Dead heat', `You and ${S.me} tied. Quick draw is live right now: first tap after the flash wins, and it won’t wait.`, './?tb=' + S.tb.id, { round: S.tb.session }); }
   catch { toast('Could not send that. Check your connection and tap Check again.', 4500); }
   S.playing = false; if (S.view === 'game') render();
 }
@@ -3436,6 +3466,7 @@ function youHTML() {
   return `<div class="you"><div class="brand">You</div>
     <div class="ycard"><div class="yrow"><span class="tic">${ic('heart')}</span><span class="grow"><b>${esc(S.me)}</b><small>${p ? 'Paired with ' + esc(p) : 'Not paired yet'}</small></span><button class="ysw" data-act="rename">Rename</button></div>
       <div class="yrow"><span class="tic">${ic('share')}</span><span class="grow"><b>${esc(S.code)}</b><small>Your couple code</small></span><button class="ysw" data-act="invite">Invite</button></div>
+      <button class="yrow" data-act="notif"><span class="tic">${ic('bell')}</span><span class="grow"><b>Notifications</b><small>${notifMode() ? NOTIF[notifMode()][0] : 'Choose how much you hear from us'}</small></span><span class="ysw">${notifMode() ? 'Change' : 'Choose'}</span></button>
       <button class="yrow" data-act="bdays"><span class="tic">${ic('heart')}</span><span class="grow"><b>Birthday and anniversary</b><small>${S.dates?.bday || S.dates?.anniv ? esc([S.dates.bday ? 'Birthday ' + mdText(S.dates.bday) : '', S.dates.anniv ? 'Anniversary ' + mdText(S.dates.anniv) : ''].filter(Boolean).join(' · ')) : 'So you both get a heads-up before the day'}</small></span><span class="ych">›</span></button>
       <button class="yrow" data-tab="lists"><span class="tic">${ic('list')}</span><span class="grow"><b>Your own lists</b><small>Dinners, activities and pantry</small></span><span class="ych">›</span></button></div>
     <div class="sect">This phone</div>
@@ -4235,7 +4266,7 @@ document.addEventListener('click', async e => {
     if (ds.inurl) return inboxGo(ds.inurl);
     if (ds.shpick) { const on = !S.shSel.has(ds.shpick); on ? S.shSel.add(ds.shpick) : S.shSel.delete(ds.shpick); t.classList.toggle('on', on); const g = document.getElementById('shgo'); if (g) g.innerHTML = shGoLabel(); return; }
     if (ds.tab) { S.tab = ds.tab; S.view = 'home'; if (ds.tab === 'home') { S.revEntry = true; await refresh(); } return render(); }
-    if (ds.final) { const c = await rpc('set_final', { p_code: S.code, p_session: S.sess.id, p_card: ds.final }); send({ type: 'final', card: c }); push(`Tonight: ${c.title}`, `${S.me} locked it in.`, `./?s=${S.sess.id}`); return showFinal(c); }
+    if (ds.final) { const c = await rpc('set_final', { p_code: S.code, p_session: S.sess.id, p_card: ds.final }); send({ type: 'final', card: c }); push(`Tonight: ${c.title}`, `${S.me} locked it in.`, `./?s=${S.sess.id}`, { round: S.sess.id }); return showFinal(c); }
     if (ds.wk) return walkTap(ds.wk, t);
     if (ds.into) { const [a, id] = ds.into.split('|'), c = S.detailCard?.id === id ? S.detailCard : null; t.disabled = true;
       try { await rpc('event_answer', { p_code: S.code, p_member: S.me, p_card: id, p_verdict: a === 'plan' ? 'yes' : a }); } catch { t.disabled = false; return toast('Could not save that. Try again in a moment.'); }
@@ -4246,7 +4277,7 @@ document.addEventListener('click', async e => {
     if (ds.hdeck) { S.homeDeck = ds.hdeck; ls.set('deck', ds.hdeck); S.revEntry = true; return render(); }
     if (ds.lad) return ladder(ds.lad, t);
     if (ds.chg) { const o = S.chg?.[+ds.chg]; if (!o) return; if (o.widen) { const cur = Number(S.settings?.radius_mi || 2), next = [5, 10, 25].find(m => m > cur) || 25; S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { radius_mi: next } }); toast(`Looking within ${next} miles now.`); } return startSession(o.deck, o.filters, o.label); }
-    if (ds.tbpick) { S.tb = await rpc('tiebreak_pick', { p_code: S.code, p_member: S.me, p_id: S.tb.id, p_card: ds.tbpick }); send({ type: 'tb', id: S.tb.id }); push(`Tonight: ${S.tb.pick.title}`, `${S.me} won the tie-breaker and picked it.`, './'); return render(); }
+    if (ds.tbpick) { t.disabled = true; S.tb = await rpc('tiebreak_pick', { p_code: S.code, p_member: S.me, p_id: S.tb.id, p_card: ds.tbpick }); send({ type: 'tb', id: S.tb.id, picked: true }); push(`Tonight: ${S.tb.pick.title}`, `${S.me} won and picked it.`, './?tb=' + S.tb.id, { round: S.tb.session }); render(); return pickReveal(S.tb); }
     if (ds.g) return guessAnswer(ds.g === '1');
     if (ds.seenany) { await rpc('mark_seen_any', { p_code: S.code, p_card: ds.seenany }); await refresh(); toast('Moved to your Seen folder for both of you.'); return openLibrary(); }
     if (ds.astack) { S.stackOpen.has(ds.astack) ? S.stackOpen.delete(ds.astack) : S.stackOpen.add(ds.astack); return render(); }
@@ -4410,6 +4441,10 @@ document.addEventListener('click', async e => {
       case 'teamadd': { const v = (document.getElementById('teamin')?.value || '').trim(); if (v.length < 3) return toast('Give it at least 3 letters.'); return teamDo('add', v); }
       case 'teamlike': return teamDo('like', ds.t);
       case 'teamreset': return teamDo('reset');
+      case 'notif': return notifSheet();
+      case 'notifset': { t.disabled = true; if (!await notifSet(ds.m)) { t.disabled = false; return toast('That didn’t save. Try again.'); } closeSheet(); toast(`${NOTIF[ds.m][0]}. Change it any time on the You tab.`, 3800); return render(); }
+      case 'ob2notif': { t.disabled = true; await notifSet(ds.m); return ob2Next(); }
+      case 'pkclose': return document.querySelector('.match')?.remove();
       case 'poll': return pollSheet(ds.id);
       case 'pollvote': { t.disabled = true; let q; try { q = await rpc('poll_vote', { p_code: S.code, p_member: S.me, p_id: ds.id, p_choice: ds.k }); } catch { t.disabled = false; return toast('That vote didn’t save. Try again.'); }
         S.poll = q; step('poll_vote'); send({ type: 'plan', city: '', action: 'poll' }); pollDraw(q); if (S.view === 'home' && S.tab === 'home') render(); return; }
@@ -4463,7 +4498,7 @@ document.addEventListener('click', async e => {
       case 'tbopen': { const g = gameNow(); if (!g) return render(); try { S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: g.id }); } catch { S.tb = g; } S.view = 'game'; return render(); }
       case 'tbjoin': closeSheet(); return openGame(ds.id);
       case 'tbnudge': { const g = S.view === 'game' ? S.tb : gameNow(); if (!g) return; if (Date.now() - (S.tbNudged || 0) < 60000) return toast(`${them()} was just nudged. Give it a minute.`); S.tbNudged = Date.now();
-        push(`Your turn: ${(GAMES[g.game] || ['a quick game'])[0].toLowerCase()}`, `${S.me} has played and is waiting on you. The winner picks tonight.`, `./?tb=${g.id}`); return toast(`Nudged ${them()}.`); }
+        push(`Your turn: ${(GAMES[g.game] || ['a quick game'])[0].toLowerCase()}`, `${S.me} has played and is waiting on you. The winner picks tonight.`, `./?tb=${g.id}`, { round: S.tb?.session || S.sess?.id }); return toast(`Nudged ${them()}.`); }
       case 'tbrefresh': S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: S.tb.id }); return render();
       case 'add': return addSheet();
       case 'savepantry': { const items = document.getElementById('pt').value.split(/\n|,/).map(s => s.replace(/^[\s\-•*\d.x×]+(?=\D)/i, '').replace(/\$\s?\d+(\.\d+)?/g, '').trim()).filter(s => s.length > 1).map(item => ({ item })); const n = await rpc('set_pantry', { p_code: S.code, p_items: items }); await refresh(); toast(`${n} pantry items saved.`); return loadList(); }
