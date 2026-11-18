@@ -1255,6 +1255,18 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .btn.shrgo{background:linear-gradient(135deg,#2dd4bf,#38bdf8);color:#06262b;box-shadow:0 10px 26px -12px rgba(56,189,248,.8)}
 .shrrow{display:flex;gap:10px;margin-top:10px}.shrrow .btn{flex:1}
 .info.ginfo{pointer-events:auto;cursor:pointer;width:44px;height:44px;right:10px;top:10px}
+
+/* accounts and calendar */
+.acs{display:flex;flex-direction:column;gap:12px}.acs h2{margin:0}.acs .muted{margin:0;font-size:14.5px;line-height:1.5}
+.acsic{align-self:center;color:#ffe3da;filter:drop-shadow(0 0 4px rgba(255,180,160,.6)) drop-shadow(0 0 10px rgba(255,120,140,.3))}.acsic svg{width:34px;height:34px}
+.acin{height:50px;border:0;border-radius:14px;background:rgba(255,255,255,.07);color:#fff;font:500 17px Inter,system-ui,sans-serif;padding:0 16px;width:100%;box-sizing:border-box}
+.acin:focus{outline:none;box-shadow:0 0 0 2px rgba(255,138,110,.55)}
+.acs a.btn{display:flex;align-items:center;justify-content:center;text-decoration:none;color:#fff}
+.acnum{text-align:center;letter-spacing:.4em;font-size:24px;font-weight:700}
+.acapple{background:#fff;color:#000;display:flex;align-items:center;justify-content:center;gap:8px}
+.acg{display:flex;justify-content:center;min-height:44px}
+.acor{margin:2px 0;text-align:center;font-size:12.5px;color:#9a8f97}.acfine{font-size:12.5px!important;text-align:center}
+.pcal{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;min-height:44px;color:#ffe3da;font-weight:600;font-size:14.5px;text-decoration:none}.pcal svg{width:18px;height:18px}
 </style>
 </head>
 <body>
@@ -1279,6 +1291,9 @@ const CFG = {
   vapid: 'BDclxM1Msm3Z4OLK8q5Zro-Z2PjFemslqgIIWK6sCxk3nSn9eJZrbhZ3R0_b5Gm6yurB6AjOgBvjIwjdek7wG-Q',
 };
 const sb = createClient(CFG.url, CFG.key, { auth: { persistSession: false, autoRefreshToken: false } });
+// Accounts (beta first): a person signs in with Apple, Google or an emailed code. The couple code stays how partners link.
+const AUTH = { apple: '', google: '' };   // public IDs; an empty one hides its button
+const sbA = window.LT_BETA ? createClient(CFG.url, CFG.key, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'wl_auth' } }) : null;
 
 const DECKS = {
   movie:    { label: 'Movie night',  em: '🎬', hint: 'Something to watch',        nudge: 'Movie night?' },
@@ -1291,6 +1306,7 @@ const DECKS = {
 };
 const ICONS = {
   x: 'M6 6l12 12M18 6L6 18', moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z', sun: 'M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4', gear: 'M10.11 4.95 L10.16 1.56 L13.84 1.56 L13.89 4.95 A7.3 7.3 0 0 1 15.65 5.68 L18.08 3.32 L20.68 5.92 L18.32 8.35 A7.3 7.3 0 0 1 19.05 10.11 L22.44 10.16 L22.44 13.84 L19.05 13.89 A7.3 7.3 0 0 1 18.32 15.65 L20.68 18.08 L18.08 20.68 L15.65 18.32 A7.3 7.3 0 0 1 13.89 19.05 L13.84 22.44 L10.16 22.44 L10.11 19.05 A7.3 7.3 0 0 1 8.35 18.32 L5.92 20.68 L3.32 18.08 L5.68 15.65 A7.3 7.3 0 0 1 4.95 13.89 L1.56 13.84 L1.56 10.16 L4.95 10.11 A7.3 7.3 0 0 1 5.68 8.35 L3.32 5.92 L5.92 3.32 L8.35 5.68 A7.3 7.3 0 0 1 10.11 4.95Z M15.10 12a3.1 3.1 0 1 0-6.20 0a3.1 3.1 0 1 0 6.20 0z', heart: 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z',
+  cal: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4', user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c.8-4 4-6 8-6s7.2 2 8 6',
   star: 'M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8-5.3-2.8-5.3 2.8 1-5.8-4.2-4.1 5.9-.9z',
   eye: 'M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12zM12 9.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z',
   undo: 'M9 14L4 9l5-5M4 9h10.5a5.5 5.5 0 0 1 0 11H11',
@@ -1621,7 +1637,7 @@ function renderLanding() {
   const i = S.obI = Math.max(0, Math.min(3, S.obI || 0)), C = [['#ffb547', '#ff4d7e'], ['#ffb547', '#ff7a4d'], ['#ff7a9c', '#ff4d7e'], ['#ffb547', '#ff4d7e']][i];
   step('tour' + (i + 1));
   const top = skip => `<div class="wn-top"><span class="wk-dots">${[1, 2, 3].map(k => `<i class="${k <= i ? 'on' : ''}"></i>`).join('')}</span>${skip ? '<button data-act="ob2go" data-i="3">Skip</button>' : `<button data-act="ob2go" data-i="${i - 1}">Back</button>`}</div>`;
-  const code = '<button class="jlink" data-act="getstarted" data-mode="code">I have a code from my partner</button>';
+  const code = '<button class="jlink" data-act="getstarted" data-mode="code">I have a code from my partner</button>' + (BETA ? '<button class="jlink" data-act="acct">I already have an account</button>' : '');
   const body = [
     () => `<div class="ob2-hello">${MARK}<div class="brand">${BRAND}</div><h1>Stop asking <em>“what do you want to do?”</em></h1><p class="wk-p">Swipe whenever you like. It only shows what you both said yes to, ready for the night you want a plan. Let’s do more together.</p></div><button class="btn wk-cta" data-act="ob2go" data-i="1">See how it works</button>${code}`,
     () => `${top(1)}<small class="wk-k">Try all four</small><h2 class="wk-h">You each swipe on your own</h2><p class="wk-p">Flick this card each way. Nobody sees your swipes unless you both say yes.</p>${ob2SwipeStage()}<button class="btn wk-cta wait" id="wkgo" data-act="ob2go" data-i="2" disabled>Flick the card</button>`,
@@ -2552,6 +2568,7 @@ function daySheet(id) {
   sheet(`<div class="grab"></div><div class="body"><h2>${auto ? pAutoName(p) + (pDayName(p.day) !== dfmt(p.day) ? ' · ' + pDayName(p.day) : '') : pDayName(p.day) + (p.mode === 'in' ? ': a night in' : '')}</h2><p class="muted" style="margin-top:6px;font-size:14px">${auto ? (solo ? 'Put together from what you like.' : `Put together from what you both like${p.by !== 'auto' ? `, then changed by ${p.by === S.me ? 'you' : esc(p.by)}` : ''}. Swap anything you like.`) : `${p.by === S.me ? 'You' : esc(p.by)} put this together${pDayName(p.day) !== dfmt(p.day) ? ' for ' + esc(dfmt(p.day)) : ''}.`}</p>
     <div id="pwx" class="pwx" hidden></div>
     <div style="margin-top:8px">${p.items.map(i => row(i) + pLeg(p, i)).join('')}</div>${shapes}
+    ${BETA && !past && p.items.some(i => i.card) ? `<a class="pcal" href="${CFG.url}/functions/v1/ics?plan=${p.id}" target="_blank" rel="noopener">${ic('cal')}Add ${p.items.filter(i => i.card).length > 1 ? 'every stop' : 'it'} to my calendar</a>` : ''}
     ${near.length ? `<p class="muted" style="margin-top:12px;font-size:13px">Also a short walk away, and you both like them: ${near.map(x => `${esc(x.c.title)} (${x.mi} mi)`).join(', ')}.</p>` : ''}${acts}</div>`);
   { const sc = $layer.querySelector('.scrim'), el = (Date.now() - S.kgAt) / 1000, on = el < 1.9;   // a redraw while it is still arriving carries on from where it was
     sc?.classList.add('kc', 'k-' + pKind(p), on ? 'kglow' : 'kset'); if (on) { sc.style.setProperty('--ke', el + 's'); sc.querySelectorAll('.prow').forEach((r, i) => r.style.setProperty('--i', i)); } }
@@ -3577,6 +3594,108 @@ async function guessAnswer(yes) {
   if (S.gi < S.gq.length) return render();
   S.gres = await rpc('guess_submit', { p_code: S.code, p_member: S.me, p_answers: S.ga }); render();
 }
+
+// ===== Accounts =====
+async function acctRpc(fn, args) { const { data, error } = await sbA.rpc(fn, args || {}); if (error) throw error; return data; }
+async function acctInit() {
+  try { const { data } = await sbA.auth.getSession(); const u = data.session?.user; S.acct = u ? { email: u.email || '' } : null; } catch { S.acct = null; }
+  if (S.acct && S.code && S.me && ls.get('acctl') !== S.code + '|' + S.me) await acctLink();
+}
+async function acctLink() {
+  try { const r = await acctRpc('acct_link', { p_code: S.code, p_member: S.me });
+    if (r?.ok) { ls.set('acctl', S.code + '|' + S.me); return true; }
+    if (r?.why === 'taken') toast(`${S.me} in this couple is saved to a different account.`, 4200);
+  } catch {}
+  return false;
+}
+// A new phone: signing in brings the couple back.
+async function acctRestore() {
+  try { const rows = await acctRpc('acct_me'); const r = rows?.[0]; if (!r) return false;
+    S.code = r.code; S.me = r.name; ls.set('code', r.code); ls.set('name', r.name); ls.set('acctl', r.code + '|' + r.name); return true;
+  } catch { return false; }
+}
+function acctSheet(stage) {
+  const who = S.code && S.me ? (partner() ? `you and ${esc(them())}` : 'your couple') : 'your couple';
+  if (S.acct) return sheet(`<div class="grab"></div><div class="body acs"><span class="acsic">${ic('user')}</span><h2>Your account is saved</h2>
+    <p class="muted">Signed in as <b>${esc(S.acct.email || 'your Apple or Google account')}</b>. Sign in with it on any phone and you’re back with ${who}.</p>
+    <div style="height:16px"></div><button class="btn ghost" data-act="acctout">Sign out of this account</button></div>`);
+  if (stage === 'code') return sheet(`<div class="grab"></div><div class="body acs"><span class="acsic">${ic('mail')}</span><h2>Check your email</h2>
+    <p class="muted">We sent a 6-digit code to <b>${esc(S.acctEmail)}</b>. It works for 10 minutes.</p>
+    <input id="acode" class="acin acnum" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" aria-label="6-digit code">
+    <button class="btn" data-act="acctverify">Sign in</button>
+    <button class="jlink" data-act="acctsend" data-again="1">Send a new code</button></div>`);
+  sheet(`<div class="grab"></div><div class="body acs"><span class="acsic">${ic('user')}</span><h2>${S.code && S.me ? 'Save your account' : 'Sign in'}</h2>
+    <p class="muted">${S.code && S.me ? `Sign in once and you can get back to ${who} on any phone. Your couple code still connects you two.` : 'Sign in and we’ll bring back your couple.'}</p>
+    ${AUTH.apple ? `<button class="btn acapple" data-act="acctapple"><svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.4 12.6c0-2.4 2-3.6 2.1-3.7-1.2-1.7-3-1.9-3.6-2-1.5-.2-3 .9-3.8.9-.8 0-2-.9-3.3-.9-1.7 0-3.3 1-4.2 2.5-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8s2 .8 3.3.8c1.4 0 2.3-1.2 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9 0 0-2.8-1.1-2.8-4.2zM14 5.3c.7-.8 1.2-2 1-3.1-1 0-2.2.7-2.9 1.5-.6.7-1.2 1.9-1 3 1.1.1 2.2-.6 2.9-1.4z"/></svg>Continue with Apple</button>` : ''}
+    ${AUTH.google ? '<div id="gbtn" class="acg"></div>' : ''}
+    ${AUTH.apple || AUTH.google ? '<p class="acor">or use your email</p>' : ''}
+    <input id="aemail" class="acin" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" aria-label="Email" value="${esc(S.acctEmail || '')}">
+    <button class="btn ${AUTH.apple || AUTH.google ? 'ghost' : ''}" data-act="acctsend">Email me a code</button>
+    <p class="muted acfine">We only use your email to sign you in. Nobody else sees it.</p></div>`);
+  if (AUTH.google) acctGoogle();
+}
+async function acctSend(t) {
+  const e = (document.getElementById('aemail')?.value || (t?.dataset.again ? S.acctEmail : '') || '').trim().toLowerCase();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) return toast('Enter your email address.');
+  t.disabled = true;
+  const { error } = await sbA.auth.signInWithOtp({ email: e, options: { shouldCreateUser: true } });
+  t.disabled = false;
+  if (error) return toast(/rate|seconds/i.test(error.message) ? 'Give it a minute, then try again.' : 'Could not send the code. Try again.', 3600);
+  S.acctEmail = e; step('acct_code_sent'); acctSheet('code'); setTimeout(() => document.getElementById('acode')?.focus(), 250);
+  if (t?.dataset.again) toast('New code sent.');
+}
+async function acctVerify(t) {
+  const code = (document.getElementById('acode')?.value || '').replace(/\D/g, '');
+  if (code.length !== 6) return toast('Enter the 6-digit code from the email.');
+  t.disabled = true;
+  const { data, error } = await sbA.auth.verifyOtp({ email: S.acctEmail, token: code, type: 'email' });
+  t.disabled = false;
+  if (error || !data?.session) return toast('That code didn’t work. Check it, or send a new one.', 3600);
+  return acctDone(data.session.user);
+}
+async function acctDone(u) {
+  S.acct = { email: u?.email || '' }; step('acct_saved');
+  if (S.code && S.me) { await acctLink(); closeSheet(); toast('Account saved. You can sign in on any phone now.', 3400); return render(); }
+  if (await acctRestore()) { closeSheet(); toast(`Welcome back, ${S.me}.`); return boot(); }
+  closeSheet(); toast('Signed in. Now start a couple or enter your partner’s code.', 3800); return render();
+}
+const loadJs = src => new Promise((ok, no) => { if (document.querySelector(`script[src="${src}"]`)) return ok(); const s = document.createElement('script'); s.src = src; s.async = true; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
+async function nonces() { const raw = [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join(''); const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw)); return { raw, hashed: [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, '0')).join('') }; }
+async function acctApple(t) {
+  t.disabled = true;
+  try {
+    await loadJs('https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js');
+    const n = await nonces();
+    window.AppleID.auth.init({ clientId: AUTH.apple, scope: 'email', redirectURI: location.origin + location.pathname, usePopup: true, nonce: n.hashed });
+    const r = await window.AppleID.auth.signIn();
+    const { data, error } = await sbA.auth.signInWithIdToken({ provider: 'apple', token: r.authorization.id_token, nonce: n.raw });
+    if (error) throw error; return acctDone(data.user);
+  } catch (e) { t.disabled = false; if (!/popup_closed|user_cancel/i.test(String(e?.error || e?.message || ''))) toast('Apple sign-in didn’t finish. Try again, or use your email.', 3800); }
+}
+async function acctGoogle() {
+  try {
+    await loadJs('https://accounts.google.com/gsi/client');
+    const n = await nonces(), el = document.getElementById('gbtn'); if (!el) return;
+    window.google.accounts.id.initialize({ client_id: AUTH.google, nonce: n.hashed, use_fedcm_for_prompt: true, callback: async r => {
+      const { data, error } = await sbA.auth.signInWithIdToken({ provider: 'google', token: r.credential, nonce: n.raw });
+      if (error) return toast('Google sign-in didn’t finish. Try again, or use your email.', 3800);
+      acctDone(data.user);
+    } });
+    window.google.accounts.id.renderButton(el, { theme: 'filled_black', size: 'large', shape: 'pill', text: 'continue_with', width: Math.min(360, el.clientWidth || 320) });
+  } catch { document.getElementById('gbtn')?.remove(); }
+}
+// ===== Calendar =====
+async function calSheet(t) {
+  t.disabled = true; let tok; try { tok = await rpc('cal_feed', { p_code: S.code, p_member: S.me }); } catch {} t.disabled = false;
+  if (!tok) return toast('Could not make your calendar link. Try again.');
+  const https = `${CFG.url}/functions/v1/ics?feed=${tok}`, wc = https.replace(/^https:/, 'webcal:');
+  S.calLink = https; step('cal_open');
+  sheet(`<div class="grab"></div><div class="body acs"><span class="acsic">${ic('cal')}</span><h2>Plans in your calendar</h2>
+    <p class="muted">Subscribe once. Every plan you both agree to shows up with its times and places, with a heads-up an hour before. Changes update on their own.</p>
+    <a class="btn" href="${wc}">Add to my iPhone calendar</a>
+    <button class="btn ghost" data-act="calcopy" style="margin-top:10px">Copy the link for Google Calendar</button>
+    <p class="muted acfine">The link is just for you. Anyone who has it can see your plans, so don’t post it.</p></div>`);
+}
 function settingsForm() {
   const st = S.settings || {}, all = S.state.services || [], on = st.services?.length ? st.services : (st.setup ? all : []);
   return `<label class="field"><span>Home ZIP code</span><input id="s_zip" inputmode="numeric" autocomplete="postal-code" maxlength="10" value="${esc(st.zip || '')}" placeholder="48201"></label>
@@ -3736,6 +3855,8 @@ function youHTML() {
   return `<div class="you"><div class="brand">You</div>
     <div class="ycard"><div class="yrow"><span class="tic">${ic('heart')}</span><span class="grow"><b>${esc(S.me)}</b><small>${p ? 'Paired with ' + esc(p) : 'Not paired yet'}</small></span><button class="ysw" data-act="rename">Rename</button></div>
       <div class="yrow"><span class="tic">${ic('share')}</span><span class="grow"><b>${esc(S.code)}</b><small>Your couple code</small></span><button class="ysw" data-act="invite">Invite</button></div>
+      ${BETA ? `<button class="yrow" data-act="acct"><span class="tic">${ic('user')}</span><span class="grow"><b>${S.acct ? 'Account saved' : 'Save your account'}</b><small>${S.acct ? esc(S.acct.email || 'Signed in with Apple or Google') : 'So you can sign back in on any phone'}</small></span><span class="ych">›</span></button>
+      <button class="yrow" data-act="calsub"><span class="tic">${ic('cal')}</span><span class="grow"><b>Plans in your calendar</b><small>Every plan you both agree to shows up on its own</small></span><span class="ych">›</span></button>` : ''}
       <button class="yrow" data-act="bdays"><span class="tic">${ic('heart')}</span><span class="grow"><b>Birthday and anniversary</b><small>${S.dates?.bday || S.dates?.anniv ? esc([S.dates.bday ? 'Birthday ' + mdText(S.dates.bday) : '', S.dates.anniv ? 'Anniversary ' + mdText(S.dates.anniv) : ''].filter(Boolean).join(' · ')) : 'So you both get a heads-up before the day'}</small></span><span class="ych">›</span></button>
       <button class="yrow" data-tab="lists"><span class="tic">${ic('list')}</span><span class="grow"><b>Your own lists</b><small>Dinners, activities and pantry</small></span><span class="ych">›</span></button>
       ${sw(S.settings?.kids === true, 'kidsset', 'Planning with kids', S.settings?.kids === true ? 'Family films and kid-friendly places, for both of you' : 'Turn on for kid-friendly films, places and ideas', 'heart')}</div>
@@ -4684,6 +4805,13 @@ document.addEventListener('click', async e => {
       case 'liketoo': { const c = S.detailCard; if (!c) return; t.disabled = true; try { const r = await rpc('like_card', { p_code: S.code, p_member: S.me, p_card: c.id }); document.querySelector('.lfront')?.remove(); if (r.match) { toast(`You both like ${c.title} now.`, 3500); send({ type: 'shortlist' }); push(`It's a match ${emojiFor(c)}`, `You and ${S.me} both like ${c.title}.`, './'); } refresh().catch(() => {}); } catch { toast('Could not save that like.'); } return S.view === 'trips' ? openTrips() : null; }
       case 'scolater': document.querySelector('.sco')?.remove(); return;
       case 'scratchdone': document.querySelector('.scr')?.remove(); return render();
+      case 'acct': return acctSheet();
+      case 'acctsend': return acctSend(t);
+      case 'acctverify': return acctVerify(t);
+      case 'acctapple': return acctApple(t);
+      case 'acctout': { try { await sbA.auth.signOut(); } catch {} S.acct = null; ls.del('acctl'); closeSheet(); toast('Signed out of your account. The app stays signed in on this phone.'); return render(); }
+      case 'calsub': return calSheet(t);
+      case 'calcopy': try { await navigator.clipboard.writeText(S.calLink); toast('Copied. In Google Calendar, add it under Other calendars, From URL.', 4200); } catch { toast('Could not copy. Try again.'); } return;
       case 'kidsset': { const on = S.settings?.kids !== true; try { S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { kids: on } }); } catch { return toast('Could not save. Try again.'); }
         step(on ? 'kids_on' : 'kids_off'); toast(on ? 'Kid-friendly from the next cards on, for both of you.' : 'Back to everything.'); return render(); }
       case 'travelon': return checkTravel(true);
@@ -5015,7 +5143,9 @@ async function boot() {
     // Home Screen app with nothing saved yet: use the sign-in cookie copied over from the browser, if there is one.
     if ((!S.code || !S.me) && standalone()) { const a = authCookie.get(); if (a) { try { const ms = await rpc('couple_members', { p_code: a.c }); if (ms.includes(a.n)) { S.code = a.c; S.me = a.n; ls.set('code', a.c); ls.set('name', a.n); } } catch {} } } }
   logOpen(_had ? 'saved' : S.code && S.me ? (_url && standalone() ? 'url' : 'cookie') : 'none', _url, _ck);
+  if (sbA) { await acctInit(); if ((!S.code || !S.me) && S.acct) await acctRestore(); }
   if (!S.code || !S.me) return render();
+  if (sbA && !S.acct && !ls.get('acctask')) setTimeout(() => { if (!$layer.innerHTML && S.view === 'home') { ls.set('acctask', '1'); acctSheet(); } }, 1800);
   try { await refresh(); } catch (e) { if (String(e.message).includes('bad_code')) { ls.del('code'); ls.del('name'); authCookie.clear(); S.code = S.me = null; return render(); } $app.innerHTML = `<div class="center"><div class="brand">${BRAND}</div><p class="muted" style="margin:12px 0 18px">Could not reach the server. Check your connection.</p><button class="btn" onclick="location.reload()">Try again</button></div>`; return; }
   connect(); resavePush();
   const s = new URLSearchParams(location.search).get('s');
