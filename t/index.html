@@ -3721,6 +3721,21 @@ async function pkRow() {
   r.querySelector('small').textContent = list.length ? 'On' : 'Sign in with one look instead of a code';
   r.insertAdjacentHTML('beforeend', list.length ? `<button class="ysw on" data-act="pkdel" data-id="${esc(list[0].id)}">On</button>` : `<button class="ysw" data-act="pkadd">Off</button>`);
 }
+
+// ===== Beta only: timing notes, so a slow spot on a real phone can be found. Nothing is measured in the live app. =====
+let perfN = 0;
+function perfSend(d) { if (!BETA || !S.code || perfN++ > 40) return; try { rpc('perf_note', { p_code: S.code, p_member: S.me, p_data: { ...d, v: S.view, nodes: document.getElementsByTagName('*').length, sa: standalone() ? 1 : 0 } }).catch(() => {}); } catch {} }
+function perfTab(deck, t0) {
+  const r = Math.round(performance.now() - t0), st = document.getElementById('stack'), was = st ? st.innerHTML.length : 0; let f = null, c = null, gap = 0, last = performance.now();
+  const tick = () => { const n = performance.now(); if (f === null) f = Math.round(n - t0); gap = Math.max(gap, Math.round(n - last)); last = n;
+    const s2 = document.getElementById('stack'); if (c === null && s2 && s2.querySelector('.card') && s2.innerHTML.length !== was) c = Math.round(n - t0);
+    if (n - t0 < 5000 && S.homeDeck === deck) requestAnimationFrame(tick); else perfSend({ k: 'tab', deck, render: r, frame: f, card: c, gap, left: S.homeDeck !== deck ? 1 : 0 }); };
+  requestAnimationFrame(tick);
+}
+if (BETA) { let last = performance.now(), sent = 0; const w = () => { const n = performance.now(), g = n - last; last = n; if (g > 700 && g < 30000 && document.visibilityState === 'visible' && sent++ < 12) perfSend({ k: 'stall', ms: Math.round(g), deck: S.homeDeck, sheet: $layer?.innerHTML ? 1 : 0 }); requestAnimationFrame(w); }; requestAnimationFrame(w);
+  document.addEventListener('visibilitychange', () => { last = performance.now(); });
+  addEventListener('error', e => perfSend({ k: 'err', m: String(e.message || '').slice(0, 160), l: e.lineno }));
+  addEventListener('unhandledrejection', e => perfSend({ k: 'rej', m: String(e.reason?.message || e.reason || '').slice(0, 160) })); }
 // ===== Calendar =====
 async function calSheet(t) {
   t.disabled = true; let tok; try { tok = await rpc('cal_feed', { p_code: S.code, p_member: S.me }); } catch {} t.disabled = false;
@@ -4759,7 +4774,7 @@ document.addEventListener('click', async e => {
       if (a === 'seen') push(`${S.me} can’t make it`, `${c?.title || 'That event'}: the date doesn’t work.`, './');   // "Not for me" stays quiet
       closeSheet(); toast(a === 'seen' ? 'Marked as can’t make it.' : 'Okay, passed.', 2500); refresh().catch(() => {}); return; }
     if (ds.like) { t.disabled = true; const r = await rpc('like_card', { p_code: S.code, p_member: S.me, p_card: ds.like }); t.outerHTML = '<span class="pill hot">Liked</span>'; if (r.match) { toast('You have both liked that one. It will come up first next round.', 3500); send({ type: 'shortlist' }); } refresh().catch(() => {}); return; }
-    if (ds.hdeck) { S.homeDeck = ds.hdeck; ls.set('deck', ds.hdeck); S.revEntry = true; return render(); }
+    if (ds.hdeck) { const pt = BETA ? performance.now() : 0; S.homeDeck = ds.hdeck; ls.set('deck', ds.hdeck); S.revEntry = true; render(); if (BETA) perfTab(ds.hdeck, pt); return; }
     if (ds.lad) return ladder(ds.lad, t);
     if (ds.chg) { const o = S.chg?.[+ds.chg]; if (!o) return; if (o.widen) { const cur = Number(S.settings?.radius_mi || 2), next = [5, 10, 25].find(m => m > cur) || 25; S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { radius_mi: next } }); toast(`Looking within ${next} miles now.`); } return startSession(o.deck, o.filters, o.label); }
     if (ds.tbpick) { t.disabled = true; S.tb = await rpc('tiebreak_pick', { p_code: S.code, p_member: S.me, p_id: S.tb.id, p_card: ds.tbpick }); send({ type: 'tb', id: S.tb.id, picked: true }); push(`Tonight: ${S.tb.pick.title}`, `${S.me} won and picked it.`, './?tb=' + S.tb.id, { round: S.tb.session }); render(); return pickReveal(S.tb); }
