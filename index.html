@@ -3511,15 +3511,16 @@ function renderGuess() {
     $app.innerHTML = `<div class="center"><div class="badge" style="margin:0 0 18px">${ic('target')}</div><h2 class="serif" style="font-size:42px;line-height:1.05">You got ${r.score} of ${r.total}</h2><p class="muted" style="margin:10px 0 22px;font-size:15.5px;line-height:1.45">Which ones stay secret.${r.overall != null ? ` So far you read ${esc(them())} right ${r.overall}% of the time.` : ''}</p><button class="btn" data-act="unlock">Unlock a few more cards</button><div style="height:10px"></div><button class="btn ghost" data-act="home">Done</button></div>`;
     return; }
   $app.innerHTML = `<div class="swipe"><div class="topbar"><button class="back" data-act="home" aria-label="Back">‹</button><div class="grow"><h2>What did ${esc(them())} say?</h2><small>${S.gi + 1} of ${S.gq.length} · you only see your score</small></div></div>
-    <p class="muted" style="font-size:13.5px;margin:8px 2px 0">Swipe right if ${esc(them())} liked it, left if they didn’t.</p>
+    <p class="muted" style="font-size:13.5px;margin:8px 2px 0">Swipe right if ${esc(them())} liked it, left if they didn’t. Tap the card to flip it for the details.</p>
     <div class="stack" id="gstack">${cardHTML(S.gq[S.gi], 'gcard')}</div>${btnsOn() ? `<div class="gacts"><button class="btn ghost" data-g="0">Didn’t like it</button><button class="btn" data-g="1">Liked it</button></div>` : ''}</div>`;
   // one card, answered by swiping: right for liked, left for didn't
   const c = document.querySelector('#gstack .card'); if (!c) return;
   c.querySelectorAll('.stamp.love,.stamp.seen,.gfx,.ehint').forEach(x => x.remove()); const sy = c.querySelector('.stamp.yes'), sn = c.querySelector('.stamp.no'); if (sy) sy.textContent = 'Liked it'; if (sn) sn.textContent = 'Didn’t like it';
-  let g = null, done = false;
-  c.addEventListener('pointerdown', e => { if (done || e.target.closest('.info')) return; g = { x: e.clientX, y: e.clientY, dx: 0 }; c.style.transition = 'none'; try { c.setPointerCapture(e.pointerId); } catch {} });
+  let g = null, done = false; const gyn = `<button class="btn ghost" data-g="0">Didn’t like it</button><button class="btn" data-g="1">Liked it</button>`;
+  c.addEventListener('pointerdown', e => { if (done || e.target.closest('.info,.cback')) return; g = { x: e.clientX, y: e.clientY, dx: 0, t: Date.now() }; c.style.transition = 'none'; try { c.setPointerCapture(e.pointerId); } catch {} });
   c.addEventListener('pointermove', e => { if (!g) return; g.dx = e.clientX - g.x; const dy = (e.clientY - g.y) * .25; c.style.transform = `translate(${g.dx}px,${dy}px) rotate(${g.dx / 18}deg)`; if (sy) sy.style.opacity = Math.max(0, Math.min(1, g.dx / 80)); if (sn) sn.style.opacity = Math.max(0, Math.min(1, -g.dx / 80)); });
-  const up = () => { if (!g) return; const dx = g.dx; g = null;
+  const up = e => { if (!g) return; const dx = g.dx, tap = Math.abs(dx) < 8 && Math.abs((e?.clientY ?? g.y) - g.y) < 8 && Date.now() - g.t < 350; g = null;
+    if (tap) { c.style.transform = ''; return flipCard(c, S.gq[S.gi], gyn); }
     if (Math.abs(dx) < 70) { c.style.transition = 'transform .28s ease-out'; c.style.transform = ''; if (sy) sy.style.opacity = 0; if (sn) sn.style.opacity = 0; return; }
     done = true; c.style.transition = 'transform .3s ease-in, opacity .3s'; c.style.transform = `translate(${dx > 0 ? 140 : -140}%,30px) rotate(${dx > 0 ? 22 : -22}deg)`; c.style.opacity = .3; try { navigator.vibrate?.(10); } catch {}
     setTimeout(() => guessAnswer(dx > 0), 280); };
@@ -4151,9 +4152,10 @@ function revealCards(st) {
 }
 // Tap a card to turn it over: the details are on its back. Tap again to turn it back. Swiping works from the front,
 // and the buttons under the deck work from either side.
-function flipCard(el, c) { if (!el || !c || el._flipping) return; el._flipping = true; const to = !el.classList.contains('flipped');
-  if (to && !el.querySelector('.cback')) { const b = document.createElement('div'); b.className = 'cback'; b.innerHTML = showDetail(c, true) + `<div class="cbyn"><button class="btn ghost" data-sw="no">${esc(VERD(c)[0])}</button><button class="btn" data-sw="yes">${esc(VERD(c)[1])}</button></div><p class="cbhint">Tap to flip back</p>`;
-    b.addEventListener('click', e => { if (e.target.closest('a,button')) return; flipCard(el, c); }); el.appendChild(b); }
+function flipCard(el, c, yn) { if (!el || !c || el._flipping) return; el._flipping = true; const to = !el.classList.contains('flipped');
+  if (to && !el.querySelector('.cback')) { const b = document.createElement('div'); b.className = 'cback'; b.innerHTML = showDetail(c, true) + `<div class="cbyn">${yn || `<button class="btn ghost" data-sw="no">${esc(VERD(c)[0])}</button><button class="btn" data-sw="yes">${esc(VERD(c)[1])}</button>`}</div><p class="cbhint">Tap to flip back</p>`;
+    if (yn) b.querySelectorAll('button').forEach(x => { if (!x.closest('.cbyn')) x.remove(); });   // a guess is only an answer: no sending, planning or favorites from here
+    b.addEventListener('click', e => { if (e.target.closest('a,button')) return; flipCard(el, c, yn); }); el.appendChild(b); }
   if (to) { S.detailCard = c; step('flip'); }
   // a little dazzle: the card glows as it turns and a band of light crosses the new face
   try { const kg = getComputedStyle(el.parentNode).getPropertyValue('--kg').trim() || 'rgba(255,120,150,.8)'; el.animate([{ boxShadow: '0 0 0 0 transparent' }, { boxShadow: `0 0 80px 18px ${kg}, 0 0 26px 4px rgba(255,255,255,.35)`, offset: .45 }, { boxShadow: '0 0 0 0 transparent' }], { duration: 620, easing: 'ease-out' }); } catch {}
