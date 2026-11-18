@@ -1823,7 +1823,8 @@ async function loadBite() {
     if ((await loadSession(r.id, here)) === false || !here()) return;
     drawStack();
     if (look) lateFill(deck, r.id, look, bg, res);
-    if (deck === 'dinner' && !away) { eatWhy(r.id); if (!eatAsked() && S.deck.length && !$layer.innerHTML && !document.querySelector('.wn,.match')) setTimeout(() => { if (S.tab === 'home' && S.sess?.id === r.id && !$layer.innerHTML) eatSheet(); }, 700); }
+    eatWhy(r.id);
+    if (deck === 'dinner' && !away) { if (!eatAsked() && S.deck.length && !$layer.innerHTML && !document.querySelector('.wn,.match')) setTimeout(() => { if (S.tab === 'home' && S.sess?.id === r.id && !$layer.innerHTML) eatSheet(); }, 700); }
   } catch (e) { const st = document.getElementById('stack'); if (st && here()) st.innerHTML = '<div class="done"><p class="muted">Could not load today’s cards. Reopen the app to try again.</p></div>'; }
 }
 // The daily browse has a finish line: two likes. After that it is done for today, with "keep browsing" for anyone who wants more.
@@ -1841,7 +1842,7 @@ async function moreNext(steer) { const sid = S.sess?.id, st = document.getElemen
     const have = new Set(S.deck.map(c => c.id)), add = (r?.added || []).filter(c => !have.has(c.id));
     if (!add.length) { S.moreEnd = sid; if (steer) toast('Nothing more on that thread tonight. Back to your usual mix.', 3500); return drawStack(); }
     if (steer?.why) { S.why = S.why || {}; add.forEach(c => { S.why[c.id] = steer.why; }); }
-    S.deck.push(...add); S.total = (S.total || 0) + add.length; S.moreN = (S.moreN || 0) + 1; st?.querySelector(':scope > .done')?.remove(); drawStack();
+    S.deck.push(...add); S.total = (S.total || 0) + add.length; S.moreN = (S.moreN || 0) + 1; if (!steer) eatWhy(sid); st?.querySelector(':scope > .done')?.remove(); drawStack();
   } catch { toast('Could not load more just now.'); } finally { S.moreBusy = false; } }
 async function moreStop() { const st = document.getElementById('stack'), acts = document.getElementById('acts'); if (!st) return; acts.style.visibility = 'hidden';
   setDone(st, '<div class="done"><p class="muted">Finding a few more…</p></div>'); let c = null; try { c = await rpc('steer_next', { p_code: S.code, p_member: S.me }); } catch {}
@@ -1855,7 +1856,8 @@ function steerDraw(ans) { const c = S.steer, st = document.getElementById('stack
 // One quiet line above the top card saying why it is there (a steering thread, or the reasons behind a place pick).
 function deckWhy() { const st = document.getElementById('stack'); if (!st) return; let el = document.getElementById('whyl'); const c = S.deck[0], t = c && S.bite && !biteGoal() ? (S.why || {})[c.id] : '';
   if (!t) return void el?.remove(); if (!el) { el = document.createElement('div'); el.id = 'whyl'; el.className = 'whyl'; st.parentNode.insertBefore(el, st); } el.textContent = t; }
-async function eatWhy(sid) { try { const w = await rpc('bite_why', { p_code: S.code, p_member: S.me, p_session: sid }); if (w && S.sess?.id === sid) { S.why = { ...(S.why || {}), ...w }; deckWhy(); } } catch {} }
+// Why each card is in front of you: your own likes, the calendar, or what it's near. A steering thread's reason is kept.
+async function eatWhy(sid) { try { const w = await rpc('card_whys', { p_code: S.code, p_member: S.me, p_session: sid }); if (w && S.sess?.id === sid) { S.why = { ...w, ...(S.why || {}) }; deckWhy(); } } catch {} }
 // Places are scarce, so they come as a few considered picks a day. Three quick answers make the picks better.
 const eatAsked = () => !!S.dates?.taste?.eat || Date.now() - Number(ls.get('eatAt') || 0) < 7 * 86400000;
 async function eatSheet() { ls.set('eatAt', String(Date.now())); let opts = []; try { opts = await rpc('eat_options', { p_code: S.code }) || []; } catch {} if (opts.length < 3) return; step('eat_ask');
