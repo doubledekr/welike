@@ -1216,7 +1216,7 @@ const MARK = `<svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><defs><li
 const BRAND = 'Let’s <i>Together</i>';
 const ic = n => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[n] || ''}"/></svg>`;
 // Each category wears one of the five what's-happening colors.
-const CK = { movie: 'fri', dinner: 'sat', activity: 'ask', event: 'ask', trip: 'book', art: 'match' };
+const CK = { all: 'match', movie: 'fri', dinner: 'sat', activity: 'ask', event: 'ask', trip: 'book', art: 'match' };
 const DIC = { movie: 'film', dinner: 'dine', activity: 'spark', event: 'ticket', mix: 'shuffle', trip: 'plane', art: 'frame' };
 const KINDS = { cook: ['Cook at home', '🍳'], restaurant: ['Restaurant', '🍷'], orderin: ['Order in', '🥡'] };
 const EVENT_EM = { 'Music': '🎶', 'Comedy': '🎤', 'Trivia': '🧠', 'Arts and Film': '🎞️', 'Sports and Games': '🏟️', 'Brunch': '🥞', 'Happy Hour': '🍻', 'Seasonal': '🍂', 'Special Event': '✨', 'Bar': '🍸', 'Museum': '🏛️', 'Gallery': '🖼️', 'Bookstore': '📚', 'Bowling': '🎳', 'Games & fun': '🕹️', 'Night out': '🌙', 'Shops': '🛍️' };
@@ -1229,7 +1229,7 @@ const SVC_DOT = { 'Netflix': '#e50914', 'Hulu': '#1ce783', 'Prime Video': '#00a8
 
 const ls = { get: k => { try { return localStorage.getItem('wl_' + k) } catch { return null } }, set: (k, v) => { try { localStorage.setItem('wl_' + k, v) } catch {} }, del: k => { try { localStorage.removeItem('wl_' + k) } catch {} } };
 const S = { code: ls.get('code'), me: ls.get('name'), state: null, pantry: [], tab: 'home', view: 'home', sess: null, deck: [], hist: [], matches: [], listTab: 'activity', chan: null };
-S.homeDeck = ls.get('deck') || 'movie'; S.revEntry = true; try { S.doneHtml = JSON.parse(ls.get('donehtml') || '{}'); } catch { S.doneHtml = {}; } S.tripCity = ls.get('tripcity') || '';
+S.homeDeck = ls.get('deck') || 'all'; S.revEntry = true; try { S.doneHtml = JSON.parse(ls.get('donehtml') || '{}'); } catch { S.doneHtml = {}; } S.tripCity = ls.get('tripcity') || '';
 const $app = document.getElementById('app'), $layer = document.getElementById('layer');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const rpc = async (fn, args) => { const { data, error } = await sb.rpc(fn, args); if (error) throw error; return data; };
@@ -1717,10 +1717,11 @@ function paintHearts() {   // header total plus the small per-category counts
   if (pill) { pill.textContent = '♥ ' + (c.shortlist || 0); pill.classList.toggle('hot', !!c.shortlist); }
   document.querySelectorAll('[data-hdeck]').forEach(b => { b.querySelector('.hc')?.remove(); b.insertAdjacentHTML('beforeend', heartTag(b.dataset.hdeck)); });
 }
-const HDECKS = [['movie', 'Movies'], ['dinner', 'Eat'], ['event', 'Go out'], ['trip', 'Trips'], ['art', 'Art']];
+const HDECKS = [['all', 'All'], ['movie', 'Movies'], ['dinner', 'Eat'], ['event', 'Go out'], ['trip', 'Trips'], ['art', 'Art']];
 function homeHTML() {
   const st = S.state, p = partner(), incoming = (st.sessions || []).filter(s => s.from !== S.me && s.my_left > 0 && !(s.filters?.evshare && s.created_at && Date.now() - new Date(s.created_at) > 8 * 864e5)).sort((a, b) => (a.filters?.share || a.filters?.evshare ? 1 : 0) - (b.filters?.share || b.filters?.evshare ? 1 : 0));   // a nudge for right now takes the one slot ahead of a some-time-soon list
-  if (!HDECKS.some(d => d[0] === S.homeDeck)) S.homeDeck = 'movie';
+  if (!ls.get('allv1')) { ls.set('allv1', '1'); S.homeDeck = 'all'; ls.set('deck', 'all'); }   // the Everything deck is the new front door, once
+  if (!HDECKS.some(d => d[0] === S.homeDeck)) S.homeDeck = 'all';
   return `<div class="home">
     <div class="row hdr"><div class="brand grow hb">${MARK}<span>${BRAND}</span></div>
       <button class="ib" data-act="search" aria-label="Search movies">${ic('search')}</button>
@@ -1773,7 +1774,8 @@ async function loadBite() {
     if (deck === 'event' && away) await Promise.race([sb.functions.invoke('trips', { body: { action: 'local', code: S.code, city: away } }).catch(() => {}), new Promise(r => setTimeout(r, 7000))]);
     else if (deck === 'event' && S.settings.zip && ls.get('lexp') !== new Date().toDateString()) { ls.set('lexp', new Date().toDateString()); const lx = Promise.race([sb.functions.invoke('trips', { body: { action: 'local', code: S.code } }).catch(() => {}), new Promise(r => setTimeout(r, 5000))]); if (quick) bg = Promise.all([bg, lx]).then(a => a[0]); else await lx; }
     if (og) await og;
-    const r = deck === 'art' ? await rpc('start_art', { p_code: S.code, p_member: S.me, p_extra: extra })
+    const r = deck === 'all' ? await rpc('start_all', { p_code: S.code, p_member: S.me })
+      : deck === 'art' ? await rpc('start_art', { p_code: S.code, p_member: S.me, p_extra: extra })
       : deck === 'trip' ? await rpc('start_trips', { p_code: S.code, p_member: S.me, p_city: S.tripCity || '', p_extra: extra })
       : away ? await rpc('start_bite_at', { p_code: S.code, p_member: S.me, p_deck: deck, p_extra: extra, p_away: away })
       : await rpc('start_bite', { p_code: S.code, p_member: S.me, p_deck: deck, p_extra: extra });
@@ -1789,10 +1791,11 @@ const biteDay = () => { let o = null; try { o = JSON.parse(ls.get('bl') || 'null
 const biteSave = o => { try { ls.set('bl', JSON.stringify(o)); } catch {} };
 const biteLike = (deck, by) => { const o = biteDay(); o.n[deck] = Math.max(0, (o.n[deck] || 0) + by); biteSave(o); };
 const biteGoal = () => { if (!S.bite || !S.sess || !S.deck.length) return false; const o = biteDay(); return (o.n[S.sess.deck] || 0) >= 2 && !o.more[S.sess.deck]; };
-function biteGoalHTML() { const p = partner(), names = { movie: 'movies', dinner: 'places', event: 'things to do', trip: 'trips', art: 'artworks' };
+function biteGoalHTML() { const p = partner(), names = { movie: 'movies', dinner: 'places', event: 'things to do', trip: 'trips', art: 'artworks', mix: 'of everything' };
   return `<div class="done goal"><div class="badge">${ic('heart')}</div><h3>Two saved for your next night</h3><p class="muted">${p ? `If ${esc(p)} likes either of them too, it’s a match.` : 'They’re saved for when your person joins.'} No need to do more. There are more ${names[S.sess.deck] || 'cards'} whenever you feel like it.</p><button class="btn ghost" data-act="bitemore">Keep browsing</button>${S.hist.length ? '<button class="jlink" data-sw="undo">Undo last swipe</button>' : ''}</div>`; }
 // Movies run deep, so keep browsing keeps going: another handful each time, with a steering card now and then to give it a direction.
-const moreOn = () => !!(S.bite && S.sess?.deck === 'movie' && biteDay().more.movie);
+const allDeck = () => !!(S.bite && S.sess?.deck === 'mix' && S.sess?.filters?.all);
+const moreOn = () => allDeck() || !!(S.bite && S.sess?.deck === 'movie' && biteDay().more.movie);
 async function moreNext(steer) { const sid = S.sess?.id, st = document.getElementById('stack'); if (!sid || S.moreBusy) return; S.moreBusy = true;
   try { const r = await rpc('bite_more', { p_code: S.code, p_member: S.me, p_session: sid, p_steer: steer?.filter || null }); if (S.sess?.id !== sid) return;
     const have = new Set(S.deck.map(c => c.id)), add = (r?.added || []).filter(c => !have.has(c.id));
@@ -3994,6 +3997,7 @@ let busy = false;
 // A daily handful that is not landing keeps going. As the cards run out, the backend may quietly deal a few more onto the
 // end of the stack (it decides: a threshold of one or two likes, drawn per handful, then until one more like or 30 cards).
 async function biteStretch(sid) {
+  if (allDeck()) return;
   S.strDone = S.strDone || {}; if (S.stretching || S.strDone[sid]) return; S.stretching = true;
   try {
     if (swPend.size) await Promise.allSettled([...swPend]);
