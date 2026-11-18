@@ -1211,7 +1211,7 @@ async function onEvent(p) {
   else if (p.type === 'final') { if (S.view !== 'game') showFinal(p.card, !!p.shuffle && S.sess?.id === p.session); }
   else if (p.type === 'rec') { try { navigator.vibrate?.(40); } catch {} recSheet(p.card, p.from, p.keen); }
   else if (p.type === 'recreply') recReply(p);
-  else if (p.type === 'getaway') { try { navigator.vibrate?.(40); } catch {} openGetaway(p.city, p.from); }
+  else if (p.type === 'getaway') { try { navigator.vibrate?.(40); } catch {} openGetaway(p.city, p.from, true); }
   else if (p.type === 'plan') { await refresh().catch(() => {}); if (S.sheetKind === 'plan' && S.bookCity && document.querySelector('.trp .tring') && (S.settings?.plans || []).includes(S.bookCity)) planSheet(S.bookCity); if (S.view === 'trips') openTrips(); else if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) render(); }
   else if (p.type === 'getreply') { toast(p.yes ? `${p.from} is in for a weekend in ${p.city}. You can now see each other’s picks there.` : `${p.from} said not yet on ${p.city}.`, 5000); if (p.yes) { await refresh().catch(() => {}); if (S.view === 'trips') openTrips(); } }
   else if (p.type === 'joined') { await refresh(); if (S.view === 'home') render(); }
@@ -2645,8 +2645,19 @@ function inviteBanner() {
   const e = Object.entries(planInvites()).find(([, v]) => v?.by && v.by !== S.me); if (!e) return '';
   return `<div class="hsb"><span class="tic">${ic('plane')}</span><span class="grow"><b>${esc(e[1].by)} wants to plan ${esc(e[0])}</b><small>Take a look and say yes or not yet.</small></span><button class="go" data-tripinvite="${esc(e[0])}">Look</button></div>`;
 }
-async function openGetaway(city, from) {
+// Once a trip idea is answered, its banner and its inbox row go with it, so it cannot be answered a second time.
+function tripAnswered(city) {
+  const u = 'trip=' + encodeURIComponent(city), gone = (S.inbox?.items || []).filter(i => (i.url || '').includes(u)); if (!gone.length) return;
+  for (const i of gone) rpc('inbox_dismiss', { p_code: S.code, p_member: S.me, p_id: String(i.id) }).catch(() => {});
+  S.inbox.items = S.inbox.items.filter(i => !gone.includes(i)); bellSync();
+}
+async function openGetaway(city, from, live = false) {
   if (!city || !S.code || !S.me) return;
+  if (!live) {   // from a banner, a nudge or the inbox: make sure the idea is still waiting on this person before asking again
+    await refresh().catch(() => {}); const inv = planInvites()[city];
+    if ((S.settings?.plans || []).includes(city)) { tripAnswered(city); return openTripPlan(city); }
+    if (!inv || inv.by === S.me) { tripAnswered(city); if (S.view === 'home' && S.tab === 'home') render(); return toast(inv ? `Waiting on ${them()} to answer about ${city}.` : `${city} has already been answered. Either of you can suggest it again any time.`, 4500); }
+  }
   try { await loadLib(); } catch { return; }
   const g = cityShared(city), all = [...g.t, ...g.a]; S.getaway = city; S.listCards = S.lib;
   sheet(`<div class="grab"></div><div class="trp kc k-book"><div><small class="tkick">${esc(from || them())} is thinking getaway</small><h2>${esc(city)}?</h2><p class="muted" style="margin-top:6px;font-size:14px;line-height:1.5">${all.length ? `You already have ${cityLine(g.t.length, g.a.length)} there.` : 'Nothing matched there yet. Saying yes opens up each other’s picks, plus dates and booking.'}</p></div></div>
@@ -4075,10 +4086,12 @@ document.addEventListener('click', async e => {
       case 'againsend': return againSend();
       case 'evsend': t.disabled = true; await evSend(); closeSheet(); return S.view === 'home' ? render() : null;
       case 'evlater': case 'evx': ls.set('evno', evKey()); closeSheet(); return S.view === 'home' ? render() : null;
-      case 'getyes': { const c = S.getaway; t.disabled = true; try { S.settings = await rpc('plan_city', { p_code: S.code, p_member: S.me, p_city: c, p_action: 'start' }); } catch {} send({ type: 'getreply', yes: true, city: c }); push(`${S.me} is in ✈️`, `A weekend in ${c}. Time to plan it.`, `./`); return openTrips(); }
+      case 'getyes': { const c = S.getaway; t.disabled = true; try { S.settings = await rpc('plan_city', { p_code: S.code, p_member: S.me, p_city: c, p_action: 'start' }); } catch {} tripAnswered(c); send({ type: 'getreply', yes: true, city: c }); push(`${S.me} is in ✈️`, `A weekend in ${c}. Time to plan it.`, `./`); return openTrips(); }
       case 'plantrip': if (!partner()) { toast('Invite your other half first.'); return inviteSheet(); } try { await loadLib(); } catch {} return planTripSheet();
       case 'plantripgo': { const q = document.getElementById('ptq')?.value.trim() || ''; if (q.length < 2) return toast('Type a place, or tap one above.'); t.disabled = true; return sendGetaway(q.replace(/\b\w/g, ch => ch.toUpperCase())); }
-      case 'getno': { const c = S.getaway; planAct(c, 'decline'); send({ type: 'getreply', yes: false, city: c }); push(`${S.me}: not yet`, `Holding off on ${c} for now.`, './'); closeSheet(); return toast(`Told ${them()} not yet.`); }
+      case 'getno': { const c = S.getaway; t.disabled = true; if (!await planAct(c, 'decline')) { t.disabled = false; return; }
+        tripAnswered(c); send({ type: 'getreply', yes: false, city: c }); push(`${S.me}: not yet`, `Holding off on ${c} for now.`, './'); closeSheet(); toast(`Told ${them()} not yet.`);
+        if (S.view === 'trips') return openTrips(); return S.view === 'home' ? render() : null; }
       case 'liketoo': { const c = S.detailCard; if (!c) return; t.disabled = true; try { const r = await rpc('like_card', { p_code: S.code, p_member: S.me, p_card: c.id }); document.querySelector('.lfront')?.remove(); if (r.match) { toast(`You both like ${c.title} now.`, 3500); send({ type: 'shortlist' }); push(`It's a match ${emojiFor(c)}`, `You and ${S.me} both like ${c.title}.`, './'); } refresh().catch(() => {}); } catch { toast('Could not save that like.'); } return S.view === 'trips' ? openTrips() : null; }
       case 'scolater': document.querySelector('.sco')?.remove(); return;
       case 'scratchdone': document.querySelector('.scr')?.remove(); return render();
