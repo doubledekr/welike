@@ -4,7 +4,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 // Auth: x-sync-key header must match app_secrets.sync_key.
 // Body: { lists?: boolean, per_source?: number, series_per_source?: number, series?: boolean, details?: number, skip?: number }
 //   series: false lists movies only, as before. Series cards carry data.type = "series"; the app tags them "Series",
-//   and a night-in plan reads "start it: an episode or two".
+//   and a night-in plan reads "start it: an episode or two". Shows only reach a pile that asks for them (see supabase/shows.sql).
 // The list of streaming services lives in app_secrets.sources as JSON: { "<watchmode source id>": "<name shown in the app>" }.
 const DEFAULT_SOURCES: Record<string, string> = {
   "203": "Netflix", "157": "Hulu", "26": "Prime Video",
@@ -87,8 +87,9 @@ Deno.serve(async (req: Request) => {
   if (n > 0) {
     const stubs: any[] = [];
     for (let from = 0; ; from += 1000) {
-      const { data } = await sb.from("cards").select("id,ext_id,data").eq("deck", "movie").is("couple_id", null)
-        .filter("data->>detailed", "is", null).range(from, from + 999);
+      let q = sb.from("cards").select("id,ext_id,data").eq("deck", "movie").is("couple_id", null).filter("data->>detailed", "is", null);
+      if (body.only_series) q = q.filter("data->>type", "eq", "series");
+      const { data } = await q.range(from, from + 999);
       stubs.push(...(data ?? []));
       if (!data || data.length < 1000) break;
     }
@@ -112,7 +113,7 @@ Deno.serve(async (req: Request) => {
         const data = { ...c.data, detailed: true, year: t.year, plot: t.plot_overview, genres: t.genre_names ?? [],
           runtime: t.runtime_minutes, user_rating: t.user_rating, critic_score: t.critic_score, us_rating: t.us_rating,
           trailer: t.trailer, backdrop: t.backdrop, poster_large: t.posterLarge, imdb_id: t.imdb_id, cast, directors,
-          ...(series ? { type: "series", end_year: t.end_year ?? null } : {}) };
+          ...(series ? { type: "series", end_year: t.end_year ?? null, minutes: Math.min(120, Math.max(40, (Number(t.runtime_minutes) || 30) * 2)) } : {}) };   // a show stop in a plan is two episodes
         const { error } = await sb.from("cards").update({ title: t.title, subtitle: bits.join(" · "), image: t.posterLarge || t.poster || null,
           data, active: !!(t.posterLarge || t.poster) }).eq("id", c.id);
         if (error) out.errors.push("update " + error.message); else out.detailed++;

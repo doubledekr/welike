@@ -1750,6 +1750,7 @@ async function startSession1(deck, filters, note, announce = true) {
   }
   if (deck === 'event' && !S.away) await outings(6000);
   if (S.away && (deck === 'dinner' || deck === 'event')) { filters = { ...(filters || {}), away: S.away.city }; if (deck === 'event') { filters.days = 7; await Promise.race([sb.functions.invoke('trips', { body: { action: 'local', code: S.code, city: S.away.city } }).catch(() => {}), new Promise(r => setTimeout(r, 7000))]); } }
+  if (SHOWS && deck === 'movie') filters = { ...(filters || {}), series: true };
   const r = await rpc('start_session', { p_code: S.code, p_member: S.me, p_deck: deck, p_note: note || null, p_filters: filters || {} });
   if (!r.id) { toast(emptyMsg(deck, filters)); return; }
   if ((deck === 'movie' || deck === 'mix') && !filters?.rewatch && !filters?.wishlist) await taste({ action: 'rank', session: r.id }, 7000);
@@ -2026,12 +2027,14 @@ function switchDeck(deck) {
 function deckStash() { if (!S.dcDeck || !S.sess || S.dcSess !== S.sess.id || !S.bite) return;
   (S.dc ||= {})[S.dcDeck] = { day: new Date().toDateString(), at: Date.now(), s: { sess: S.sess, deck: S.deck.slice(), matches: S.matches, total: S.total, theirLeft: S.theirLeft, solo: S.solo, rewatch: S.rewatch, bite: S.bite } }; }
 const deckKey = () => (S.sess?.id || '') + ':' + S.deck.map(c => c.id).join();
+// shows in Watch: held back on live, on for the beta page and the sim (Dave, 19 Nov)
+const SHOWS = !!(window.LT_BETA || window.LT_SIM);
 async function deckStart(deck, extra, away) {
-  return deck === 'all' ? rpc('start_all', { p_code: S.code, p_member: S.me })
+  return deck === 'all' ? rpc('start_all', SHOWS ? { p_code: S.code, p_member: S.me, p_opts: { series: true } } : { p_code: S.code, p_member: S.me })
     : deck === 'art' ? rpc('start_art', { p_code: S.code, p_member: S.me, p_extra: extra })
     : deck === 'trip' ? rpc('start_trips', { p_code: S.code, p_member: S.me, p_city: S.tripCity || '', p_extra: extra })
     : away ? rpc('start_bite_at', { p_code: S.code, p_member: S.me, p_deck: deck === 'drinks' ? 'event' : deck, p_extra: extra, p_away: away })
-    : rpc('start_bite', { p_code: S.code, p_member: S.me, p_deck: deck, p_extra: extra });
+    : rpc('start_bite', SHOWS && deck === 'movie' ? { p_code: S.code, p_member: S.me, p_deck: deck, p_extra: extra, p_opts: { series: true } } : { p_code: S.code, p_member: S.me, p_deck: deck, p_extra: extra });
 }
 // Once the first category is on screen, quietly fetch the others so the first visit to each is instant too.
 async function deckWarm() {
@@ -3055,7 +3058,7 @@ async function daySend(btn) {
   let rounds = 0, noRound = null;
   for (const it of finds.filter(i => !have.has(i.slot))) {
     try {
-      const [deck, f] = pFindFor(it.slot.startsWith('drinks') ? 'drinks' : it.slot, pl.mode), filters = { ...f, plan: p.id, slot: it.slot, n: 8 };
+      const [deck, f] = pFindFor(it.slot.startsWith('drinks') ? 'drinks' : it.slot, pl.mode), filters = { ...f, plan: p.id, slot: it.slot, n: 8, ...(SHOWS && deck === 'movie' ? { series: true } : {}) };
       if (deck === 'event' && !rounds) await outings(6000); if (deck === 'dinner' && !rounds) await nearby();
       if (ref && deck !== 'movie') filters.near = { lat: ref.data.lat, lng: ref.data.lng, mi: it.slot.startsWith('drinks') ? 1.5 : 4 };
       const note = `For ${pDayLow(pl.day)}: ${PSLOT[it.slot][0].toLowerCase()}`;
@@ -3120,7 +3123,7 @@ function toastAct(msg, label, fn, ms = 4000, onEnd) {
 // Weekend plans arrive on their own: Saturday's on Wednesday evening, Friday night's on Friday afternoon. Each is made from
 // what the two of you like, with one spot left open to swipe on together. Sunday is left alone.
 const pByName = p => p.by === 'auto' ? 'Let’s Together' : p.by;
-const PWHY = w => !w ? '' : w === 'both' ? 'You both liked this' : w === 'fav' ? '★ One of your favorites' : w === 'new' ? 'New to you, and well rated' : '';   // a stop only one of you liked carries no line: swipes stay private
+const PWHY = w => !w ? '' : w === 'keep' ? 'Keep watching: the next couple of episodes' : w === 'both' ? 'You both liked this' : w === 'fav' ? '★ One of your favorites' : w === 'new' ? 'New to you, and well rated' : '';   // a stop only one of you liked carries no line: swipes stay private
 const isFav = id => (S.favs || []).some(f => f.card?.id === id);
 const FSHAPE = { in: 'Night in', drink_movie: 'A drink, then a movie', bar_dinner: 'New bar, then dinner' };
 const pShape = p => p.auto !== 'fri' ? null : p.mode === 'out' ? 'bar_dinner' : p.items.some(i => i.slot === 'drinks') ? 'drink_movie' : 'in';
