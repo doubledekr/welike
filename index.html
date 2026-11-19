@@ -1243,8 +1243,8 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .hdr .ib[data-tab="you"] .ic{font-size:22px}
 .hdr .ib:active .ic{transform:scale(.9)}
 .hdr .ib.shr{color:#5eead4}
-.hdr .ib.shr .ic{filter:drop-shadow(0 0 4px rgba(94,234,212,.95)) drop-shadow(0 0 10px rgba(56,189,248,.7))}   /* a steady glow: the old pulse made iPhones draw the icon loose from the header */
-.hdr .ib.shr.done .ic{animation:none;filter:drop-shadow(0 0 3px rgba(94,234,212,.8)) drop-shadow(0 0 8px rgba(56,189,248,.45))}
+.hdr .ib.shr .ic{filter:drop-shadow(0 0 4px rgba(94,234,212,.95)) drop-shadow(0 0 10px rgba(56,189,248,.7))}
+.hdr .ib.shr.shd .ic{filter:drop-shadow(0 0 3px rgba(94,234,212,.8)) drop-shadow(0 0 8px rgba(56,189,248,.45))}
 /* the bell: 1 = something new to read (solid amber, steady glow), 2 = waiting on you (a little ring), 3 = waiting and soon (rings faster). A kind of message tints it. */
 .hdr .ib.bell.lv1,.hdr .ib.bell.lv2,.hdr .ib.bell.lv3{color:#ffd23f}
 .hdr .ib.bell.kc.lv1,.hdr .ib.bell.kc.lv2,.hdr .ib.bell.kc.lv3{color:var(--ka)}
@@ -1969,7 +1969,7 @@ function homeHTML() {
   return `<div class="home">
     <div class="row hdr ${sbA ? 'h5' : ''}"><div class="brand grow hb">${MARK}<span>${BRAND}</span></div>
       <button class="ib" data-act="search" aria-label="Search movies">${ic('search')}</button>${sbA ? `<button class="ib" data-fr="open" aria-label="Friends and group plans">${ic('users')}</button>` : ''}
-      <button class="ib shr ${ls.get('shared') ? 'done' : ''}" data-act="sharefriends" aria-label="Share Let’s Together with friends">${ic('share')}</button>
+      <button class="ib shr ${ls.get('shared') ? 'shd' : ''}" data-act="sharefriends" aria-label="Share Let’s Together with friends">${ic('share')}</button>
       ${bellHTML()}<button class="ib" data-tab="you" aria-label="You and settings">${ic('gear')}</button></div>${slotHTML(incoming)}
     <div id="hbot" style="display:contents"><div class="seg" style="margin:12px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="kc k-${CK[k]} ${S.homeDeck === k ? 'on' : ''}">${l}${heartTag(k)}</button>`).join('')}</div>${scratchShow() && !S.awayOffer ? `<button class="scratch-pill" data-act="scratch">${ic('spark')}<span><b>A scratch card is waiting</b><small>One thing ${esc(p)} is in on</small></span><i>Scratch</i></button>` : ''}${S.awayOffer ? `<div class="trav"><span class="tic">${ic('pin')}</span><span class="grow"><b>Looks like you’re in ${esc(S.awayOffer.city)}</b><small>Show places to eat and things to do here?</small></span><button class="go" data-act="awayyes">Show</button><button class="x" data-act="awayno" aria-label="Not now">×</button></div>` : ''}${S.away && (S.homeDeck === 'dinner' || S.homeDeck === 'event') ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><small class="muted" style="font-size:12.5px">${ic('pin')} ${S.away.trip ? `Your ${esc(S.away.city)} trip` : `Showing ${esc(S.away.city)} on this phone`}</small><button class="chip" data-act="awayoff" style="padding:5px 12px;font-size:13px">Back to home</button></div>` : ''}${S.homeDeck === 'movie' ? `<div class="row" style="margin:14px 2px 0"><button class="chip" data-act="movielib" style="padding:5px 12px;font-size:13px">${ic('film')} Movie library</button></div>` : ''}${shareChip()}${S.homeDeck === 'art' ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="gallery" style="padding:5px 12px;font-size:13px">${ic('frame')} Our gallery</button><small class="muted" style="font-size:12.5px">No nudges, just likes</small></div>` : ''}${S.homeDeck === 'trip' ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="trips" style="padding:5px 12px;font-size:13px">${ic('heart')} Saved trips</button><button class="chip ${S.tripCity ? 'on' : ''}" data-act="tripcity" style="padding:5px 12px;font-size:13px">${esc(S.tripCity || 'Anywhere')} ▾</button></div>` : ''}
     <div class="stack" id="stack" style="margin:16px 0 16px">${S.doneHtml?.[S.homeDeck]?.day === new Date().toDateString() ? S.doneHtml[S.homeDeck].html : ''}</div>
@@ -2348,7 +2348,7 @@ function friendSheet() { step('share_open');
     <div class="shrrow"><button class="btn ghost" data-act="sharehow" data-how="copy">Copy link</button><button class="btn ghost" data-act="sharehow" data-how="share">Other apps</button></div>
     <p class="muted" style="font-size:12px;margin-top:12px">This doesn’t connect them to you two. Your swipes stay private.</p></div>`); }
 async function friendHow(how) { const msg = `${friendText()}\n${friendLink()}`; step('share_' + how);
-  const done = () => { if (!ls.get('shared')) { ls.set('shared', '1'); document.querySelectorAll('.hdr .ib.shr').forEach(b => b.classList.add('done')); } };
+  const done = () => { if (!ls.get('shared')) { ls.set('shared', '1'); document.querySelectorAll('.hdr .ib.shr').forEach(b => b.classList.add('shd')); } };
   if (how === 'text') { done(); const body = encodeURIComponent(msg); location.href = /iphone|ipad|ipod|macintosh/i.test(navigator.userAgent) ? `sms:&body=${body}` : `sms:?body=${body}`; return; }
   if (how === 'copy') { try { await navigator.clipboard.writeText(msg); done(); toast('Copied. Paste it anywhere.'); } catch { toast('Couldn’t copy. Try Send another way.'); } return; }
   try { if (navigator.share) { await navigator.share({ text: friendText(), url: friendLink() }); done(); } else { await navigator.clipboard.writeText(msg); done(); toast('Copied. Paste it anywhere.'); } } catch {} }
