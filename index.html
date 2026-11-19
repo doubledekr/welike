@@ -2097,7 +2097,10 @@ function steerDraw(ans) { const c = S.steer, st = document.getElementById('stack
 function deckWhy() { const st = document.getElementById('stack'); if (!st) return; let el = document.getElementById('whyl'); const c = S.deck[0], t = c && S.bite && !biteGoal() ? (S.why || {})[c.id] : '';
   if (!t) return void el?.remove(); if (!el) { el = document.createElement('div'); el.id = 'whyl'; el.className = 'whyl'; st.parentNode.insertBefore(el, st); } el.textContent = t; }
 // Why each card is in front of you: your own likes, the calendar, or what it's near. A steering thread's reason is kept.
-async function eatWhy(sid) { try { const w = await rpc('card_whys', { p_code: S.code, p_member: S.me, p_session: sid }); if (w && S.sess?.id === sid) { S.why = { ...w, ...(S.why || {}) }; deckWhy(); } } catch {} }
+// Beta: no weather line above the cards (Dave, 18 Nov 2026). Weather belongs inside a plan: the what-to-wear line on a day
+// plan and the forecast on trip dates. The live app still shows it; to match, drop the two weather cases from card_whys.
+const WXWHY = /rain is likely today$|° and dry today$/;
+async function eatWhy(sid) { try { const w = await rpc('card_whys', { p_code: S.code, p_member: S.me, p_session: sid }); if (w && BETA) for (const k of Object.keys(w)) if (WXWHY.test(w[k])) delete w[k]; if (w && S.sess?.id === sid) { S.why = { ...w, ...(S.why || {}) }; deckWhy(); } } catch {} }
 // Places are scarce, so they come as a few considered picks a day. Three quick answers make the picks better.
 const eatAsked = () => !!S.dates?.taste?.eat || Date.now() - Number(ls.get('eatAt') || 0) < 7 * 86400000;
 async function eatSheet() { ls.set('eatAt', String(Date.now())); let opts = []; try { opts = await rpc('eat_options', { p_code: S.code }) || []; } catch {} if (opts.length < 3) return; step('eat_ask');
@@ -3850,7 +3853,7 @@ function renderFriends() {
     <button class="btn frnew" data-fr="new">${ic('plus')}Start a plan</button>
     <div class="sect">Friends</div>
     <div class="ycard">${d.friends.map(f => `<button class="yrow" data-fr="friend" data-id="${f.id}"><span class="tic">${ic('user')}</span><span class="grow"><b>${esc(f.name)}</b>${gOf(f.id) ? `<small>${esc(gOf(f.id))}</small>` : ''}</span><span class="ych">›</span></button>`).join('')}
-      <button class="yrow" data-fr="invite"><span class="tic">${ic('share')}</span><span class="grow"><b>Invite a friend</b><small>One link. They join with a first name, no partner needed</small></span><span class="ych">›</span></button>
+      ${d.friends.length ? `<button class="yrow" data-fr="invite"><span class="tic">${ic('share')}</span><span class="grow"><b>Invite a friend</b><small>One link. They join with a first name, no partner needed</small></span><span class="ych">›</span></button>` : ''}
       <button class="yrow" data-fr="addcode"><span class="tic">${ic('plus')}</span><span class="grow"><b>Enter a friend’s code</b><small>Yours is ${esc(d.me.code)}</small></span><span class="ych">›</span></button>
       <div class="yrow"><span class="tic">${ic('spark')}</span><span class="grow"><b>Match with friends</b><small>${d.share ? 'Once a week you see one thing you and a friend both love' : 'Once a week, one thing you and a friend both love. Nothing else is shared'}</small></span><button class="ysw ${d.share ? 'on' : ''}" data-fr="share">${d.share ? 'On' : 'Off'}</button></div></div>
     <div class="sect">Your private groups</div>
