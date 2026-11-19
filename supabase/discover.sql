@@ -207,7 +207,7 @@ end $$;
 
 -- ---------- one entry point for the scheduled job: deal unique spots on the look runs, check booked trips hourly
 create or replace function public._disc_tick(p_mode text default 'all') returns jsonb language plpgsql security definer set search_path to 'public' as $$
-declare k record; a record; dealt int := 0; trips int := 0; looked int := 0;
+declare cp record; a record; dealt int := 0; trips int := 0; looked int := 0;
 begin
   if p_mode in ('all', 'look') then
     -- find unique spots around where couples live: two areas a run, each looked at again after 60 days
@@ -215,13 +215,13 @@ begin
              from couples c cross join lateral _home_geo(c.settings) h where h.lat is not null loop
       exit when looked >= 2;
       continue when exists (select 1 from gem_state gs where gs.k = format('spots:%s,%s', a.lat, a.lng) and gs.at > now() - interval '60 days');
-      insert into gem_state values (format('spots:%s,%s', a.lat, a.lng), now()) on conflict (k) do update set at = excluded.at;
+      insert into gem_state values (format('spots:%s,%s', a.lat, a.lng), now()) on conflict on constraint gem_state_pkey do update set at = excluded.at;
       perform net.http_post(url := 'https://gbzximehndzlsbojoqgj.supabase.co/functions/v1/spots', timeout_milliseconds := 150000,
         headers := jsonb_build_object('Content-Type', 'application/json', 'x-sync-key', (select value from app_secrets where key = 'sync_key')),
         body := jsonb_build_object('lat', a.lat, 'lng', a.lng));
       looked := looked + 1;
     end loop;
-    for k in select id from couples loop dealt := dealt + _spots_deal(k.id); end loop;
+    for cp in select id from couples loop dealt := dealt + _spots_deal(cp.id); end loop;
   end if;
   trips := _trip_disc_tick();
   return jsonb_build_object('dealt', dealt, 'trips', trips, 'areas_looked', looked);
