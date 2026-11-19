@@ -18,7 +18,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 type Card = { id: string; title: string; type: string | null; about: string | null };
 
 let trace = "";
-async function ask(prompt: string, max = 220): Promise<string | null> {
+async function ask(prompt: string, max = 600): Promise<string | null> {
   const key = apiKey(); if (!key) { trace = "no key"; return null; }
   for (const [model, off] of [["claude-haiku-5-5", true], ["claude-haiku-5-5", false], ["claude-haiku-4-5", false]] as [string, boolean][]) {
     try {
@@ -78,8 +78,9 @@ Deno.serve(async (req: Request) => {
         `"link": "3 to 9 words saying what the picked item is, in the way it resembles them"}\n` +
         `Rules for "link": copy its words from the picked item's own description above (its type and the sentence after the colon); do not add any word that is not there, ` +
         `not even a fair summary such as "historic" when the description only gives a year. No place names, no opinions, and not the word "like". Example: "a quiet garden with stone ledges and calm water".`);
-      raw = (ans ?? "").slice(0, 300);
-      let o: any = null; try { o = JSON.parse(((ans ?? "").match(/\{[\s\S]*\}/) ?? ["null"])[0]); } catch (_) { o = null; }
+      raw = (ans ?? "").slice(-300);
+      // the answer is the last {...} in the reply (the model sometimes thinks aloud first)
+      let o: any = null; try { o = JSON.parse(((ans ?? "").match(/\{[^{}]*\}/g) ?? ["null"]).pop()!); } catch (_) { o = null; }
       if (o) {
         const n = Number(o.pick) || 0; const p = n >= 1 && n <= cands.length ? cands[n - 1] : null;
         const lk = [...new Set((Array.isArray(o.like) ? o.like : []).map((x: unknown) => L.indexOf(String(x).trim().toUpperCase().slice(0, 1))).filter((i: number) => i >= 0 && i < liked.length))].slice(0, 2) as number[];
