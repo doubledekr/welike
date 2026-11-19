@@ -1160,7 +1160,7 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .psug{margin:-4px 0 10px 66px;padding:9px 12px;border-radius:14px;background:rgba(255,210,63,.1);font-size:13px;line-height:1.4;color:#f3e3b8}.psug.mine{background:rgba(255,255,255,.05);color:var(--muted)}.psug .jlink{display:inline;margin-left:8px;padding:0;font-size:13px}.psb{display:flex;gap:8px;margin-top:8px}.psugb{display:block;margin:4px 0 10px 66px;padding:4px 0;background:none;box-shadow:none;color:#ffd5c8;font-size:12.5px;font-weight:600}
 .pquest{display:flex;align-items:center;gap:6px;margin:2px 0 10px 66px;padding:7px 12px;border-radius:999px;background:rgba(255,154,128,.12);color:#ffd5c8;font-size:12.5px;font-weight:700;box-shadow:none}.pqo{display:flex;align-items:center;gap:12px;padding:10px;border-radius:16px;background:rgba(255,255,255,.05);margin-bottom:8px}.pqo img,.pqo .pimg{width:56px;height:56px;border-radius:12px;object-fit:cover;flex:none;display:grid;place-items:center}.pqo b{display:block;font-size:14.5px}.pqo small{font-size:12.5px;color:var(--muted)}
 .wfh{display:flex;gap:12px;align-items:center;margin:12px 0 14px;padding:10px;border-radius:16px;background:rgba(255,255,255,.05)}.wfh img,.wfh .pimg{width:58px;height:58px;border-radius:12px;object-fit:cover;flex:none;display:grid;place-items:center}.wfh b{display:block;font-size:15px;line-height:1.3}.wfh small{display:block;font-size:12.5px;color:var(--muted);margin-top:3px}
-.wftl{display:grid;gap:6px;margin-bottom:8px}.wfl{display:flex;align-items:baseline;gap:10px;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.04)}.wfl small{flex:none;width:96px;font-size:12.5px;color:var(--muted)}.wfl b{flex:1;font-size:14px;font-weight:600}.wfl em{font-style:normal;font-size:12px;font-weight:700}.wfl.new{background:rgba(45,212,191,.12)}.wfl.new em{color:#7be0cf}.wfl.clash{background:rgba(255,90,110,.12)}.wfl.clash em{color:#ff9aa8}
+.wftl{display:grid;gap:6px;margin-bottom:8px}.wfl{display:flex;align-items:baseline;gap:10px;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.04)}.wfl small{flex:none;width:96px;font-size:12.5px;color:var(--muted)}.wfl b{flex:1;font-size:14px;font-weight:600}.wfl em{font-style:normal;font-size:12px;font-weight:700}.wfl.new{background:rgba(45,212,191,.12)}.wfl.new em{color:#7be0cf}.wfl.clash{background:rgba(255,90,110,.12)}.wfl.clash em{color:#ff9aa8}.wfg{font-size:12px;color:var(--muted);padding:0 12px 0 118px;margin:-2px 0}
 .pkeep{display:inline-block;margin-top:4px;padding:2px 0;background:none;box-shadow:none;color:#ffd5c8;font-size:12.5px;font-weight:600}.pkeep.on{color:#ffd23f}
 #tcbar{position:fixed;left:50%;bottom:calc(var(--sb) + 86px);transform:translateX(-50%);z-index:19;display:flex;align-items:center;gap:9px;max-width:92%;padding:8px 14px;border-radius:999px;background:linear-gradient(135deg,rgba(84,38,44,.96),rgba(70,26,52,.96));box-shadow:0 8px 24px -10px rgba(255,90,110,.9);color:#fff;font-size:13.5px;white-space:nowrap}
 #tcbar .dot{width:8px;height:8px;border-radius:50%;background:#ff6a6a;animation:tcdot 1.6s ease-in-out infinite}#tcbar .go{font-weight:700;color:#ffd5c8}@keyframes tcdot{50%{opacity:.35}}
@@ -1234,7 +1234,7 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .ideac{display:flex;gap:10px;margin-top:16px}.ideai{flex:1;min-width:0;border-radius:18px;overflow:hidden;background:rgba(255,255,255,.06);text-align:left;padding-bottom:10px}
 .ideai img,.ideai span{display:grid;place-items:center;width:100%;height:96px;object-fit:cover;font-size:34px;background:rgba(255,255,255,.05)}.ideai b{display:block;padding:8px 10px 0;font-size:13.5px;line-height:1.25;font-weight:600}
 .gemfact{font-family:var(--serif);font-size:18px;line-height:1.3;margin-top:8px;color:#ffe2b0}
-.pleg{font-size:12px;color:var(--muted);padding:5px 0 5px 62px}.pleg.late{color:#ffb020}
+.pleg{font-size:12px;color:var(--muted);padding:5px 0 5px 62px;line-height:1.4}.pleg.late{color:#ffb020}.plfix{display:block;margin-top:6px}.plfix .pill{margin:0}
 .twx{display:flex;gap:16px;overflow-x:auto;padding:8px 2px 2px;font-size:12.5px;color:var(--muted);white-space:nowrap}.twx b{display:block;color:var(--text);font-weight:600}
 .tsea{display:block;margin:4px 2px 0;font-size:12px;line-height:1.45;color:var(--muted)}
 .wk-flip{display:grid;place-items:center;min-height:230px;perspective:900px}
@@ -2449,10 +2449,31 @@ function wildSheet() { const w = S.idea?.wild; if (!w) return; step('wild_open')
 const wildDay = w => w.when && w.when >= pToday() ? w.when : (() => { let d = pToday(); for (let i = 0; i < 7; i++) { if (new Date(d + 'T12:00').getDay() === 6) return d; d = pAdd(d, 1); } return d; })();
 const wildDayName = w => { const d = wildDay(w), pl = (S.plans || []).find(p => p.day === d && p.status !== 'cancelled'); const n = d === pToday() ? 'tonight' : new Date(d + 'T12:00').toLocaleDateString([], { weekday: 'long' }); return pl ? `${n === 'tonight' ? 'tonight' : n + '’s'} plan` : `a ${n === 'tonight' ? 'plan for tonight' : n + ' plan'}`; };
 const legTxt = mi => mi == null ? '' : mi <= 1.1 ? `${Math.max(2, Math.round(mi * 20))} min walk` : `about ${Math.round(mi * 2.6 + 4)} min drive`;
+// Time between stops, the same rules the server uses with real Google times: the walk (a mile or less) or the drive,
+// 5 min to pay up and head out, 5 more to park when you drive, and 20 min early for anything with a set start
+// (a show, a screening, a ticketed event) or 10 to be seated for dinner.
+const pFix = it => !!it?.card && !!evStart(it.card) && ((it.card.deck === 'event' && !it.card.data?.place) || String(it.slot || '').startsWith('event'));
+const pCheck = it => pFix(it) ? 20 : it?.card?.deck === 'dinner' && !['cook', 'orderin'].includes(it.card.kind) ? 10 : 0;
+function pGo(a, b, legs, home) {
+  if (home) return { min: 0, pk: 0, ci: 0, need: 0, mode: 'home' };
+  const real = (legs || []).find(l => l.from === a?.card?.id && l.to === b?.card?.id && !l.est), mi = pMi(a?.card, b?.card);
+  const mode = real ? real.mode : mi != null ? (mi <= 1 ? 'walk' : 'drive') : 'drive', min = real ? real.min : mi != null ? (mi <= 1 ? Math.max(3, Math.round(mi * 20)) : Math.round(mi * 2.6 + 4)) : 15;
+  const pk = 5 + (mode === 'drive' ? 5 : 0), ci = pCheck(b); return { min, mode, pk, ci, need: min + pk + ci, guess: !real && mi == null, est: !real }; }
+const pGoTxt = g => g.mode === 'home' ? '' : `${g.est ? 'about ' : ''}${g.min} min ${g.mode === 'walk' ? 'walk' : 'drive'}${g.mode === 'drive' ? ' plus parking' : ''}${g.ci === 20 ? ', and 20 min early to check in' : g.ci === 10 ? ', and a few minutes to be seated' : ''}`;
+const r5 = (m, up) => (up ? Math.ceil(m / 5) : Math.floor(m / 5)) * 5;
+// make room between stops: forward pushes later stops later, back pulls earlier stops earlier. A stop with a set start
+// never moves (returns false if one would have to). list is sorted by time and its times are changed in place.
+function pSettle(list, dir, legs, home, from = 0) {
+  const need = (a, b) => a.card && b.card ? pGo(a, b, legs, home).need : 10;
+  if (dir === 'fwd') { for (let k = Math.max(1, from); k < list.length; k++) { const a = list[k - 1], b = list[k], at = pSpan(a)[1] + need(a, b);
+      if (at <= toMin(b.time)) continue; if (pFix(b) || b.lock) return false; const t = r5(at, true); if (t + pSpan(b)[1] - pSpan(b)[0] > 23 * 60 + 45) return false; b.time = pAddMin('00:00', t); } }
+  else { for (let k = Math.min(list.length - 2, from); k >= 0; k--) { const a = list[k], b = list[k + 1], dur = pSpan(a)[1] - pSpan(a)[0], at = toMin(b.time) - need(a, b) - dur;
+      if (at >= toMin(a.time)) continue; if (pFix(a) || a.lock) return false; const t = r5(at); if (t < 9 * 60) return false; a.time = pAddMin('00:00', t); } }
+  return true; }
 const cLL = c => c?.data?.lat != null && c?.data?.lng != null ? [Number(c.data.lat), Number(c.data.lng)] : null;
 const toMin = t => { const [h, m] = String(t).split(':').map(Number); return (h || 0) * 60 + (m || 0); };
 // one stop's time window: start, and how long it lasts
-const pSpan = i => { const c = i.card, st = toMin(i.time || PSLOT[i.slot]?.[1] || '12:00'), dur = c?.data?.minutes || PSTAY[i.slot] || (i.slot.startsWith('quest') ? 30 : 60); return [st, st + dur]; };
+const pSpan = i => { const c = i.card, st = toMin(i.time || PSLOT[i.slot]?.[1] || '12:00'), dur = Number(c?.data?.minutes) || PSTAY[i.slot] || (String(i.slot).startsWith('quest') ? 30 : 60); return [st, st + dur]; };
 const pName = i => i.card ? i.card.title.split(/[,(]/)[0].trim() : i.pair?.length === 2 ? `the This or That (${i.pair.map(c => c.title.split(/[,(]/)[0]).join(' or ')})` : `the open ${PSLOT[i.slot]?.[0].toLowerCase() || ''} spot`;
 const pRange = (a, b) => `${pT(pAddMin('00:00', a))}–${pT(pAddMin('00:00', b))}`;
 function wildFits(plan, card) {   // for a find with no set time: each spot it could take, in plain words
@@ -2471,25 +2492,51 @@ async function wildPlan() { const w = S.idea?.wild; if (!w) return; step('wild_p
   const head = `<div class="wfh">${c.image ? `<img src="${esc(c.image)}" alt="">` : `<span class="pimg">${ic('ticket')}</span>`}<span class="grow"><b>${esc(c.title)}</b><small>${esc([st ? pRange(toMin(st), toMin(st) + (c.data?.minutes || 120)) : 'No set time', c.data?.venue || ''].filter(Boolean).join(' · '))}</small></span></div>`;
   const leg = (a, b) => { const A = cLL(a?.card || a), B = cLL(b?.card || b); return A && B ? legTxt(milesApart(...A, ...B)) : ''; };
   let body;
-  if (st) { // it has a time: show the day with it in place, say what it bumps into, and offer the fixes
-    const s0 = toMin(st), e0 = s0 + (c.data?.minutes || 120), clash = its.filter(i => { const [a, b] = pSpan(i); return a < e0 && b > s0; });
+  if (st) { // it has a time: show the day with it in place, the time to get between stops, what it bumps into, and the fixes
+    const s0 = toMin(st), e0 = s0 + (Number(c.data?.minutes) || 120), ev = { card: c, slot: 'event' }, legs = Array.isArray(plan.legs) ? plan.legs : plan.legs?.legs, home = plan.mode === 'in';
     const before = its.filter(i => pSpan(i)[0] < s0).sort((a, b) => pSpan(b)[0] - pSpan(a)[0])[0], after = its.filter(i => pSpan(i)[0] >= s0).sort((a, b) => pSpan(a)[0] - pSpan(b)[0])[0];
-    const line = [...its.map(i => ({ t: pSpan(i)[0], h: `<div class="wfl ${clash.includes(i) ? 'clash' : ''}"><small>${pRange(...pSpan(i))}</small><b>${esc(pName(i))}</b>${clash.includes(i) ? '<em>overlaps</em>' : ''}</div>` })),
-      { t: s0, h: `<div class="wfl new"><small>${pRange(s0, e0)}</small><b>${esc(c.title)}</b><em>new</em></div>` }].sort((a, b) => a.t - b.t).map(x => x.h).join('');
-    const go = [before && leg(before, c) ? `${leg(before, c)} from ${esc(pName(before))}` : '', after && leg(c, after) ? `${leg(c, after)} to ${esc(pName(after))}` : ''].filter(Boolean).join(' · ');
+    const gIn = before?.card ? pGo(before, ev, legs, home) : null, gOut = after?.card ? pGo(ev, after, legs, home) : null;
+    // each stop it gets in the way of, and why: they overlap, or there isn't time to get from one to the other
+    const hit = new Map();
+    its.forEach(i => { const [a, b] = pSpan(i); if (a < e0 && b > s0) hit.set(i, 'overlaps'); });
+    if (before && !hit.has(before) && gIn && pSpan(before)[1] + gIn.need > s0) hit.set(before, 'too close');
+    if (after && !hit.has(after) && gOut && e0 + gOut.need > pSpan(after)[0]) hit.set(after, 'too close');
+    const clash = [...hit.keys()];
+    const lg = g => g ? `<div class="wfg">${esc(pGoTxt(g))}</div>` : '';
+    const rows = [...its.map(i => ({ t: pSpan(i)[0], h: `<div class="wfl ${hit.has(i) ? 'clash' : ''}"><small>${pRange(...pSpan(i))}</small><b>${esc(pName(i))}</b>${hit.has(i) ? `<em>${hit.get(i)}</em>` : ''}</div>`, i })),
+      { t: s0, h: `<div class="wfl new"><small>${pRange(s0, e0)}</small><b>${esc(c.title)}</b><em>new</em></div>`, i: ev }].sort((a, b) => a.t - b.t);
+    const line = rows.map((x, k) => { const nx = rows[k + 1]; if (!nx) return x.h;
+      const g = x.i === ev || nx.i === ev ? (x.i === before && nx.i === ev ? gIn : x.i === ev && nx.i === after ? gOut : null) : null;
+      return x.h + lg(g); }).join('');
+    // the fix: move the stops before it earlier and the ones after it later, as far as needed and no further
+    const sim = () => { const L = [...its.map(i => ({ ...i, src: i })), { ...ev, time: st, lock: true, src: ev }].sort((a, b) => pSpan(a)[0] - pSpan(b)[0]); return [L, L.findIndex(x => x.src === ev)]; };
+    const [B, bi] = sim(), okB = pSettle(B, 'back', legs, home, bi - 1), [F, fi] = sim(), okF = pSettle(F, 'fwd', legs, home, fi + 1);
+    const moved = [...(okB ? B : []), ...(okF ? F : [])].filter(x => x.src !== ev && x.time !== x.src.time && (x.src.card || x.src.pair?.length)).filter((x, k, a) => a.findIndex(y => y.src === x.src) === k)
+      .filter(x => okB && B.includes(x) ? pSpan(x.src)[0] < s0 : pSpan(x.src)[0] >= s0);
+    const fixable = clash.filter(i => moved.some(x => x.src === i));
+    const say = moved.map(x => `${esc(pName(x.src))} ${toMin(x.time) < toMin(x.src.time) ? 'earlier' : 'later'} to ${pT(x.time)}`);
+    const mvO = moved.map(x => `mv:${x.slot}:${x.time}`);
     const acts = !clash.length ? `<button class="btn" data-act="wildgo2" data-o="">Add it at ${pT(st)}</button>`
-      : clash.map(i => { const later = pAddMin('00:00', e0 + 20), fits = !its.some(j => j !== i && j !== clash[0] && Math.abs(pSpan(j)[0] - (e0 + 20)) < 60) && e0 + 20 < 23 * 60;
-          return `<button class="btn" data-act="wildgo2" data-o="rm:${i.slot}">Add it and take out ${esc(pName(i))}</button>${fits && i.card ? `<div style="height:8px"></div><button class="btn ghost" data-act="wildgo2" data-o="mv:${i.slot}:${later}">Add it and move ${esc(pName(i))} to ${pT(later)}</button>` : ''}`; }).join('<div style="height:8px"></div>')
-        + `<button class="jlink" data-act="wildgo2" data-o="">Add it anyway, they overlap</button>`;
-    body = `<div class="wftl">${line}</div>${go ? `<p class="muted" style="font-size:13.5px;margin:6px 0 12px">${go}${cLL(c) ? '' : ' (rough: we couldn’t pin down where it is)'}</p>` : ''}${clash.length ? `<div class="note" style="margin:0 0 12px">It starts at ${pT(st)} and runs to ${pT(pAddMin('00:00', e0))}, so it overlaps ${clash.map(i => esc(pName(i))).join(' and ')}.</div>` : ''}${acts}`;
+      : (moved.length ? `<button class="btn" data-act="wildgo2" data-o="${mvO.join(',')}">${moved.length === 1 ? `Add it and move ${say[0]}` : 'Add it and fix the times'}</button>${moved.length > 1 ? `<p class="muted" style="font-size:12.5px;margin:6px 2px 0">Moves ${say.join(', and ')}.</p>` : ''}<div style="height:8px"></div>` : '')
+        + clash.map(i => `<button class="btn ${moved.length ? 'ghost' : ''}" data-act="wildgo2" data-o="rm:${i.slot}">Add it and take out ${esc(pName(i))}</button>`).join('<div style="height:8px"></div>')
+        + (fixable.length < clash.length && moved.length ? `<p class="muted" style="font-size:12.5px;margin:8px 2px 0">${clash.filter(i => !fixable.includes(i)).map(i => esc(pName(i))).join(' and ')} can’t move far enough without bumping into something with a set time.</p>` : '')
+        + `<button class="jlink" data-act="wildgo2" data-o="">Add it anyway and sort the times out myself</button>`;
+    const why = clash.map(i => hit.get(i) === 'overlaps' ? `${esc(pName(i))} runs ${pRange(...pSpan(i))}, so they overlap.`
+      : i === before ? `${esc(pName(i))} ends at ${pT(pAddMin('00:00', pSpan(i)[1]))}. Getting to ${esc(c.data?.venue || 'the event')} takes ${esc(pGoTxt(gIn))}, so you’d want to leave by ${pT(pAddMin('00:00', s0 - gIn.need))}.`
+      : `It ends at ${pT(pAddMin('00:00', e0))}, and ${esc(pName(i))} is ${esc(pGoTxt(gOut).replace(/, then.*/, ''))} away, so ${pT(pAddMin('00:00', pSpan(i)[0]))} doesn’t leave enough time.`).join(' ');
+    body = `<div class="wftl">${line}</div><p class="muted" style="font-size:13px;margin:4px 0 12px">${home ? '' : `Get there by ${pT(pAddMin('00:00', s0 - 20))} to check in.`}${cLL(c) ? '' : ' Travel times are rough: we couldn’t pin down where it is.'}</p>${clash.length ? `<div class="note" style="margin:0 0 12px">${why}</div>` : ''}${acts}`;
   } else { // no set time: each spot it could take, said plainly
     const fits = wildFits(plan, c);
     body = `<p class="muted" style="font-size:14px;margin:4px 0 10px">It has no set time. Pick where it goes:</p>${fits.map((o, k) => `<button class="pollo ${k ? '' : 'on'}" data-act="wildslot" data-s="${o.s}" data-t="${o.time}"><span>${o.cur ? `Swap out ${esc(pName(o.cur))} at ${pT(o.time)}` : `Put it at ${pT(o.time)}, in the free ${PSLOT[o.s][0].toLowerCase()} spot`}<small>${[k ? '' : 'Fits best', o.near?.mi != null ? `${legTxt(o.near.mi)} from ${esc(pName(o.near.i))}` : ''].filter(Boolean).join(' · ')}</small></span></button>`).join('')}`;
   }
   sheet(`<div class="grab"></div><div class="body"><h2>Add to ${esc(dn)}</h2>${head}${body}<p class="muted" style="font-size:12.5px;margin-top:10px">Nothing is sent yet: you’ll see the plan and can change it before it goes to ${esc(them())}.</p><button class="jlink" data-act="closesheet">Not now</button></div>`); }
-function wildGo(o) { const plan = S.wildP, c = S.wildC; if (!plan || !c) return; closeSheet(); dayDraft({ plan }); const pl = S.pl, [k, sl, t] = (o || '').split(':');
-  if (k === 'rm') { pl.slots = pl.slots.filter(x => x !== sl); delete pl.items[sl]; }
-  if (k === 'mv' && pl.items[sl]) pl.items[sl].time = t + (o.split(':')[3] ? ':' + o.split(':')[3] : '');
+function wildGo(o) { const plan = S.wildP, c = S.wildC; if (!plan || !c) return; closeSheet(); dayDraft({ plan }); const pl = S.pl;
+  for (const ch of String(o || '').split(',').filter(Boolean)) { const [k, sl, h, m] = ch.split(':');
+    if (k === 'rm') { pl.slots = pl.slots.filter(x => x !== sl); delete pl.items[sl]; }
+    if (k === 'mv' && pl.items[sl] && h) pl.items[sl].time = `${h}:${m || '00'}`; }
+  // a spot still to find that now sits inside a stop that moved goes right after it
+  for (const f of pl.slots.filter(x => !pl.items[x].card && pl.items[x].find)) { const inside = pl.slots.map(x => ({ ...pl.items[x], slot: x })).find(x => x.card && pSpan(x)[0] <= toMin(pl.items[f].time) && pSpan(x)[1] > toMin(pl.items[f].time));
+    if (inside) pl.items[f].time = pAddMin('00:00', r5(pSpan(inside)[1] + 10, true)); }
   const slot = ['event', 'event2'].find(x => !pl.slots.includes(x)) || 'event'; if (!pl.slots.includes(slot)) pl.slots.push(slot);
   pl.items[slot] = { time: evStart(c), card: c, find: false, why: 'both', keep: true }; S.wildP = S.wildC = null; step('wild_fit'); dayEdit(); }
 function wildSlot(sl, time) { const plan = S.wildP, c = S.wildC; if (!plan || !c) return; closeSheet(); dayDraft({ plan });
@@ -2913,7 +2960,7 @@ function dayEdit() {
   const cards = ordered.filter(s => pl.items[s].card).length, finds = ordered.filter(s => !pl.items[s].card && pl.items[s].find).length, ok = cards >= 1 && cards + finds >= 2;
   const days = pl.fixed ? [pl.day] : Array.from({ length: 8 }, (_, i) => pAdd(t, i));
   const row = s => {
-    const it = pl.items[s], c = it.card, lab = PSLOT[s][0], ref = pRef(s), fixedT = c && isDated(c) && evStart(c);
+    const it = pl.items[s], c = it.card, lab = PSLOT[s][0], ref = pRef(s), fixedT = c && (isDated(c) && evStart(c) || pFix({ ...it, slot: s }));
     const tm = fixedT ? `<b class="ptm">${pT(it.time)}</b>` : `<input class="ptm" type="time" step="900" value="${esc(it.time)}" data-pltime="${s}" aria-label="${lab} time">`;
     if (!c) return `<div class="prow pe"><span class="pimg">+</span><span class="grow"><small>${tm} · ${lab}</small><b>${it.find ? 'Finding this one together' : pCands(s).length ? 'Open spot' : 'Nothing you both like fits here'}</b><small>${it.find ? `You will both swipe 8 picks after you send. The first one you both like goes here.` : 'Find one together, or leave it out.'}</small></span>${!it.find ? `<button class="pill" data-pl="swap|${s}">Pick</button>` : ''}<button class="pill ${it.find ? '' : 'hot'}" data-pl="find|${s}">${it.find ? 'Undo' : 'Find together'}</button></div>`;
     const o = isDated(c) ? true : openAt(c, pl.day, it.time, PSTAY[s] || 60), mi = ref && ref.id !== c.id && c.id !== pl.anchor?.id ? pMi(ref, c) : null, cl = !isDated(c) && o ? closesAt(c, pl.day, it.time) : null;
@@ -2930,13 +2977,23 @@ function dayEdit() {
     <div class="pdays big">${days.map(d => `<button class="chip ${d === pl.day ? 'on' : ''}" data-pl="day|${d}">${d === t ? 'Today' : d === pAdd(t, 1) ? 'Tomorrow' : dfmt(d)}</button>`).join('')}</div>${pl.mode === 'out' ? pWhereRow() : ''}
     ${pl.anchor ? '' : `<p class="pstep">Going out or staying in?</p><div class="seg" style="margin:8px 0 2px"><button data-pl="mode|out" class="${pl.mode === 'out' ? 'on' : ''}">Going out</button><button data-pl="mode|in" class="${pl.mode === 'in' ? 'on' : ''}">Night in</button></div>`}
     ${ls.get('pdtip') ? '' : `<div class="ptip"><span><b>Tap a time</b> to change it. <b>Options</b> shows what else fits: places you both like, then yours, then great spots a short walk away. <b>Swipe a stop left</b> to take it out. An empty spot can be filled with <b>Find together</b>: you each get 8 picks and the first match goes in.</span><button data-pl="tip" aria-label="Got it">×</button></div>`}
-    <div style="margin-top:6px">${ordered.map(wrap).join('')}</div>
+    <div style="margin-top:6px">${ordered.map((s, k) => wrap(s) + pEdLeg(ordered, k)).join('')}</div>
     ${addable.length ? `<div class="chips" style="margin-top:12px">${addable.map(s => `<button class="chip" data-pl="add|${s}">+ ${PSLOT[s][0]}</button>`).join('')}</div>` : ''}
     <div style="height:16px"></div>
     <button class="btn" data-pl="send" ${ok ? '' : 'disabled style="opacity:.5"'}>${finds ? 'Send and start swiping' : (pl.id ? 'Send the change' : 'Send') + ' to ' + esc(them())}</button>
     <p class="muted" style="margin-top:8px;font-size:12.5px;text-align:center">${ok ? `${esc(them())} can say yes, swap something, or pass. Either of you can change it until the day.` : 'A plan needs at least two things, and one of them picked.'}</p>
   </div>`, 'plan', 'edit');
 }
+// between two stops in the editor: how long it takes to get there, and when there isn't time, a fix
+function pEdLeg(ordered, k) {
+  const pl = S.pl, s = ordered[k], filled = ordered.slice(k + 1).find(x => pl.items[x].card), a = { ...pl.items[s], slot: s };
+  if (!a.card || !filled || pl.mode === 'in') return '';
+  const b = { ...pl.items[filled], slot: filled }, g = pGo(a, b, (S.plans || []).find(x => x.id === pl.id)?.legs);
+  const [, aEnd] = pSpan(a), bSt = toMin(b.time), short = aEnd + g.need - bSt;
+  if (short <= 0) return `<div class="pleg">${esc(pGoTxt(g)[0].toUpperCase() + pGoTxt(g).slice(1))}. Leave by ${pT(pAddMin(b.time, -g.need))}.</div>`;
+  const later = !pFix(b) ? pAddMin('00:00', r5(aEnd + g.need, true)) : null, earlier = !pFix(a) ? pAddMin('00:00', r5(toMin(a.time) - short)) : null;
+  const fx = later ? `<button class="pill hot" data-pl="retime|${filled}|${later}">Move ${esc(pName(b))} to ${pT(later)}</button>` : earlier && toMin(earlier) >= 9 * 60 ? `<button class="pill hot" data-pl="retime|${s}|${earlier}">Start ${esc(pName(a))} at ${pT(earlier)}</button>` : '';
+  return `<div class="pleg late">${toMin(b.time) < aEnd ? `${esc(pName(a))} runs until ${pT(pAddMin('00:00', aEnd))}, so it overlaps.` : `Only ${bSt - aEnd} min between, and getting there takes ${esc(pGoTxt(g))}.`}${fx ? `<span class="plfix">${fx}</span>` : ''}</div>`; }
 const pFindFor = (slot, mode) => mode === 'in' ? (slot === 'dinner' ? ['dinner', { kinds: ['orderin'] }] : ['movie', {}]) : slot === 'dinner' ? ['dinner', { kinds: ['restaurant'] }] : ['event', { types: slot === 'day' ? PDAYT : slot === 'evening' ? ['Bar', ...PEVE] : ['Bar'], days: 0 }];
 async function daySend(btn) {
   const pl = S.pl, bt = btn.textContent; btn.disabled = true; btn.textContent = 'Sending…';
@@ -3043,8 +3100,10 @@ function pWxText(p, w) {
   const wear = feel < 35 ? 'a warm coat, a hat and gloves' : feel < 50 ? 'a warm jacket' : feel < 62 ? 'a light jacket or layers' : feel < 80 ? 'whatever’s comfortable' : 'something light, and bring water';
   return `${hi}° / ${lo}° and ${sky}. ${out ? 'Part of this is outside: ' : ''}${out ? wear : wear[0].toUpperCase() + wear.slice(1)}${rain || snow ? ', plus an umbrella' : ''}${w.wind >= 20 && feel < 60 ? '. It’ll be windy' : ''}.`;
 }
-const pLeg = (p, i) => { const l = i.card && (p.legs || []).find(x => x.from === i.card.id); if (!l) return '';
-  return `<div class="pleg${l.late ? ' late' : ''}">${l.min} min ${l.mode === 'walk' ? 'walk' : 'drive'} to the next stop${l.late ? ' · that’s tight, so leave a little early or move the time' : ''}</div>`; };
+const pLeg = (p, i) => { const l = i.card && (p.legs || []).find(x => x.from === i.card.id); if (!l || l.mode === 'home') return '';
+  const nx = p.items.find(x => x.card?.id === l.to), need = l.need ?? l.min, by = nx?.time ? pT(pAddMin(nx.time, -need)) : '';
+  const g = { min: l.min, mode: l.mode, ci: l.checkin || 0, est: !!l.est, guess: false };
+  return `<div class="pleg${l.late ? ' late' : ''}">${esc(pGoTxt(g)[0].toUpperCase() + pGoTxt(g).slice(1))}${by ? `. Leave by ${by}` : ''}${l.late ? `. That’s ${l.short_by} min too tight: ${l.fixed ? 'head out early or cut this stop a little short' : 'leave early or move the next stop later'}` : ''}.</div>`; };
 function pWeatherFill(p) { pWeather(p).then(t => { const el = document.getElementById('pwx'); if (t && el && S.plView === p.id) { el.textContent = t; el.hidden = false; } }).catch(() => {}); }
 function plansForm() {
   const st = S.settings || {}, off = st.plans_off === true, fs = st.friday_start || '18:30', ff = st.friday_fav || '', pr = st.plan_price || '', favs = S.favs || [];
@@ -3154,6 +3213,12 @@ async function dayAct(v, a, t) {
   if (v === 'wrm') { try { S.places = await rpc('place_remove', { p_code: S.code, p_member: S.me, p_card: a }); } catch {} return placeSheet(); }
   if (v === 'wback') { closeSheet(); return dayEdit(); }
   if (v === 'swap') { if (S.plOpt?.s === a) { S.plOpt = null; return dayEdit(); } S.plOpt = { s: a, list: null }; dayEdit(); return plOptLoad(a); }
+  if (v === 'retime') { const [, sl, tm] = (t?.dataset?.pl || '').split('|'); if (!pl.items[sl] || !/^\d{2}:\d{2}$/.test(tm)) return;
+    const was = pl.items[sl].time, L = pl.slots.filter(x => pl.items[x].card || pl.items[x].find).map(x => Object.assign(pl.items[x], { slot: x }));
+    pl.items[sl].time = tm; L.sort((a, b) => toMin(a.time) - toMin(b.time)); const k = L.indexOf(pl.items[sl]), legs = (S.plans || []).find(x => x.id === pl.id)?.legs;
+    // moving one stop shouldn't squeeze the next: carry the change on down the day (or up it, when it moved earlier)
+    pl.items[sl].lock = true; pSettle(L, toMin(tm) > toMin(was) ? 'fwd' : 'back', legs, pl.mode === 'in', toMin(tm) > toMin(was) ? k + 1 : k - 1); delete pl.items[sl].lock;
+    step('plan_retime'); return dayEdit(); }
   if (v === 'opt') { const id2 = (t?.dataset?.pl || '').split('|')[2], c = (S.plOpt?.list || []).find(x => x.id === id2); if (c) { pl.items[a] = { ...pl.items[a], card: c, find: false, empty: false, keep: true }; } S.plOpt = null; step('plan_opt'); return dayEdit(); }
   dayEdit();
 }
