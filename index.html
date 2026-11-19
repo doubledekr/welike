@@ -1156,6 +1156,7 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .tfr b{display:block;font-size:14.5px}.tfr small{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}.tfc{width:24px;height:24px;flex:none;border-radius:50%;border:2px solid rgba(255,255,255,.25);display:grid;place-items:center}.tfr.done .tfc{border-color:#2dd4bf;color:#2dd4bf}.tfc svg{width:14px;height:14px}
 .tfa{flex:none;padding:8px 12px;border-radius:999px;background:rgba(255,154,128,.16);color:#ffd5c8;font-weight:700;font-size:13.5px;box-shadow:none}
 .wfa{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}.wfa .btn{padding:14px 8px;font-size:15px}.wfa .btn.on{background:rgba(45,212,191,.18);color:#7be0cf;box-shadow:none}
+.popts{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 12px;margin:-2px 0 6px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}.popt{flex:none;width:132px;scroll-snap-align:start;padding:0 0 9px;border-radius:16px;background:rgba(255,255,255,.06);text-align:left;overflow:hidden;box-shadow:none;display:flex;flex-direction:column}.popt img,.popt .pimg{width:100%;height:84px;object-fit:cover;display:grid;place-items:center;font-size:28px;background:rgba(255,255,255,.04)}.popt b{font-size:13.5px;line-height:1.25;padding:7px 9px 2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.popt small{font-size:11.5px;color:var(--muted);padding:0 9px}.popt small.lk{color:#ffb38a}
 #tcbar{position:fixed;left:50%;bottom:calc(var(--sb) + 86px);transform:translateX(-50%);z-index:19;display:flex;align-items:center;gap:9px;max-width:92%;padding:8px 14px;border-radius:999px;background:linear-gradient(135deg,rgba(84,38,44,.96),rgba(70,26,52,.96));box-shadow:0 8px 24px -10px rgba(255,90,110,.9);color:#fff;font-size:13.5px;white-space:nowrap}
 #tcbar .dot{width:8px;height:8px;border-radius:50%;background:#ff6a6a;animation:tcdot 1.6s ease-in-out infinite}#tcbar .go{font-weight:700;color:#ffd5c8}@keyframes tcdot{50%{opacity:.35}}
 @media (prefers-reduced-motion:reduce){.tcpts,#tcbar .dot{animation:none}}
@@ -2778,6 +2779,7 @@ async function nightOpen(ids) { if (!partner()) return; const [a, b] = String(id
   if (place && other && S.pl && !isBar(other)) { const pl = S.pl; if (other.deck === 'movie' && !pFits(place, 'dinner', pl.day, 'in')) { pl.mode = 'out'; pl.slots = ['dinner', 'evening']; pl.items = { evening: { time: PSLOT.evening[1], card: other, find: false, why: 'both' } }; }   // dinner out, then the movie at home
     if (!pl.slots.includes('dinner')) pl.slots.unshift('dinner'); pl.items.dinner = { time: PSLOT.dinner[1], card: place, find: false, why: 'both' }; dayEdit(); } }
 function dayDraft({ mode = 'out', anchor = null, plan = null, day = null }) {
+  S.plOpt = null;
   const now = pNow(), t = pToday();
   if (plan) {
     const pl = S.pl = { id: plan.id, day: plan.day < t ? t : plan.day, mode: plan.mode, anchor: null, slots: [], items: {} };
@@ -2802,6 +2804,16 @@ function dayDraft({ mode = 'out', anchor = null, plan = null, day = null }) {
   if (anchor && isBar(anchor)) pl.slots = pl.slots.filter(s => s === 'drinks' || pl.items[s]?.card);
   dayEdit();
 }
+
+// The choices for one stop, in a row you scroll: places you both like, then yours, then well-rated places a short walk from the stops around it
+async function plOptLoad(s) { const pl = S.pl, ref = pRef(s), used = pl.slots.map(x => pl.items[x]?.card?.id).filter(Boolean); let list = [];
+  try { list = await rpc('plan_options', { p_code: S.code, p_member: S.me, p_day: pl.day, p_time: pl.items[s]?.time || PSLOT[s][1], p_slot: s, p_mode: pl.mode, p_lat: ref?.data?.lat ?? null, p_lng: ref?.data?.lng ?? null, p_used: used }); } catch {}
+  const liked = pCands(s).filter(c => !used.includes(c.id) && !list.some(x => x.id === c.id)).map(c => ({ ...c, why: 'both', mi: ref ? pMi(ref, c) : null }));
+  if (S.plOpt?.s !== s || S.pl !== pl) return; S.plOpt.list = [...list.filter(x => x.why === 'both'), ...liked, ...list.filter(x => x.why !== 'both')]; S.plOpt.ref = ref?.title || ''; dayEdit(); }
+function plOptRow(s) { const o = S.plOpt; if (!o.list) return '<div class="popts"><p class="muted" style="font-size:13px;padding:6px 2px">Finding options…</p></div>';
+  if (!o.list.length) return '<div class="popts"><p class="muted" style="font-size:13px;padding:6px 2px">Nothing else open nearby at that time. Try another time.</p></div>';
+  const tag = x => x.why === 'both' ? 'You both like' : x.why === 'mine' ? 'You like' : x.data?.rating ? `★ ${x.data.rating}` : 'Nearby';
+  return `<div class="popts" role="list">${o.list.map(x => `<button class="popt" role="listitem" data-pl="opt|${s}|${x.id}">${x.image ? `<img src="${esc(x.image)}" alt="" loading="lazy">` : `<span class="pimg">${emojiFor(x)}</span>`}<b>${esc(x.title)}</b><small class="${x.why === 'near' ? '' : 'lk'}">${tag(x)}</small>${x.mi != null && o.ref ? `<small>${legTxt(x.mi)}</small>` : ''}</button>`).join('')}</div>`; }
 function dayEdit() {
   const pl = S.pl; pFill(); const t = pToday();
   const ordered = [...pl.slots].sort((a, b) => String(pl.items[a].time).localeCompare(String(pl.items[b].time)));
@@ -2810,19 +2822,19 @@ function dayEdit() {
   const row = s => {
     const it = pl.items[s], c = it.card, lab = PSLOT[s][0], ref = pRef(s), fixedT = c && isDated(c) && evStart(c);
     const tm = fixedT ? `<b class="ptm">${pT(it.time)}</b>` : `<input class="ptm" type="time" step="900" value="${esc(it.time)}" data-pltime="${s}" aria-label="${lab} time">`;
-    if (!c) return `<div class="prow pe"><span class="pimg">+</span><span class="grow"><small>${tm} · ${lab}</small><b>${it.find ? 'Finding this one together' : pCands(s).length ? 'Open spot' : 'Nothing you both like fits here'}</b><small>${it.find ? `You will both swipe 8 picks after you send. The first one you both like goes here.` : 'Find one together, or leave it out.'}</small></span>${!it.find && pCands(s).length ? `<button class="pill" data-pl="swap|${s}">Pick</button>` : ''}<button class="pill ${it.find ? '' : 'hot'}" data-pl="find|${s}">${it.find ? 'Undo' : 'Find together'}</button></div>`;
+    if (!c) return `<div class="prow pe"><span class="pimg">+</span><span class="grow"><small>${tm} · ${lab}</small><b>${it.find ? 'Finding this one together' : pCands(s).length ? 'Open spot' : 'Nothing you both like fits here'}</b><small>${it.find ? `You will both swipe 8 picks after you send. The first one you both like goes here.` : 'Find one together, or leave it out.'}</small></span>${!it.find ? `<button class="pill" data-pl="swap|${s}">Pick</button>` : ''}<button class="pill ${it.find ? '' : 'hot'}" data-pl="find|${s}">${it.find ? 'Undo' : 'Find together'}</button></div>`;
     const o = isDated(c) ? true : openAt(c, pl.day, it.time, PSTAY[s] || 60), mi = ref && ref.id !== c.id && c.id !== pl.anchor?.id ? pMi(ref, c) : null, cl = !isDated(c) && o ? closesAt(c, pl.day, it.time) : null;
     const note = [o === false ? '<span class="pwarn">Closed then, or closes too soon</span>' : cl ? 'open until ' + cl : isDated(c) && !evStart(c) ? 'pick a start time when you book' : '', mi != null ? `${mi} mi from ${esc((n => n.length > 20 ? n.slice(0, 19).trim() + '…' : n)(ref.title.split(/[,(]/)[0].trim()))}` : '', pl.mode === 'in' && s === 'dinner' ? (c.kind === 'cook' ? 'cook at home' : 'order in') : ''].filter(Boolean).join(' · ');
     const more = pCands(s).filter(x => x.id !== c.id).length;
-    return `<div class="prow">${c.image ? `<img src="${esc(c.image)}" alt="">` : `<span class="pimg">${emojiFor(c)}</span>`}<span class="grow"><small>${tm} · ${lab}</small><b>${esc(c.title)}</b><small>${note || esc((c.subtitle || '').split(' · ')[0])}</small></span>${more && c.id !== pl.anchor?.id ? `<button class="pill" data-pl="swap|${s}">Swap</button>` : ''}</div>`;
+    return `<div class="prow">${c.image ? `<img src="${esc(c.image)}" alt="">` : `<span class="pimg">${emojiFor(c)}</span>`}<span class="grow"><small>${tm} · ${lab}</small><b>${esc(c.title)}</b><small>${note || esc((c.subtitle || '').split(' · ')[0])}</small></span>${c.id !== pl.anchor?.id ? `<button class="pill ${S.plOpt?.s === s ? 'hot' : ''}" data-pl="swap|${s}">${S.plOpt?.s === s ? 'Close' : 'Options'}</button>` : ''}</div>`;
   };
-  const wrap = s => { const c = pl.items[s].card; return c && c.id === pl.anchor?.id && pl.fixed ? row(s) : plSw(s, row(s)); };
+  const wrap = s => { const c = pl.items[s].card; return (c && c.id === pl.anchor?.id && pl.fixed ? row(s) : plSw(s, row(s))) + (S.plOpt?.s === s ? plOptRow(s) : ''); };
   const addable = (pl.mode === 'in' ? ['dinner', 'evening'] : pl.slots.includes('drinks') && isBar(pl.items.drinks?.card || {}) && pl.anchor && isBar(pl.anchor) ? ['dinner', 'drinks2', 'drinks3'] : PMAIN).filter(s => !pl.slots.includes(s));
   sheet(`<div class="grab"></div><div class="body"><h2>${pl.id ? 'Change the plan' : pl.mode === 'in' ? 'A night in' : 'Plan a day'}</h2>
     <p class="pstep">Which day?</p>
     <div class="pdays big">${days.map(d => `<button class="chip ${d === pl.day ? 'on' : ''}" data-pl="day|${d}">${d === t ? 'Today' : d === pAdd(t, 1) ? 'Tomorrow' : dfmt(d)}</button>`).join('')}</div>
     ${pl.anchor ? '' : `<p class="pstep">Going out or staying in?</p><div class="seg" style="margin:8px 0 2px"><button data-pl="mode|out" class="${pl.mode === 'out' ? 'on' : ''}">Going out</button><button data-pl="mode|in" class="${pl.mode === 'in' ? 'on' : ''}">Night in</button></div>`}
-    ${ls.get('pdtip') ? '' : `<div class="ptip"><span><b>Tap a time</b> to change it. <b>Swap</b> trades in something else you both like. <b>Swipe a stop left</b> to take it out. An empty spot can be filled with <b>Find together</b>: you each get 8 picks and the first match goes in.</span><button data-pl="tip" aria-label="Got it">×</button></div>`}
+    ${ls.get('pdtip') ? '' : `<div class="ptip"><span><b>Tap a time</b> to change it. <b>Options</b> shows what else fits: places you both like, then yours, then great spots a short walk away. <b>Swipe a stop left</b> to take it out. An empty spot can be filled with <b>Find together</b>: you each get 8 picks and the first match goes in.</span><button data-pl="tip" aria-label="Got it">×</button></div>`}
     <div style="margin-top:6px">${ordered.map(wrap).join('')}</div>
     ${addable.length ? `<div class="chips" style="margin-top:12px">${addable.map(s => `<button class="chip" data-pl="add|${s}">+ ${PSLOT[s][0]}</button>`).join('')}</div>` : ''}
     <div style="height:16px"></div>
@@ -3032,7 +3044,8 @@ async function dayAct(v, a, t) {
   if (v === 'rm') { if (pl.items[a]?.card || pl.items[a]?.find || pl.slots.length > 1) { if (pl.items[a].card && pCands(a).length <= 1 || !pl.items[a].card) { pl.slots = pl.slots.filter(s => s !== a); delete pl.items[a]; } else { pl.items[a].card = null; pl.items[a].find = false; pl.items[a].empty = true; } } }
   if (v === 'add') { pl.slots.push(a); delete pl.items[a]; }
   if (v === 'find') { pl.items[a].find = !pl.items[a].find; pl.items[a].empty = !pl.items[a].find; }
-  if (v === 'swap') { const cs = pCands(a), i = cs.findIndex(c => c.id === pl.items[a].card?.id); pl.items[a].card = cs[(i + 1) % cs.length] || pl.items[a].card; pl.items[a].find = false; pl.items[a].empty = false; }
+  if (v === 'swap') { if (S.plOpt?.s === a) { S.plOpt = null; return dayEdit(); } S.plOpt = { s: a, list: null }; dayEdit(); return plOptLoad(a); }
+  if (v === 'opt') { const id2 = (t?.dataset?.pl || '').split('|')[2], c = (S.plOpt?.list || []).find(x => x.id === id2); if (c) { pl.items[a] = { ...pl.items[a], card: c, find: false, empty: false, keep: true }; } S.plOpt = null; step('plan_opt'); return dayEdit(); }
   dayEdit();
 }
 // Things only one of you has liked that fit the open spot: right kind of place, open for the visit, nearest first.
