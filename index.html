@@ -1884,6 +1884,7 @@ function ob2Steps() {
   const s = [];
   if (!ls.get('ob2flip')) s.push('flip');                            // first: swipe whenever, and tap to flip
   if (!ls.get('ob2try') && !standalone()) s.push('try');           // someone who came in by invite never saw the card
+  if (!ls.get('ob2piles')) s.push('piles');                          // the five piles, and the cards that arrive covered
   if (needInvite()) s.push('invite');
   if (!standalone() && isPhone() && !ls.get('a2hs')) s.push('install');
   if (needPushAsk()) s.push('push');                                 // on an iPhone this only exists in the Home Screen app, so it waits for the icon
@@ -1897,7 +1898,7 @@ function ob2Show() {
   S.ob2 = { i: 0, steps, loc: false, kids: S.settings?.kids === true }; ob2Draw(); return true;
 }
 function ob2End() {
-  const loc = S.ob2?.loc; S.ob2 = null; ls.set('ob2', '1'); ls.set('coach', '1'); ls.set('ob2try', '1'); ls.set('ob2flip', '1'); a2hsArrow(''); document.querySelector('.wn.ob2')?.remove();
+  const loc = S.ob2?.loc; S.ob2 = null; ls.set('ob2', '1'); ls.set('coach', '1'); ls.set('ob2try', '1'); ls.set('ob2flip', '1'); ls.set('ob2piles', '1'); a2hsArrow(''); document.querySelector('.wn.ob2')?.remove();
   if (S.view === 'home' && S.tab === 'home') render();
   if (loc) return locAsk(); if (needLoc()) ls.set('askedloc', '1');
   nextOnboard();
@@ -1912,12 +1913,14 @@ function ob2Skip() {   // "Later" on a step: remember it was offered, so it does
 }
 function ob2Draw() {
   const el = document.querySelector('.wn.ob2'), o = S.ob2; if (!el || !o) return; const k = o.steps[o.i], n = o.steps.length, p = partner(), last = o.i === n - 1;
-  const C = { flip: ['#ff7a9c', '#ff4d7e'], try: ['#ffb547', '#ff7a4d'], invite: ['#ff7a4d', '#ff4d7e'], install: ['#2dd4bf', '#4d9bff'], push: ['#ffb547', '#ff4d7e'], notif: ['#ffb547', '#ff4d7e'], dates: ['#ff7a9c', '#ff4d7e'], setup: ['#ffb547', '#ff7a4d'] }[k];
+  const C = { flip: ['#ff7a9c', '#ff4d7e'], try: ['#ffb547', '#ff7a4d'], piles: ['#9fb8cc', '#ffb547'], invite: ['#ff7a4d', '#ff4d7e'], install: ['#2dd4bf', '#4d9bff'], push: ['#ffb547', '#ff4d7e'], notif: ['#ffb547', '#ff4d7e'], dates: ['#ff7a9c', '#ff4d7e'], setup: ['#ffb547', '#ff7a4d'] }[k];
   const kick = (x = '') => `<small class="wk-k">Step ${o.i + 1} of ${n}${x}</small>`, sp = '<div class="ob2-sp"></div>', solo = soloMode();   // on their own: no partner wording
   step('ob2_' + k);
   const body = {
     flip: () => `${kick()}<h2 class="wk-h">Tap a card to flip it</h2><p class="wk-p">Swipe whenever you have a minute, no homework. When a card catches your eye, tap it for the details.</p>${flipStage()}<button class="btn wk-cta wait" id="wkgo" data-act="ob2flip" disabled>Tap the card</button>`,
     try: () => `${kick()}<h2 class="wk-h">Now, how the cards work</h2><p class="wk-p">Flick this card each way. ${solo ? 'Your swipes stay private.' : `${esc(p || 'Your person')} never sees your swipes unless you both say yes.`}</p>${ob2SwipeStage()}<button class="btn wk-cta wait" id="wkgo" data-act="ob2try" disabled>Flick the card</button>`,
+    piles: () => `${kick()}<h2 class="wk-h">Five piles, and a few surprises</h2><p class="wk-p">Discover is a bit of everything near you. Watch, Eat, Drinks and Trips are what they say. Some cards come covered: hidden gems, one-of-a-kind shops, and food or drink events. Wipe to see.</p>
+      <div class="wk-stage"><div class="wk-gem" id="obpg" style="background:radial-gradient(90% 60% at 50% 30%,#3d8f86,#16454a 55%,#0c2226)"><span class="wk-gcap"><span class="gemk"><span>Unique spot</span></span><b>A magic shop with a back-room stage</b></span><canvas id="obpv"></canvas></div></div><button class="btn wk-cta wait" id="wkgo" data-act="ob2piles" disabled>Wipe the window</button>`,
     invite: () => `${kick()}<h2 class="wk-h">Bring your person in</h2><p class="wk-p">Nothing can match until you’re both here. The link fills in the code for them.</p>
       <div class="ob2-code">${esc(S.code)}<small>Your couple code</small></div><div class="wk-bub ob2-msg"><b>Your text</b>Join me on Let’s Together so we can stop asking “what do you want to do?”</div>${sp}
       <button class="btn wk-cta" data-act="ob2inv" data-how="${isPhone() ? 'text' : 'share'}">${isPhone() ? 'Text the invite' : 'Copy the invite'}</button>${isPhone() ? '<button class="jlink" data-act="ob2inv" data-how="share">Other apps</button>' : ''}`,
@@ -1944,6 +1947,21 @@ function ob2Draw() {
   el.innerHTML = `<div class="wn-in wk-in"><div class="wn-top"><span class="wk-dots">${o.steps.map((_, j) => `<i class="${j <= o.i ? 'on' : ''}"></i>`).join('')}</span><button data-act="ob2skip" aria-label="Later">${k === 'invite' && Number(ls.get('invN') || 0) === 0 && standalone() ? 'Already sent' : 'Later'}</button></div>${body}</div>`;
   if (k === 'try') wkSwipeWire(el, 'Never again');
   if (k === 'flip') flipWire(el);
+  if (k === 'piles') wipeWire(document.getElementById('obpv'), 'Wipe me');
+}
+// a frosted window to wipe clean (the onboarding demo of a covered card); enables the step's button when it's mostly clear
+function wipeWire(cv, label) {
+  if (!cv) return; const box = cv.parentElement.getBoundingClientRect(), W = cv.width = Math.round(box.width), H = cv.height = Math.round(box.height), x = cv.getContext('2d');
+  cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;touch-action:none;border-radius:inherit';
+  const gr = x.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#d6e2ec'); gr.addColorStop(1, '#96acc0'); x.fillStyle = gr; x.fillRect(0, 0, W, H);
+  x.fillStyle = '#33475a'; x.textAlign = 'center'; x.font = `italic ${Math.round(W / 7)}px "Instrument Serif", Georgia, serif`; x.fillText(label, W / 2, H / 2 + 8);
+  x.globalCompositeOperation = 'destination-out'; x.lineCap = 'round'; x.lineJoin = 'round'; x.lineWidth = Math.max(40, W / 4.5);
+  let down = false, lx = 0, ly = 0, n = 0, done = false; const pt = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; };
+  const fin = () => { if (done) return; done = true; cv.style.transition = 'opacity .4s'; cv.style.opacity = 0; setTimeout(() => cv.remove(), 420); walkOk(); try { navigator.vibrate?.([12, 70, 12]); } catch {} };
+  cv.addEventListener('pointerdown', e => { e.preventDefault(); down = true; [lx, ly] = pt(e); x.beginPath(); x.arc(lx, ly, x.lineWidth / 2, 0, 7); x.fill(); try { cv.setPointerCapture(e.pointerId); } catch {} });
+  cv.addEventListener('pointermove', e => { if (!down || done) return; const [a, b] = pt(e); x.beginPath(); x.moveTo(lx, ly); x.lineTo(a, b); x.stroke(); lx = a; ly = b;
+    if (++n % 6 === 0) { const d = x.getImageData(0, 0, W, H).data; let c = 0, t = 0; for (let i = 3; i < d.length; i += 4 * 37) { t++; if (d[i] < 40) c++; } if (c / t > .45) fin(); } });
+  const up = () => { down = false; }; cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
 }
 // One line the first time something newer turns up, rather than explaining everything on day one.
 function tip1(key, msg) { if (ls.get('tip_' + key) || !ls.get('ob2') || document.querySelector('.wn')) return; ls.set('tip_' + key, '1'); setTimeout(() => toast(msg, 5200), 600); }
@@ -3430,6 +3448,7 @@ async function inboxSheet() {
     <div id="inlately">${items.length ? items.map(i => sw('i:' + i.id, `<button class="sess inrow ${i.seen ? '' : 'new'} ${lkind(i) ? 'kc k-' + lkind(i) : ''}" data-inurl="${esc(i.url || './')}"><span class="tic">${ic(kic(i))}</span><span class="grow"><b>${esc(i.title)}</b><small>${esc(i.body || '')}${i.body ? ' · ' : ''}${ago(i.at)}</small></span></button>`, 'Remove')).join('') : `<p class="muted" style="font-size:14px;padding:6px 0 4px">${w.length ? 'Nothing else for now.' : `All quiet. Matches and anything ${esc(them())} sends will show up here for a week.`}</p>`}
     </div>
     <a class="sess inrow" href="./hello/?app=1#board" style="text-decoration:none;color:inherit"><span class="tic">${ic('heart')}</span><span class="grow"><b>Report a bug or suggest something</b><small>A public board. Vote on what you want most</small></span></a>
+    <button class="sess inrow" data-act="howto"><span class="tic">${ic('spark')}</span><span class="grow"><b>How it works</b><small>Swipes, piles, covered cards, plans and more</small></span></button>
     <button class="sess inrow" data-act="whatsnew"><span class="tic">${ic('spark')}</span><span class="grow"><b>What’s new</b><small>Discover, Watch, Eat, Drinks and Trips, unique spots, close by</small></span></button>
   </div>`);
   ls.set('bellseen', '|' + w.map(x => x.k).join('|') + '|');
@@ -3552,6 +3571,20 @@ function inboxGo(u) {
   if (q.get('trip')) return openGetaway(q.get('trip'), partner());
   if (SHW[q.get('share')]) return openShareTab(q.get('share'));
   if (q.get('invite') && !partner()) { if (q.get('t')) S.invT = 1; return inviteSheet(); }
+}
+/* ---------- how it works: the how-tos in one place ---------- */
+function howTo() {
+  const p = esc(partner() || 'your person'), H = [
+    ['Swiping', 'Right is maybe, up is hell yeah, left is nah, down is never again. Tap a card to flip it for the details. ' + p.charAt(0).toUpperCase() + p.slice(1) + ' only sees what you both said yes to.'],
+    ['The five piles', 'Discover is a bit of everything near you. Watch is movies. Eat is places to eat, Drinks is bars and nights out, and Trips is places you might go. A pile is a short handful a day; when it runs out you get a grid of everything you’ve liked.'],
+    ['Covered cards', 'Hidden gems you scratch, unique spots (independent shops) you wipe like a window, and food or drink events you scratch in Eat and Drinks. Both of you get the same one.'],
+    ['Matches', 'When you both say yes it’s a match. Matches live behind the heart at the top: pick one, shuffle, or play a quick game for it.'],
+    ['Close by', 'Open a place and tap “What else you like close by” to see your other likes a short walk away, then put two in a plan with the times worked out.'],
+    ['Plans', 'Plan a day builds a day from what you both like, with travel time between stops. Weekend plans arrive on their own; say yes, swap a stop, or keep one secret as a surprise.'],
+    ['Tonight', 'Both swipe the same short stack at the same time. Can’t choose between two matches? Play for it, and the winner picks.'],
+    ['Trips', 'Swipe on cities and things to do there. Once you mark a stay or flights as booked, or agree on dates, we look for gems, unique spots and events there for your dates.'],
+  ];
+  sheet(`<div class="grab"></div><div class="body"><h2>How it works</h2>${H.map(([h, t]) => `<div class="sect" style="margin-top:18px">${h}</div><p class="muted" style="font-size:14.5px;line-height:1.5;margin-top:4px">${t}</p>`).join('')}<div style="height:18px"></div><button class="btn ghost" data-act="whatsnew">See the walkthrough</button></div>`);
 }
 /* ---------- what's new ---------- */
 // Shown once per person (kept on the account, so Safari and the Home Screen app agree) to people who were already
@@ -3757,7 +3790,7 @@ function renderGallery() {
       ${dest ? `<div class="case"><span class="tic">${ic('plane')}</span><span class="grow"><b>${esc(h.city)} is on your trips list</b><small>${h.cs.length} piece${h.cs.length > 1 ? 's' : ''} to see and ${h.todo} thing${h.todo > 1 ? 's' : ''} to do</small></span><button class="go" data-act="trips">See the case</button></div>` : ''}
       ${open ? galHTML(h.cs) + `${dest ? `<button class="jlink" data-astack="${esc(key)}" style="padding-top:4px">Stack them back up</button>` : ''}` : `<div class="astack-wrap">${artStack(h.cs, key, 'tap to spread out')}</div>`}
       ${h.city && h.nb && !dest && !gh ? `<button class="btn ghost sm" data-gcity="${esc(h.city)}" style="margin-top:12px">${ic('plane')} Things to do in ${esc(h.city)}</button>` : ''}</div>`; }).join('')
-      : `<div class="note" style="margin-top:16px"><b>Your gallery is empty.</b> Swipe “Like it” or “Love it” on the Art tab and the pieces hang here, grouped by the museum that holds them.</div>`}
+      : `<div class="note" style="margin-top:16px"><b>Your gallery is empty.</b> Art you liked lands here, grouped by the museum that holds them.</div>`}
     <p class="muted" style="font-size:11.5px;text-align:center;margin:22px 0 6px">Public-domain images from the Art Institute of Chicago and the Cleveland Museum of Art.</p></div>`;
 }
 
@@ -3954,7 +3987,7 @@ function renderTrips() {
       ${planned ? `<div class="tripbar"><span class="tic">${ic('plane')}</span><span class="grow"><b>${planDates(g.city) || 'No dates yet'}</b><small>${(() => { const { done, total } = planProg(g.city); return `${done} of ${total} done`; })()}</small></span><button class="go" data-tripbook="${esc(g.city)}">${planDates(g.city) ? 'Open the plan' : 'Set dates'}</button></div>` : ''}
       ${planned && !planMeta(g.city).booked ? `<div class="row" style="gap:10px;margin-top:12px"><button class="btn sm" data-planact="${esc(g.city)}|booked" style="flex:1">We booked it</button>${planCanLock(g.city) ? `<button class="btn ghost sm" data-planact="${esc(g.city)}|lock" style="flex:1">Lock it back up</button>` : ''}</div>` : ''}
       ${p && !planned ? (planInvites()[g.city]?.by === S.me ? `<p class="muted" style="font-size:13.5px;margin-top:12px">Waiting for ${esc(p)} to answer about ${esc(g.city)}.</p>` : planInvites()[g.city] ? `<button class="btn sm getaway" data-tripinvite="${esc(g.city)}">${esc(planInvites()[g.city].by)} wants to plan this. Take a look</button>` : `<button class="btn ${g.tb + g.ab >= 2 ? '' : 'ghost'} sm getaway" data-getaway="${esc(g.city)}">${ic('plane')} Plan a weekend in ${esc(g.city)}</button>`) : ''}</div>`; }).join('')
-      : `<div class="note" style="margin-top:16px"><b>No trips saved yet.</b> Swipe “Like it” on the Trips tab and they collect here, grouped by city. Art you like in the same city stacks up alongside, so you can see the case for going.</div>`}
+      : `<div class="note" style="margin-top:16px"><b>No trips saved yet.</b> Swipe “Like it” on the Trips tab and they collect here, grouped by city. Art you liked in the same city stacks up alongside, so you can see the case for going.</div>`}
     <p class="muted" style="font-size:11.5px;text-align:center;margin:22px 0 6px">Experiences from Viator. Let’s Together may earn a commission if you book.</p></div>`;
 }
 
@@ -5355,6 +5388,10 @@ function pilePose(id, i) {
 }
 function drawStack() {
   const st = document.getElementById('stack'); if (!st) return; updateBar(); if (S.deck[0]?.data?.gem) tip1('gem', 'A hidden gem: somewhere most people walk past.');
+  else if (S.deck[0]?.data?.unique) tip1('uq', 'A unique spot: an independent shop near you. Wipe the window to look inside.');
+  else if (evFind(S.deck[0])) tip1('evfind', 'A food or drink event, on for a day or two. Scratch to see what’s on.');
+  else if (S.homeDeck === 'drinks') tip1('drinks', 'Drinks is bars and nights out. A drink find shows up covered now and then.');
+  else if (S.homeDeck === 'all') tip1('disc', 'Discover is a bit of everything, with finds near you mixed in.');
   const acts = document.getElementById('acts'), seen = document.getElementById('seenb');
   if (biteGoal()) { S.revEntry = false; acts.style.visibility = 'hidden'; if (seen) seen.style.display = 'none'; deckWhy(); return setDone(st, biteGoalHTML()); }
   if (!S.deck.length && moreOn() && S.moreEnd !== S.sess.id) { S.revEntry = false; if (seen) seen.style.display = 'none'; deckWhy(); return void moreStop(); }
@@ -6074,6 +6111,8 @@ document.addEventListener('click', async e => {
       case 'ob2go': S.obI = Number(ds.i) || 0; if (S.obI >= 2) ls.set('ob2try', '1'); return render();
       case 'ob2try': ls.set('ob2try', '1'); return ob2Next();
       case 'ob2flip': ls.set('ob2flip', '1'); return ob2Next();
+      case 'ob2piles': ls.set('ob2piles', '1'); return ob2Next();
+      case 'howto': return howTo();
       case 'ob2skip': return ob2Skip();
       case 'ob2inv': { inviteAsked(); if (ds.how === 'text') { const body = encodeURIComponent(`${inviteMsg()}\n${inviteLink()}`); location.href = /iphone|ipad|ipod|macintosh/i.test(navigator.userAgent) ? `sms:&body=${body}` : `sms:?body=${body}`; return setTimeout(ob2Next, 1200); }
         try { if (navigator.share) await navigator.share({ text: inviteMsg() + '\n' + inviteLink() }); else { await navigator.clipboard.writeText(`${inviteMsg()}\n${inviteLink()}`); toast('Invite and code copied.'); } } catch {} return ob2Next(); }
