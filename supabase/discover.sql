@@ -223,7 +223,11 @@ begin
   d2 := replace(d, $a$or c.kind in (select jsonb_array_elements_text(p_filters->'types'))))$a$,
                    $a$or c.kind in (select jsonb_array_elements_text(p_filters->'types')))
       and (p_deck <> 'event' or jsonb_typeof(p_filters->'notypes') is distinct from 'array' or not (coalesce(c.kind, '') in (select jsonb_array_elements_text(p_filters->'notypes')))))$a$);
-  if d2 = d then raise exception '_pick anchor 2'; end if;
+  if d2 = d then raise exception '_pick anchor 2'; end if; d := d2;
+  -- a released unique spot goes near the front of the Discover slots, like a hidden gem
+  d2 := replace(d, $a$(p_deck = 'event' and c.data ? 'gem' and not coalesce(a.mine, false)) gemfirst$a$,
+                   $a$(p_deck = 'event' and (c.data ? 'gem' or c.data ? 'unique') and not coalesce(a.mine, false)) gemfirst$a$);
+  if d2 = d then raise exception '_pick anchor 3'; end if;
   execute d2;
   -- the daily cards push names the new piles
   d := pg_get_functiondef('public._daily_cards_tick()'::regprocedure);
