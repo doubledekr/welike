@@ -59,7 +59,7 @@ create or replace function public._teaser_pick(p_couple uuid, p_member text) ret
 -- Discovery = hidden gems, unique spots, museums, games, experiences, dated things to do, and now and then a trip teaser.
 -- The rest = movies and shows, places to eat, trips, and one drinks spot. No art.
 create or replace function public._fill_all(p_session uuid) returns integer language plpgsql security definer set search_path to 'public' as $$
-declare s sessions; pos int; f jsonb; base uuid[]; disc uuid[]; t uuid; outv uuid[] := '{}'; bi int := 1; di int := 1; k int := 0; prevcov boolean := false; id uuid; cov boolean;
+declare s sessions; pos int; f jsonb; base uuid[]; disc uuid[]; t uuid; outv uuid[] := '{}'; bi int := 1; di int := 1; k int := 0; prevcov boolean := false; cid uuid; cov boolean;
   dr jsonb := '["Bar","Night out"]';
 begin
   select * into s from sessions where id = p_session;
@@ -76,13 +76,13 @@ begin
   while bi <= coalesce(array_length(base, 1), 0) or di <= coalesce(array_length(disc, 1), 0) loop
     k := k + 1;
     if (k % 4 = 2 or bi > coalesce(array_length(base, 1), 0)) and di <= coalesce(array_length(disc, 1), 0) then
-      id := disc[di]; di := di + 1;
-      select (c.data ? 'gem' or c.data ? 'unique') into cov from cards c where c.id = id;
+      cid := disc[di]; di := di + 1;
+      select (c.data ? 'gem' or c.data ? 'unique') into cov from cards c where c.id = cid;
       if cov and prevcov then continue; end if;   -- never two covered cards in a row
     else
-      id := base[bi]; bi := bi + 1; cov := false;
+      cid := base[bi]; bi := bi + 1; cov := false;
     end if;
-    outv := outv || id; prevcov := cov;
+    outv := outv || cid; prevcov := cov;
   end loop;
   insert into session_cards (session_id, card_id, pos) select p_session, x.id, pos + x.o from unnest(outv) with ordinality x(id, o) on conflict do nothing;
   return coalesce(array_length(outv, 1), 0);
