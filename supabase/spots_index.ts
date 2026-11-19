@@ -23,6 +23,8 @@ const NOT_TYPES = new Set(["restaurant", "fast_food_restaurant", "bar", "night_c
   "wholesaler", "liquor_store", "cell_phone_store", "electronics_store", "hardware_store", "home_improvement_store", "furniture_store", "pet_store", "real_estate_agency"]);
 // big national and regional brands; local-born brands (Shinola, Sanders) are left to the AI check
 const CHAINS = /\b(barnes\s*&?\s*noble|half price books|books-a-million|starbucks|dunkin|panera|tim hortons|krispy kreme|crumbl|nothing bundt|insomnia cookies|great american cookie|cinnabon|auntie anne|paris baguette|85°?c|tous les jours|sweet frog|menchie|lush|bath\s*&\s*body|yankee candle|see'?s candies|lindt|godiva|ghirardelli|rocky mountain chocolate|hallmark|party city|michaels|hobby lobby|joann|spencer|hot topic|five below|dollar|target|walmart|costco|kroger|meijer|whole foods|trader joe|cvs|walgreens|goodwill|salvation army|savers|value village|plato'?s closet|uptown cheapskate|once upon a child|kid to kid|lego store|build-a-bear|gamestop|funko|ulta|sephora|bed bath|homegoods|tj ?maxx|marshalls|ross|kirkland|pier 1|world market|urban outfitters|anthropologie|free people|apple store|t-mobile|verizon|at&t|tuesday morning|big lots|wonder ?works|sugar factory|it'?sugar|ice cream factory)\b/i;
+// names come as the shop writes them; emoji are dropped ("Sideshow Books 📚" -> "Sideshow Books")
+const clean = (s: string) => s.replace(/[\p{Extended_Pictographic}\uFE0F\u200D]+/gu, "").replace(/\s+/g, " ").trim();
 const norm = (s: string) => s.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, " ").replace(/\b(the|llc|inc|co)\b/g, "").replace(/\s+/g, " ").trim();
 const miles = (a: number, b: number, c: number, d: number) => { const r = (x: number) => x * Math.PI / 180, q = Math.sin(r(c - a) / 2) ** 2 + Math.cos(r(a)) * Math.cos(r(c)) * Math.sin(r(d - b) / 2) ** 2; return 3958.8 * 2 * Math.asin(Math.sqrt(q)); };
 function packHours(h: any): unknown {
@@ -131,7 +133,7 @@ Answer with only a JSON array, one object per place: [{"i":0,"keep":true,"kind":
           const p = batch[Number(v?.i)]; if (!p || v.keep !== true) continue;
           const kind = KINDS.includes(v.kind) ? v.kind : null; const line = String(v.line ?? "").trim();
           if (!kind || !line || line.length > 110) continue;
-          kept.push({ place_id: p.id, title: p.displayName.text.slice(0, 80), kind, line, area: areaOf(p), lat: p.location.latitude, lng: p.location.longitude,
+          kept.push({ place_id: p.id, title: clean(p.displayName.text).slice(0, 80), kind, line, area: areaOf(p), lat: p.location.latitude, lng: p.location.longitude,
             address: p.shortFormattedAddress ?? p.formattedAddress ?? null, maps: p.googleMapsUri ?? null, hours: packHours(p.regularOpeningHours),
             rating: p.rating ?? null, ratings: p.userRatingCount ?? null, minutes: Math.min(60, Math.max(20, Math.round(Number(v.minutes) || 30))),
             score: Math.min(10, Math.max(1, Math.round(Number(v.score) || 6))), keep: true, _photo: p.photos?.[0]?.name ?? null });
