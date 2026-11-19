@@ -699,6 +699,7 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .swr.pls{margin-bottom:0;border-radius:12px}.swr.pls>.swf{background:transparent}.swr.pls.sw>.swf{background:#211b25}.swr.pls>.swf>.prow{padding-left:2px;padding-right:2px}
 .sheet.still{animation:none}.swapin{animation:fade .16s ease-out}
 .ttw{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}.tto{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:8px;border-radius:14px;background:rgba(255,255,255,.05);text-align:left;color:var(--text);transition:transform .12s}.tto:active{transform:scale(.97)}.tto img,.tto .pimg{width:100%;height:76px;object-fit:cover;border-radius:10px;display:grid;place-items:center}.tto b{font-size:14px;line-height:1.25}.tto small{color:var(--muted);font-size:12px}.tto.their{box-shadow:0 0 22px -6px rgba(255,140,120,.85)}.prow.ptt{align-items:flex-start}
+.pstep{margin:14px 0 0;font-size:13px;font-weight:700;letter-spacing:.3px;color:var(--muted)}.pdays.big{margin-top:2px}.pdays.big .chip{padding:12px 18px;font-size:16px;font-weight:700;border-radius:16px}
 .plsent{display:flex;align-items:center;gap:12px;margin-top:12px;padding:12px 14px;border-radius:16px;background:rgba(80,220,150,.09);animation:plin .32s cubic-bezier(.2,.9,.3,1.2)}
 .plsent b{display:block;font-size:15px}.plsent small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px;line-height:1.4}
 .plck{flex:none;width:28px;height:28px;display:grid;place-items:center}.plck svg{width:26px;height:26px;fill:none;stroke:#5fe3a1;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:24;stroke-dashoffset:24;animation:plck .4s ease-out .1s forwards;filter:drop-shadow(0 0 6px rgba(95,227,161,.55))}
@@ -2631,8 +2632,9 @@ function dayEdit() {
   const wrap = s => { const c = pl.items[s].card; return c && c.id === pl.anchor?.id && pl.fixed ? row(s) : plSw(s, row(s)); };
   const addable = (pl.mode === 'in' ? ['dinner', 'evening'] : pl.slots.includes('drinks') && isBar(pl.items.drinks?.card || {}) && pl.anchor && isBar(pl.anchor) ? ['dinner', 'drinks2', 'drinks3'] : PMAIN).filter(s => !pl.slots.includes(s));
   sheet(`<div class="grab"></div><div class="body"><h2>${pl.id ? 'Change the plan' : pl.mode === 'in' ? 'A night in' : 'Plan a day'}</h2>
-    <div class="pdays">${days.map(d => `<button class="chip ${d === pl.day ? 'on' : ''}" data-pl="day|${d}">${d === t ? 'Today' : d === pAdd(t, 1) ? 'Tomorrow' : dfmt(d)}</button>`).join('')}</div>
-    ${pl.anchor ? '' : `<div class="seg" style="margin:10px 0 2px"><button data-pl="mode|out" class="${pl.mode === 'out' ? 'on' : ''}">Going out</button><button data-pl="mode|in" class="${pl.mode === 'in' ? 'on' : ''}">Night in</button></div>`}
+    <p class="pstep">Which day?</p>
+    <div class="pdays big">${days.map(d => `<button class="chip ${d === pl.day ? 'on' : ''}" data-pl="day|${d}">${d === t ? 'Today' : d === pAdd(t, 1) ? 'Tomorrow' : dfmt(d)}</button>`).join('')}</div>
+    ${pl.anchor ? '' : `<p class="pstep">Going out or staying in?</p><div class="seg" style="margin:8px 0 2px"><button data-pl="mode|out" class="${pl.mode === 'out' ? 'on' : ''}">Going out</button><button data-pl="mode|in" class="${pl.mode === 'in' ? 'on' : ''}">Night in</button></div>`}
     ${ls.get('pdtip') ? '' : `<div class="ptip"><span><b>Tap a time</b> to change it. <b>Swap</b> trades in something else you both like. <b>Swipe a stop left</b> to take it out. An empty spot can be filled with <b>Find together</b>: you each get 8 picks and the first match goes in.</span><button data-pl="tip" aria-label="Got it">×</button></div>`}
     <div style="margin-top:6px">${ordered.map(wrap).join('')}</div>
     ${addable.length ? `<div class="chips" style="margin-top:12px">${addable.map(s => `<button class="chip" data-pl="add|${s}">+ ${PSLOT[s][0]}</button>`).join('')}</div>` : ''}
