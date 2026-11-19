@@ -6,7 +6,7 @@ set -euo pipefail
 MAIN="$1"; BETA="$2"; SIM="$3"; OUT="$4"
 rm -rf "$OUT"; mkdir -p "$OUT"
 # the live app and its shared files, exactly as they are on main (no build folders, scripts or database files)
-( cd "$MAIN" && tar cf - --exclude=.git --exclude=.github --exclude=./t --exclude=./s --exclude=./scripts --exclude=./supabase --exclude=README.md . ) | ( cd "$OUT" && tar xf - )
+( cd "$MAIN" && tar cf - --exclude=.git --exclude=.gitignore --exclude=.github --exclude=./t --exclude=./s --exclude=./scripts --exclude=./supabase --exclude=README.md . ) | ( cd "$OUT" && tar xf - )
 LT_BETA_SRC="$BETA" LT_SIM_SRC="$SIM" LT_OUT="$OUT" python3 "$MAIN/scripts/make_beta.py"
 # the live page must be main's file byte for byte, and the sim page must never point at the live database
 cmp "$MAIN/index.html" "$OUT/index.html"

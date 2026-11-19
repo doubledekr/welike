@@ -33,5 +33,6 @@ jobs:
           git config user.name "site-assembler"
           git config user.email "site-assembler@users.noreply.github.com"
           git add -A
+          for f in index.html t/index.html s/index.html; do git ls-files --error-unmatch "$f" > /dev/null || { echo "missing $f"; exit 1; }; done
           git commit -q -m "Assemble site from main $(git -C ../main rev-parse --short HEAD), beta $(git -C ../beta rev-parse --short HEAD), sim $(git -C ../sim rev-parse --short HEAD)"
           git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" site:site
