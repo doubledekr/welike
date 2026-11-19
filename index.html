@@ -1182,7 +1182,7 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .match.pk .pkby{color:#ffe2b0;font-size:15px;margin-top:2px}
 
 /* keep browsing: steering cards, the reason line, and the three questions for places */
-.whyl{text-align:center;font-size:12.5px;font-weight:600;color:#ffe2b0;margin:2px 0 8px;min-height:16px}.whyl.tap{cursor:pointer;text-decoration:underline;text-decoration-color:rgba(255,226,176,.45);text-underline-offset:3px}
+.whyl{display:flex;align-items:flex-end;text-align:left;font-size:12.5px;line-height:16px;font-weight:600;color:#ffe2b0;margin:10px 20px -4px;height:32px;overflow:hidden}.whyl.tap{cursor:pointer;text-decoration:underline;text-decoration-color:rgba(255,226,176,.45);text-underline-offset:3px}
 .lgrid .sect{margin:18px 2px 8px}.lgw{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.lgt{position:relative;aspect-ratio:3/4;border-radius:14px;overflow:hidden;background:rgba(255,255,255,.05);text-align:left}.lgt img,.lgt .pimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:grid;place-items:center;font-size:30px}.lgt b{position:absolute;left:0;right:0;bottom:0;padding:18px 8px 7px;font-size:12px;line-height:1.2;font-weight:600;background:linear-gradient(transparent,rgba(0,0,0,.78));color:#fff}
 .tag.uqt{background:rgba(120,190,230,.2);color:#cfeaff}
 .card .ucov .gcov-k{color:#1f2d3a}.card .ucov .gcov-h{color:#2a3a48}
@@ -2135,7 +2135,8 @@ function steerDraw(ans) { const c = S.steer, st = document.getElementById('stack
   setDone(st, `<div class="done steer">${h}</div>`); try { navigator.vibrate?.([20, 40, 20]); } catch {} }
 // One quiet line above the top card saying why it is there (a steering thread, or the reasons behind a place pick).
 function deckWhy() { const st = document.getElementById('stack'); if (!st) return; let el = document.getElementById('whyl'); const c = S.deck[0], t = c && S.bite && !biteGoal() ? (S.why || {})[c.id] : '';
-  if (!t) return void el?.remove(); if (!el) { el = document.createElement('div'); el.id = 'whyl'; el.className = 'whyl'; st.parentNode.insertBefore(el, st); } el.textContent = t;
+  // the line keeps its place in a pile that can show reasons, so the card never jumps between cards that have one and cards that don't
+  if (!(c && S.bite && !biteGoal())) return void el?.remove(); if (!el) { el = document.createElement('div'); el.id = 'whyl'; el.className = 'whyl'; st.parentNode.insertBefore(el, st); } el.textContent = t || '';
   const near = c.data?.lat != null && /walk|close|near|block/i.test(t); el.dataset.act = near ? 'closeby' : ''; el.dataset.id = near ? c.id : ''; el.classList.toggle('tap', near); }
 // Why each card is in front of you: your own likes, the calendar, or what it's near. A steering thread's reason is kept.
 async function eatWhy(sid) { try { const w = await rpc('card_whys', { p_code: S.code, p_member: S.me, p_session: sid }); if (w && S.sess?.id === sid) { S.why = { ...w, ...(S.why || {}) }; deckWhy(); } } catch {} }
