@@ -13,3 +13,5 @@
   Cache-Control: no-cache
 /t/*
   Cache-Control: no-cache
+/s/*
+  Cache-Control: no-cache

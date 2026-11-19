@@ -4,26 +4,34 @@ The beta is the same app with its own Home Screen name and icon ("LT Beta"), its
 touches the main app's), a small BETA mark, and window.LT_BETA set, which switches on features being tried out
 (flowers, for now). Run it from the repo root after changing index.html:  python3 scripts/make_beta.py
 """
-import json, pathlib, shutil
+import json, os, pathlib, shutil
 from PIL import Image, ImageDraw, ImageFont
 
 root = pathlib.Path(__file__).resolve().parent.parent
-out = root / 't'; out.mkdir(exist_ok=True)
+# Where things come from and go. By default everything is this folder (handy for local testing). When the site is
+# assembled from the three branches, the beta page comes from the beta branch, the sim page from the sim branch,
+# and the shared files (icons, service worker, manifest) from main.
+beta_src = pathlib.Path(os.environ.get('LT_BETA_SRC', root)) / 'index.html'
+sim_src = pathlib.Path(os.environ.get('LT_SIM_SRC', os.environ.get('LT_BETA_SRC', root))) / 'index.html'
+base = pathlib.Path(os.environ.get('LT_OUT', root))
+out = base / 't'; out.mkdir(parents=True, exist_ok=True)
 
-s = (root / 'index.html').read_text()
+s = beta_src.read_text()
 def rep(a, b, n=None):
     global s
     c = s.count(a)
     assert c and (n is None or c == n), (a, c)
     s = s.replace(a, b)
+def as_beta():
 
-rep('wl_', 'wlt_')                                                     # its own saved sign-in, cookies and flags
-rep('<meta name="apple-mobile-web-app-title" content="Let’s Together">', '<meta name="apple-mobile-web-app-title" content="LT Beta">', 1)
-rep('<title>Let’s Together: swipe, match, decide tonight</title>', '<title>LT Beta</title>', 1)
-rep("name: 'Let’s Together', short_name: 'Let’s Together'", "name: 'LT Beta', short_name: 'LT Beta'")
-rep('</head>', '''<script>window.LT_BETA = true;</script>
-<style>body::after{content:'BETA';position:fixed;top:calc(env(safe-area-inset-top) + 2px);left:50%;transform:translateX(-50%);font:700 9px/1 system-ui,sans-serif;letter-spacing:.24em;color:#ffb547;opacity:.85;z-index:99999;pointer-events:none}</style>
-</head>''', 1)
+    rep('wl_', 'wlt_')                                                     # its own saved sign-in, cookies and flags
+    rep('<meta name="apple-mobile-web-app-title" content="Let’s Together">', '<meta name="apple-mobile-web-app-title" content="LT Beta">', 1)
+    rep('<title>Let’s Together: swipe, match, decide tonight</title>', '<title>LT Beta</title>', 1)
+    rep("name: 'Let’s Together', short_name: 'Let’s Together'", "name: 'LT Beta', short_name: 'LT Beta'")
+    rep('</head>', '''<script>window.LT_BETA = true;</script>
+    <style>body::after{content:'BETA';position:fixed;top:calc(env(safe-area-inset-top) + 2px);left:50%;transform:translateX(-50%);font:700 9px/1 system-ui,sans-serif;letter-spacing:.24em;color:#ffb547;opacity:.85;z-index:99999;pointer-events:none}</style>
+    </head>''', 1)
+as_beta()
 (out / 'index.html').write_text(s)
 shutil.copy(root / 'sw.js', out / 'sw.js')
 
@@ -43,7 +51,9 @@ for name in ['mark-180.png', 'mark-192.png', 'mark-512.png', 'mark-512m.png']:
 print('beta written to', out)
 
 # ---- the simulation copy at /s: the beta build pointed at its own database of made-up people (the LTbeta project) ----
-sim = root / 's'; sim.mkdir(exist_ok=True)
+sim = base / 's'; sim.mkdir(parents=True, exist_ok=True)
+if sim_src != beta_src:   # the sim page starts from the sim branch's own code
+    s = sim_src.read_text(); as_beta()
 def srep(a, b, n=None):
     global s
     c = s.count(a)

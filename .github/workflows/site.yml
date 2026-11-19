@@ -1,0 +1,37 @@
+# Publishes letstogether.app from three branches: main is the live app, beta is /t, sim is /s.
+# The assembled site lands on the "site" branch, which Cloudflare Pages serves.
+name: Assemble site
+on:
+  push:
+    branches: [main, beta, sim]
+  workflow_dispatch: {}
+permissions:
+  contents: write
+concurrency:
+  group: assemble-site
+  cancel-in-progress: false
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: main, path: main }
+      - uses: actions/checkout@v4
+        with: { ref: beta, path: beta }
+      - uses: actions/checkout@v4
+        with: { ref: sim, path: sim }
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq fonts-dejavu-core
+          pip install -q pillow
+      - run: main/scripts/build_site.sh main beta sim out
+      - name: Publish to the site branch
+        run: |
+          cd out
+          git init -q -b site
+          git config user.name "site-assembler"
+          git config user.email "site-assembler@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Assemble site from main $(git -C ../main rev-parse --short HEAD), beta $(git -C ../beta rev-parse --short HEAD), sim $(git -C ../sim rev-parse --short HEAD)"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" site:site
