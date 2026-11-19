@@ -22,7 +22,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 // An untouched auto plan is fixed by moving the later stop. A stop with a set start never moves.
 const json = (o: unknown, status = 200) => new Response(JSON.stringify(o), { status, headers: { "Content-Type": "application/json" } });
 const TTL: Record<string, number> = { current: 1, hourly: 3, daily: 6 };   // hours
-const DAILY_GUARD = 600;                                                    // most Google calls in any 24 hours
+const DAILY_GUARD = 1500;                                                   // most Google calls in any 24 hours
 const STAY: Record<string, number> = { day: 120, dinner: 90, quest: 30, quest2: 30 };   // minutes at a stop; an hour otherwise
 const PLAN_RESERVE = 100;                                                  // calls the background pair job leaves for plans
 const SETTLE = 5, PARK = 5, CHECKIN_EVENT = 20, CHECKIN_DINNER = 10;
