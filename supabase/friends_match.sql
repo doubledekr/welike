@@ -133,3 +133,19 @@ $$;
 create or replace function _fr_short_title(p text) returns text language sql immutable set search_path to 'public' as $$
   select case when length(p) > 36 and length(trim(split_part(p, ':', 1))) between 8 and 36 then trim(split_part(p, ':', 1)) else p end;
 $$;
+
+-- 18 Nov 2026, later (migration friends_plan_match_live_reason): a matched find's reason is worked out each time the
+-- plan loads, from the cards that are agreed right then, so it cannot go stale when someone joins, leaves or swipes later.
+--   * fr_finds.link (the phrase) and fr_finds.likes (the one or two agreed cards it resembles) are stored with the find.
+--   * _fr_find_why(plan, link, likes) writes the sentence from whichever of those cards are still agreed: "everyone" only
+--     if all of them are unanimous now, otherwise "most of you". If none is still agreed, no reason is shown.
+--   * _fr_match_save stores link and likes; _fr_plan_json calls _fr_find_why for finds that have likes.
+alter table fr_finds add column if not exists link text;
+alter table fr_finds add column if not exists likes uuid[];
+create or replace function _fr_find_why(p_plan uuid, p_link text, p_likes uuid[]) returns text
+language sql stable security definer set search_path to 'public' as $$
+  select case when count(*) = 0 then null
+    when coalesce(p_link, '') <> '' then format('%s, like %s, which %s said yes to.', upper(left(p_link, 1)) || substr(p_link, 2), string_agg(_fr_short_title(k.title), ' and ' order by k.ord), case when bool_and(k.allin) then 'everyone' else 'most of you' end)
+    else format('Fits with %s, which %s said yes to.', string_agg(_fr_short_title(k.title), ' and ' order by k.ord), case when bool_and(k.allin) then 'everyone' else 'most of you' end) end
+  from (select cc.title, a.allin, u.ord from unnest(p_likes[1:2]) with ordinality u(id, ord) join _fr_agreed(p_plan) a on a.card = u.id join cards cc on cc.id = u.id) k;
+$$;

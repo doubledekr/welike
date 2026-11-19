@@ -1846,7 +1846,7 @@ function ob2Steps() {
   if (needInvite()) s.push('invite');
   if (!standalone() && isPhone() && !ls.get('a2hs')) s.push('install');
   if (needPushAsk()) s.push('push');                                 // on an iPhone this only exists in the Home Screen app, so it waits for the icon
-  if (datesNeed()) s.push('dates');                                 // the second person in is only asked for what is still missing
+  if (datesNeed() && !soloMode()) s.push('dates');                  // the second person in is only asked for what is still missing; a person on their own has no one to remind
   if (needSetup() || needLoc()) s.push('setup');
   return s;
 }
@@ -1872,30 +1872,30 @@ function ob2Skip() {   // "Later" on a step: remember it was offered, so it does
 function ob2Draw() {
   const el = document.querySelector('.wn.ob2'), o = S.ob2; if (!el || !o) return; const k = o.steps[o.i], n = o.steps.length, p = partner(), last = o.i === n - 1;
   const C = { flip: ['#ff7a9c', '#ff4d7e'], try: ['#ffb547', '#ff7a4d'], invite: ['#ff7a4d', '#ff4d7e'], install: ['#2dd4bf', '#4d9bff'], push: ['#ffb547', '#ff4d7e'], notif: ['#ffb547', '#ff4d7e'], dates: ['#ff7a9c', '#ff4d7e'], setup: ['#ffb547', '#ff7a4d'] }[k];
-  const kick = (x = '') => `<small class="wk-k">Step ${o.i + 1} of ${n}${x}</small>`, sp = '<div class="ob2-sp"></div>';
+  const kick = (x = '') => `<small class="wk-k">Step ${o.i + 1} of ${n}${x}</small>`, sp = '<div class="ob2-sp"></div>', solo = soloMode();   // on their own: no partner wording
   step('ob2_' + k);
   const body = {
     flip: () => `${kick()}<h2 class="wk-h">Tap a card to flip it</h2><p class="wk-p">Swipe whenever you have a minute, no homework. When a card catches your eye, tap it for the details.</p>${flipStage()}<button class="btn wk-cta wait" id="wkgo" data-act="ob2flip" disabled>Tap the card</button>`,
-    try: () => `${kick()}<h2 class="wk-h">Now, how the cards work</h2><p class="wk-p">Flick this card each way. ${esc(p || 'Your person')} never sees your swipes unless you both say yes.</p>${ob2SwipeStage()}<button class="btn wk-cta wait" id="wkgo" data-act="ob2try" disabled>Flick the card</button>`,
+    try: () => `${kick()}<h2 class="wk-h">Now, how the cards work</h2><p class="wk-p">Flick this card each way. ${solo ? 'Your swipes stay private.' : `${esc(p || 'Your person')} never sees your swipes unless you both say yes.`}</p>${ob2SwipeStage()}<button class="btn wk-cta wait" id="wkgo" data-act="ob2try" disabled>Flick the card</button>`,
     invite: () => `${kick()}<h2 class="wk-h">Bring your person in</h2><p class="wk-p">Nothing can match until you’re both here. The link fills in the code for them.</p>
       <div class="ob2-code">${esc(S.code)}<small>Your couple code</small></div><div class="wk-bub ob2-msg"><b>Your text</b>Join me on Let’s Together so we can stop asking “what do you want to do?”</div>${sp}
       <button class="btn wk-cta" data-act="ob2inv" data-how="${isPhone() ? 'text' : 'share'}">${isPhone() ? 'Text the invite' : 'Copy the invite'}</button>${isPhone() ? '<button class="jlink" data-act="ob2inv" data-how="share">Other apps</button>' : ''}`,
     install: () => { carrySignIn(); const g = a2hsSteps(); setTimeout(() => S.ob2 && S.ob2.steps[S.ob2.i] === 'install' && !bip && a2hsArrow(g.arrow), 50);
-      return `${kick(' · This ' + (IOS ? 'iPhone' : 'phone'))}<h2 class="wk-h">Put it on your Home Screen</h2><p class="wk-p">Full screen, and the way ${esc(p || 'your person')} reaches you with a nudge.</p>
+      return `${kick(' · This ' + (IOS ? 'iPhone' : 'phone'))}<h2 class="wk-h">Put it on your Home Screen</h2><p class="wk-p">${solo ? 'Full screen, and one tap away.' : `Full screen, and the way ${esc(p || 'your person')} reaches you with a nudge.`}</p>
       ${bip ? '' : `<div class="steps ob2-steps">${g.html}<div class="step"><span class="num">✓</span><span>Open it from the new icon. It picks up right here</span></div></div>`}${sp}
       ${bip ? '<button class="btn wk-cta" data-act="ob2inst">Install</button>' : '<button class="btn wk-cta" data-act="ob2a2">I’ve added it</button>'}<button class="jlink" data-act="ob2skip">Keep going in the browser</button>`; },
-    push: () => `${kick()}<h2 class="wk-h">Hear what’s worth hearing</h2><p class="wk-p">Matches, what ${esc(p || 'your person')} saved, plans you’ve both said yes to, and the odd hidden gem or trivia night. Never marketing.</p>
-      ${[['It’s a match', 'You both liked Jazz night, Friday'], [`${esc(p || 'Your person')} saved a few things today`, '2 movies and a place to eat'], ['A night you’ve both said yes to', 'Tacos, then a movie at home. Plan it?']].map(([a, b], j) => `<div class="ob2-push" style="animation-delay:${.15 + j * .22}s">${MARK}<span><b>${a}</b><small>${b}</small></span></div>`).join('')}${sp}
+    push: () => `${kick()}<h2 class="wk-h">Hear what’s worth hearing</h2><p class="wk-p">${solo ? 'The odd hidden gem or trivia night. Never marketing.' : `Matches, what ${esc(p || 'your person')} saved, plans you’ve both said yes to, and the odd hidden gem or trivia night. Never marketing.`}</p>
+      ${solo ? '' : [['It’s a match', 'You both liked Jazz night, Friday'], [`${esc(p || 'Your person')} saved a few things today`, '2 movies and a place to eat'], ['A night you’ve both said yes to', 'Tacos, then a movie at home. Plan it?']].map(([a, b], j) => `<div class="ob2-push" style="animation-delay:${.15 + j * .22}s">${MARK}<span><b>${a}</b><small>${b}</small></span></div>`).join('')}${sp}
       <button class="btn wk-cta" data-act="ob2push">Turn on nudges</button>`,
-    notif: () => `${kick()}<h2 class="wk-h">How much should we reach out?</h2><p class="wk-p">Yours alone. ${esc(p || 'Your person')} picks separately, and you can switch any time on the You tab.</p>${notifOpts('ob2notif')}${sp}`,
+    notif: () => `${kick()}<h2 class="wk-h">How much should we reach out?</h2><p class="wk-p">${solo ? 'You can switch any time on the You tab.' : `Yours alone. ${esc(p || 'Your person')} picks separately, and you can switch any time on the You tab.`}</p>${notifOpts('ob2notif')}${sp}`,
     dates: () => { const d = S.dates || {}, both = !d.bday && !d.anniv;
       return `${kick()}<h2 class="wk-h">${both ? 'Dates worth remembering' : !d.bday ? 'When’s your birthday?' : 'When’s your anniversary?'}</h2><p class="wk-p">${!d.bday ? `${esc(p || 'Your person')} gets a quiet heads-up two weeks before, with a way to plan the day.` : 'You both get a heads-up two weeks before, with a way to plan the day.'}${d.anniv && p ? ` ${esc(p)} already added your anniversary: ${mdText(d.anniv)}.` : ''}</p>
       ${datesFields(true)}<p class="ob2-fine">Only the two of you see these. No birth year is asked for.</p>${sp}<button class="btn wk-cta" data-act="ob2dates">Save</button>`; },
     setup: () => { const st = S.settings || {}, all = S.state?.services || [], on = st.services || [], svc = needSetup(), zip = !st.zip && !st.lat;
-      return `${kick()}<h2 class="wk-h">${svc ? 'What can you watch?' : 'Make it local'}</h2><p class="wk-p">${svc ? 'Movie cards only show things on the services you have. It applies to both of you.' : 'Places and events start from where you really are.'}</p>
+      return `${kick()}<h2 class="wk-h">${svc ? 'What can you watch?' : 'Make it local'}</h2><p class="wk-p">${svc ? `Movie cards only show things on the services you have.${solo ? '' : ' It applies to both of you.'}` : 'Places and events start from where you really are.'}</p>
       ${svc ? `<div class="ob2-svc">${all.map(x => `<button class="${on.includes(x) ? 'on' : ''}" data-svc="${esc(x)}">${esc(x)}</button>`).join('')}</div>` : ''}
       ${svc && zip ? '<label class="field"><span>Home ZIP, for places near you</span><input id="s_zip" inputmode="numeric" autocomplete="postal-code" maxlength="5" placeholder="48201"></label>' : ''}
-      <div class="ob2-row"><span class="grow"><b>Planning with kids?</b><small>Family films and kid-friendly places, for both of you</small></span><button class="ob2-sw ${o.kids ? 'on' : ''}" data-act="ob2kids">${o.kids ? 'On' : 'Turn on'}</button></div>
+      <div class="ob2-row"><span class="grow"><b>Planning with kids?</b><small>Family films and kid-friendly places${solo ? '' : ', for both of you'}</small></span><button class="ob2-sw ${o.kids ? 'on' : ''}" data-act="ob2kids">${o.kids ? 'On' : 'Turn on'}</button></div>
       ${needLoc() ? `<div class="ob2-row"><span class="grow"><b>Use my location</b><small>Places start from where you really are. Only checked when the app is open</small></span><button class="ob2-sw ${o.loc ? 'on' : ''}" data-act="ob2loc">${o.loc ? 'On' : 'Turn on'}</button></div>` : ''}${sp}
       <button class="btn wk-cta" data-act="ob2save">Start swiping</button>`; },
   }[k]();
@@ -2097,7 +2097,10 @@ function steerDraw(ans) { const c = S.steer, st = document.getElementById('stack
 function deckWhy() { const st = document.getElementById('stack'); if (!st) return; let el = document.getElementById('whyl'); const c = S.deck[0], t = c && S.bite && !biteGoal() ? (S.why || {})[c.id] : '';
   if (!t) return void el?.remove(); if (!el) { el = document.createElement('div'); el.id = 'whyl'; el.className = 'whyl'; st.parentNode.insertBefore(el, st); } el.textContent = t; }
 // Why each card is in front of you: your own likes, the calendar, or what it's near. A steering thread's reason is kept.
-async function eatWhy(sid) { try { const w = await rpc('card_whys', { p_code: S.code, p_member: S.me, p_session: sid }); if (w && S.sess?.id === sid) { S.why = { ...w, ...(S.why || {}) }; deckWhy(); } } catch {} }
+// Beta: no weather line above the cards (Dave, 18 Nov 2026). Weather belongs inside a plan: the what-to-wear line on a day
+// plan and the forecast on trip dates. The live app still shows it; to match, drop the two weather cases from card_whys.
+const WXWHY = /rain is likely today$|° and dry today$/;
+async function eatWhy(sid) { try { const w = await rpc('card_whys', { p_code: S.code, p_member: S.me, p_session: sid }); if (w && BETA) for (const k of Object.keys(w)) if (WXWHY.test(w[k])) delete w[k]; if (w && S.sess?.id === sid) { S.why = { ...w, ...(S.why || {}) }; deckWhy(); } } catch {} }
 // Places are scarce, so they come as a few considered picks a day. Three quick answers make the picks better.
 const eatAsked = () => !!S.dates?.taste?.eat || Date.now() - Number(ls.get('eatAt') || 0) < 7 * 86400000;
 async function eatSheet() { ls.set('eatAt', String(Date.now())); let opts = []; try { opts = await rpc('eat_options', { p_code: S.code }) || []; } catch {} if (opts.length < 3) return; step('eat_ask');
@@ -2265,7 +2268,7 @@ async function teamDo(action, text) { let r; try { r = await rpc('team_act', { p
 /* ---------- how much to hear from the app: each person picks for themselves ---------- */
 const NOTIF = { essentials: ['Just the essentials', 'When your person wants to decide something now, when there’s a result, and dates you’d hate to miss. Nothing else.'], all: ['Keep me in the loop', 'All of that, plus the daily handful, community nights and reminders.'] };
 const notifMode = () => S.dates?.notif || null;
-const notifOpts = (act = 'notifset') => Object.entries(NOTIF).map(([k, [t, d]]) => `<button class="pollo ${notifMode() === k ? 'on' : ''}" data-act="${act}" data-m="${k}"><span>${t}<small>${d}</small></span></button>`).join('');
+const notifOpts = (act = 'notifset') => Object.entries(NOTIF).map(([k, [t, d]]) => `<button class="pollo ${notifMode() === k ? 'on' : ''}" data-act="${act}" data-m="${k}"><span>${t}<small>${k === 'essentials' && soloMode() ? 'When there’s a result, and dates you’d hate to miss. Nothing else.' : d}</small></span></button>`).join('');
 const notifBanner = () => { if (!S.dates || notifMode() || Date.now() - Number(ls.get('notifAt') || 0) < 14 * 86400000) return '';
   return `<button class="nudge slim" data-act="notif"><span class="grow"><b>New: choose how much you hear from us</b><small> · just the essentials, or everything</small></span><span class="go">Choose</span></button>`; };
 function notifSheet() { step('notif_open'); ls.set('notifAt', String(Date.now()));
@@ -3841,7 +3844,7 @@ function renderFriends() {
   const d = FR.d; if (!d) return renderStart();
   const solo = frSolo(), ids = new Set(d.plans.map(p => p.id)), plans = d.plans.filter(p => !p.parent || !ids.has(p.parent)), pn = d.couple?.partner;
   const gOf = id => d.groups.filter(g => g.members.includes(id)).map(g => g.name).join(', '), rv = d.reveal?.friends?.length ? d.reveal : null;
-  $app.innerHTML = `<div class="view fr you"><div class="topbar" style="margin-bottom:6px">${solo ? '' : '<button class="back" data-tab="home" aria-label="Back to you two">‹</button>'}<div class="brand grow">Friends</div><button class="ib" data-fr="refresh" aria-label="Refresh">${ic('repeat')}</button><button class="ib" data-act="acct" aria-label="Your account" style="margin-left:8px">${ic('user')}</button></div>
+  $app.innerHTML = `<div class="view fr you"><div class="topbar" style="margin-bottom:6px">${solo ? '' : `<button class="back" data-tab="home" aria-label="${soloMode() ? 'Back to your cards' : 'Back to you two'}">‹</button>`}<div class="brand grow">Friends</div><button class="ib" data-fr="refresh" aria-label="Refresh">${ic('repeat')}</button><button class="ib" data-act="acct" aria-label="Your account" style="margin-left:8px">${ic('user')}</button></div>
     ${solo ? `<button class="frcta" data-fr="couple"><span class="tic">${ic('heart')}</span><span class="grow"><b>Set up your own decks</b><small>Movies, places and trips to swipe on your own, or with your person later</small></span><span class="ych">›</span></button>` : ''}
     ${rv ? `<div class="frrev"><small>This week</small><b>You and ${esc(frNames(rv.friends.map(f => f.name)))} ${rv.friends.length > 1 ? 'all' : 'both'} love ${esc(rv.title)}</b>${rv.sub ? `<span>${esc(rv.sub)}</span>` : ''}<button class="btn sm" data-fr="revealgo">${rv.deck === 'trip' ? 'Plan the trip' : 'Plan a hang'}</button></div>` : ''}
     ${!d.friends.length ? `<button class="frcta" data-fr="invite"><span class="tic">${ic('share')}</span><span class="grow"><b>Invite your first friend</b><small>One link. They join with a first name, no partner needed</small></span><span class="ych">›</span></button>` : ''}
@@ -3850,7 +3853,7 @@ function renderFriends() {
     <button class="btn frnew" data-fr="new">${ic('plus')}Start a plan</button>
     <div class="sect">Friends</div>
     <div class="ycard">${d.friends.map(f => `<button class="yrow" data-fr="friend" data-id="${f.id}"><span class="tic">${ic('user')}</span><span class="grow"><b>${esc(f.name)}</b>${gOf(f.id) ? `<small>${esc(gOf(f.id))}</small>` : ''}</span><span class="ych">›</span></button>`).join('')}
-      <button class="yrow" data-fr="invite"><span class="tic">${ic('share')}</span><span class="grow"><b>Invite a friend</b><small>One link. They join with a first name, no partner needed</small></span><span class="ych">›</span></button>
+      ${d.friends.length ? `<button class="yrow" data-fr="invite"><span class="tic">${ic('share')}</span><span class="grow"><b>Invite a friend</b><small>One link. They join with a first name, no partner needed</small></span><span class="ych">›</span></button>` : ''}
       <button class="yrow" data-fr="addcode"><span class="tic">${ic('plus')}</span><span class="grow"><b>Enter a friend’s code</b><small>Yours is ${esc(d.me.code)}</small></span><span class="ych">›</span></button>
       <div class="yrow"><span class="tic">${ic('spark')}</span><span class="grow"><b>Match with friends</b><small>${d.share ? 'Once a week you see one thing you and a friend both love' : 'Once a week, one thing you and a friend both love. Nothing else is shared'}</small></span><button class="ysw ${d.share ? 'on' : ''}" data-fr="share">${d.share ? 'On' : 'Off'}</button></div></div>
     <div class="sect">Your private groups</div>
@@ -4055,7 +4058,7 @@ function frCosts(p) {
     <p class="muted frfine">The app does the arithmetic. Paying happens in your own payment app, and whoever was owed ticks it off.</p></div></div>`;
 }
 /* ----- the planning helper's finds: at most two waiting, each a tap to put to the group, park, or pass ----- */
-const frFindCard = (f, fresh) => `<div class="frfind${fresh ? ' frnew' : ''}"><small>${f.kind === 'season' ? 'Worth knowing' : f.kind === 'match' ? 'Fits your group' : f.kind === 'gem' ? 'Found a hidden gem' : 'Found for your group'}</small><b>${esc(f.title)}</b>${f.body ? `<span>${esc(f.body)}</span>` : ''}${f.why ? `<span class="frwhy">${esc(f.why)}</span>` : ''}
+const frFindCard = (f, fresh) => `<div class="frfind${fresh ? ' frnew' : ''}"><small>${f.kind === 'season' ? 'Worth knowing' : f.kind === 'match' && f.why ? 'Fits your group' : f.kind === 'gem' ? 'Found a hidden gem' : 'Found for your group'}</small><b>${esc(f.title)}</b>${f.body ? `<span>${esc(f.body)}</span>` : ''}${f.why ? `<span class="frwhy">${esc(f.why)}</span>` : ''}
     <div class="frrow2">${f.card ? `<button class="btn sm" data-fr="find" data-id="${f.id}" data-do="add">Put it to the group</button><button class="btn sm ghost" data-fr="find" data-id="${f.id}" data-do="maybe">Maybe pile</button>` : ''}<button class="frlink" data-fr="find" data-id="${f.id}" data-do="no">${f.card ? 'Skip it' : 'Got it'}</button></div></div>`;
 function frFinds(p) {
   const nw = (p.finds || []).filter(f => f.status === 'new');
