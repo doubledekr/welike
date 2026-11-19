@@ -42,6 +42,49 @@ begin
   return n;
 end $$;
 
+-- ---------- lanes: food and drink finds belong to Eat and Drinks, not Discover (Dave, 19 Nov).
+-- A hidden gem that is a restaurant, bakery, cafe, bar or brewery, and a dated event about food (a chili cook-off, a food tour)
+-- or drink (a wine tasting pop-up, a beer fest), goes to Eat or Drinks as a scratch card; Discover never shows it.
+-- Unique spots stay in Discover. Wine, beer and spirits are checked before food, so "wine and cheese tasting" is Drinks.
+create or replace function public._lane(p_deck text, p_kind text, p_title text, p_data jsonb) returns text language sql immutable as $$
+  select case
+    when p_deck <> 'event' or p_data ? 'unique' then null
+    when p_data ? 'place' then case
+      when not (p_data ? 'gem') then null
+      when coalesce(p_data->>'ptype', '') ~ '(^|_)(bar|pub|brewery|brewpub|winery|wine|distillery|night_club|beer_garden|cocktail)' then 'drinks'
+      when coalesce(p_data->>'ptype', '') ~ '(restaurant|food|bakery|cafe|coffee|diner|steak_house|deli|dessert|ice_cream|donut|pizza|bagel|confectioner|chocolate|tea_house|juice|sandwich|brunch|breakfast)' then 'eat'
+      else null end
+    when lower(coalesce(p_title, '') || ' ' || coalesce(p_kind, '')) ~ '\m(wines?|winery|vino|beers?|brews?|brewery|breweries|brewfest|ales?|ciders?|whiske?y|bourbon|cocktails?|mixology|tequila|mezcal|sake|distillery|spirits|happy hour|pub crawl|bar crawl|oktoberfest|sommelier)\M' then 'drinks'
+    when lower(coalesce(p_title, '') || ' ' || coalesce(p_kind, '')) ~ '\m(food|foodie|chili|cook-?off|bbq|barbecue|tacos?|brunch|pizza|burgers?|donuts?|doughnuts?|chocolate|cheese|oysters?|crawfish|feast|supper|culinary|chefs?|cooking|baking|food trucks?|dumplings?|ramen|tastings?|desserts?|ice cream|pancakes?|fish fry|clambake|pop-?up dinner|dinner)\M' then 'eat'
+    else null end $$;
+
+-- Put food or drink finds into a new Eat or Drinks pile: one when the pile is full of new things, up to three when it is
+-- thin (mostly cards this person has seen before). Never two covered cards in a row.
+create or replace function public._lane_add(p_session uuid, p_lane text) returns int language plpgsql security definer set search_path to 'public' as $$
+declare s sessions; tot int; fresh int; n int; ids uuid[]; cur uuid[]; outv uuid[] := '{}'; i int; f jsonb;
+begin
+  select * into s from sessions where id = p_session;
+  select array_agg(card_id order by pos) into cur from session_cards where session_id = p_session;
+  tot := coalesce(array_length(cur, 1), 0);
+  select count(*) into fresh from unnest(cur) x where not exists (select 1 from swipes w where w.couple_id = s.couple_id and w.member = s.from_member and w.card_id = x);
+  n := case when fresh < greatest(2, tot / 2) then 3 else 1 end;
+  f := (s.filters - 'types' - 'drinks') || jsonb_build_object('lane', p_lane, 'days', 10);
+  ids := array(select q from _pick(s.couple_id, p_session, 'event', f, n, s.from_member, true) q);
+  if coalesce(array_length(ids, 1), 0) = 0 then return 0; end if;
+  -- thin: a find first, then one between each card (never two covered in a row); full: the one find goes third
+  if n = 3 then
+    for i in 1 .. greatest(tot, array_length(ids, 1)) loop
+      if i <= array_length(ids, 1) and (i = 1 or i - 1 <= tot) then outv := outv || ids[i]; end if;
+      if i <= tot then outv := outv || cur[i]; end if;
+    end loop;
+  else
+    outv := coalesce(cur[1:2], '{}') || ids[1] || coalesce(cur[3:], '{}');
+  end if;
+  delete from session_cards where session_id = p_session;
+  insert into session_cards (session_id, card_id, pos) select p_session, x.id, x.o from unnest(outv) with ordinality x(id, o) on conflict do nothing;
+  return array_length(ids, 1);
+end $$;
+
 -- ---------- trip teasers: a hidden gem or locals-love-it card from a city this person keeps liking on the Trips pile.
 -- Only ever dealt into that person's own Discover pile, so a partner never learns about a one-sided like.
 create or replace function public._teaser_pick(p_couple uuid, p_member text) returns uuid language sql stable security definer set search_path to 'public' as $$
@@ -69,8 +112,11 @@ begin
        || array(select q from _eat_pick(s.couple_id, s.from_member, p_session, s.filters, 3) q)
        || array(select q from _pick(s.couple_id, p_session, 'trip', f, 3, s.from_member, true) q)
        || array(select q from _pick(s.couple_id, p_session, 'event', f || jsonb_build_object('types', dr), 1, s.from_member, true) q);
-  base := array(select x from unnest(base) x order by random());
-  disc := array(select q from _pick(s.couple_id, p_session, 'event', f || jsonb_build_object('notypes', dr), 4, s.from_member, true) q);
+  -- a hidden-gem restaurant is Eat's; anything already in this person's Eat or Drinks pile today stays there
+  base := array(select x from unnest(base) x where not exists (select 1 from cards c where c.id = x and c.deck = 'dinner' and c.data ? 'gem')
+                  and not exists (select 1 from sessions o join session_cards oc on oc.session_id = o.id where o.couple_id = s.couple_id and o.from_member = s.from_member
+                                    and o.id <> p_session and o.filters->>'bite' = s.filters->>'bite' and oc.card_id = x) order by random());
+  disc := array(select q from _pick(s.couple_id, p_session, 'event', f || jsonb_build_object('notypes', dr, 'nolane', true), 4, s.from_member, true) q);
   t := _teaser_pick(s.couple_id, s.from_member);
   if t is not null and not (t = any(base)) and random() < 0.5 then disc := array[t] || disc[1:3]; end if;
   while bi <= coalesce(array_length(base, 1), 0) or di <= coalesce(array_length(disc, 1), 0) loop
@@ -101,6 +147,12 @@ begin
     insert into sessions (couple_id, deck, from_member, filters) values (v, dk, p_member, jsonb_build_object('solo', true, 'bite', d)
       || case when dr then '{"drinks":true,"types":["Bar","Night out"]}'::jsonb else '{}'::jsonb end) returning id into sid;
     perform _fill_session(sid, case when p_deck = 'dinner' then 3 else 10 end);
+    if p_deck in ('dinner', 'drinks') then
+      -- one pile a day per card: the new pile (not yet on anyone's screen) skips whatever today's Discover pile already holds
+      delete from session_cards x where x.session_id = sid and x.card_id in (select oc.card_id from sessions m join session_cards oc on oc.session_id = m.id
+        where m.couple_id = v and m.from_member = p_member and m.deck = 'mix' and m.filters->>'bite' = d);
+      perform _lane_add(sid, case when p_deck = 'dinner' then 'eat' else 'drinks' end);
+    end if;
   elsif p_extra and not coalesce((select (filters->>'extra')::boolean from sessions where id = sid), false) then
     perform _fill_session(sid, case when p_deck = 'dinner' then 3 else 10 end);
     update sessions set filters = filters || '{"extra":true}'::jsonb where id = sid;
@@ -243,7 +295,13 @@ begin
   -- a released unique spot goes near the front of the Discover slots, like a hidden gem
   d2 := replace(d, $a$(p_deck = 'event' and c.data ? 'gem' and not coalesce(a.mine, false)) gemfirst$a$,
                    $a$(p_deck = 'event' and (c.data ? 'gem' or c.data ? 'unique') and not coalesce(a.mine, false)) gemfirst$a$);
-  if d2 = d then raise exception '_pick anchor 3'; end if;
+  if d2 = d then raise exception '_pick anchor 3'; end if; d := d2;
+  -- lanes: {lane: 'eat'|'drinks'} takes only those finds; {nolane: true} (Discover) leaves them out
+  d2 := replace(d, $a$      and (p_deck <> 'event' or jsonb_typeof(p_filters->'notypes')$a$,
+                   $a$      and (p_deck <> 'event' or coalesce(p_filters->>'lane', '') = '' or _lane(c.deck, c.kind, c.title, c.data) = p_filters->>'lane')
+      and (p_deck <> 'event' or not coalesce((p_filters->>'nolane')::boolean, false) or _lane(c.deck, c.kind, c.title, c.data) is null)
+      and (p_deck <> 'event' or jsonb_typeof(p_filters->'notypes')$a$);
+  if d2 = d then raise exception '_pick anchor 4'; end if;
   execute d2;
   -- auto plans: a hidden gem or unique spot that is still held or not yet released never goes into a plan before someone has swiped it
   d := pg_get_functiondef('public._ap_pick'::regproc);

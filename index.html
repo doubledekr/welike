@@ -5357,6 +5357,8 @@ function drawStack() {
   attachDrag(cs[0]);
   if (S.deck[0]?.data?.gem && !gemSeen().includes(S.deck[0].id)) gemCover(cs[0], S.deck[0]);
   else if (S.deck[0]?.data?.unique && !gemSeen().includes(S.deck[0].id)) uniqueCover(cs[0], S.deck[0]);
+  else if (evFind(S.deck[0]) && !gemSeen().includes(S.deck[0].id)) { const c = S.deck[0], dr = S.homeDeck === 'drinks';
+    gemCover(cs[0], c, { k: dr ? 'Drinks event' : 'Food event', h: 'Scratch to see what’s on', small: dr ? 'Drinks event' : 'Food event', line: c.title, sub: c.subtitle || '' }); }
   if (S.bite) revealCards(st);
 }
 // The first time each day a fresh handful shows in a category (opening the app or coming back to it), the cards fan
@@ -5428,7 +5430,10 @@ function flipCard(el, c, yn) { if (!el || !c || el._flipping) return; el._flippi
     el.style.transition = 'transform .22s cubic-bezier(.2,.9,.3,1)'; el.style.transform = P3 + 'rotateY(0deg)'; setTimeout(() => { el._flipping = false; el.style.transition = 'none'; el.style.transform = ''; el.style.zIndex = ''; }, 240); }, 170); }
 // A hidden gem arrives covered: scratch it off to see what it is. Once scratched it stays revealed on this phone.
 const gemSeen = () => { try { return JSON.parse(ls.get('gemsc') || '[]'); } catch { return []; } };
-function gemCover(el, c) { if (!el || el.querySelector('.gcov')) return; const w = document.createElement('div'); w.className = 'gcov'; w.innerHTML = '<canvas></canvas><span class="gcov-k">Hidden gem</span><span class="gcov-h">Scratch to see what it is</span>'; el.appendChild(w);
+// a dated food or drink event dealt into the Eat or Drinks pile (the server only puts those there): it arrives covered too
+const evFind = c => !!c && (S.homeDeck === 'dinner' || S.homeDeck === 'drinks') && c.deck === 'event' && !c.data?.place && !c.data?.gem;
+// o (food and drink events in Eat and Drinks): { k, h, small, line, sub } replace the hidden-gem words
+function gemCover(el, c, o = {}) { if (!el || el.querySelector('.gcov')) return; const w = document.createElement('div'); w.className = 'gcov'; w.innerHTML = `<canvas></canvas><span class="gcov-k">${esc(o.k || 'Hidden gem')}</span><span class="gcov-h">${esc(o.h || 'Scratch to see what it is')}</span>`; el.appendChild(w);
   const cv = w.querySelector('canvas'), box = el.getBoundingClientRect(), W = cv.width = Math.round(box.width), H = cv.height = Math.round(box.height), g = cv.getContext('2d');
   const gr = g.createLinearGradient(0, 0, W, H); gr.addColorStop(0, '#2a1840'); gr.addColorStop(.45, '#7a3df0'); gr.addColorStop(.75, '#ff4d7e'); gr.addColorStop(1, '#ffb547'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
   g.fillStyle = 'rgba(255,255,255,.10)'; for (let i = -H; i < W; i += 30) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i + 9, 0); g.lineTo(i + 9 + H, H); g.lineTo(i + H, H); g.fill(); }
@@ -5437,7 +5442,7 @@ function gemCover(el, c) { if (!el || el.querySelector('.gcov')) return; const w
   let down = false, lx = 0, ly = 0, moves = 0, done = false; const pt = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; };
   const reveal = () => { if (done) return; done = true; const a = gemSeen(); a.push(c.id); ls.set('gemsc', JSON.stringify(a.slice(-80))); step('gem_scratch'); w.classList.add('off'); setTimeout(() => w.remove(), 560);
     try { el.animate([{ boxShadow: '0 0 0 0 transparent' }, { boxShadow: '0 0 110px 26px rgba(255,181,71,.85), 0 0 30px 6px rgba(255,255,255,.5)', offset: .3 }, { boxShadow: '0 0 0 0 transparent' }], { duration: 1100, easing: 'ease-out' }); navigator.vibrate?.([20, 30, 40]); } catch {}
-    const n = document.createElement('div'); n.className = 'gfact'; n.innerHTML = `<small>Hidden gem</small><b>${esc(c.data?.fact || c.data?.notes || 'Somewhere most people walk past.')}</b><span>${partner() ? esc(them()) + ' gets this one too.' : 'Most people walk straight past it.'}</span>`; el.appendChild(n); setTimeout(() => n.classList.add('out'), 3600); setTimeout(() => n.remove(), 4200); n.addEventListener('pointerdown', e => { e.stopPropagation(); n.remove(); }); };
+    const n = document.createElement('div'); n.className = 'gfact'; n.innerHTML = o.k ? `<small>${esc(o.small)}</small><b>${esc(o.line)}</b>${o.sub ? `<span>${esc(o.sub)}</span>` : ''}` : `<small>Hidden gem</small><b>${esc(c.data?.fact || c.data?.notes || 'Somewhere most people walk past.')}</b><span>${partner() ? esc(them()) + ' gets this one too.' : 'Most people walk straight past it.'}</span>`; el.appendChild(n); setTimeout(() => n.classList.add('out'), 3600); setTimeout(() => n.remove(), 4200); n.addEventListener('pointerdown', e => { e.stopPropagation(); n.remove(); }); };
   const check = () => { const d = g.getImageData(0, 0, W, H).data; let clear = 0, tot = 0; for (let i = 3; i < d.length; i += 4 * 41) { tot++; if (d[i] < 40) clear++; } if (clear / tot > .4) reveal(); };
   w.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); if (done) return; down = true; [lx, ly] = pt(e); g.beginPath(); g.arc(lx, ly, g.lineWidth / 2, 0, 7); g.fill(); w.classList.add('go'); try { w.setPointerCapture(e.pointerId); } catch {} });
   w.addEventListener('pointermove', e => { if (!down || done) return; e.preventDefault(); const [x, y] = pt(e); g.beginPath(); g.moveTo(lx, ly); g.lineTo(x, y); g.stroke(); lx = x; ly = y; if (++moves % 5 === 0) check(); });
