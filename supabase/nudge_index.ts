@@ -8,6 +8,7 @@ import webpush from "npm:web-push@3.6.7";
 // with the "today's cards" reminder giving way first. A message with no kind was sent by a person and always goes.
 // Extras (daily cards, invite and share reminders, community sends) are not pushed to someone who chose
 // "just the essentials"; they still land in the in-app inbox.
+// "tag" (optional) lets a series replace itself on the lock screen, like trivia buzzes; "ttl" (30 to 3600 s) drops a push that would arrive stale.
 // "round" ties a message to one swipe round: every message for that round shares a tag, so a newer one replaces
 // the older one on the lock screen instead of stacking. "quiet" files it in the inbox without a push, for when
 // the other person is already looking at the app.
@@ -34,7 +35,7 @@ const host = (e: string) => { try { return new URL(e).host; } catch { return "?"
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   try {
-    const { code, member, title, body, url, kind, round, quiet, plan, need, hold, to, noinbox, queued } = await req.json();
+    const { code, member, title, body, url, kind, round, quiet, plan, need, hold, to, noinbox, queued, tag: tagIn, ttl } = await req.json();
     const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const C = String(code ?? "").trim().toUpperCase();
     const { data: couple } = await sb.from("couples").select("id").eq("code", C).maybeSingle();
@@ -96,9 +97,10 @@ Deno.serve(async (req: Request) => {
       }
     }
     const go = list.filter((s) => { if (allow.size && !allow.get(s.member)) { held++; return false; } return true; });
-    const tag = R ? "r-" + R : P ? "p-" + P : crypto.randomUUID();
+    const TG = /^[a-z0-9-]{3,60}$/i.test(String(tagIn ?? "")) ? String(tagIn) : "";
+    const tag = R ? "r-" + R : P ? "p-" + P : TG || crypto.randomUUID();
     const payload = JSON.stringify({ title: T, body: B, url: U, tag, ...(R ? { round: R } : {}) });
-    const res = await Promise.allSettled(go.map((s) => webpush.sendNotification(s.sub, payload, { TTL: 3600, timeout: 8000 })));
+    const res = await Promise.allSettled(go.map((s) => webpush.sendNotification(s.sub, payload, { TTL: Math.min(Math.max(Number(ttl) || 3600, 30), 3600), timeout: 8000 })));
     let sent = 0, failed = 0;
     const gone: string[] = [];
     res.forEach((r, i) => {
