@@ -1151,6 +1151,10 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .tcpts{font-family:var(--serif);font-size:84px;line-height:1;color:#ffb38a;animation:tvpop .5s cubic-bezier(.2,1.4,.4,1)}.tcpts.gold{font-size:100px;background:linear-gradient(135deg,#ffd23f,#ff7a4d);-webkit-background-clip:text;background-clip:text;color:transparent}
 .tcconf{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:3}.tcconf i{position:absolute;bottom:-12px;width:8px;height:8px;border-radius:50%;animation:tcrise 2.6s ease-out both}@keyframes tcrise{0%{transform:translateY(0);opacity:0}12%{opacity:1}100%{transform:translateY(-78vh) rotate(200deg);opacity:0}}
 .tcboard{width:100%;max-width:350px}.tcboard .gres b{text-align:left}.tcboard .gres.solo{opacity:.6}.tcboard .gres.solo small{display:block;font-weight:500;font-size:12px;color:var(--muted)}
+.tfm{display:flex;gap:5px;margin:6px 0 4px}.tfm i{flex:1;height:6px;border-radius:6px;background:rgba(255,255,255,.12)}.tfm i.on{background:linear-gradient(90deg,#ff7a4d,#ff4d7e)}.tfml{display:block;font-size:12.5px;color:var(--muted)}.tfml b{color:var(--text)}
+.tfb small{display:block}.tfl{display:grid;gap:8px;margin:14px 0 8px}.tfr{display:flex;align-items:center;gap:12px;padding:12px 13px;border-radius:16px;background:rgba(255,255,255,.06);text-align:left}.tfr.done{background:rgba(255,255,255,.03)}.tfr.done b{color:var(--muted);text-decoration:line-through}
+.tfr b{display:block;font-size:14.5px}.tfr small{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}.tfc{width:24px;height:24px;flex:none;border-radius:50%;border:2px solid rgba(255,255,255,.25);display:grid;place-items:center}.tfr.done .tfc{border-color:#2dd4bf;color:#2dd4bf}.tfc svg{width:14px;height:14px}
+.tfa{flex:none;padding:8px 12px;border-radius:999px;background:rgba(255,154,128,.16);color:#ffd5c8;font-weight:700;font-size:13.5px;box-shadow:none}
 #tcbar{position:fixed;left:50%;bottom:calc(var(--sb) + 86px);transform:translateX(-50%);z-index:19;display:flex;align-items:center;gap:9px;max-width:92%;padding:8px 14px;border-radius:999px;background:linear-gradient(135deg,rgba(84,38,44,.96),rgba(70,26,52,.96));box-shadow:0 8px 24px -10px rgba(255,90,110,.9);color:#fff;font-size:13.5px;white-space:nowrap}
 #tcbar .dot{width:8px;height:8px;border-radius:50%;background:#ff6a6a;animation:tcdot 1.6s ease-in-out infinite}#tcbar .go{font-weight:700;color:#ffd5c8}@keyframes tcdot{50%{opacity:.35}}
 @media (prefers-reduced-motion:reduce){.tcpts,#tcbar .dot{animation:none}}
@@ -1435,7 +1439,7 @@ const DECKS = {
   mix:      { label: 'Surprise me',  em: '🎲', hint: 'A bit of everything',       nudge: 'Surprise me' },
 };
 const ICONS = {
-  x: 'M6 6l12 12M18 6L6 18', moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z', sun: 'M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4', gear: 'M10.11 4.95 L10.16 1.56 L13.84 1.56 L13.89 4.95 A7.3 7.3 0 0 1 15.65 5.68 L18.08 3.32 L20.68 5.92 L18.32 8.35 A7.3 7.3 0 0 1 19.05 10.11 L22.44 10.16 L22.44 13.84 L19.05 13.89 A7.3 7.3 0 0 1 18.32 15.65 L20.68 18.08 L18.08 20.68 L15.65 18.32 A7.3 7.3 0 0 1 13.89 19.05 L13.84 22.44 L10.16 22.44 L10.11 19.05 A7.3 7.3 0 0 1 8.35 18.32 L5.92 20.68 L3.32 18.08 L5.68 15.65 A7.3 7.3 0 0 1 4.95 13.89 L1.56 13.84 L1.56 10.16 L4.95 10.11 A7.3 7.3 0 0 1 5.68 8.35 L3.32 5.92 L5.92 3.32 L8.35 5.68 A7.3 7.3 0 0 1 10.11 4.95Z M15.10 12a3.1 3.1 0 1 0-6.20 0a3.1 3.1 0 1 0 6.20 0z', heart: 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z',
+  x: 'M6 6l12 12M18 6L6 18', check: 'M5 12.5l4.5 4.5L19 7.5', moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z', sun: 'M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4', gear: 'M10.11 4.95 L10.16 1.56 L13.84 1.56 L13.89 4.95 A7.3 7.3 0 0 1 15.65 5.68 L18.08 3.32 L20.68 5.92 L18.32 8.35 A7.3 7.3 0 0 1 19.05 10.11 L22.44 10.16 L22.44 13.84 L19.05 13.89 A7.3 7.3 0 0 1 18.32 15.65 L20.68 18.08 L18.08 20.68 L15.65 18.32 A7.3 7.3 0 0 1 13.89 19.05 L13.84 22.44 L10.16 22.44 L10.11 19.05 A7.3 7.3 0 0 1 8.35 18.32 L5.92 20.68 L3.32 18.08 L5.68 15.65 A7.3 7.3 0 0 1 4.95 13.89 L1.56 13.84 L1.56 10.16 L4.95 10.11 A7.3 7.3 0 0 1 5.68 8.35 L3.32 5.92 L5.92 3.32 L8.35 5.68 A7.3 7.3 0 0 1 10.11 4.95Z M15.10 12a3.1 3.1 0 1 0-6.20 0a3.1 3.1 0 1 0 6.20 0z', heart: 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z',
   cal: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4', users: 'M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2.5 20c.6-3.4 3.2-5.2 6.5-5.2s5.9 1.8 6.5 5.2M16 4.2a3.5 3.5 0 0 1 0 6.6M18.2 15.2c1.8.7 3 2.3 3.3 4.8', user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c.8-4 4-6 8-6s7.2 2 8 6',
   star: 'M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8-5.3-2.8-5.3 2.8 1-5.8-4.2-4.1 5.9-.9z',
   eye: 'M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12zM12 9.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z',
@@ -1695,8 +1699,8 @@ const homeSig = () => { try { return JSON.stringify([S.state, S.plans, S.share, 
 const swPend = new Set();   // swipes still being saved
 async function refresh() {
   if (swPend.size) await Promise.allSettled([...swPend]);   // a refresh right after the last swipe must include it
-  const [st, pantry, settings, share, plans, inbox, favs, surp, dates, poll, triv, idea] = await Promise.all([rpc('get_state', { p_code: S.code, p_member: S.me }), rpc('get_pantry', { p_code: S.code }), rpc('get_settings', { p_code: S.code }), rpc('share_state', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('plan_list', { p_code: S.code }).catch(() => []), rpc('inbox_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('fav_list', { p_code: S.code }).catch(() => null), rpc('surprise_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('dates_get', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('poll_state', { p_code: S.code }).catch(() => null), rpc('trivia_state', { p_code: S.code, p_member: S.me, p_event: S.trivId || null }).catch(() => null), rpc('idea_today', { p_code: S.code }).catch(() => null)]);
-  S.surp = surp || S.surp || null; S.dates = dates || S.dates || null; S.poll = poll || null; S.idea = idea || null; if (!S.tq) S.triv = triv || null; setTimeout(notifSweep, 400);
+  const [st, pantry, settings, share, plans, inbox, favs, surp, dates, poll, triv, idea, tf] = await Promise.all([rpc('get_state', { p_code: S.code, p_member: S.me }), rpc('get_pantry', { p_code: S.code }), rpc('get_settings', { p_code: S.code }), rpc('share_state', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('plan_list', { p_code: S.code }).catch(() => []), rpc('inbox_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('fav_list', { p_code: S.code }).catch(() => null), rpc('surprise_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('dates_get', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('poll_state', { p_code: S.code }).catch(() => null), rpc('trivia_state', { p_code: S.code, p_member: S.me, p_event: S.trivId || null }).catch(() => null), rpc('idea_today', { p_code: S.code }).catch(() => null), rpc('trivia_funnel', { p_code: S.code, p_member: S.me }).catch(() => undefined)]);
+  S.surp = surp || S.surp || null; S.dates = dates || S.dates || null; S.poll = poll || null; S.idea = idea || null; if (tf !== undefined) S.tf = tf || null; if (!S.tq) S.triv = triv || null; setTimeout(notifSweep, 400);
   S.state = st; S.plans = plans || []; S.pool = null; if (inbox) S.inbox = inbox; if (favs) S.favs = favs; S.share = share; S.pantry = pantry || []; S.settings = settings || {};
 }
 async function loadSession(id, keep) {
@@ -1951,9 +1955,9 @@ function renderJoin() {
   const home = standalone() ? '' : `<details class="jhome"><summary>${ic('share')}<span><b>Best from your Home Screen</b><small>Tap to see how. It takes ten seconds</small></span></summary><div class="steps" style="text-align:left">${a2hsSteps().html}</div></details>`;
   const wrap = (a, b, body) => `<div class="wn wk ob2 full" style="--ka:${a};--kb:${b}"><div class="wn-in wk-in">${body}</div></div>`;
   if (pre) {   // arrived from an invite link
-    if (!S.code) { carryInvite(pre); step('invite_page'); }
+    if (!S.code) { carryInvite(pre); step('invite_page'); } const tvj = new URLSearchParams(location.search).get('t') === '1'; if (tvj) ls.set('tvJoin', '1');
     $app.innerHTML = wrap('#ff7a4d', '#ff4d7e', `<div class="ob2-inv">${MARK}<div class="brand">${BRAND}</div></div>
-      <small class="wk-k">A swipe app for two</small><h2 class="wk-h ob2-big" id="jhead">You’re invited</h2><p class="wk-p" id="jlead">Enter your first name to pair up and start swiping together.</p>
+      <small class="wk-k">A swipe app for two</small><h2 class="wk-h ob2-big" id="jhead">You’re invited</h2><p class="wk-p" id="jlead">${tvj ? 'You’re invited to play trivia night as a team. The top couple wins a $25 Amazon gift card. ' : ''}Enter your first name to pair up and start swiping together.</p>
       <label class="field"><span>Your first name</span><input id="jn" autocomplete="given-name" maxlength="24" placeholder="First name"></label>
       <label class="field"><span>Couple code</span><input id="jc" autocapitalize="characters" autocomplete="off" maxlength="12" value="${esc(pre)}" placeholder="8 letters and numbers"></label><div id="jwho"></div>
       <div class="ob2-sp"></div><button class="btn wk-cta" id="jgo">Join</button>
@@ -2280,6 +2284,43 @@ async function teamSheet(r) { if (!r) { try { r = await rpc('team_act', { p_code
 async function teamDo(action, text) { let r; try { r = await rpc('team_act', { p_code: S.code, p_member: S.me, p_action: action, p_text: text || null }); }
   catch (e) { const m = String(e?.message || ''); return toast(m.includes('too_many') ? 'That’s your three. Like one of them, or one of theirs.' : m.includes('bad_name') ? 'Try 3 to 24 letters, and keep it friendly.' : 'That didn’t save. Try again.'); }
   send({ type: 'triv', k: 'team' }); if (r.name && S.settings) S.settings.team = r; teamSheet(r); if (S.view === 'trivia' && !S.tq) { const keep = $layer.innerHTML; render(); $layer.innerHTML = keep; } }
+
+/* ---------- trivia sign-up funnel: a couple counts once BOTH partners say they're in ---------- */
+const tfKey = () => { const f = S.tf; return f ? [f.poll, f.choice, f.teams, (f.in || []).join(','), f.open, !!f.event, standalone()].join('|') : ''; };
+const tfMeter = f => { const n = Math.min(f.teams, f.need); return `<div class="tfm">${Array.from({ length: f.need }, (_, i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('')}</div><small class="tfml"><b>${f.teams} of ${f.need} couples in</b> · ${f.teams >= f.need ? 'the gift card night is on' : `${f.need - f.teams} more for the $25 Amazon gift card`}</small>`; };
+function tfNext(f) { const p = partner(), meIn = (f.in || []).includes(S.me), pIn = p && (f.in || []).includes(p);
+  if (!f.open) return f.fri ? ['Wednesday we’ll ask about Friday. Invite a couple before then', 'tftell', 'Invite'] : null;
+  if (!f.choice) return [f.fri ? 'Are you two in for Friday?' : 'Vote on the night', 'poll', 'Vote'];
+  if (f.choice === 'no') return null;
+  if (!meIn) return [`${esc(p || 'Your partner')} signed you two up. Are you in?`, 'tf', 'I’m in'];
+  if (!p) return ['You’re playing solo. Get your partner in', 'tfinv', 'Invite'];
+  if (!pIn) return [`Waiting on ${esc(p)} to say they’re in`, 'tf', 'Nudge'];
+  if (!standalone() && !f.installed) return ['One thing left: put it on your Home Screen', 'tfhome', 'Show me'];
+  if (f.teams < f.need) return ['You two are in. Bring one more couple', 'tftell', 'Invite'];
+  return ['You two are in', 'tf', 'Open']; }
+const tfBanner = () => { const f = S.tf; if (!f || f.event) return ''; const nx = tfNext(f); if (!nx) return '';
+  const title = !f.open && f.fri ? 'Trivia moves to Friday' : f.teams >= f.need ? 'Trivia night is on!' : f.fri ? 'Friday trivia night' : 'Trivia night';
+  return `<button class="tripbar kc k-match tfb" data-act="${nx[1]}" ${nx[1] === 'poll' ? `data-id="${esc(f.poll)}"` : ''} style="width:100%;text-align:left"><span class="tic">${ic('spark')}</span><span class="grow"><b>${title}${f.night && f.open ? ` · ${esc(f.night.replace(/^We’re in, /, ''))}` : ''}</b>${tfMeter(f)}<small>${nx[0]}</small></span><span class="go">${nx[2]}</span></button>`; };
+function tfRow(done, t, sub, act, lab) { return `<div class="tfr ${done ? 'done' : ''}"><span class="tfc">${done ? ic('check') : ''}</span><span class="grow"><b>${t}</b><small>${sub}</small></span>${!done && act ? `<button class="tfa" data-act="${act}">${lab}</button>` : ''}</div>`; }
+async function tfSheet() { let f = S.tf; try { f = await rpc('trivia_funnel', { p_code: S.code, p_member: S.me }); S.tf = f; } catch {} if (!f) return toast('Trivia sign-up isn’t open right now.'); step('tf_open');
+  const p = partner(), meIn = (f.in || []).includes(S.me), pIn = p && (f.in || []).includes(p), day = f.night ? f.night.replace(/^We’re in, /, '') : '';
+  if (f.choice && f.choice !== 'no' && !meIn) return sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('spark')}</span><h2>${esc(p || 'Your partner')} signed you two up</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">Trivia night${day ? ', ' + esc(day) : ''}. You only count as a team once you both say you’re in. Top couple wins a $25 Amazon gift card.</p></div></div>${tfMeter(f)}<div style="height:14px"></div><button class="btn" data-act="tfin">I’m in</button><button class="jlink" data-act="tfout">I can’t make it</button>`, 'tf');
+  if (!f.choice || f.choice === 'no') return f.open ? pollSheet(f.poll) : tellSheet();
+  const rows = [tfRow(true, `Voted for ${esc(day || 'the night')}`, f.fri ? 'Friday trivia night' : 'You can change it until voting closes', null),
+    p ? tfRow(pIn, pIn ? `${esc(p)} is in` : `Waiting on ${esc(p)}`, pIn ? 'You count as a team' : 'You only count once you both say you’re in', 'tfnudge', 'Nudge')
+      : tfRow(false, 'Get your partner in', 'The gift card is for couples. Joining takes them a minute', 'tfinv', 'Invite'),
+    standalone() || f.installed ? '' : tfRow(false, 'Put it on your Home Screen', 'So trivia can buzz you on the night. iPhone needs this', 'tfhome', 'Show me'),
+    f.teams < f.need ? tfRow(false, 'Bring one more couple', `We need ${f.need - f.teams} more for the gift card night`, 'tftell', 'Invite') : ''].join('');
+  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('spark')}</span><h2>${f.teams >= f.need ? 'Trivia night is on!' : 'You’re in. A few things before the night'}</h2></div></div>${tfMeter(f)}<div class="tfl">${rows}</div>${f.host ? '<p class="muted" style="font-size:13px;text-align:center">You two play hidden: you never count toward the 3 and can’t win.</p>' : ''}<button class="jlink" data-act="closesheet">Done</button>`, 'tf'); }
+const TELLT = 'We’re doing a couples trivia night on Let’s Together, every couple a team, and the top couple wins a $25 Amazon gift card. They need one more couple. You each swipe on movies, places and things to do, and it only shows what you both said yes to. One of you starts it and sends the other your couple code.';
+async function tfAct(a, t) { const f = S.tf, p = partner();
+  if (a === 'tf') return tfSheet();
+  if (a === 'tfin' || a === 'tfout') { t.disabled = true; try { S.tf = await rpc('trivia_rsvp_set', { p_code: S.code, p_member: S.me, p_in: a === 'tfin' }); } catch { t.disabled = false; return toast('That didn’t save. Try again.'); }
+    step('tf_' + a); if (a === 'tfin') { if (p) push(`${S.me} is in for trivia`, 'You two count as a team now.', './?trivia_in=1'); send({ type: 'plan', city: '', action: 'poll' }); tfSheet(); } else { closeSheet(); toast('Got it. You can change your mind on Home until voting closes.'); } if (S.view === 'home') render(); return; }
+  if (a === 'tfnudge') { if (Date.now() - Number(ls.get('tfNudged') || 0) < 3600000) return toast(`${esc(p)} was nudged a moment ago.`); ls.set('tfNudged', String(Date.now())); push(`${S.me} signed you two up for trivia`, 'You only count as a team once you both say you’re in. Tap to say you’re in.', './?trivia_in=1'); return toast(`Nudged ${p}.`); }
+  if (a === 'tfinv') { S.invT = 1; return inviteSheet(); }
+  if (a === 'tfhome') return installSheet('trivia');
+  if (a === 'tftell') { S.tellT = 1; return tellSheet(); } }
 /* ---------- trivia night on one shared clock (mode 'clock'): every phone gets question n at the same second ---------- */
 const tcNow = () => Date.now() + (S.tcOff || 0);
 const tcMs = d => Date.parse(d);
@@ -2509,7 +2550,7 @@ function pollDraw(q) {
 const TELL = 'You two should try Let’s Together. You each swipe on movies, places to eat and things to do, and it only shows what you both said yes to. One of you starts it and adds it to your Home Screen, then sends the other your couple code. It’s still in testing, so you’d be one of the first.';
 function tellSheet() {
   step('tell_open');
-  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('heart')}</span><h2>Know a couple who’d love this?</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">Send it to one of them. They do the rest.</p></div>
+  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('heart')}</span><h2>${S.tellT ? 'Bring a couple to trivia night' : 'Know a couple who’d love this?'}</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">${S.tellT ? 'Send it to one of them. Once they’ve both joined and said they’re in, they count.' : 'Send it to one of them. They do the rest.'}</p></div>
     <div class="steps" style="text-align:left;margin-top:14px"><div class="step"><span class="num">1</span><span>You send the link to <b>one</b> of them</span></div><div class="step"><span class="num">2</span><span>They start a couple and add it to their Home Screen</span></div><div class="step"><span class="num">3</span><span>They pass their code to their partner</span></div></div>
     <button class="btn" style="margin-top:18px" data-act="tellsend" data-how="${isPhone() ? 'text' : 'share'}">${isPhone() ? 'Text them the link' : 'Copy the link'}</button>
     ${isPhone() ? '<button class="btn ghost" style="margin-top:10px" data-act="tellsend" data-how="share">Other apps</button>' : ''}
@@ -3024,7 +3065,8 @@ function slotHTML(incoming) {
     ['wild:' + (S.idea?.wild?.id || ''), wildBanner()],
     ['isv:' + savedIdeas().map(x => x.id).join(), savedBanner()],
     ['triv:' + (S.triv ? S.triv.id + S.triv.phase : ''), trivBanner()],
-    ['poll:' + (S.poll?.id || ''), pollBanner()],
+    ['tf:' + tfKey(), tfBanner()],
+    ['poll:' + (S.poll?.id || ''), tfBanner() && /^trivia-/.test(S.poll?.id || '') ? '' : pollBanner()],
     ['hs', hsBanner()],
   ].filter(x => x && x[1] && !gone[x[0]]);
   setTimeout(surpGreet, 600);
@@ -3216,6 +3258,7 @@ function inboxGo(u) {
   if (q.get('trivia')) return openTrivia(q.get('trivia'));
   if (q.get('night')) return nightOpen(q.get('night'));
   if (q.get('idea')) { const go = () => q.get('idea') === 'wild' ? wildSheet() : ideaSheet(); if (S.idea) return go(); return rpc('idea_today', { p_code: S.code }).then(x => { S.idea = x || null; go(); }).catch(() => {}); }
+  if (q.get('trivia_in')) return tfSheet();
   if (q.get('poll')) return pollSheet(q.get('poll'));
   if (q.get('prize')) return prizeSheet(q.get('prize'));
   if (q.get('bdays')) return bdaysSheet();
@@ -3228,7 +3271,7 @@ function inboxGo(u) {
   if (q.get('tripplan')) return openTripPlan(q.get('tripplan'));
   if (q.get('trip')) return openGetaway(q.get('trip'), partner());
   if (SHW[q.get('share')]) return openShareTab(q.get('share'));
-  if (q.get('invite') && !partner()) return inviteSheet();
+  if (q.get('invite') && !partner()) { if (q.get('t')) S.invT = 1; return inviteSheet(); }
 }
 /* ---------- what's new ---------- */
 // Shown once per person (kept on the account, so Safari and the Home Screen app agree) to people who were already
@@ -4537,7 +4580,7 @@ function a2hsMoment(why) {
 function installSheet(why) {
   carrySignIn(); step('a2hs' + (why ? ':' + why : '')); const g = a2hsSteps(), p = partner();
   if (bip) { sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('plus')}</span><h2>${why === 'match' ? 'Nice match.' : ''} Put it on your Home Screen</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">One tap. Then ${esc(p || 'your other half')} can reach you with a nudge when they pick something.</p></div></div><div style="height:16px"></div><button class="btn" data-act="hshow">Install</button><div style="height:10px"></div><button class="btn ghost" data-act="a2hslater">Not now</button>`); return; }
-  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('share')}</span><h2>${why === 'match' ? 'Nice match! Now put it on your Home Screen' : why === 'new' ? 'You’re in. Now put it on your Home Screen' : 'Put it on your Home Screen'}</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">${why === 'match' ? `Next time you and ${esc(p || 'your person')} match, you’ll get a ping.` : `So ${esc(p || 'your other half')} can reach you with a nudge when they pick something.`} It takes ten seconds.</p></div></div>
+  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('share')}</span><h2>${why === 'trivia' ? 'So trivia can buzz you on the night' : why === 'match' ? 'Nice match! Now put it on your Home Screen' : why === 'new' ? 'You’re in. Now put it on your Home Screen' : 'Put it on your Home Screen'}</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">${why === 'match' ? `Next time you and ${esc(p || 'your person')} match, you’ll get a ping.` : `So ${esc(p || 'your other half')} can reach you with a nudge when they pick something.`} It takes ten seconds.</p></div></div>
     <div class="steps">${g.html}<div class="step"><span class="num">✓</span><span>Open <b>Let’s Together</b> from the new icon. You’ll already be signed in${why === 'new' && !partner() ? ', and you can send your invite from there' : ''}</span></div></div>
     <div class="note" style="margin:0 0 16px">If it ever asks you to sign in, tap <b>I have a code</b>, enter <b>${esc(S.code)}</b> and tap your name.</div>
     <button class="btn" data-act="a2hsdone">Done, I’ve added it</button><div style="height:10px"></div><button class="btn ghost" data-act="a2hslater">Later</button>`);
@@ -4583,8 +4626,8 @@ function nextOnboard() {
   if (needTiltAsk()) return tiltAskSheet();
 }
 const needInvite = () => !!S.state && !partner() && !soloMode() && Date.now() - Number(ls.get('invAt') || 0) > 864e5;
-const inviteLink = () => `${location.origin}${location.pathname}?c=${S.code}`;
-const inviteMsg = () => `Join me on Let’s Together so we can stop asking “what do you want to do?” Open the link, add it to your Home Screen, then open it from the icon and enter our couple code: ${S.code}. Steps for your phone: letstogether.app/hello`;
+const inviteLink = () => `${location.origin}${location.pathname}?c=${S.code}${S.invT ? '&t=1' : ''}`;
+const inviteMsg = () => (S.invT ? `Trivia night on Let’s Together: every couple a team, and the top couple wins a $25 Amazon gift card. We need you on our team. ` : '') + `Join me on Let’s Together so we can stop asking “what do you want to do?” Open the link, add it to your Home Screen, then open it from the icon and enter our couple code: ${S.code}. Steps for your phone: letstogether.app/hello`;
 const inviteAsked = () => { ls.set('invAt', String(Date.now())); ls.set('invN', String(Number(ls.get('invN') || 0) + 1)); };
 function inviteSheet() {
   step('invite');
@@ -5668,9 +5711,10 @@ document.addEventListener('click', async e => {
       case 'inbox': return inboxSheet();
       case 'shareapp': return shareApp();
       case 'tellsend': { const url = 'https://letstogether.app/'; step('tell_' + ds.how);
-        if (ds.how === 'text') { const body = encodeURIComponent(`${TELL}\n${url}`); location.href = /iphone|ipad|ipod|macintosh/i.test(navigator.userAgent) ? `sms:&body=${body}` : `sms:?body=${body}`; return; }
-        if (navigator.share) { try { await navigator.share({ text: TELL + '\n' + url }); } catch {} return; }
-        try { await navigator.clipboard.writeText(TELL + '\n' + url); toast('Copied. Paste it into a message.'); } catch {} return; }
+        const TX = S.tellT ? TELLT : TELL;
+        if (ds.how === 'text') { const body = encodeURIComponent(`${TX}\n${url}`); location.href = /iphone|ipad|ipod|macintosh/i.test(navigator.userAgent) ? `sms:&body=${body}` : `sms:?body=${body}`; return; }
+        if (navigator.share) { try { await navigator.share({ text: TX + '\n' + url }); } catch {} return; }
+        try { await navigator.clipboard.writeText(TX + '\n' + url); toast('Copied. Paste it into a message.'); } catch {} return; }
       case 'whatsnew': return newsShow(true);
       case 'inclear': { const rows = [...document.querySelectorAll('#inlately .swr')]; rows.forEach((r, i) => setTimeout(() => { r.style.maxHeight = r.offsetHeight + 'px'; r.offsetHeight; r.classList.add('sw'); r.querySelector('.swf').style.transition = 'transform .22s ease'; r.querySelector('.swf').style.transform = 'translateX(-110%)'; r.classList.add('out'); }, i * 70));
         setTimeout(() => { const l = document.getElementById('inlately'); if (l) l.innerHTML = '<p class="muted" style="font-size:14px;padding:6px 0 4px">All clear.</p>'; t.remove(); document.querySelector('.inhint')?.remove(); }, rows.length * 70 + 420);
@@ -5689,6 +5733,7 @@ document.addEventListener('click', async e => {
       case 'trivhub': S.tq = null; await trivLoad(); return render();
       case 'trivnudge': { if (Date.now() - (S.tvNudged || 0) < 30000) return toast(`${them()} was just nudged. Give it a moment.`); S.tvNudged = Date.now(); push('Trivia: you’re up', `${S.me} is ready for question ${S.tq?.n || ''} and waiting on you.`.replace('  ', ' '), './?trivia=' + S.triv.id); return toast(`Nudged ${them()}.`); }
       case 'trivteam': return teamSheet();
+      case 'tf': case 'tfin': case 'tfout': case 'tfnudge': case 'tfinv': case 'tfhome': case 'tftell': return tfAct(ds.act || t.dataset.act, t);
       case 'tcback': S.view = 'home'; return render();
       case 'tcoff': ls.set('tvOff_' + S.triv.id, '1'); ls.del('tvIn_' + S.triv.id); S.view = 'home'; toast('No trivia buzz tonight. It’s on Home if you change your mind.'); return render();
       case 'tcbuzz': { const on = !S.triv.buzz; t.disabled = true; try { await rpc('trivia_buzz_set', { p_code: S.code, p_member: S.me, p_event: S.triv.id, p_on: on }); } catch { t.disabled = false; return toast('That didn’t save. Try again.'); }
@@ -5702,7 +5747,11 @@ document.addEventListener('click', async e => {
       case 'pkclose': return document.querySelector('.match')?.remove();
       case 'poll': return pollSheet(ds.id);
       case 'pollvote': { t.disabled = true; let q; try { q = await rpc('poll_vote', { p_code: S.code, p_member: S.me, p_id: ds.id, p_choice: ds.k }); } catch { t.disabled = false; return toast('That vote didn’t save. Try again.'); }
-        S.poll = q; step('poll_vote'); send({ type: 'plan', city: '', action: 'poll' }); pollDraw(q); if (S.view === 'home' && S.tab === 'home') render(); return; }
+        S.poll = q; step('poll_vote'); send({ type: 'plan', city: '', action: 'poll' });
+        if (/^trivia-(1|fri-1)$/.test(ds.id)) { const p = partner(), before = S.tf; try { S.tf = await rpc('trivia_funnel', { p_code: S.code, p_member: S.me }); } catch {}
+          if (ds.k !== 'no' && p && S.tf && !(S.tf.in || []).includes(p) && !(before?.choice && before.choice !== 'no')) push(`${S.me} signed you two up for trivia`, 'You only count as a team once you both say you’re in. Tap to say you’re in.', './?trivia_in=1');
+          if (ds.k !== 'no' && !pollTodo(q)) { if (S.view === 'home' && S.tab === 'home') render(); return tfSheet(); } }
+        pollDraw(q); if (S.view === 'home' && S.tab === 'home') render(); return; }
       case 'bdays': return bdaysSheet();
       case 'bdayssave': { t.disabled = true; const ok = await datesSave(t.closest('.sheet')); t.disabled = false; if (!ok) return; closeSheet(); toast('Saved. You’ll both get a heads-up before the day.', 3500); if (S.view === 'home') render(); return; }
       case 'bdayslater': ls.set('datesAt', String(Date.now())); closeSheet(); if (S.view === 'home' && S.tab === 'home') render(); return;
@@ -5957,7 +6006,8 @@ async function boot() {
   const tg = new URLSearchParams(location.search).get('tb'); if (tg) { history.replaceState(null, '', location.pathname); return openGame(tg); }
   const tp = new URLSearchParams(location.search).get('trip'); if (tp) history.replaceState(null, '', location.pathname);
   const shq = new URLSearchParams(location.search).get('share'); if (shq) history.replaceState(null, '', location.pathname);
-  const invq = new URLSearchParams(location.search).get('invite'); if (invq) history.replaceState(null, '', location.pathname);
+  const invq = new URLSearchParams(location.search).get('invite'); if (invq && new URLSearchParams(location.search).get('t')) S.invT = 1; if (invq) history.replaceState(null, '', location.pathname);
+  const tfq = new URLSearchParams(location.search).get('trivia_in'); if (tfq) history.replaceState(null, '', location.pathname);
   if (new URLSearchParams(location.search).get('reveal')) { history.replaceState(null, '', location.pathname); prepRevealTest(); }
   const tpq = new URLSearchParams(location.search).get('tripplan'); if (tpq) history.replaceState(null, '', location.pathname);
   const itq = new URLSearchParams(location.search).get('into'); if (itq) history.replaceState(null, '', location.pathname);
@@ -5976,6 +6026,8 @@ async function boot() {
   if (tlq) tellSheet();
   if (twq) twShow();
   if (pollq) pollSheet(pollq);
+  if (tfq) return tfSheet();
+  if (ls.get('tvJoin') && S.code && S.me && partner() && S.tf) { ls.del('tvJoin'); return tfSheet(); }
   if (trvq) openTrivia(trvq);
   if (ntq) nightOpen(ntq);
   if (dtq) bdaysSheet(); else if (psq) surpStart(['birthday', 'anniversary'].includes(psq) ? psq : undefined); else if (ocq) occSheet(ocq);
