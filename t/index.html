@@ -1401,10 +1401,13 @@ const CFG = {
   key: 'sb_publishable_2kr1KUhUST6dUy7JdL-5rA_ERVJaCgI',
   vapid: 'BDclxM1Msm3Z4OLK8q5Zro-Z2PjFemslqgIIWK6sCxk3nSn9eJZrbhZ3R0_b5Gm6yurB6AjOgBvjIwjdek7wG-Q',
 };
-const sb = createClient(CFG.url, CFG.key, { auth: { persistSession: false, autoRefreshToken: false } });
+// The simulation copy (/s) talks to its own database of made-up people. Each request says which test person is asking.
+const SIM = !!window.LT_SIM;
+const simFetch = (u, o = {}) => { const h = new Headers(o.headers || {}); let k = '', who = ''; try { k = localStorage.getItem('wlt_simkey') || ''; who = localStorage.getItem('wlt_simp') || ''; } catch {} if (k) h.set('X-Client-Info', `sim:${k}:${who}`); return fetch(u, { ...o, headers: h }); };
+const sb = createClient(CFG.url, CFG.key, { auth: { persistSession: false, autoRefreshToken: false }, ...(SIM ? { global: { fetch: simFetch } } : {}) });
 // Accounts (beta first): a person signs in with Apple, Google or an emailed code. The couple code stays how partners link.
 const AUTH = { passkey: false, apple: '', google: '613628144755-h3npqt0snsmebvaej443jcbd7j4e3pn6.apps.googleusercontent.com' };   // public IDs; an empty one hides its button
-const sbA = window.LT_BETA ? createClient(CFG.url, CFG.key, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'wlt_auth', experimental: { passkey: true } } }) : null;
+const sbA = SIM ? sb : window.LT_BETA ? createClient(CFG.url, CFG.key, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'wlt_auth', experimental: { passkey: true } } }) : null;
 
 const DECKS = {
   movie:    { label: 'Movie night',  em: '🎬', hint: 'Something to watch',        nudge: 'Movie night?' },
@@ -4070,6 +4073,8 @@ async function frClick(t, ds) {
   const a = ds.fr, d = FR.d, p = FR.plan;
   switch (a) {
     case 'open': return frOpen();
+    case 'simkey': { const k = (document.getElementById('simk')?.value || '').trim(); if (!k) return; ls.set('simkey', k); return simSheet(); }
+    case 'simpick': ['code', 'name', 'acctl', 'solo', 'fpend'].forEach(k => ls.del(k)); ls.set('simp', ds.id); ls.set('simn', ds.n); return void location.reload();
     case 'refresh': t.disabled = true; try { await frLoad(); } catch {} return render();
     case 'reload': return frOpenPlan(p.id);
     case 'signout': try { await sbA.auth.signOut(); } catch {} S.acct = null; FR.d = null; ls.del('solo'); S.startMode = ''; return render();
@@ -4144,6 +4149,9 @@ document.addEventListener('visibilitychange', () => {   // coming back to the ap
 // ===== Accounts =====
 async function acctRpc(fn, args) { const { data, error } = await sbA.rpc(fn, args || {}); if (error) throw error; return data; }
 async function acctInit() {
+  if (SIM) { S.acct = ls.get('simp') ? { email: 'Test person' } : null; S.acctName = ls.get('simn') || '';
+    try { const t = await rpc('sim_now'); if (t && window.__simShift) { const real = performance.timeOrigin + performance.now(), sh = Math.round((new Date(t).getTime() - real) / 60000) * 60000; if (Math.abs(sh - Number(ls.get('simshift') || 0)) > 90000) { window.__simShift(sh); ls.set('simshift', String(sh)); } } } catch {}
+    return; }
   try { const { data } = await sbA.auth.getSession(); const u = data.session?.user; S.acct = u ? { email: u.email || '' } : null; S.acctName = acctNameOf(u); } catch { S.acct = null; }
   if (S.acct && S.code && S.me && ls.get('acctl') !== S.code + '|' + S.me) await acctLink();
 }
@@ -4160,7 +4168,18 @@ async function acctRestore() {
     S.code = r.code; S.me = r.name; ls.set('code', r.code); ls.set('name', r.name); ls.set('acctl', r.code + '|' + r.name); return true;
   } catch { return false; }
 }
+// Simulation copy: pick which made-up person this phone is.
+async function simSheet() {
+  if (!ls.get('simkey')) return sheet(`<div class="grab"></div><div class="body acs"><h2>Simulation</h2><p class="muted">This copy runs on made-up people only. Paste the sim key to pick one.</p><input id="simk" class="acin" autocomplete="off" autocapitalize="none" placeholder="Sim key" aria-label="Sim key"><button class="btn" data-fr="simkey">Continue</button></div>`);
+  sheet('<div class="grab"></div><div class="body acs"><h2>Who are you?</h2><p class="muted">Loading the test people…</p></div>');
+  const r = await rpc('sim_roster', { p_key: ls.get('simkey') }).catch(() => null);
+  if (!r?.ok) { ls.del('simkey'); return simSheet(); }
+  const me = ls.get('simp'), by = {}; r.people.forEach(x => (by[x.city || 'No home yet'] = by[x.city || 'No home yet'] || []).push(x));
+  sheet(`<div class="grab"></div><div class="body you"><h2>Who are you?</h2><p class="muted" style="margin:6px 0 4px">Sim date: ${new Date(r.now).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}. ${r.people.length} test people.</p>
+    ${r.people.length ? Object.entries(by).map(([c, ps]) => `<div class="sect">${esc(c)}</div><div class="ycard">${ps.map(x => `<button class="yrow" data-fr="simpick" data-id="${x.id}" data-n="${esc(x.name)}"><span class="tic">${ic(x.solo ? 'user' : 'heart')}</span><span class="grow"><b>${esc(x.name)}${x.id === me ? ' (you now)' : ''}</b><small>${x.solo ? 'On their own' : 'With ' + esc(x.partner || 'nobody yet')} · ${x.friends} friends</small></span><span class="ych">›</span></button>`).join('')}</div>`).join('') : '<p class="muted">No test people yet. Make some with sim_seed.</p>'}</div>`);
+}
 function acctSheet(stage) {
+  if (SIM) return simSheet();
   const who = S.code && S.me ? (partner() ? `you and ${esc(them())}` : 'your couple') : 'your couple';
   if (S.acct) { sheet(`<div class="grab"></div><div class="body acs"><span class="acsic">${ic('user')}</span><h2>Your account is saved</h2>
     <p class="muted">Signed in as <b>${esc(S.acct.email || 'your Apple or Google account')}</b>. Sign in with it on any phone and you’re back with ${who}.</p>
