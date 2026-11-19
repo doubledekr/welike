@@ -1947,11 +1947,13 @@ function ob2Draw() {
   if (k === 'piles') wipeWire(document.getElementById('obpv'), 'Wipe me');
 }
 // a frosted window to wipe clean (the onboarding demo of a covered card); enables the step's button when it's mostly clear
-function wipeWire(cv, label) {
+function wipeWire(cv, label, scratch) {
   if (!cv) return; const box = cv.parentElement.getBoundingClientRect(), W = cv.width = Math.round(box.width), H = cv.height = Math.round(box.height), x = cv.getContext('2d');
   cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;touch-action:none;border-radius:inherit';
-  const gr = x.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#d6e2ec'); gr.addColorStop(1, '#96acc0'); x.fillStyle = gr; x.fillRect(0, 0, W, H);
-  x.fillStyle = '#33475a'; x.textAlign = 'center'; x.font = `italic ${Math.round(W / 7)}px "Instrument Serif", Georgia, serif`; x.fillText(label, W / 2, H / 2 + 8);
+  const gr = scratch ? x.createLinearGradient(0, 0, W, H) : x.createLinearGradient(0, 0, 0, H);
+  if (scratch) { gr.addColorStop(0, '#2a1840'); gr.addColorStop(.45, '#7a3df0'); gr.addColorStop(.75, '#ff4d7e'); gr.addColorStop(1, '#ffb547'); } else { gr.addColorStop(0, '#d6e2ec'); gr.addColorStop(1, '#96acc0'); }
+  x.fillStyle = gr; x.fillRect(0, 0, W, H);
+  x.fillStyle = scratch ? 'rgba(255,255,255,.92)' : '#33475a'; x.textAlign = 'center'; x.font = `italic ${Math.round(W / 7)}px "Instrument Serif", Georgia, serif`; x.fillText(label, W / 2, H / 2 + 8);
   x.globalCompositeOperation = 'destination-out'; x.lineCap = 'round'; x.lineJoin = 'round'; x.lineWidth = Math.max(40, W / 4.5);
   let down = false, lx = 0, ly = 0, n = 0, done = false; const pt = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; };
   const fin = () => { if (done) return; done = true; cv.style.transition = 'opacity .4s'; cv.style.opacity = 0; setTimeout(() => cv.remove(), 420); walkOk(); try { navigator.vibrate?.([12, 70, 12]); } catch {} };
@@ -1961,7 +1963,8 @@ function wipeWire(cv, label) {
   const up = () => { down = false; }; cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
 }
 // One line the first time something newer turns up, rather than explaining everything on day one.
-function tip1(key, msg) { if (ls.get('tip_' + key) || !ls.get('ob2') || document.querySelector('.wn')) return; ls.set('tip_' + key, '1'); setTimeout(() => toast(msg, 5200), 600); }
+// A tip never lands on top of a tour or walkthrough: if one opens in the meantime, the tip waits for another day.
+function tip1(key, msg) { if (ls.get('tip_' + key) || !ls.get('ob2') || document.querySelector('.wn')) return; setTimeout(() => { if (document.querySelector('.wn') || ls.get('tip_' + key)) return; ls.set('tip_' + key, '1'); toast(msg, 5200); }, 600); }
 async function joinWho() {
   const el = document.getElementById('jwho'), code = (document.getElementById('jc')?.value || '').trim().toUpperCase(); if (!el) return;
   if (code.length !== 8) { el.innerHTML = ''; return; }
@@ -3593,8 +3596,8 @@ function newsShow(force) {
 /* ---------- what's new, as a walkthrough you play with: one tap or swipe per screen ---------- */
 const WALK = [
   { k: 'tabs', a: '#ffb547', b: '#ff7a4d', kick: 'New: five piles', h: 'Discover, Watch, Eat, Drinks, Trips', p: 'Discover is a bit of everything, with finds near you mixed in. Movies are now Watch, and Go out is now Drinks. Art is retired.', open: true },
-  { k: 'uq', a: '#9fb8cc', b: '#ffb547', kick: 'New: unique spots', h: 'Wipe the window', p: 'Independent shops near you, like record stores, bookshops, candy and magic shops, arrive covered in Discover. Wipe the glass to see what’s inside. You can put them in a plan.', open: true },
-  { k: 'food', a: '#ff7a4d', b: '#ff4d7e', kick: 'New in Eat and Drinks', h: 'Food and drink finds', p: 'Hidden-gem restaurants and bars, and things like a chili cook-off or a wine tasting, show up as scratch cards in Eat and Drinks.', open: true },
+  { k: 'uq', a: '#9fb8cc', b: '#ffb547', kick: 'New: unique spots', h: 'Wipe the window', p: 'Independent shops near you, like record stores, bookshops, candy and magic shops, arrive covered in Discover. Wipe the glass to see what’s inside. You can put them in a plan.', wait: 'Wipe the window' },
+  { k: 'food', a: '#ff7a4d', b: '#ff4d7e', kick: 'New in Eat and Drinks', h: 'Food and drink finds', p: 'Hidden-gem restaurants and bars, and things like a chili cook-off or a wine tasting, show up as scratch cards in Eat and Drinks.', wait: 'Scratch the card' },
   { k: 'close', a: '#2dd4bf', b: '#ffb547', kick: 'New: close by', h: 'What else you like nearby', p: 'Open a place and tap “What else you like close by” to see your other likes a short walk away, then put two in a plan. When a pile runs out, you get a grid of everything you’ve liked.', open: true },
   { k: 'end', a: '#ffb547', b: '#ff4d7e', kick: 'That’s it', h: 'Swipe whenever you like', p: 'Hell yeah is for the places you’d love to go, and the ones you’ve been and loved.' },
 ];
@@ -3619,8 +3622,8 @@ function walkDraw() {
     gold: () => `<div class="wk-gold" id="wkgold" role="button" aria-label="Pull the bow"><span class="wk-gt">Yours to plan</span><span class="gband"><span class="wk-bow"><i></i><i></i><b></b></span></span></div>`,
     end: () => `<div class="wk-bell" id="wkbell">${ic('bell')}</div>`,
     tabs: () => [['Discover', 'A bit of everything, plus finds'], ['Watch', 'Movies'], ['Eat', 'Places to eat, and food finds'], ['Drinks', 'Bars, and drink finds'], ['Trips', 'Places you might go']].map(([t, d]) => `<div class="wk-step"><span class="grow"><b>${t}</b><small>${d}</small></span></div>`).join(''),
-    uq: () => `<div class="wk-gem" style="background:linear-gradient(180deg,rgba(214,226,236,.93),rgba(150,172,192,.95))"><span class="wk-gcap" style="color:#1d2a36;background:none"><b>Unique spot</b><small style="display:block;color:#33475a">Wipe the window to look inside</small></span></div>`,
-    food: () => `<div class="wk-gem" style="background:linear-gradient(135deg,#2a1840,#7a3df0 45%,#ff4d7e 75%,#ffb547)"><span class="wk-gcap"><b>Food event</b><small style="display:block">Scratch to see what’s on</small></span></div>`,
+    uq: () => `<div class="wk-gem" style="background:radial-gradient(90% 60% at 50% 30%,#3d8f86,#16454a 55%,#0c2226)"><span class="wk-gcap"><span class="gemk"><span>Unique spot</span></span><b>A record shop with listening booths</b></span><canvas id="wkw"></canvas></div>`,
+    food: () => `<div class="wk-gem" style="background:radial-gradient(90% 60% at 50% 30%,#8f3d5a,#4a1630 55%,#22090f)"><span class="wk-gcap"><span class="gemk"><span>Food event</span></span><b>A chili cook-off, Saturday afternoon</b></span><canvas id="wkw"></canvas></div>`,
     close: () => `<div class="wk-step"><span class="grow"><b>A ramen spot</b><small>You both like it · 2 min walk</small></span></div><div class="wk-step"><span class="grow"><b>A cocktail bar</b><small>You like it · 6 min walk</small></span></div>`,
   }[st.k]();
   const pushOff = last && standalone() && pushState() === 'default';
@@ -3629,6 +3632,8 @@ function walkDraw() {
     <small class="wk-k">${st.kick}</small><h2 class="wk-h">${st.h}</h2><p class="wk-p">${st.p}</p><div class="wk-stage wk-s-${st.k}">${stage}</div>
     ${pushOff ? `<button class="btn wk-cta" data-act="walkpush">Turn on nudges</button><div style="height:8px"></div><button class="btn ghost" data-act="newsdone">Start swiping</button>` : last ? `<button class="btn wk-cta" data-act="newsdone">Start swiping</button>` : st.open ? `<button class="btn wk-cta" data-act="walknext">Next</button>` : `<button class="btn wk-cta wait" id="wkgo" data-act="walknext" disabled>${st.wait}</button>`}</div>`;
   if (st.k === 'flip') flipWire(el);
+  if (st.k === 'uq') wipeWire(document.getElementById('wkw'), 'Wipe me');
+  if (st.k === 'food') wipeWire(document.getElementById('wkw'), 'Scratch me', true);
   if (st.k === 'swipe') { wkSwipeWire(el);
   } else if (st.k === 'gem') {
     const cv = document.getElementById('wkv'), box = cv.parentElement.getBoundingClientRect(), Wd = cv.width = Math.round(box.width), H = cv.height = Math.round(box.height), x = cv.getContext('2d');
