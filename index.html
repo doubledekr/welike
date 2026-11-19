@@ -2383,7 +2383,7 @@ const pollBanner = () => { const q = S.poll; if (!q || !q.open || !pollTodo(q)) 
 async function prizeSheet(ev) {
   let r = null; try { r = await rpc('prize_open', { p_code: S.code, p_member: S.me, p_event: ev }); } catch {}
   if (!r?.ok || !/^https:\/\//.test(r.link || '')) return toast('That prize is not for this team.');
-  sheet(`<div class="grab"></div><div class="body" style="text-align:center"><h2>You won trivia night</h2><p class="muted" style="margin:8px 0 18px">Your ${esc(r.label)} is ready. It opens on the gift card’s own page.</p>
+  sheet(`<div class="grab"></div><div class="body" style="text-align:center"><h2>You won trivia night</h2><p class="muted" style="margin:8px 0 18px">${r.opened_by && r.opened_by !== S.me ? `<b style="color:var(--text)">${esc(r.opened_by)} already opened this.</b> If the page says it has been claimed, ${esc(r.opened_by)} has it.` : `Your ${esc(r.label)} is ready. It opens on the gift card’s own page.`}</p>
     <a class="btn" href="${esc(r.link)}" target="_blank" rel="noopener">Open your gift card</a><p class="muted" style="font-size:12.5px;margin-top:14px">Either of you can open it. Treat the link like cash and don’t share it.</p></div>`);
 }
 async function pollSheet(id) {
