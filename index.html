@@ -3430,7 +3430,7 @@ async function inboxSheet() {
     <div id="inlately">${items.length ? items.map(i => sw('i:' + i.id, `<button class="sess inrow ${i.seen ? '' : 'new'} ${lkind(i) ? 'kc k-' + lkind(i) : ''}" data-inurl="${esc(i.url || './')}"><span class="tic">${ic(kic(i))}</span><span class="grow"><b>${esc(i.title)}</b><small>${esc(i.body || '')}${i.body ? ' · ' : ''}${ago(i.at)}</small></span></button>`, 'Remove')).join('') : `<p class="muted" style="font-size:14px;padding:6px 0 4px">${w.length ? 'Nothing else for now.' : `All quiet. Matches and anything ${esc(them())} sends will show up here for a week.`}</p>`}
     </div>
     <a class="sess inrow" href="./hello/?app=1#board" style="text-decoration:none;color:inherit"><span class="tic">${ic('heart')}</span><span class="grow"><b>Report a bug or suggest something</b><small>A public board. Vote on what you want most</small></span></a>
-    <button class="sess inrow" data-act="whatsnew"><span class="tic">${ic('spark')}</span><span class="grow"><b>What’s new</b><small>Plan a day, bars in Go out, and this inbox</small></span></button>
+    <button class="sess inrow" data-act="whatsnew"><span class="tic">${ic('spark')}</span><span class="grow"><b>What’s new</b><small>Discover, Watch, Eat, Drinks and Trips, unique spots, close by</small></span></button>
   </div>`);
   ls.set('bellseen', '|' + w.map(x => x.k).join('|') + '|');
   if (items.some(i => !i.seen)) { rpc('inbox_seen', { p_code: S.code, p_member: S.me }).catch(() => {}); items.forEach(i => i.seen = true); }
@@ -3556,7 +3556,7 @@ function inboxGo(u) {
 /* ---------- what's new ---------- */
 // Shown once per person (kept on the account, so Safari and the Home Screen app agree) to people who were already
 // here before the update. Someone who has just joined got the intro tour and does not need a second one.
-const NEWS = { v: 'n6-never', since: '2026-11-19T21:00:00Z' };
+const NEWS = { v: 'n7-discover', since: '2026-11-19T23:30:00Z' };
 function newsDue() { const b = S.inbox; return !!b && b.news !== NEWS.v && !!b.joined && new Date(b.joined) < new Date(NEWS.since); }
 function newsShow(force) {
   if (!force && (!newsDue() || S.view !== 'home' || $layer.innerHTML || document.querySelector('.coach,.scr,.sco,.match,.lfront,.wn'))) return false;
@@ -3565,7 +3565,10 @@ function newsShow(force) {
 }
 /* ---------- what's new, as a walkthrough you play with: one tap or swipe per screen ---------- */
 const WALK = [
-  { k: 'swipe', a: '#ff7a4d', b: '#ff4d7e', kick: 'New: swipe down', h: 'Down now means never again', p: 'Been there or seen it, and didn’t like it? Swipe down. It stops coming up and never lands in a plan, and only you see it. Up is still hell yeah, right is maybe, left is nah. Try all four.', wait: 'Swipe all four ways' },
+  { k: 'tabs', a: '#ffb547', b: '#ff7a4d', kick: 'New: five piles', h: 'Discover, Watch, Eat, Drinks, Trips', p: 'Discover is a bit of everything, with finds near you mixed in. Movies are now Watch, and Go out is now Drinks. Art is retired.', open: true },
+  { k: 'uq', a: '#9fb8cc', b: '#ffb547', kick: 'New: unique spots', h: 'Wipe the window', p: 'Independent shops near you, like record stores, bookshops, candy and magic shops, arrive covered in Discover. Wipe the glass to see what’s inside. You can put them in a plan.', open: true },
+  { k: 'food', a: '#ff7a4d', b: '#ff4d7e', kick: 'New in Eat and Drinks', h: 'Food and drink finds', p: 'Hidden-gem restaurants and bars, and things like a chili cook-off or a wine tasting, show up as scratch cards in Eat and Drinks.', open: true },
+  { k: 'close', a: '#2dd4bf', b: '#ffb547', kick: 'New: close by', h: 'What else you like nearby', p: 'Open a place and tap “What else you like close by” to see your other likes a short walk away, then put two in a plan. When a pile runs out, you get a grid of everything you’ve liked.', open: true },
   { k: 'end', a: '#ffb547', b: '#ff4d7e', kick: 'That’s it', h: 'Swipe whenever you like', p: 'Hell yeah is for the places you’d love to go, and the ones you’ve been and loved.' },
 ];
 function walkShow() {
@@ -3588,6 +3591,10 @@ function walkDraw() {
     trip: () => `<div id="wkb" class="wk-ban">${T}’s phone · Leave the flights to ${me}.</div><div class="wk-step"><span class="grow"><b>Dates</b><small>Dec 11 to 13 · Agreed</small></span><span class="tpill on">Agreed</span></div><div class="wk-step"><span class="grow"><b>Flights</b><small id="wkfs">Nobody’s on it yet</small></span><button class="tpill go wk-pulse" id="wkp" data-wk="claim">I’m on it</button></div><div class="wk-step" style="opacity:.6"><span class="grow"><b>A place to stay</b><small>${T}’s on it</small></span></div>`,
     gold: () => `<div class="wk-gold" id="wkgold" role="button" aria-label="Pull the bow"><span class="wk-gt">Yours to plan</span><span class="gband"><span class="wk-bow"><i></i><i></i><b></b></span></span></div>`,
     end: () => `<div class="wk-bell" id="wkbell">${ic('bell')}</div>`,
+    tabs: () => [['Discover', 'A bit of everything, plus finds'], ['Watch', 'Movies'], ['Eat', 'Places to eat, and food finds'], ['Drinks', 'Bars, and drink finds'], ['Trips', 'Places you might go']].map(([t, d]) => `<div class="wk-step"><span class="grow"><b>${t}</b><small>${d}</small></span></div>`).join(''),
+    uq: () => `<div class="wk-gem" style="background:linear-gradient(180deg,rgba(214,226,236,.93),rgba(150,172,192,.95))"><span class="wk-gcap" style="color:#1d2a36;background:none"><b>Unique spot</b><small style="display:block;color:#33475a">Wipe the window to look inside</small></span></div>`,
+    food: () => `<div class="wk-gem" style="background:linear-gradient(135deg,#2a1840,#7a3df0 45%,#ff4d7e 75%,#ffb547)"><span class="wk-gcap"><b>Food event</b><small style="display:block">Scratch to see what’s on</small></span></div>`,
+    close: () => `<div class="wk-step"><span class="grow"><b>A ramen spot</b><small>You both like it · 2 min walk</small></span></div><div class="wk-step"><span class="grow"><b>A cocktail bar</b><small>You like it · 6 min walk</small></span></div>`,
   }[st.k]();
   const pushOff = last && standalone() && pushState() === 'default';
   el.style.setProperty('--ka', st.a); el.style.setProperty('--kb', st.b);
