@@ -8,7 +8,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 // The Google key never leaves the backend. Each call is logged in google_calls like the other place lookups.
 const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type", "Access-Control-Allow-Methods": "POST, OPTIONS" };
 const json = (o: unknown, status = 200) => new Response(JSON.stringify(o), { status, headers: { ...cors, "Content-Type": "application/json" } });
-const QUEST = ["ice_cream_shop", "dessert_shop", "coffee_shop", "bakery", "book_store", "park", "tourist_attraction", "art_gallery", "chocolate_shop"];
+const QUEST = ["ice_cream_shop", "dessert_shop", "coffee_shop", "bakery", "book_store", "park", "art_gallery", "chocolate_shop", "tourist_attraction"];
 const miles = (a: number, b: number, c: number, d: number) => { const r = (x: number) => x * Math.PI / 180, q = Math.sin(r(c - a) / 2) ** 2 + Math.cos(r(a)) * Math.cos(r(c)) * Math.sin(r(d - b) / 2) ** 2; return 3958.8 * 2 * Math.asin(Math.sqrt(q)); };
 // open at hh:mm on that weekday, from Google's regularOpeningHours periods
 function openAt(h: any, day: string, hhmm: string): boolean | null {
@@ -56,7 +56,8 @@ Deno.serve(async (req: Request) => {
         return { id: p.id, name: p.displayName?.text ?? "", type: p.primaryTypeDisplayName?.text ?? null, ptype: p.primaryType ?? null, lat: la, lng: lo, rating: p.rating ?? null, ratings: p.userRatingCount ?? null,
           maps: p.googleMapsUri ?? null, address: p.shortFormattedAddress ?? null, url: p.websiteUri ?? null, photo: p.photos?.[0]?.name ?? null,
           open: /^\d{4}-\d{2}-\d{2}$/.test(day) && /^\d{2}:\d{2}$/.test(time) ? openAt(p.regularOpeningHours, day, time) : null, detour: Math.round(detour * 100) / 100 };
-      }).filter((p: any) => p.name && p.open !== false && (p.rating ?? 0) >= 4.4 && (p.ratings ?? 0) >= 40 && p.detour <= Math.max(0.4, leg * 0.35))
+      // not one of the two stops themselves, and not somewhere that's a whole outing on its own
+      }).filter((p: any) => p.name && p.lat != null && miles(a[0], a[1], p.lat, p.lng) > 0.06 && miles(z[0], z[1], p.lat, p.lng) > 0.06 && !/museum|stadium|casino|amusement/.test(String(p.ptype ?? "")) && p.open !== false && (p.rating ?? 0) >= 4.4 && (p.ratings ?? 0) >= 40 && p.detour <= Math.max(0.4, leg * 0.35))
         .sort((x: any, y: any) => (x.detour - y.detour) || ((y.rating ?? 0) - (x.rating ?? 0))).slice(0, 3);
       // a photo for each, so the suggestion looks like somewhere you'd want to stop
       await Promise.all(out.map(async (p: any) => { if (!p.photo) return; try { const pr = await fetch(`https://places.googleapis.com/v1/${p.photo}/media?maxWidthPx=600&skipHttpRedirect=true`, { headers: { "X-Goog-Api-Key": key } }); const pd = await pr.json(); p.image = pr.ok ? pd.photoUri ?? null : null; } catch (_) { p.image = null; } }));
