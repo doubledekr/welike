@@ -1182,7 +1182,16 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .match.pk .pkby{color:#ffe2b0;font-size:15px;margin-top:2px}
 
 /* keep browsing: steering cards, the reason line, and the three questions for places */
-.whyl{text-align:center;font-size:12.5px;font-weight:600;color:#ffe2b0;margin:2px 0 8px;min-height:16px}
+.whyl{text-align:center;font-size:12.5px;font-weight:600;color:#ffe2b0;margin:2px 0 8px;min-height:16px}.whyl.tap{cursor:pointer;text-decoration:underline;text-decoration-color:rgba(255,226,176,.45);text-underline-offset:3px}
+.lgrid .sect{margin:18px 2px 8px}.lgw{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.lgt{position:relative;aspect-ratio:3/4;border-radius:14px;overflow:hidden;background:rgba(255,255,255,.05);text-align:left}.lgt img,.lgt .pimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:grid;place-items:center;font-size:30px}.lgt b{position:absolute;left:0;right:0;bottom:0;padding:18px 8px 7px;font-size:12px;line-height:1.2;font-weight:600;background:linear-gradient(transparent,rgba(0,0,0,.78));color:#fff}
+.tag.uqt{background:rgba(120,190,230,.2);color:#cfeaff}
+.card .ucov .gcov-k{color:#1f2d3a}.card .ucov .gcov-h{color:#2a3a48}
+.card .usign{position:absolute;left:50%;top:0;z-index:8;width:132px;margin-left:-66px;padding-top:44px;transform-origin:50% 0;animation:uswing 1.5s cubic-bezier(.3,.7,.3,1) both;pointer-events:none;transition:opacity .4s}.card .usign.out{opacity:0}
+.card .usign::before,.card .usign::after{content:"";position:absolute;top:0;width:2px;height:52px;background:#3b2a1c}.card .usign::before{left:30px;transform:rotate(18deg);transform-origin:0 0}.card .usign::after{right:30px;transform:rotate(-18deg);transform-origin:100% 0}
+.card .usign b{display:block;padding:10px 0;border-radius:12px;text-align:center;font-family:var(--serif);font-size:30px;font-weight:400;color:#fff7e6;background:linear-gradient(160deg,#c2412d,#8f2418);box-shadow:0 10px 28px rgba(0,0,0,.45)}
+@keyframes uswing{0%{transform:translateY(-110%) rotate(-24deg)}35%{transform:translateY(0) rotate(14deg)}55%{transform:rotate(-8deg)}72%{transform:rotate(4deg)}86%{transform:rotate(-2deg)}100%{transform:rotate(0)}}
+.card .ufact small{color:#9fd6ff}
+@media (prefers-reduced-motion:reduce){.card .usign{animation:none}}
 .done.steer{gap:14px}.steerk{font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
 .steerc{width:min(70vw,250px);aspect-ratio:3/4;border-radius:26px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:10px;padding:20px;text-align:center;color:#fff;background:linear-gradient(150deg,#7a3df0,#ff4d7e 70%,#ffb547);box-shadow:0 0 70px -14px #ff4d7e;animation:steerdrop .55s cubic-bezier(.2,1.5,.4,1)}
 .steerc small{font-size:11.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;opacity:.92}.steerc b{font-family:var(--serif);font-weight:400;font-size:29px;line-height:1.08}.steerc span{font-size:13.5px;opacity:.95}
@@ -1468,7 +1477,7 @@ const MARK = `<svg class="mark" viewBox="0 0 48 48" aria-hidden="true"><defs><li
 const BRAND = 'Let’s <i>Together</i>';
 const ic = n => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[n] || ''}"/></svg>`;
 // Each category wears one of the five what's-happening colors.
-const CK = { all: 'match', movie: 'fri', dinner: 'sat', activity: 'ask', event: 'ask', trip: 'book', art: 'match' };
+const CK = { all: 'match', movie: 'fri', dinner: 'sat', activity: 'ask', event: 'ask', drinks: 'ask', trip: 'book', art: 'match' };
 const DIC = { movie: 'film', dinner: 'dine', activity: 'spark', event: 'ticket', mix: 'shuffle', trip: 'plane', art: 'frame' };
 const KINDS = { cook: ['Cook at home', '🍳'], restaurant: ['Restaurant', '🍷'], orderin: ['Order in', '🥡'] };
 const EVENT_EM = { 'Music': '🎶', 'Comedy': '🎤', 'Trivia': '🧠', 'Arts and Film': '🎞️', 'Sports and Games': '🏟️', 'Brunch': '🥞', 'Happy Hour': '🍻', 'Seasonal': '🍂', 'Special Event': '✨', 'Bar': '🍸', 'Museum': '🏛️', 'Gallery': '🖼️', 'Bookstore': '📚', 'Bowling': '🎳', 'Games & fun': '🕹️', 'Night out': '🌙', 'Shops': '🛍️' };
@@ -1481,7 +1490,7 @@ const SVC_DOT = { 'Netflix': '#e50914', 'Hulu': '#1ce783', 'Prime Video': '#00a8
 
 const ls = { get: k => { try { return localStorage.getItem('wl_' + k) } catch { return null } }, set: (k, v) => { try { localStorage.setItem('wl_' + k, v) } catch {} }, del: k => { try { localStorage.removeItem('wl_' + k) } catch {} } };
 const S = { code: ls.get('code'), me: ls.get('name'), state: null, pantry: [], tab: 'home', view: 'home', sess: null, deck: [], hist: [], matches: [], listTab: 'activity', chan: null };
-S.homeDeck = ls.get('deck') || 'all'; S.revEntry = true; try { S.doneHtml = JSON.parse(ls.get('donehtml') || '{}'); } catch { S.doneHtml = {}; } S.tripCity = ls.get('tripcity') || '';
+S.homeDeck = ({ event: 'drinks', art: 'all' })[ls.get('deck')] || ls.get('deck') || 'all'; S.revEntry = true; try { S.doneHtml = JSON.parse(ls.get('donehtml') || '{}'); } catch { S.doneHtml = {}; } S.tripCity = ls.get('tripcity') || '';
 const $app = document.getElementById('app'), $layer = document.getElementById('layer');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const rpc = async (fn, args) => { const { data, error } = await sb.rpc(fn, args); if (error) throw error; return data; };
@@ -1590,7 +1599,7 @@ const scratchDue = () => !!partner() && Date.now() - Number(ls.get('scratchAt') 
 const scratchTest = () => { const t = S.settings?.scratchtest; return t && t.m === S.me && t.card ? { ...t.card, test: true } : null; };
 const scratchShow = () => !!S.peek && (S.peek.test || S.peek.gemcard || scratchDue());
 const gemPeek = async () => { try { return await rpc('gem_peek', { p_code: S.code, p_member: S.me }); } catch { return null; } };
-async function gemOpen() { S.peek = await gemPeek(); if (S.peek) openScratch(); else toast('That gem is already scratched. It joins your Go out pile.', 3500); }
+async function gemOpen() { S.peek = await gemPeek(); if (S.peek) openScratch(); else toast('That gem is already scratched. It joins your Discover pile.', 3500); }
 async function scratchCheck() {   // look once per visit; the card is only held in memory until it is scratched
   const t = scratchTest(), was = JSON.stringify(S.peek ?? null);
   if (t) S.peek = t;
@@ -1603,8 +1612,8 @@ async function scratchCheck() {   // look once per visit; the card is only held 
 function scratchOffer() {
   S.peekShown = true;
   const el = document.createElement('div'); el.className = 'sco';
-  const G = !!S.peek?.gemcard;
-  el.innerHTML = `<div class="sco-card"><span class="sco-ic">${ic(G ? 'gem' : 'spark')}</span><small class="scr-k">${G ? 'Hidden gem' : S.peek?.test ? 'Test scratch card' : 'Scratch card'}</small><h2>${G ? 'A hidden gem turned up' : 'Something’s waiting for you'}</h2><p>${G ? 'A place near you that most people walk past. You both get the same one.' : `One thing ${esc(them())} is in on that the two of you have not matched on yet.`}</p><button class="btn" data-act="scratch">Scratch it</button><button class="btn ghost" data-act="scolater">Later</button></div>`;
+  const G = !!S.peek?.gemcard, U = !!S.peek?.data?.unique;
+  el.innerHTML = `<div class="sco-card"><span class="sco-ic">${ic(G ? 'gem' : 'spark')}</span><small class="scr-k">${U ? 'Unique spot' : G ? 'Hidden gem' : S.peek?.test ? 'Test scratch card' : 'Scratch card'}</small><h2>${U ? 'A one-of-a-kind spot turned up' : G ? 'A hidden gem turned up' : 'Something’s waiting for you'}</h2><p>${U ? 'An independent place near you, the kind you only find by wandering. You both get the same one.' : G ? 'A place near you that most people walk past. You both get the same one.' : `One thing ${esc(them())} is in on that the two of you have not matched on yet.`}</p><button class="btn" data-act="scratch">Scratch it</button><button class="btn ghost" data-act="scolater">Later</button></div>`;
   document.body.appendChild(el); if (S.tab === 'home') render();
 }
 async function openScratch() {
@@ -1613,7 +1622,7 @@ async function openScratch() {
   if (!c) { render(); return toast(`Nothing to reveal right now. A card appears once ${them()} likes something you have not said yes to.`, 4500); }
   document.querySelector('.scr')?.remove();
   const el = document.createElement('div'); el.className = 'scr';
-  el.innerHTML = `<small class="scr-k">${c.data?.locals ? 'Locals love it' : c.gemcard ? 'Hidden gem' : c.test ? 'Test scratch card' : 'Scratch card'}</small><h2>${c.data?.locals ? 'A local favourite near you' : c.gemcard ? 'A hidden gem near you' : `One thing ${esc(them())} is in on`}</h2>
+  el.innerHTML = `<small class="scr-k">${c.data?.locals ? 'Locals love it' : c.data?.unique ? 'Unique spot' : c.gemcard ? 'Hidden gem' : c.test ? 'Test scratch card' : 'Scratch card'}</small><h2>${c.data?.locals ? 'A local favourite near you' : c.data?.unique ? 'A one-of-a-kind spot near you' : c.gemcard ? 'A hidden gem near you' : `One thing ${esc(them())} is in on`}</h2>
     <div class="scr-card"><div class="scr-in">${c.image ? `<img src="${esc(c.image)}" alt="">` : emojiFor(c)}<span class="scr-t"><b>${esc(c.title)}</b><small>${esc(c.subtitle || '')}</small></span></div><canvas id="scv"></canvas></div>
     <p id="scp">Scratch the card with your finger to see it.</p>
     <button class="btn" data-act="scratchdone" id="scb" style="visibility:hidden">Got it</button>
@@ -1627,7 +1636,7 @@ async function openScratch() {
   let down = false, lx = 0, ly = 0, moves = 0, done = false;
   const pt = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; };
   const reveal = () => { if (done) return; done = true; cv.style.transition = 'opacity .5s'; cv.style.opacity = 0; setTimeout(() => cv.remove(), 520);
-    document.getElementById('scp').innerHTML = c.gemcard ? `${esc(c.data?.notes || '')} ${c.tripgem ? `Add it to your ${esc(c.tripgem)} trip from the trip board.` : c.awaygem ? `It joins your Go out pile for ${esc(c.awaygem)}.` : 'It joins your Go out pile next, so you can each say what you think.'}` : c.test ? `This one is a sample so you can see how it works. A real card shows something ${esc(them())} liked that you have not matched on.` : `${esc(them())} said <b>${VERD(c)[c.loved ? 2 : 1]}</b> to this one. It is not a match yet. It’s saved for when you plan a surprise.`;
+    document.getElementById('scp').innerHTML = c.gemcard ? `${esc(c.data?.notes || '')} ${c.tripgem ? `Add it to your ${esc(c.tripgem)} trip from the trip board.` : c.awaygem ? `It joins your Discover pile for ${esc(c.awaygem)}.` : 'It joins your Discover pile next, so you can each say what you think.'}` : c.test ? `This one is a sample so you can see how it works. A real card shows something ${esc(them())} liked that you have not matched on.` : `${esc(them())} said <b>${VERD(c)[c.loved ? 2 : 1]}</b> to this one. It is not a match yet. It’s saved for when you plan a surprise.`;
     document.getElementById('scb').style.visibility = ''; if (c.test) { if (S.settings) delete S.settings.scratchtest; rpc('set_settings', { p_code: S.code, p_settings: { scratchtest: null } }).catch(() => {}); } else if (c.gemcard) { ls.set('gemday', new Date().toDateString()); rpc('gem_reveal', { p_code: S.code, p_member: S.me, p_card: c.id }).catch(() => {}); } else { ls.set('scratchAt', String(Date.now())); newGap(); if (c.id) rpc('reveal_note', { p_code: S.code, p_member: S.me, p_card: c.id }).catch(() => {}); } try { navigator.vibrate?.([20, 30, 40]); } catch {} };
   const check = () => { const d = g.getImageData(0, 0, W, H).data; let clear = 0, tot = 0; for (let i = 3; i < d.length; i += 4 * 37) { tot++; if (d[i] < 40) clear++; } if (clear / tot > .45) reveal(); };
   cv.addEventListener('pointerdown', e => { e.preventDefault(); down = true; [lx, ly] = pt(e); g.beginPath(); g.arc(lx, ly, g.lineWidth / 2, 0, 7); g.fill(); try { cv.setPointerCapture(e.pointerId); } catch {} });
@@ -1978,13 +1987,13 @@ function renderJoin() {
   }
   joinWho();
 }
-const heartTag = k => { const n = S.state?.counts?.hearts?.[k] || 0; return n ? `<i class="hc" aria-label="${n} matched">♥ ${n}</i>` : ''; };
+const heartTag = k => { const n = S.state?.counts?.hearts?.[k === 'drinks' ? 'event' : k] || 0; return n ? `<i class="hc" aria-label="${n} matched">♥ ${n}</i>` : ''; };
 function paintHearts() {   // header total plus the small per-category counts
   const c = S.state?.counts || {}, pill = document.querySelector('[data-act=shortlist]');
   if (pill) { pill.textContent = '♥ ' + (c.shortlist || 0); pill.classList.toggle('hot', !!c.shortlist); }
   document.querySelectorAll('[data-hdeck]').forEach(b => { b.querySelector('.hc')?.remove(); b.insertAdjacentHTML('beforeend', heartTag(b.dataset.hdeck)); });
 }
-const HDECKS = [['all', 'All'], ['movie', 'Movies'], ['dinner', 'Eat'], ['event', 'Go out'], ['trip', 'Trips'], ['art', 'Art']];
+const HDECKS = [['all', 'Discover'], ['movie', 'Watch'], ['dinner', 'Eat'], ['drinks', 'Drinks'], ['trip', 'Trips']];
 function homeHTML() {
   const st = S.state, p = partner(), incoming = (st.sessions || []).filter(s => s.from !== S.me && s.my_left > 0 && !(s.filters?.evshare && s.created_at && Date.now() - new Date(s.created_at) > 8 * 864e5)).sort((a, b) => (a.filters?.share || a.filters?.evshare ? 1 : 0) - (b.filters?.share || b.filters?.evshare ? 1 : 0));   // a nudge for right now takes the one slot ahead of a some-time-soon list
   if (!ls.get('allv1')) { ls.set('allv1', '1'); S.homeDeck = 'all'; ls.set('deck', 'all'); }   // the Everything deck is the new front door, once
@@ -1995,7 +2004,7 @@ function homeHTML() {
       <button class="ib shr ${ls.get('shared') ? 'shd' : ''}" data-act="sharefriends" aria-label="Share Let’s Together with friends">${ic('share')}</button>
       ${bellHTML()}<button class="ib" data-tab="you" aria-label="You and settings">${ic('gear')}</button></div>${slotHTML(incoming)}
     <div id="hbot" style="display:contents"><div class="seg" style="margin:12px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="kc k-${CK[k]} ${S.homeDeck === k ? 'on' : ''}">${l}${heartTag(k)}</button>`).join('')}</div>${scratchShow() && !S.awayOffer ? `<button class="scratch-pill" data-act="scratch">${ic('spark')}<span><b>A scratch card is waiting</b><small>One thing ${esc(p)} is in on</small></span><i>Scratch</i></button>` : ''}${S.awayOffer ? `<div class="trav"><span class="tic">${ic('pin')}</span><span class="grow"><b>Looks like you’re in ${esc(S.awayOffer.city)}</b><small>Show places to eat and things to do here?</small></span><button class="go" data-act="awayyes">Show</button><button class="x" data-act="awayno" aria-label="Not now">×</button></div>` : ''}${S.away && (S.homeDeck === 'dinner' || S.homeDeck === 'event') ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><small class="muted" style="font-size:12.5px">${ic('pin')} ${S.away.trip ? `Your ${esc(S.away.city)} trip` : `Showing ${esc(S.away.city)} on this phone`}</small><button class="chip" data-act="awayoff" style="padding:5px 12px;font-size:13px">Back to home</button></div>` : ''}${S.homeDeck === 'movie' ? `<div class="row" style="margin:14px 2px 0"><button class="chip" data-act="movielib" style="padding:5px 12px;font-size:13px">${ic('film')} Movie library</button></div>` : ''}${shareChip()}${S.homeDeck === 'art' ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="gallery" style="padding:5px 12px;font-size:13px">${ic('frame')} Our gallery</button><small class="muted" style="font-size:12.5px">No nudges, just likes</small></div>` : ''}${S.homeDeck === 'trip' ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="trips" style="padding:5px 12px;font-size:13px">${ic('heart')} Saved trips</button><button class="chip ${S.tripCity ? 'on' : ''}" data-act="tripcity" style="padding:5px 12px;font-size:13px">${esc(S.tripCity || 'Anywhere')} ▾</button></div>` : ''}
-    <div class="stack" id="stack" style="margin:16px 0 16px">${S.doneHtml?.[S.homeDeck]?.day === new Date().toDateString() ? S.doneHtml[S.homeDeck].html : ''}</div>
+    <div class="stack" id="stack" style="margin:16px 0 16px">${S.doneHtml?.[S.homeDeck]?.day === new Date().toDateString() ? (setTimeout(() => libGrid(S.homeDeck), 0), S.doneHtml[S.homeDeck].html) : ''}</div>
     <div class="actions" id="acts" style="visibility:hidden"><button class="act sm" data-sw="undo" aria-label="Undo">${ic('undo')}</button><button class="act no" data-sw="no" aria-label="No">${ic('x')}</button>
       <button class="act sm" data-sw="seen" id="seenb" aria-label="Never again" style="display:none">${ic('never')}</button>
       <button class="act love" data-sw="love" aria-label="Love it">${ic('star')}</button><button class="act yes" data-sw="yes" aria-label="Yes">${ic('heart')}</button></div>
@@ -2021,7 +2030,7 @@ async function deckStart(deck, extra, away) {
   return deck === 'all' ? rpc('start_all', { p_code: S.code, p_member: S.me })
     : deck === 'art' ? rpc('start_art', { p_code: S.code, p_member: S.me, p_extra: extra })
     : deck === 'trip' ? rpc('start_trips', { p_code: S.code, p_member: S.me, p_city: S.tripCity || '', p_extra: extra })
-    : away ? rpc('start_bite_at', { p_code: S.code, p_member: S.me, p_deck: deck, p_extra: extra, p_away: away })
+    : away ? rpc('start_bite_at', { p_code: S.code, p_member: S.me, p_deck: deck === 'drinks' ? 'event' : deck, p_extra: extra, p_away: away })
     : rpc('start_bite', { p_code: S.code, p_member: S.me, p_deck: deck, p_extra: extra });
 }
 // Once the first category is on screen, quietly fetch the others so the first visit to each is instant too.
@@ -2061,7 +2070,7 @@ async function lateFill(deck, sid, look, bg, res) {
 async function loadBite() {
   // Only the newest request draws: an older answer arriving late can never overwrite a newer one.
   const seq = S.biteSeq = (S.biteSeq || 0) + 1;
-  const deck = S.homeDeck, extra = !!S.unlock || revArmed().includes(deck); S.unlock = false;
+  const deck = S.homeDeck, extra = !!S.unlock || revArmed().includes(deck), dk = deck === 'drinks' ? 'event' : deck; S.unlock = false;
   const here = () => S.view === 'home' && S.tab === 'home' && S.homeDeck === deck && S.biteSeq === seq && document.getElementById('stack');
   // No movies until the streaming services are chosen: a handful dealt before that ignores them.
   if (deck === 'movie' && !S.settings?.services?.length && !S.settings?.setup && !ls.get('setupskip')) {
@@ -2070,19 +2079,19 @@ async function loadBite() {
   }
   let pre = null;
   try {
-    const away = S.away && (deck === 'dinner' || deck === 'event') ? S.away.city : '';
+    const away = S.away && (dk === 'dinner' || dk === 'event') ? S.away.city : '';
     { const dc = BETA && !away && !extra && S.dc?.[deck];
       if (dc && dc.day === new Date().toDateString() && Date.now() - dc.at < 600000 && document.getElementById('stack')) {
         Object.assign(S, dc.s); S.deck = dc.s.deck.slice(); S.hist = []; S.dcDeck = deck; S.dcSess = S.sess.id; pre = deckKey(); drawStack(); } }
     // Eat and Go out: with a good stock of saved places the cards are dealt at once and the Google lookup runs
     // behind them; with little or nothing saved (first open, running low) the lookup comes first, as before.
-    const look = !away && (deck === 'dinner' || deck === 'event') ? (ms => deck === 'dinner' ? nearby(ms) : outings(ms)) : null;
-    const quick = look && stocked(deck); let bg = null, res = null;
+    const look = !away && (dk === 'dinner' || dk === 'event') ? (ms => dk === 'dinner' ? nearby(ms) : outings(ms)) : null;
+    const quick = look && stocked(dk); let bg = null, res = null;
     if (deck === 'dinner' && !look) await nearby(6000);
     else if (quick) bg = look(12000);
     const og = look && !quick ? look(6000).then(x => (res = x)) : null;
-    if (deck === 'event' && away) await Promise.race([sb.functions.invoke('trips', { body: { action: 'local', code: S.code, city: away } }).catch(() => {}), new Promise(r => setTimeout(r, 7000))]);
-    else if (deck === 'event' && S.settings.zip && ls.get('lexp') !== new Date().toDateString()) { ls.set('lexp', new Date().toDateString()); const lx = Promise.race([sb.functions.invoke('trips', { body: { action: 'local', code: S.code } }).catch(() => {}), new Promise(r => setTimeout(r, 5000))]); if (quick) bg = Promise.all([bg, lx]).then(a => a[0]); else await lx; }
+    if (dk === 'event' && away) await Promise.race([sb.functions.invoke('trips', { body: { action: 'local', code: S.code, city: away } }).catch(() => {}), new Promise(r => setTimeout(r, 7000))]);
+    else if (dk === 'event' && S.settings.zip && ls.get('lexp') !== new Date().toDateString()) { ls.set('lexp', new Date().toDateString()); const lx = Promise.race([sb.functions.invoke('trips', { body: { action: 'local', code: S.code } }).catch(() => {}), new Promise(r => setTimeout(r, 5000))]); if (quick) bg = Promise.all([bg, lx]).then(a => a[0]); else await lx; }
     if (og) await og;
     const r = await deckStart(deck, extra, away);
     if (!here()) return;
@@ -2090,8 +2099,8 @@ async function loadBite() {
     S.dcDeck = deck; S.dcSess = S.sess.id;
     if (pre !== deckKey()) drawStack();
     if (BETA && !S.warmed) { S.warmed = true; setTimeout(deckWarm, 1200); }
-    if (look) lateFill(deck, r.id, look, bg, res);
-    eatWhy(r.id);
+    if (look) lateFill(dk, r.id, look, bg, res);
+    eatWhy(r.id); if (deck === 'all') discWhy(r.id);
     if (deck === 'dinner' && !away) { if (!eatAsked() && S.deck.length && !$layer.innerHTML && !document.querySelector('.wn,.match')) setTimeout(() => { if (S.tab === 'home' && S.sess?.id === r.id && !$layer.innerHTML) eatSheet(); }, 700); }
   } catch (e) { const st = document.getElementById('stack'); if (st && here()) st.innerHTML = '<div class="done"><p class="muted">Could not load today’s cards. Reopen the app to try again.</p></div>'; }
 }
@@ -2123,7 +2132,8 @@ function steerDraw(ans) { const c = S.steer, st = document.getElementById('stack
   setDone(st, `<div class="done steer">${h}</div>`); try { navigator.vibrate?.([20, 40, 20]); } catch {} }
 // One quiet line above the top card saying why it is there (a steering thread, or the reasons behind a place pick).
 function deckWhy() { const st = document.getElementById('stack'); if (!st) return; let el = document.getElementById('whyl'); const c = S.deck[0], t = c && S.bite && !biteGoal() ? (S.why || {})[c.id] : '';
-  if (!t) return void el?.remove(); if (!el) { el = document.createElement('div'); el.id = 'whyl'; el.className = 'whyl'; st.parentNode.insertBefore(el, st); } el.textContent = t; }
+  if (!t) return void el?.remove(); if (!el) { el = document.createElement('div'); el.id = 'whyl'; el.className = 'whyl'; st.parentNode.insertBefore(el, st); } el.textContent = t;
+  const near = c.data?.lat != null && /walk|close|near|block/i.test(t); el.dataset.act = near ? 'closeby' : ''; el.dataset.id = near ? c.id : ''; el.classList.toggle('tap', near); }
 // Why each card is in front of you: your own likes, the calendar, or what it's near. A steering thread's reason is kept.
 async function eatWhy(sid) { try { const w = await rpc('card_whys', { p_code: S.code, p_member: S.me, p_session: sid }); if (w && S.sess?.id === sid) { S.why = { ...w, ...(S.why || {}) }; deckWhy(); } } catch {} }
 // Places are scarce, so they come as a few considered picks a day. Three quick answers make the picks better.
@@ -2140,8 +2150,44 @@ function biteDoneHTML() {
   const names = { movie: 'movies', dinner: 'places to eat', event: 'things to do', trip: 'trip ideas', art: 'artworks' }, extra = !!S.sess?.filters?.extra, none = !S.total, p = partner();
   return `<div class="done"><div class="badge">${ic(DIC[S.sess.deck] || 'film')}</div><h3>${none ? 'Nothing new here today' : S.sess.deck === 'dinner' ? 'Those are today’s three picks' : `That is today’s handful of ${names[S.sess.deck] || 'cards'}`}</h3>
     <p class="muted">${none ? (S.sess.deck === 'dinner' ? 'Add your ZIP code in settings to load restaurants near you, or add your own there too.' : 'Check back tomorrow, or add your own in settings.') : 'A fresh handful arrives tomorrow.'}${!extra && p && !none ? ' Play a quick guessing round to unlock a few more now.' : ''}</p>
-    ${p ? `<button class="btn ghost" data-act="guess">How well do you know ${esc(p)}?</button>` : ''}<button class="btn shareapp" data-act="shareapp">${ic('share')} Share the app with friends</button>${S.hist.length ? '<button class="btn ghost" data-sw="undo">Undo last swipe</button>' : ''}</div>`;
+    ${p ? `<button class="btn ghost" data-act="guess">How well do you know ${esc(p)}?</button>` : ''}<button class="btn shareapp" data-act="shareapp">${ic('share')} Share the app with friends</button>${S.hist.length ? '<button class="btn ghost" data-sw="undo">Undo last swipe</button>' : ''}<div id="libgrid" class="lgrid"></div></div>`;
 }
+// ---------- Discover: reasons, the likes grid, Close by, the unique-spot cover ----------
+async function discWhy(sid) { try { const w = await rpc('disc_why', { p_code: S.code, p_member: S.me, p_session: sid }); if (w && S.sess?.id === sid) { S.why = { ...(S.why || {}), ...w }; deckWhy(); } } catch {} }
+// Under an empty pile: what you've liked there, the ones you both like first. Tap one to plan it, send it or see what's close by.
+async function libGrid(deck) { const el = document.getElementById('libgrid'); if (!el || el.dataset.deck === deck) return; el.dataset.deck = deck; let L = [];
+  try { L = await rpc('lib_grid', { p_code: S.code, p_member: S.me, p_deck: deck }) || []; } catch {} if (!L.length || S.homeDeck !== deck) return;
+  S.listCards = [...L, ...(S.listCards || []).filter(x => !L.some(y => y.id === x.id))];
+  const both = L.filter(c => c.who === 'both'), mine = L.filter(c => c.who !== 'both');
+  const tile = c => `<button class="lgt" data-detail="${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy">` : `<span class="pimg">${emojiFor(c)}</span>`}<b>${esc(c.title)}</b></button>`;
+  el.innerHTML = `${both.length ? `<div class="sect">${partner() ? 'You both like' : 'Your favorites'}</div><div class="lgw">${both.slice(0, 12).map(tile).join('')}</div>` : ''}${mine.length ? `<div class="sect">You liked</div><div class="lgw">${mine.slice(0, 18).map(tile).join('')}</div>` : ''}<p class="muted" style="font-size:12.5px;text-align:center;margin-top:8px">Tap one to plan it${partner() ? ', send it to ' + esc(them()) : ''} or see what else is close by.</p>`; }
+// Close by: your likes (and the ones you both like) a short walk from a place, sometimes a hidden gem there too.
+async function closeBy(id) { const from = (S.listCards || []).find(x => x.id === id) || S.deck?.find(x => x.id === id) || S.detailCard; step('closeby_open');
+  sheet(`<div class="grab"></div><div class="body"><h2>Close by</h2><p class="muted">Looking around ${esc(from?.title || 'there')}…</p></div>`, 'closeby');
+  let r = null; try { r = await rpc('close_by', { p_code: S.code, p_member: S.me, p_card: id }); } catch {}
+  const L = r?.list || []; S.cb = { from, list: L, pick: null };
+  sheet(cbHTML(), 'closeby'); }
+function cbHTML() { const { from, list, pick } = S.cb || {}; const lab = w => w === 'both' ? 'You both like' : w === 'mine' ? 'You liked' : 'A hidden gem';
+  return `<div class="grab"></div><div class="body"><h2>Close by</h2><p class="muted" style="margin-top:4px">${list?.length ? `A short walk from ${esc(from?.title || 'here')}. Pick one to plan the two together.` : `Nothing you’ve liked is a short walk from ${esc(from?.title || 'here')} yet.`}</p>
+    ${(list || []).map(x => `<button class="pollo ${pick === x.id ? 'on' : ''}" data-act="cbpick" data-id="${x.id}"><span>${esc(x.title)}<small>${x.walk} min walk · ${lab(x.why)}</small></span></button>`).join('')}
+    ${pick ? `<div style="height:10px"></div><button class="btn" data-act="cbplan">Plan these two</button>` : ''}<button class="jlink" data-act="closesheet">Done</button></div>`; }
+function cbPlan() { const { from, list, pick } = S.cb || {}, b = (list || []).find(x => x.id === pick); if (!from || !b) return; closeSheet(); S.pair = { a: from, b, kind: b.why }; step('closeby_plan'); pairPlan(); }
+// A unique spot arrives behind a frosted shop window: wipe it clean and an Open sign swings in.
+function uniqueCover(el, c) { if (!el || el.querySelector('.gcov')) return; const w = document.createElement('div'); w.className = 'gcov ucov'; w.innerHTML = '<canvas></canvas><span class="gcov-k">Unique spot</span><span class="gcov-h">Wipe the window to look inside</span>'; el.appendChild(w);
+  const cv = w.querySelector('canvas'), box = el.getBoundingClientRect(), W = cv.width = Math.round(box.width), H = cv.height = Math.round(box.height), g = cv.getContext('2d');
+  const gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, 'rgba(214,226,236,.93)'); gr.addColorStop(.55, 'rgba(186,204,220,.94)'); gr.addColorStop(1, 'rgba(150,172,192,.95)'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+  for (let i = 0; i < 900; i++) { const x = (i * 131 % W), y = (i * 197 % H); g.fillStyle = i % 3 ? 'rgba(255,255,255,.16)' : 'rgba(120,140,160,.12)'; g.fillRect(x, y, 1 + (i % 2), 1 + (i % 2)); }
+  for (let i = 0; i < 9; i++) { const x = 18 + (i * 37 % (W - 36)), y0 = (i * 53) % (H / 3); const dg = g.createLinearGradient(0, y0, 0, y0 + H / 2); dg.addColorStop(0, 'rgba(255,255,255,0)'); dg.addColorStop(1, 'rgba(255,255,255,.14)'); g.fillStyle = dg; g.fillRect(x, y0, 3, H / 2); }
+  g.globalCompositeOperation = 'destination-out'; g.lineCap = 'round'; g.lineJoin = 'round'; g.lineWidth = Math.max(60, W / 4);
+  let down = false, lx = 0, ly = 0, moves = 0, done = false; const pt = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; };
+  const reveal = () => { if (done) return; done = true; const a = gemSeen(); a.push(c.id); ls.set('gemsc', JSON.stringify(a.slice(-80))); step('unique_wipe'); w.classList.add('off'); setTimeout(() => w.remove(), 560);
+    const sg = document.createElement('div'); sg.className = 'usign'; sg.innerHTML = '<b>Open</b>'; el.appendChild(sg); setTimeout(() => sg.classList.add('out'), 1700); setTimeout(() => sg.remove(), 2200);
+    try { navigator.vibrate?.([12, 70, 12]); } catch {}
+    setTimeout(() => { if (!el.isConnected) return; const n = document.createElement('div'); n.className = 'gfact ufact'; n.innerHTML = `<small>${esc(c.kind || 'Unique spot')}</small><b>${esc(c.data?.notes || 'One of a kind, and close by.')}</b><span>${partner() ? esc(them()) + ' gets this one too.' : 'The kind of place you only find by wandering.'}</span>`; el.appendChild(n); setTimeout(() => n.classList.add('out'), 3400); setTimeout(() => n.remove(), 4000); n.addEventListener('pointerdown', e => { e.stopPropagation(); n.remove(); }); }, 1500); };
+  const check = () => { const d = g.getImageData(0, 0, W, H).data; let clear = 0, tot = 0; for (let i = 3; i < d.length; i += 4 * 41) { tot++; if (d[i] < 40) clear++; } if (clear / tot > .4) reveal(); };
+  w.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); if (done) return; down = true; [lx, ly] = pt(e); g.beginPath(); g.arc(lx, ly, g.lineWidth / 2, 0, 7); g.fill(); w.classList.add('go'); try { w.setPointerCapture(e.pointerId); } catch {} });
+  w.addEventListener('pointermove', e => { if (!down || done) return; e.preventDefault(); const [x, y] = pt(e); g.beginPath(); g.moveTo(lx, ly); g.lineTo(x, y); g.stroke(); lx = x; ly = y; if (++moves % 5 === 0) check(); });
+  const up = e => { e.stopPropagation(); if (down) { down = false; if (!done) check(); } }; w.addEventListener('pointerup', up); w.addEventListener('pointercancel', up); }
 // Invite another couple: the link opens the app itself, where they start a couple and add it to their Home Screen.
 async function shareApp() {
   const n = String(S.me || '').trim().split(/\s+/)[0] || '', url = 'https://letstogether.app/';
@@ -2845,7 +2891,7 @@ async function dayStart() {
     <div class="stiles" style="margin-top:14px"><button class="stile kc k-sat" data-pl="new|out"><span class="tic">${ic('sun')}</span><span><b>A whole day</b><small>Daytime, dinner, something after</small></span></button>
       <button class="stile kc k-fri" data-pl="new|in"><span class="tic">${ic('moon')}</span><span><b>Night in</b><small>A movie, and dinner to order or cook</small></span></button></div>
     ${S.listCards.length ? `<div class="sect" style="margin-top:20px">Or plan around one thing</div><p class="muted" style="font-size:13px;margin-top:-2px">Swipe through what you and ${esc(them())} like. Tap one to build a day around it.</p>
-      <div class="trow parow">${anch.map(c => tile(c, true)).join('')}${mine.map(c => tile(c, false)).join('')}</div>` : `<p class="muted" style="margin-top:18px;font-size:13.5px">Nothing liked in Eat or Go out yet. You can still start a plan and find places together as you go.</p>`}
+      <div class="trow parow">${anch.map(c => tile(c, true)).join('')}${mine.map(c => tile(c, false)).join('')}</div>` : `<p class="muted" style="margin-top:18px;font-size:13.5px">Nothing liked in Eat, Drinks or Discover yet. You can still start a plan and find places together as you go.</p>`}
   </div>`);
 }
 // From the weekly "a night you've both said yes to" message: open a plan with the place and the movie or event already in it.
@@ -2964,7 +3010,7 @@ function dayEdit() {
     const tm = fixedT ? `<b class="ptm">${pT(it.time)}</b>` : `<input class="ptm" type="time" step="900" value="${esc(it.time)}" data-pltime="${s}" aria-label="${lab} time">`;
     if (!c) return `<div class="prow pe"><span class="pimg">+</span><span class="grow"><small>${tm} · ${lab}</small><b>${it.find ? 'Finding this one together' : pCands(s).length ? 'Open spot' : 'Nothing you both like fits here'}</b><small>${it.find ? `You will both swipe 8 picks after you send. The first one you both like goes here.` : 'Find one together, or leave it out.'}</small></span>${!it.find ? `<button class="pill" data-pl="swap|${s}">Pick</button>` : ''}<button class="pill ${it.find ? '' : 'hot'}" data-pl="find|${s}">${it.find ? 'Undo' : 'Find together'}</button></div>`;
     const o = isDated(c) ? true : openAt(c, pl.day, it.time, PSTAY[s] || 60), mi = ref && ref.id !== c.id && c.id !== pl.anchor?.id ? pMi(ref, c) : null, cl = !isDated(c) && o ? closesAt(c, pl.day, it.time) : null;
-    const note = [o === false ? '<span class="pwarn">Closed then, or closes too soon</span>' : cl ? 'open until ' + cl : isDated(c) && !evStart(c) ? 'pick a start time when you book' : '', mi != null ? `${mi} mi from ${esc((n => n.length > 20 ? n.slice(0, 19).trim() + '…' : n)(ref.title.split(/[,(]/)[0].trim()))}` : '', pl.mode === 'in' && s === 'dinner' ? (c.kind === 'cook' ? 'cook at home' : 'order in') : ''].filter(Boolean).join(' · ');
+    const note = [o === false ? '<span class="pwarn">Closed then, or closes too soon</span>' : cl ? 'open until ' + cl : isDated(c) && !evStart(c) ? 'pick a start time when you book' : '', mi != null ? `${mi} mi from ${esc((n => n.length > 20 ? n.slice(0, 19).trim() + '…' : n)(ref.title.split(/[,(]/)[0].trim()))}` : '', pl.mode === 'in' && s === 'dinner' ? (c.kind === 'cook' ? 'cook at home' : 'order in') : '', c.data?.type === 'series' ? 'start it: an episode or two' : ''].filter(Boolean).join(' · ');
     const more = pCands(s).filter(x => x.id !== c.id).length;
     if (pHid(c)) return `<div class="prow"><span class="pimg">${ic('gem')}</span><span class="grow"><small>${tm} · ${lab}</small><b>${esc(c.title)}</b><small>It stays where it is. You’ll see it an hour before.</small></span></div>`;
     const sp = partner() && !s.startsWith('quest') ? `<button class="pkeep ${it.hidden ? 'on' : ''}" data-pl="hide|${s}" aria-pressed="${!!it.hidden}">${it.hidden ? 'Kept secret · show it' : 'Keep it a surprise'}</button>` : '';
@@ -3925,7 +3971,7 @@ const libBase = () => (S.lib || []).filter(c => S.libMode === 'movie' ? c.deck =
 const libItems = () => S.libMode === 'movie' && S.libF === 'seen' ? (S.libSeen || []) : libBase().filter(c => (S.libMode === 'movie' || !S.libC || c.deck === S.libC) && (S.libF === 'all' || c.who === S.libF));
 const milesTag = d => d.miles == null ? '' : `<span class="tag">${d.away ? d.miles + ' mi' : d.miles > 3 ? (d.miles >= 10 ? Math.round(d.miles) : d.miles) + ' mi from home' : 'Local'}</span>`;
 const FEEL = { love: 'Loved it', ok: 'It was fine', no: 'Not for me' };
-const LIBC = [['movie', 'Movies'], ['dinner', 'Eat'], ['event', 'Go out'], ['trip', 'Trips'], ['art', 'Art']];
+const LIBC = [['movie', 'Watch'], ['dinner', 'Eat'], ['event', 'Places'], ['trip', 'Trips'], ['art', 'Art']];
 function renderLibrary() {
   const all = S.lib || [], base = libBase(), items = libItems(), p = partner(), trips = false, mv = S.libMode === 'movie', nb = base.filter(c => c.who === 'both').length, sel = S.libSel, play = mv || ['movie', 'dinner', 'event'].includes(S.libC), mdeck = mv ? 'movie' : play ? S.libC : ''; S.listCards = all;
   const seenF = mv && S.libF === 'seen', chips = mv ? [['both', 'Both of us'], ['me', 'Mine'], ['seen', 'Watched']] : [['both', 'Both of us'], ['me', 'Mine'], ['all', 'Everything']];
@@ -4959,12 +5005,12 @@ const VERD = c => c?.deck === 'art' ? ['Not for me', 'I like it', 'Love it'] : [
 const DWN = c => !c ? null : c.deck === 'movie' ? (S.rewatch ? null : 'Never again') : c.deck === 'dinner' ? (c.kind === 'cook' ? null : 'Never again') : c.deck === 'event' ? (c.data?.place ? 'Never again' : 'Can’t make it') : c.deck === 'trip' ? 'Never again' : c.deck === 'art' ? 'Seen in person' : null;
 function cardHTML(c, cls = '') {
   const tags = [];
-  if (c.deck === 'movie') { (c.data.services || []).slice(0, 2).forEach(s => tags.push(svcTag(s))); (c.data.genres || []).slice(0, 2).forEach(g => tags.push(`<span class="tag">${esc(g)}</span>`)); if (c.data.user_rating) tags.push(`<span class="tag">★ ${c.data.user_rating}</span>`); }
+  if (c.deck === 'movie') { if (c.data.type === 'series') tags.push('<span class="tag">Series</span>'); (c.data.services || []).slice(0, 2).forEach(s => tags.push(svcTag(s))); (c.data.genres || []).slice(0, 2).forEach(g => tags.push(`<span class="tag">${esc(g)}</span>`)); if (c.data.user_rating) tags.push(`<span class="tag">★ ${c.data.user_rating}</span>`); }
   if (c.deck === 'dinner') { tags.push(`<span class="tag">${KINDS[c.kind]?.[0] || 'Dinner'}</span>`); if (c.data.rating) tags.push(`<span class="tag">★ ${c.data.rating}</span>`); if (c.data.price) tags.push(`<span class="tag">${esc(c.data.price)}</span>`); if (c.data.delivery) tags.push('<span class="tag">Delivers</span>'); if (c.data.miles != null) tags.push(`<span class="tag">${c.data.away ? c.data.miles + ' mi' : c.data.miles > 3 ? (c.data.miles >= 10 ? Math.round(c.data.miles) : c.data.miles) + ' mi from home' : 'Local'}</span>`); const oh = onHand(c); if (oh) tags.push(`<span class="tag">${oh.have === oh.total ? 'You have everything' : `${oh.have} of ${oh.total} on hand`}</span>`); }
   if (c.deck === 'art' && c.data.gem) { if (c.data.city) tags.push(`<span class="tag">${esc(c.data.city)}</span>`); }
   else if (c.deck === 'art') { if (c.kind) tags.push(`<span class="tag">${esc(c.kind)}</span>`); if (c.data.on_view) tags.push('<span class="tag">On view now</span>'); }
   if (c.deck === 'trip') { if (c.kind) tags.push(`<span class="tag">${esc(c.kind)}</span>`); if (c.data.rating) tags.push(`<span class="tag">★ ${c.data.rating}</span>`); if (c.data.minutes) tags.push(`<span class="tag">${fmtMins(c.data.minutes)}</span>`); if (c.data.price) tags.push(`<span class="tag">from $${c.data.price}</span>`); if (c.data.locals) tags.push('<span class="tag loc">Locals love it</span>'); else if (c.data.place && !c.data.gem) tags.push('<span class="tag">Sight to see</span>'); }
-  if (c.deck === 'event' && c.data.place) { if (c.kind && !c.data.gem) tags.push(`<span class="tag">${esc(c.kind)}</span>`); if (c.data.rating) tags.push(`<span class="tag">★ ${c.data.rating}</span>`); tags.push(milesTag(c.data)); }
+  if (c.deck === 'event' && c.data.place) { if (c.data.unique) tags.push('<span class="tag uqt">Unique spot</span>'); if (c.kind && !c.data.gem && !c.data.unique) tags.push(`<span class="tag">${esc(c.kind)}</span>`); if (c.data.rating) tags.push(`<span class="tag">★ ${c.data.rating}</span>`); tags.push(milesTag(c.data)); }
   else if (c.deck === 'event') { tags.push(`<span class="tag">${c.data.flex ? 'This week' : fmtDate(c.event_date)}</span>`); if (c.kind) tags.push(`<span class="tag">${esc(c.kind)}</span>`); if (c.data.area) tags.push(`<span class="tag">${esc(c.data.area)}</span>`); }
   if (c.deck === 'activity' && c.data.chain) tags.push(`<span class="tag">Then pick ${c.data.chain.deck === 'movie' ? 'a movie' : c.data.chain.deck === 'event' ? 'an event' : 'the food'}</span>`);
   const art = c.image ? `<img class="bg" src="${esc(c.image)}" alt="" draggable="false" onerror="this.remove()">` : '';
@@ -4988,6 +5034,7 @@ function renderSwipe() {
 // the same screen is already showing (so switching to a finished category doesn't flash).
 function setDone(st, html) {
   const cur = st.querySelector(':scope > .done'); if (cur && cur.outerHTML === html) return;
+  setTimeout(() => { if (st.querySelector('#libgrid')) libGrid(S.homeDeck); }, 0);
   [...st.children].forEach(c => { if (!c.classList.contains('dbg')) c.remove(); });
   st.insertAdjacentHTML('beforeend', html);
 }
@@ -5057,7 +5104,7 @@ function surpBuild() {
     const row = c => { const tag = bookTag(c), ev = c.deck === 'event';
       return `<button class="sopt ${b.card?.id === c.id ? 'on' : ''}" data-sp="pick|${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="">` : `<span class="pimg">${emojiFor(c)}</span>`}<span class="grow"><b>${esc(c.title)}</b><small>${esc(ev ? [fmtDate(c.event_date), c.data?.time, c.data?.venue || c.data?.area].filter(Boolean).join(' · ') : [(c.subtitle || '').split(' · ')[0], c.data?.price, c.data?.miles != null ? c.data.miles + ' mi' : ''].filter(Boolean).join(' · '))}</small>
         <span class="stags">${c.liked ? `<i class="her">${esc(p)} liked this</i>` : ev ? '' : `<i>New to ${esc(p)}</i>`}${tag ? `<i class="${c.data?.book?.url ? 'bk' : ''}">${esc(tag)}</i>` : ''}</span></span></button>`; };
-    return sheet(surpHead(k[1], 2) + `<p class="muted" style="margin-top:6px;font-size:14px">${!o ? 'Finding a few…' : !o.length ? (b.kind === 'event' ? 'Like an upcoming event in Go out first, then it shows up here.' : b.kind === 'cook' ? 'Add a dinner you cook to your lists first, then it shows up here.' : 'Nothing to offer yet. Swipe a few more in Eat and come back.') : b.kind === 'event' ? 'Events you’ve liked that are still to come.' : `A few ${esc(p)} should like.`}</p>
+    return sheet(surpHead(k[1], 2) + `<p class="muted" style="margin-top:6px;font-size:14px">${!o ? 'Finding a few…' : !o.length ? (b.kind === 'event' ? 'Like an upcoming event in Discover first, then it shows up here.' : b.kind === 'cook' ? 'Add a dinner you cook to your lists first, then it shows up here.' : 'Nothing to offer yet. Swipe a few more in Eat and come back.') : b.kind === 'event' ? 'Events you’ve liked that are still to come.' : `A few ${esc(p)} should like.`}</p>
       <div style="margin-top:12px">${(o || []).map(row).join('')}</div>
       <div class="row" style="gap:8px;margin-top:14px"><button class="btn ghost" style="flex:1" data-sp="step|1">Back</button><button class="btn" style="flex:2" data-sp="step|3" ${b.card ? '' : 'disabled'}>Next</button></div></div>`);
   }
@@ -5282,7 +5329,7 @@ function drawStack() {
   if (!S.deck.length) {
     if (S.bite) S.revEntry = false;
     acts.style.visibility = 'hidden';
-    if (S.bite) { const html = biteDoneHTML(); (S.doneHtml ||= {})[S.sess.deck] = { day: new Date().toDateString(), html }; try { ls.set('donehtml', JSON.stringify(S.doneHtml)); } catch {} setDone(st, html); return; }
+    if (S.bite) { const html = biteDoneHTML(); (S.doneHtml ||= {})[S.homeDeck] = { day: new Date().toDateString(), html }; try { ls.set('donehtml', JSON.stringify(S.doneHtml)); } catch {} setDone(st, html); return; }
     const waiting = !S.solo && S.theirLeft > 0;
     st.innerHTML = `<div class="done"><div class="badge">${ic(S.matches.length ? 'heart' : 'eye')}</div><h3>${S.matches.length > 1 ? `${S.matches.length} matches. Which one?` : S.matches.length ? 'You matched' : 'You are through the deck'}</h3>
       <p class="muted">${S.solo ? 'Your likes are saved. They count toward the next round, and you match the moment you both like the same one.' : waiting ? `${esc(them())} still has ${S.theirLeft} to swipe. You will both see matches as they land.` : 'You have both been through all of these.'}</p>
@@ -5309,6 +5356,7 @@ function drawStack() {
   cs[0].style.transform = ''; cs[0].classList.add('tl'); cs[0].insertAdjacentHTML('beforeend', GLS); tiltWatch(); btnSync();
   attachDrag(cs[0]);
   if (S.deck[0]?.data?.gem && !gemSeen().includes(S.deck[0].id)) gemCover(cs[0], S.deck[0]);
+  else if (S.deck[0]?.data?.unique && !gemSeen().includes(S.deck[0].id)) uniqueCover(cs[0], S.deck[0]);
   if (S.bite) revealCards(st);
 }
 // The first time each day a fresh handful shows in a category (opening the app or coming back to it), the cards fan
@@ -5483,7 +5531,7 @@ function keenNudge(c, w) {   // the same event liked three different weeks: tell
 const SHW = { event: ['things to do', 'something to do', 'Things to do you liked', 'ticket', 'Share picks'], dinner: ['places', 'a place', 'Places you liked', 'dine', 'Share places'] };
 const shN = (d, n) => n > 1 ? n + ' ' + SHW[d][0] : SHW[d][1];
 function shareChip() {
-  const d = S.homeDeck; if ((d !== 'event' && d !== 'dinner') || !partner()) return '';
+  const d = S.homeDeck === 'drinks' ? 'event' : S.homeDeck; if ((d !== 'event' && d !== 'dinner') || !partner()) return '';
   const x = S.share?.[d] || {}, inc = x.incoming || 0;
   return `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip ${inc ? 'on' : ''}" data-act="sharemenu" style="padding:5px 12px;font-size:13px">${ic('share')} ${SHW[d][4]}${x.likes ? ' · ' + x.likes : ''}</button>${inc ? `<small class="muted" style="font-size:12.5px">${inc} from ${esc(them())} to swipe</small>` : x.waiting ? `<small class="muted" style="font-size:12.5px">${x.waiting} waiting on ${esc(them())}</small>` : ''}</div>`;
 }
@@ -5688,7 +5736,7 @@ function showDetail(c, back = false) {
       : `${d.url ? `<div style="height:18px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.url)}" target="_blank" rel="noopener">View on Viator</a>` : ''}
       <p class="muted" style="font-size:11.5px;text-align:center">Experiences from Viator. Let’s Together may earn a commission if you book.</p>`}`;
   } else if (c.deck === 'event' && d.place) {
-    b = `<div class="tags">${c.kind ? `<span class="tag">${esc(c.kind)}</span>` : ''}${d.rating ? `<span class="tag">★ ${d.rating}${d.ratings ? ' (' + d.ratings + ')' : ''}</span>` : ''}${milesTag(d)}</div>
+    b = `<div class="tags">${d.unique ? '<span class="tag uqt">Unique spot</span>' : ''}${c.kind ? `<span class="tag">${esc(c.kind)}</span>` : ''}${d.unique && d.minutes ? `<span class="tag">About ${d.minutes} min</span>` : ''}${d.rating ? `<span class="tag">★ ${d.rating}${d.ratings ? ' (' + d.ratings + ')' : ''}</span>` : ''}${milesTag(d)}</div>
       ${d.address ? `<div class="kv">Where</div><p style="margin-top:0">${esc(d.address)}</p>` : ''}${d.notes ? `<p>${esc(d.notes)}</p>` : ''}${gemBlock(d)}
       ${d.url ? `<div style="height:18px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.url)}" target="_blank" rel="noopener">Visit website</a>` : ''}
       ${d.maps ? `<div style="height:10px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.maps)}" target="_blank" rel="noopener">Open in Google Maps</a>` : ''}${d.photo_credit ? `<p class="muted" style="font-size:11.5px;text-align:center">Photo: ${esc(d.photo_credit)} on Google</p>` : ''}`;
@@ -5697,6 +5745,7 @@ function showDetail(c, back = false) {
       ${d.time ? `<div class="kv">When</div><p style="margin-top:0">${esc(d.time)}</p>` : ''}${d.venue ? `<div class="kv">Where</div><p style="margin-top:0">${esc(d.venue)}${d.area ? ` (${esc(d.area)})` : ''}</p>` : ''}${d.notes ? `<p>${esc(d.notes)}</p>` : ''}
       ${d.url ? `<div style="height:18px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.url)}" target="_blank" rel="noopener">View event page</a>` : ''}`;
   } else b = c.data?.chain ? `<p>If you both say yes, you go straight into picking ${c.data.chain.deck === 'movie' ? 'a movie' : c.data.chain.deck === 'event' ? 'an event' : 'the food'}.</p>` : '';
+  if (c.id && d.lat != null && ((c.deck === 'event' && d.place) || (c.deck === 'dinner' && c.kind !== 'cook'))) b += `<div style="height:10px"></div><button class="btn ghost" data-act="closeby" data-id="${c.id}">What else you like close by</button>`;
   const img = d.backdrop || c.image;
   const bodyH = (hasImg) => `<div class="body"><h2>${hasImg ? '' : emojiFor(c) + ' '}${esc(c.title)}</h2>${c.subtitle ? `<p class="muted" style="margin-top:6px">${esc(c.subtitle)}</p>` : ''}${partner() && c.id && c.deck !== 'trip' && c.deck !== 'art' ? `<div style="height:12px"></div><button class="btn" data-act="sendrec">${ic('play')} Send to ${esc(them())} for ${whenWord(c)}</button>${c.deck === 'event' || (c.deck === 'dinner' && c.kind !== 'cook') ? `<div style="height:8px"></div><button class="btn ghost" data-pl="around|${c.id}">Plan a day around this</button><div style="height:8px"></div><button class="btn ghost ${isFav(c.id) ? 'on' : ''}" data-pl="fav|${c.id}">${isFav(c.id) ? '★ One of your favorites' : '☆ Make it a favorite'}</button>` : ''}` : ''}<div style="height:10px"></div>${b}</div>`;
   if (back) return bodyH(true);
@@ -5844,7 +5893,10 @@ document.addEventListener('click', async e => {
       case 'hsx': ls.set('hsnz', String(Date.now() + (S.installed ? 30 : 3) * 864e5)); return render();
       case 'hshow': if (bip) { const e = bip; bip = null; try { e.prompt(); await e.userChoice; } catch {} return render(); } return installSheet();
       case 'evask': return evSheet();
-      case 'sharemenu': return openShare(S.homeDeck);
+      case 'closeby': if (!ds.id) return; return closeBy(ds.id);
+      case 'cbpick': if (S.cb) { S.cb.pick = S.cb.pick === ds.id ? null : ds.id; sheet(cbHTML(), 'closeby'); } return;
+      case 'cbplan': return cbPlan();
+      case 'sharemenu': return openShare(S.homeDeck === 'drinks' ? 'event' : S.homeDeck);
       case 'shsend': t.disabled = true; await shareSend(); return S.view === 'home' && !$layer.innerHTML ? render() : null;
       case 'shremind': shareAgain(ds.d); closeSheet(); return S.view === 'home' ? render() : null;
       case 'shremx': ls.set('shrem_' + ds.d, new Date().toDateString()); return render();
