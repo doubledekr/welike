@@ -696,6 +696,13 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .inhead{display:flex;align-items:baseline;justify-content:space-between}
 .inclear{font-size:13px;font-weight:600;color:#ffb39c;padding:4px 2px}
 .swr.sw>.swa{opacity:1}
+.swr.pls{margin-bottom:0;border-radius:12px}.swr.pls>.swf{background:transparent}.swr.pls.sw>.swf{background:#211b25}.swr.pls>.swf>.prow{padding-left:2px;padding-right:2px}
+.sheet.still{animation:none}.swapin{animation:fade .16s ease-out}
+.plsent{display:flex;align-items:center;gap:12px;margin-top:12px;padding:12px 14px;border-radius:16px;background:rgba(80,220,150,.09);animation:plin .32s cubic-bezier(.2,.9,.3,1.2)}
+.plsent b{display:block;font-size:15px}.plsent small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px;line-height:1.4}
+.plck{flex:none;width:28px;height:28px;display:grid;place-items:center}.plck svg{width:26px;height:26px;fill:none;stroke:#5fe3a1;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:24;stroke-dashoffset:24;animation:plck .4s ease-out .1s forwards;filter:drop-shadow(0 0 6px rgba(95,227,161,.55))}
+@keyframes plck{to{stroke-dashoffset:0}} @keyframes plin{from{opacity:0;transform:translateY(-6px) scale(.98)}}
+.toast.tact{display:flex;align-items:center;gap:14px}.toast.tact button{font-weight:800;color:#d2385a;padding:2px 2px}
 .sheet p.inhint{font-size:12.5px;color:var(--muted);margin:4px 0 8px}.inrow.new b::after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff6a5e;margin-left:7px;vertical-align:middle}
 .inrow.p2{animation:rowp 2.4s ease-in-out infinite}.inrow.p3{animation:rowp 1.2s ease-in-out infinite}
 @keyframes rowp{0%,100%{box-shadow:0 0 0 0 rgba(255,90,110,0);background:rgba(255,110,100,.07)}50%{box-shadow:0 0 18px -2px rgba(255,90,110,.55);background:rgba(255,110,100,.15)}}
@@ -1463,7 +1470,8 @@ const fmtMins = m => m >= 1440 ? `${Math.round(m / 1440)} day${m >= 2880 ? 's' :
 const fmtDate = d => { if (!d) return ''; const x = new Date(d + 'T12:00:00'); const t = new Date(); t.setHours(12, 0, 0, 0); const diff = Math.round((x - t) / 864e5); return diff === 0 ? 'Today' : diff === 1 ? 'Tomorrow' : x.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); };
 
 let toastT;
-function toast(msg, ms = 2600) { clearTimeout(toastT); document.querySelector('.toast')?.remove(); const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); toastT = setTimeout(() => t.remove(), ms); }
+let toastFin = null;   // an Undo toast that another toast replaces still finishes (its change is saved)
+function toast(msg, ms = 2600) { if (!msg) return; toastFin?.(); clearTimeout(toastT); document.querySelector('.toast')?.remove(); const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); toastT = setTimeout(() => t.remove(), ms); }
 function errMsg(e) { const m = (e?.message || String(e)); if (m.includes('bad_code')) return 'That code does not match a couple. New here? Start a new couple instead.'; if (m.includes('couple_full')) return 'Two people have already joined with this code.'; if (m.includes('bad_name')) return 'Enter a name.'; return 'Something went wrong. Try again.'; }
 
 /* ---------- realtime + push ---------- */
@@ -1478,7 +1486,7 @@ function hereSync() { try { if (document.visibilityState === 'visible') S.chan?.
 document.addEventListener('visibilitychange', hereSync);
 const partnerHere = () => { try { const p = partner(), st = S.chan?.presenceState?.() || {}; return !!(p && st[p] && st[p].length); } catch { return false; } };
 // round: every message about one round shares a slot on the lock screen, so the newest replaces the last one.
-function push(title, body, url, o) { const round = o?.round || null; sb.functions.invoke('nudge', { body: { code: S.code, member: S.me, title, body, url, ...(round ? { round, quiet: partnerHere() } : {}) } }).catch(() => {}); }
+function push(title, body, url, o) { const round = o?.round || null; sb.functions.invoke('nudge', { body: { code: S.code, member: S.me, title, body, url, ...(round ? { round, quiet: partnerHere() } : {}), ...(o?.plan ? { plan: o.plan, need: o.need || null, hold: o.hold || 0 } : {}) } }).catch(() => {}); }
 const pickWord = (deck, f) => f?.rewatch ? 'a rewatch' : ({ movie: 'a movie', dinner: 'somewhere to eat', activity: 'something to do', event: 'an event', mix: 'something for tonight', trip: 'a trip', art: 'some art' })[deck] || 'something';
 // Clear delivered notifications for rounds that are already settled, so the lock screen never asks for something that is done.
 async function notifSweep() { try { const reg = await navigator.serviceWorker?.getRegistration(); const ns = (await reg?.getNotifications?.()) || []; if (!ns.length) return;
@@ -1491,7 +1499,7 @@ async function onEvent(p) {
   else if (p.type === 'swipe') { if (S.view === 'swipe' && S.sess?.id === p.session) { S.theirLeft = p.left; updateBar(); } }
   else if (p.type === 'narrow') { toast(`${p.from} picked what they are in the mood for. Open the round and tap Narrow it down to add yours.`, 6000); if (S.view === 'swipe' && S.sess?.id === p.session) { try { await loadSession(p.session); S.view = 'swipe'; drawStack(); } catch {} } }
   else if (p.type === 'shortlist') { await refresh(); paintHearts(); }
-  else if (p.type === 'dayplan') { await refresh(); toast(p.resp === 'yes' ? `${p.from} is in for ${pDayLow(p.day)}.` : p.resp === 'drop' ? `${p.from} passed on the plan for ${pDayLow(p.day)}.` : p.resp === 'pick' ? `${p.from} picked something for your plan.` : p.resp === 'busy' ? `${p.from} says you already have plans ${pDayLow(p.day)}.` : p.resp === 'book' ? `${p.from} booked something for ${pDayLow(p.day)}.` : p.resp ? '' : `${p.from} ${p.edit ? 'changed the plan for' : 'planned'} ${pDayLow(p.day)}. Take a look.`, 4500); if (S.view === 'home' && !document.querySelector('.scrim')) render(); else if (S.plView === p.id && document.querySelector('[data-pl^="resp"],[data-pl="edit"]')) daySheet(p.id); }
+  else if (p.type === 'dayplan') { await refresh(); if (!p.minor) toast(p.resp === 'yes' ? `${p.from} is in for ${pDayLow(p.day)}.` : p.resp === 'drop' ? `${p.from} passed on the plan for ${pDayLow(p.day)}.` : p.resp === 'pick' ? `${p.from} picked something for your plan.` : p.resp === 'busy' ? `${p.from} says you already have plans ${pDayLow(p.day)}.` : p.resp === 'book' ? `${p.from} booked something for ${pDayLow(p.day)}.` : p.resp ? '' : `${p.from} ${p.edit ? 'changed the plan for' : 'planned'} ${pDayLow(p.day)}. Take a look.`, 4500); if (S.view === 'home' && !document.querySelector('.scrim')) render(); else if (S.plView === p.id && document.querySelector('[data-pl^="resp"],[data-pl="edit"]')) daySheet(p.id); }
   else if (p.type === 'game') { if (p.lib || (S.view === 'swipe' && S.sess?.id === p.session)) { closeSheet(); document.querySelector('.lfront')?.remove(); if (p.lib) toast(`${p.from} picked a few. Quick game: the winner chooses tonight.`, 4500); S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: p.id }); S.view = 'game'; render(); } else if (S.view === 'home' && !$layer.innerHTML && !document.querySelector('.wn,.match')) sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('spark')}</span><h2>Your turn</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">${esc(p.from)} started a quick game for tonight’s pick. You each play on your own phone, and the winner chooses.</p></div></div><button class="btn" style="margin-top:16px" data-act="tbjoin" data-id="${esc(p.id)}">Play now</button><button class="jlink" data-act="closesheet">Later</button>`); else toast(`${p.from} started a game for tonight’s pick. It’s your turn.`, 5000); }
   else if (p.type === 'triv') {
     if (p.k === 'team') { if (document.querySelector('[data-act="teamlike"],#teamin')) teamSheet(); else if (S.view === 'trivia' && !S.tq) { await trivLoad(); render(); } return; }
@@ -2614,51 +2622,100 @@ function dayEdit() {
   const row = s => {
     const it = pl.items[s], c = it.card, lab = PSLOT[s][0], ref = pRef(s), fixedT = c && isDated(c) && evStart(c);
     const tm = fixedT ? `<b class="ptm">${pT(it.time)}</b>` : `<input class="ptm" type="time" step="900" value="${esc(it.time)}" data-pltime="${s}" aria-label="${lab} time">`;
-    if (!c) return `<div class="prow pe"><span class="pimg">+</span><span class="grow"><small>${tm} · ${lab}</small><b>${it.find ? 'Finding this one together' : pCands(s).length ? 'Open spot' : 'Nothing you both like fits here'}</b><small>${it.find ? `You will both swipe 8 picks after you send. The first one you both like goes here.` : 'Find one together, or leave it out.'}</small></span>${!it.find && pCands(s).length ? `<button class="pill" data-pl="swap|${s}">Pick</button>` : ''}<button class="pill ${it.find ? '' : 'hot'}" data-pl="find|${s}">${it.find ? 'Undo' : 'Find together'}</button><button class="x" data-pl="rm|${s}" aria-label="Leave out">×</button></div>`;
+    if (!c) return `<div class="prow pe"><span class="pimg">+</span><span class="grow"><small>${tm} · ${lab}</small><b>${it.find ? 'Finding this one together' : pCands(s).length ? 'Open spot' : 'Nothing you both like fits here'}</b><small>${it.find ? `You will both swipe 8 picks after you send. The first one you both like goes here.` : 'Find one together, or leave it out.'}</small></span>${!it.find && pCands(s).length ? `<button class="pill" data-pl="swap|${s}">Pick</button>` : ''}<button class="pill ${it.find ? '' : 'hot'}" data-pl="find|${s}">${it.find ? 'Undo' : 'Find together'}</button></div>`;
     const o = isDated(c) ? true : openAt(c, pl.day, it.time, PSTAY[s] || 60), mi = ref && ref.id !== c.id && c.id !== pl.anchor?.id ? pMi(ref, c) : null, cl = !isDated(c) && o ? closesAt(c, pl.day, it.time) : null;
     const note = [o === false ? '<span class="pwarn">Closed then, or closes too soon</span>' : cl ? 'open until ' + cl : isDated(c) && !evStart(c) ? 'pick a start time when you book' : '', mi != null ? `${mi} mi from ${esc((n => n.length > 20 ? n.slice(0, 19).trim() + '…' : n)(ref.title.split(/[,(]/)[0].trim()))}` : '', pl.mode === 'in' && s === 'dinner' ? (c.kind === 'cook' ? 'cook at home' : 'order in') : ''].filter(Boolean).join(' · ');
     const more = pCands(s).filter(x => x.id !== c.id).length;
-    return `<div class="prow">${c.image ? `<img src="${esc(c.image)}" alt="">` : `<span class="pimg">${emojiFor(c)}</span>`}<span class="grow"><small>${tm} · ${lab}</small><b>${esc(c.title)}</b><small>${note || esc((c.subtitle || '').split(' · ')[0])}</small></span>${more && c.id !== pl.anchor?.id ? `<button class="pill" data-pl="swap|${s}">Swap</button>` : ''}${c.id === pl.anchor?.id && pl.fixed ? '' : `<button class="x" data-pl="rm|${s}" aria-label="Remove">×</button>`}</div>`;
+    return `<div class="prow">${c.image ? `<img src="${esc(c.image)}" alt="">` : `<span class="pimg">${emojiFor(c)}</span>`}<span class="grow"><small>${tm} · ${lab}</small><b>${esc(c.title)}</b><small>${note || esc((c.subtitle || '').split(' · ')[0])}</small></span>${more && c.id !== pl.anchor?.id ? `<button class="pill" data-pl="swap|${s}">Swap</button>` : ''}</div>`;
   };
+  const wrap = s => { const c = pl.items[s].card; return c && c.id === pl.anchor?.id && pl.fixed ? row(s) : plSw(s, row(s)); };
   const addable = (pl.mode === 'in' ? ['dinner', 'evening'] : pl.slots.includes('drinks') && isBar(pl.items.drinks?.card || {}) && pl.anchor && isBar(pl.anchor) ? ['dinner', 'drinks2', 'drinks3'] : PMAIN).filter(s => !pl.slots.includes(s));
   sheet(`<div class="grab"></div><div class="body"><h2>${pl.id ? 'Change the plan' : pl.mode === 'in' ? 'A night in' : 'Plan a day'}</h2>
     <div class="pdays">${days.map(d => `<button class="chip ${d === pl.day ? 'on' : ''}" data-pl="day|${d}">${d === t ? 'Today' : d === pAdd(t, 1) ? 'Tomorrow' : dfmt(d)}</button>`).join('')}</div>
     ${pl.anchor ? '' : `<div class="seg" style="margin:10px 0 2px"><button data-pl="mode|out" class="${pl.mode === 'out' ? 'on' : ''}">Going out</button><button data-pl="mode|in" class="${pl.mode === 'in' ? 'on' : ''}">Night in</button></div>`}
-    ${ls.get('pdtip') ? '' : `<div class="ptip"><span><b>Tap a time</b> to change it. <b>Swap</b> trades in something else you both like. An empty spot can be filled with <b>Find together</b>: you each get 8 picks and the first match goes in.</span><button data-pl="tip" aria-label="Got it">×</button></div>`}
-    <div style="margin-top:6px">${ordered.map(row).join('')}</div>
+    ${ls.get('pdtip') ? '' : `<div class="ptip"><span><b>Tap a time</b> to change it. <b>Swap</b> trades in something else you both like. <b>Swipe a stop left</b> to take it out. An empty spot can be filled with <b>Find together</b>: you each get 8 picks and the first match goes in.</span><button data-pl="tip" aria-label="Got it">×</button></div>`}
+    <div style="margin-top:6px">${ordered.map(wrap).join('')}</div>
     ${addable.length ? `<div class="chips" style="margin-top:12px">${addable.map(s => `<button class="chip" data-pl="add|${s}">+ ${PSLOT[s][0]}</button>`).join('')}</div>` : ''}
     <div style="height:16px"></div>
     <button class="btn" data-pl="send" ${ok ? '' : 'disabled style="opacity:.5"'}>${finds ? 'Send and start swiping' : (pl.id ? 'Send the change' : 'Send') + ' to ' + esc(them())}</button>
     <p class="muted" style="margin-top:8px;font-size:12.5px;text-align:center">${ok ? `${esc(them())} can say yes, swap something, or pass. Either of you can change it until the day.` : 'A plan needs at least two things, and one of them picked.'}</p>
-  </div>`);
+  </div>`, 'plan', 'edit');
 }
 const pFindFor = (slot, mode) => mode === 'in' ? (slot === 'dinner' ? ['dinner', { kinds: ['orderin'] }] : ['movie', {}]) : slot === 'dinner' ? ['dinner', { kinds: ['restaurant'] }] : ['event', { types: slot === 'day' ? PDAYT : slot === 'evening' ? ['Bar', ...PEVE] : ['Bar'], days: 0 }];
 async function daySend(btn) {
-  const pl = S.pl; btn.disabled = true;
+  const pl = S.pl, bt = btn.textContent; btn.disabled = true; btn.textContent = 'Sending…';
   const ordered = [...pl.slots].sort((a, b) => String(pl.items[a].time).localeCompare(String(pl.items[b].time))).filter(s => pl.items[s].card || pl.items[s].find);
   const items = ordered.map(s => ({ slot: s, time: pl.items[s].time, card: pl.items[s].card?.id || null, find: !pl.items[s].card && pl.items[s].find, why: !pl.items[s].card ? null : pl.items[s].card.id === pl.items[s].orig ? pl.items[s].why : 'both' }));
-  const p = await rpc('plan_save', { p_code: S.code, p_member: S.me, p_id: pl.id, p_day: pl.day, p_mode: pl.mode, p_items: items });
+  let p; try { p = await rpc('plan_save', { p_code: S.code, p_member: S.me, p_id: pl.id, p_day: pl.day, p_mode: pl.mode, p_items: items }); }
+  catch { btn.disabled = false; btn.textContent = bt; return toast('Could not send that. Check your connection and try again.'); }
+  const finds = items.filter(i => i.find), sent = S.plSent = { id: p.id, minor: !!p.minor, rounds: finds.length ? null : 0, round: null };
+  planPut(p); S.pl = null; daySheet(p.id);   // lands right away, in the same sheet
   // A short round for each empty slot: both people get the same picks and the first match fills the slot.
   const ref = ordered.map(s => pl.items[s].card).find(c => c?.data?.lat != null), have = new Set((S.state?.sessions || []).filter(s => s.filters?.plan === p.id).map(s => s.filters.slot));
-  let rounds = 0, first = null, noRound = null;
-  for (const it of items.filter(i => i.find && !have.has(i.slot))) {
-    const [deck, f] = pFindFor(it.slot.startsWith('drinks') ? 'drinks' : it.slot, pl.mode), filters = { ...f, plan: p.id, slot: it.slot, n: 8 };
-    if (deck === 'event' && !rounds) await outings(6000); if (deck === 'dinner' && !rounds) await nearby();
-    if (ref && deck !== 'movie') filters.near = { lat: ref.data.lat, lng: ref.data.lng, mi: it.slot.startsWith('drinks') ? 1.5 : 4 };
-    const note = `For ${pDayLow(pl.day)}: ${PSLOT[it.slot][0].toLowerCase()}`;
-    let r = await rpc('start_session', { p_code: S.code, p_member: S.me, p_deck: deck, p_note: note, p_filters: filters });
-    if (!r.id && filters.near) { delete filters.near; r = await rpc('start_session', { p_code: S.code, p_member: S.me, p_deck: deck, p_note: note, p_filters: filters }); }
-    if (r.id) { rounds++; first = first || r.id; send({ type: 'nudge', deck, session: r.id }); } else noRound = noRound || it.slot;
+  let rounds = 0, noRound = null;
+  for (const it of finds.filter(i => !have.has(i.slot))) {
+    try {
+      const [deck, f] = pFindFor(it.slot.startsWith('drinks') ? 'drinks' : it.slot, pl.mode), filters = { ...f, plan: p.id, slot: it.slot, n: 8 };
+      if (deck === 'event' && !rounds) await outings(6000); if (deck === 'dinner' && !rounds) await nearby();
+      if (ref && deck !== 'movie') filters.near = { lat: ref.data.lat, lng: ref.data.lng, mi: it.slot.startsWith('drinks') ? 1.5 : 4 };
+      const note = `For ${pDayLow(pl.day)}: ${PSLOT[it.slot][0].toLowerCase()}`;
+      let r = await rpc('start_session', { p_code: S.code, p_member: S.me, p_deck: deck, p_note: note, p_filters: filters });
+      if (!r.id && filters.near) { delete filters.near; r = await rpc('start_session', { p_code: S.code, p_member: S.me, p_deck: deck, p_note: note, p_filters: filters }); }
+      if (r.id) { rounds++; sent.round = sent.round || r.id; send({ type: 'nudge', deck, session: r.id }); } else noRound = noRound || it.slot;
+    } catch { noRound = noRound || it.slot; }
   }
-  const names = p.items.filter(i => i.card).map(i => i.card.title.split(/[,(]/)[0].trim()).slice(0, 3).join(', then ');
-  send({ type: 'dayplan', id: p.id, day: p.day, edit: !!pl.id });
-  push(`${S.me} ${pl.id ? 'changed the plan for' : 'planned'} ${pDayLow(p.day)}`, names + (rounds ? '. One spot is open: swipe a few picks to fill it.' : '. Say yes, swap something, or pass.'), `./?plan=${p.id}`);
+  sent.rounds = rounds;
+  planTell(p, !!pl.id, rounds);
+  if (S.plSent === sent && S.plView === p.id && !S.pl) daySheet(p.id);
   // Weekly hours miss holidays and one-off closures: check the real hours for that date (Google publishes a week ahead).
   let shut = 0; if (pl.mode === 'out') { try { const ck = await Promise.race([sb.functions.invoke('placeinfo', { body: { code: S.code, plan: p.id } }), new Promise(r => setTimeout(() => r(null), 7000))]); shut = ck?.data?.closed?.length || 0; } catch {} }
-  await refresh(); S.pl = null;
-  // Straight into the picks for the open spot: the plan is sent, and swiping is the next thing to do.
-  if (first) { closeSheet(); try { await openSession(first); } catch { daySheet(p.id); } } else if (noRound) { await sideLikes(p.id, noRound); return toast(`Sent to ${them()}. Nothing new nearby fits that spot, so pick from what either of you has liked.`, 5000); } else daySheet(p.id);
-  toast(shut ? `Sent, but heads up: ${shut === 1 ? 'one place is' : shut + ' places are'} not open then. Tap Change it to swap.` : rounds ? `Sent to ${them()}. Swipe your 8 picks: the first one you both like goes into the plan.` : `Sent to ${them()}. You will hear back here.`, 4000);
+  try { await refresh(); } catch {}
+  if (S.plView === p.id && !S.pl && $layer.querySelector('.sheet[data-k="plan"]')) daySheet(p.id);
+  if (shut) toast(`Heads up: ${shut === 1 ? 'one place is' : shut + ' places are'} not open then. Tap Change it to swap.`, 4500);
+  else if (noRound) toast(`Nothing new nearby fits the ${PSLOT[noRound][0].toLowerCase()} spot. Tap Pick to choose from what either of you has liked.`, 5000);
+}
+// Keep the plan list current without a full reload.
+function planPut(p) { S.plans = S.plans || []; const i = S.plans.findIndex(x => x.id === p.id); if (i < 0) S.plans.unshift(p); else S.plans[i] = p; }
+// Tell the other person about a saved plan. A small change (minor) refreshes their screen quietly; anything else is one
+// push, held two minutes on edits so several changes in a row arrive as one.
+function planTell(p, edit, rounds = 0) {
+  send({ type: 'dayplan', id: p.id, day: p.day, edit, minor: !!p.minor && !rounds });
+  if (!partner() || (p.minor && !rounds)) return;
+  const names = p.items.filter(i => i.card).map(i => i.card.title.split(/[,(]/)[0].trim()).slice(0, 3).join(', then ');
+  push(`${S.me} ${edit ? 'changed the plan for' : 'planned'} ${pDayLow(p.day)}`, names + (rounds ? '. One spot is open: swipe a few picks to fill it.' : '. Say yes, swap something, or pass.'), `./?plan=${p.id}`, { plan: p.id, need: 'answer', hold: edit ? 120 : 0 });
+}
+// Swipe a stop left to take it out. In the editor it just goes; on a saved plan it saves once Undo has had its moment.
+function planRm(row, slot) {
+  const back = () => { const f = row.querySelector('.swf'); if (f) f.style.transform = ''; setTimeout(() => row.classList.remove('sw'), 240); };
+  const gone = () => { row.style.maxHeight = row.offsetHeight + 'px'; row.offsetHeight; row.classList.add('out'); };
+  ls.set('plswiped', '1');
+  if (S.pl) {
+    const pl = S.pl, it = pl.items[slot]; if (!it) return back();
+    const snap = { slots: [...pl.slots], items: { ...pl.items } }, lab = it.card ? it.card.title.split(/[,(]/)[0].trim() : `the ${PSLOT[slot][0].toLowerCase()} spot`;
+    gone(); setTimeout(() => { if (S.pl !== pl) return; pl.slots = pl.slots.filter(s => s !== slot); delete pl.items[slot]; dayEdit(); }, 360);
+    return toastAct(`Took out ${lab}.`, 'Undo', () => { if (S.pl !== pl) return; pl.slots = snap.slots; pl.items = snap.items; dayEdit(); });
+  }
+  const p = (S.plans || []).find(x => x.id === S.plView); if (!p) return back();
+  const left = p.items.filter(i => i.slot !== slot), it = p.items.find(i => i.slot === slot);
+  if (!it || !left.some(i => i.card) || left.length < 2) { back(); return toast('A plan needs at least two stops. To skip the day, tap Call it off.', 3500); }
+  const orig = p.items, lab = it.card ? it.card.title.split(/[,(]/)[0].trim() : `the ${PSLOT[slot][0].toLowerCase()} spot`; let undone = false;
+  gone(); setTimeout(() => { if (!undone) { p.items = left; if (S.plView === p.id && !S.pl) daySheet(p.id); } }, 360);
+  toastAct(`Took out ${lab}.`, 'Undo', () => { undone = true; p.items = orig; if (S.plView === p.id && !S.pl) daySheet(p.id); }, 4000, () => { if (!undone) planCommit(p, orig, left); });
+}
+async function planCommit(p, orig, left) {
+  const items = left.map(i => ({ slot: i.slot, time: i.time, card: i.card?.id || null, find: !i.card && !!i.find, why: i.why || null }));
+  try { const r = await rpc('plan_save', { p_code: S.code, p_member: S.me, p_id: p.id, p_day: p.day, p_mode: p.mode, p_items: items }); planPut(r); planTell(r, true);
+    if (S.plView === r.id && !S.pl && $layer.querySelector('.sheet[data-k="plan"]')) daySheet(r.id); }
+  catch { p.items = orig; if (S.plView === p.id && !S.pl) daySheet(p.id); toast('Could not save that. Try again in a moment.'); }
+}
+const plSw = (slot, inner) => `<div class="swr pls" data-swid="pl:${slot}"><span class="swa del">Take out</span><div class="swf">${inner}</div></div>`;
+// A toast with one action (Undo). onEnd runs if it times out without the action being tapped.
+function toastAct(msg, label, fn, ms = 4000, onEnd) {
+  clearTimeout(toastT); toastFin?.(); document.querySelector('.toast')?.remove(); const t = document.createElement('div'); t.className = 'toast tact';
+  t.innerHTML = `<span>${esc(msg)}</span><button type="button">${esc(label)}</button>`; document.body.appendChild(t);
+  let done = false; const fin = act => { if (done) return; done = true; toastFin = null; clearTimeout(toastT); t.remove(); if (act) fn(); else onEnd?.(); }; toastFin = () => fin(false);
+  t.querySelector('button').addEventListener('click', e => { e.stopPropagation(); fin(true); });
+  toastT = setTimeout(() => fin(false), ms);
 }
 // Weekend plans arrive on their own: Saturday's on Wednesday evening, Friday night's on Friday afternoon. Each is made from
 // what the two of you like, with one spot left open to swipe on together. Sunday is left alone.
@@ -2725,16 +2782,18 @@ function daySheet(id) {
     : solo && !past ? `${mine ? `<p class="muted" style="text-align:center;margin:14px 0 8px;font-size:13.5px">You’re in.</p>` : `<div style="height:14px"></div><button class="btn" data-pl="resp|yes">I’m in</button>`}<div class="row" style="gap:10px;margin-top:10px"><button class="btn ghost" data-pl="edit" style="flex:1">Change something</button><button class="btn ghost" data-pl="resp|busy" style="flex:1">I already have plans</button></div>
       <div class="note" style="margin-top:14px"><b>Plans are more fun with two.</b> Send your person the link. Once they join, you both swipe and every plan is made from what you both like.<div style="height:10px"></div><button class="btn sm" data-act="invite">Send the link</button></div>`
     : past ? ((p.status === 'agreed' || p.status === 'sent') ? `<p class="muted" style="text-align:center;margin:14px 0 8px">Did you go?</p><div class="row" style="gap:10px"><button class="btn" data-pl="resp|went" style="flex:1">We went</button><button class="btn ghost" data-pl="resp|skipped" style="flex:1">Didn’t happen</button></div>` : '')
-    : mine ? `<p class="muted" style="text-align:center;margin:14px 0 8px;font-size:13.5px">${p.status === 'agreed' ? 'You are both in.' : `Sent. Waiting on ${esc(them())}.`}</p><div class="row" style="gap:10px"><button class="btn ghost" data-pl="edit" style="flex:1">Change it</button><button class="btn ghost" data-pl="resp|drop" style="flex:1">Call it off</button></div>`
+    : mine ? `<p class="muted" style="text-align:center;margin:14px 0 8px;font-size:13.5px">${p.status === 'agreed' ? 'You are both in.' : S.plSent?.id === p.id ? '' : `Sent. Waiting on ${esc(them())}.`}</p><div class="row" style="gap:10px"><button class="btn ghost" data-pl="edit" style="flex:1">Change it</button><button class="btn ghost" data-pl="resp|drop" style="flex:1">Call it off</button></div>`
     : `<div style="height:14px"></div><button class="btn" data-pl="resp|yes">I’m in</button><div class="row" style="gap:10px;margin-top:10px"><button class="btn ghost" data-pl="edit" style="flex:1">Change something</button><button class="btn ghost" data-pl="resp|${auto ? 'busy' : 'drop'}" style="flex:1">${auto ? 'We already have plans' : 'Not this time'}</button></div>`;
   const shapes = sh ? `<div class="kv pshape">Rather do something else tonight?</div><div class="chips">${Object.entries(FSHAPE).map(([k, l]) => `<button class="chip ${k === sh ? 'on' : ''}" data-pl="shape|${k}">${l}</button>`).join('')}</div>` : '';
   S.plView = p.id;
+  const canRm = !past && (p.status === 'sent' || p.status === 'agreed'), ps = S.plSent?.id === p.id ? S.plSent : null;
+  const land = ps ? `<div class="plsent"><span class="plck"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span class="grow"><b>${ps.minor ? 'Saved' : partner() ? 'Sent to ' + esc(them()) : 'Saved'}</b><small>${ps.minor ? (!partner() ? 'Your plan is up to date.' : p.ok?.[them()] ? `Small change, so ${esc(them())}’s yes still stands.` : `Small change, so no new notification for ${esc(them())}.`) : ps.rounds === null ? 'Setting up your picks…' : ps.round ? 'Swipe your picks. The first one you both like fills the open spot.' : partner() ? `${esc(them())} can say yes, swap something, or pass.` : 'It’s on your calendar of plans.'}</small></span>${ps.round ? `<button class="pill hot" data-open="${ps.round}">Swipe</button>` : ''}</div>` : '';
   if (!$layer.querySelector('.sheet #pwx') || S.kgId !== id) { S.kgId = id; S.kgAt = Date.now(); }
   sheet(`<div class="grab"></div><div class="body"><h2>${auto ? pAutoName(p) + (pDayName(p.day) !== dfmt(p.day) ? ' · ' + pDayName(p.day) : '') : pDayName(p.day) + (p.mode === 'in' ? ': a night in' : '')}</h2><p class="muted" style="margin-top:6px;font-size:14px">${auto ? (solo ? 'Put together from what you like.' : `Put together from what you both like${p.by !== 'auto' ? `, then changed by ${p.by === S.me ? 'you' : esc(p.by)}` : ''}. Swap anything you like.`) : `${p.by === S.me ? 'You' : esc(p.by)} put this together${pDayName(p.day) !== dfmt(p.day) ? ' for ' + esc(dfmt(p.day)) : ''}.`}</p>
     <div id="pwx" class="pwx" hidden></div>
-    <div style="margin-top:8px">${p.items.map(i => row(i) + pLeg(p, i)).join('')}</div>${shapes}
+    ${land}<div style="margin-top:8px">${p.items.map(i => (canRm ? plSw(i.slot, row(i)) : row(i)) + pLeg(p, i)).join('')}</div>${canRm && !ls.get('plswiped') && p.items.length > 2 ? '<p class="inhint" style="margin-top:6px">Swipe a stop left to take it out.</p>' : ''}${shapes}
     ${BETA && !past && p.items.some(i => i.card) ? `<a class="pcal" href="${CFG.url}/functions/v1/ics?plan=${p.id}" target="_blank" rel="noopener">${ic('cal')}Add ${p.items.filter(i => i.card).length > 1 ? 'every stop' : 'it'} to my calendar</a>` : ''}
-    ${near.length ? `<p class="muted" style="margin-top:12px;font-size:13px">Also a short walk away, and you both like them: ${near.map(x => `${esc(x.c.title)} (${x.mi} mi)`).join(', ')}.</p>` : ''}${acts}</div>`);
+    ${near.length ? `<p class="muted" style="margin-top:12px;font-size:13px">Also a short walk away, and you both like them: ${near.map(x => `${esc(x.c.title)} (${x.mi} mi)`).join(', ')}.</p>` : ''}${acts}</div>`, 'plan', 'view');
   { const sc = $layer.querySelector('.scrim'), el = (Date.now() - S.kgAt) / 1000, on = el < 1.9;   // a redraw while it is still arriving carries on from where it was
     sc?.classList.add('kc', 'k-' + pKind(p), on ? 'kglow' : 'kset'); if (on) { sc.style.setProperty('--ke', el + 's'); sc.querySelectorAll('.prow').forEach((r, i) => r.style.setProperty('--i', i)); } }
   pWeatherFill(p);
@@ -2770,9 +2829,9 @@ async function dayAct(v, a, t) {
   if (v === 'resp') {
     t.disabled = true; const p = await rpc('plan_respond', { p_code: S.code, p_member: S.me, p_id: S.plView, p_action: a });
     send({ type: 'dayplan', id: p.id, day: p.day, resp: a });
-    if (a === 'yes') push(`${S.me} is in for ${pDayLow(p.day)}`, p.items.filter(i => i.card).map(i => i.card.title.split(/[,(]/)[0].trim()).slice(0, 3).join(', then '), `./?plan=${p.id}`);
-    if (a === 'drop') push(`${S.me} passed on the plan for ${pDayLow(p.day)}`, 'No harm done. Try a different day, or a different mix.', './');
-    if (a === 'busy' && partner()) push(`${S.me} says you already have plans ${pDayLow(p.day)}`, 'Enjoy them. The next plan will still come.', './');
+    if (a === 'yes') push(`${S.me} is in for ${pDayLow(p.day)}`, p.items.filter(i => i.card).map(i => i.card.title.split(/[,(]/)[0].trim()).slice(0, 3).join(', then '), `./?plan=${p.id}`, { plan: p.id });
+    if (a === 'drop') push(`${S.me} passed on the plan for ${pDayLow(p.day)}`, 'No harm done. Try a different day, or a different mix.', './', { plan: p.id });
+    if (a === 'busy' && partner()) push(`${S.me} says you already have plans ${pDayLow(p.day)}`, 'Enjoy them. The next plan will still come.', './', { plan: p.id });
     await refresh(); closeSheet(); if (S.view === 'home') render();
     return toast(a === 'yes' ? (p.status === 'agreed' ? 'It’s a plan. You are both in.' : 'You’re in.') : a === 'went' ? 'Nice. Glad you went.' : a === 'drop' ? 'Plan called off.' : a === 'busy' ? 'Got it. Enjoy your plans.' : 'No worries.', 3000);
   }
@@ -3011,7 +3070,7 @@ let mosT = 0; new MutationObserver(() => { clearTimeout(mosT); mosT = setTimeout
 })();
 // Swipe a row left to remove it (Lately) or hide it until it changes (Waiting on you).
 function inDismiss(row) {
-  const id = row.dataset.swid; row.style.maxHeight = row.offsetHeight + 'px'; row.offsetHeight; row.classList.add('out');
+  const id = row.dataset.swid; if (id.startsWith('pl:')) return planRm(row, id.slice(3)); row.style.maxHeight = row.offsetHeight + 'px'; row.offsetHeight; row.classList.add('out');
   setTimeout(() => { row.remove(); if (!document.querySelector('#inlately .swr')) { const l = document.getElementById('inlately'); if (l) l.innerHTML = '<p class="muted" style="font-size:14px;padding:6px 0 4px">Nothing else for now.</p>'; document.querySelector('.inclear')?.remove(); } }, 420);
   ls.set('inswiped', '1'); document.querySelector('.inhint')?.remove();
   if (id.startsWith('i:')) { const k = id.slice(2); if (S.inbox) S.inbox.items = (S.inbox.items || []).filter(i => String(i.id) !== k); rpc('inbox_dismiss', { p_code: S.code, p_member: S.me, p_id: k }).catch(() => {}); }
@@ -5177,7 +5236,12 @@ function renderMatches() {
 }
 
 /* ---------- sheets ---------- */
-function sheet(html) { $layer.innerHTML = `<div class="scrim" data-scrim><div class="sheet">${html}</div></div>`; }
+function sheet(html, key, sub) {
+  const old = key && $layer.querySelector(`.sheet[data-k="${key}"]`);
+  if (old) { const y = old.scrollTop, same = old.dataset.v === (sub || ''); old.parentElement.className = 'scrim'; old.classList.add('still'); old.dataset.v = sub || ''; old.innerHTML = html;
+    if (same) old.scrollTop = y; else { old.scrollTop = 0; old.querySelector('.body')?.classList.add('swapin'); } return; }
+  $layer.innerHTML = `<div class="scrim" data-scrim><div class="sheet"${key ? ` data-k="${key}" data-v="${sub || ''}"` : ''}>${html}</div></div>`;
+}
 /* ---------- reservations: does this place take them, and where ---------- */
 // Looked up once per restaurant (kept 90 days) when someone likes it, opens it, or it lands in a plan.
 const isRest = c => c?.deck === 'dinner' && c.kind !== 'cook' && !!c.data?.place_id;
@@ -5208,7 +5272,7 @@ function bookBlock(c, day, time) {
   if (d.reservable === false) return `<p class="muted" style="font-size:13.5px;margin-top:14px">Walk-in: no reservations here.</p>`;
   return '';
 }
-function closeSheet() { $layer.innerHTML = ''; document.querySelector('.a2arrow')?.remove(); tiltWatch(); }
+function closeSheet() { $layer.innerHTML = ''; S.plSent = null; document.querySelector('.a2arrow')?.remove(); tiltWatch(); }
 const gemBlock = d => d?.gem ? `<div class="gemk in">${ic('gem')}<span>Hidden gem</span></div>${d.fact ? `<p class="gemfact">${esc(d.fact)}</p>` : ''}${d.src ? `<a class="btn ghost" style="display:block;text-align:center;text-decoration:none;margin-top:10px" href="${esc(d.src)}" target="_blank" rel="noopener">Read more on Wikipedia</a>` : ''}<p class="muted" style="font-size:11.5px;text-align:center">Facts from Wikipedia. Photo and hours from Google. Description written by Let’s Together.</p>` : '';
 function showDetail(c, back = false) {
   if (!c) return ''; S.detailCard = c;
