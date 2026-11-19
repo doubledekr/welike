@@ -110,13 +110,16 @@ end $$;
 
 -- ---------- reasons shown on Discover cards, worked out for the person looking (never from a partner's likes)
 create or replace function public.disc_why(p_code text, p_member text, p_session uuid) returns jsonb language sql stable security definer set search_path to 'public' as $$
+  -- the trip line only when it is true: this member has liked 4+ trip cards in that city (a teaser); never the partner's likes
   select coalesce(jsonb_object_agg(c.id, case
-      when c.deck = 'trip' then format('You’ve liked %s things in %s. Stop by here when you go.',
-        (select count(*) from _lv(_couple(p_code)) l join cards k on k.id = l.card_id where l.member = p_member and l.verdict in ('yes','love') and k.deck = 'trip' and k.kind = c.kind), c.kind)
+      when c.deck = 'trip' then format('You’ve liked %s things in %s. Stop by here when you go.', n.liked, c.kind)
       else c.data->>'notes' end), '{}'::jsonb)
   from session_cards sc join sessions s on s.id = sc.session_id join cards c on c.id = sc.card_id
+  cross join lateral (select count(*) liked from _lv(_couple(p_code)) l join cards k on k.id = l.card_id
+                      where c.deck = 'trip' and l.member = p_member and l.verdict in ('yes','love') and k.deck = 'trip' and k.kind = c.kind) n
   where sc.session_id = p_session and s.couple_id = _couple(p_code) and s.from_member = p_member
-    and ((c.deck = 'trip' and (c.data ? 'gem' or c.data ? 'locals') and s.deck = 'mix') or (c.data ? 'unique' and coalesce(c.data->>'notes', '') <> '')) $$;
+    and ((c.deck = 'trip' and (c.data ? 'gem' or c.data ? 'locals') and s.deck = 'mix' and n.liked >= 4)
+         or (c.deck <> 'trip' and c.data ? 'unique' and coalesce(c.data->>'notes', '') <> '')) $$;
 
 -- ---------- Close by: your other likes (and the ones you both like) a short walk from a place, with walk times;
 -- now and then a hidden gem there too. Never a partner's one-sided like.
@@ -228,6 +231,14 @@ begin
   d2 := replace(d, $a$(p_deck = 'event' and c.data ? 'gem' and not coalesce(a.mine, false)) gemfirst$a$,
                    $a$(p_deck = 'event' and (c.data ? 'gem' or c.data ? 'unique') and not coalesce(a.mine, false)) gemfirst$a$);
   if d2 = d then raise exception '_pick anchor 3'; end if;
+  execute d2;
+  -- auto plans: a hidden gem or unique spot that is still held or not yet released never goes into a plan before someone has swiped it
+  d := pg_get_functiondef('public._ap_pick'::regproc);
+  d2 := replace(d, $a$where c.active and not (c.id = any(p_used)) and coalesce(c.data->>'away', '') = '' and not _never(p_couple, c.id)$a$,
+                   $a$where c.active and not (c.id = any(p_used)) and coalesce(c.data->>'away', '') = '' and not _never(p_couple, c.id)
+      and (not (c.data ? 'gem' or c.data ? 'unique') or coalesce(k.seen, 0) > 0
+           or (coalesce(c.data->>'hold', '') <> 'true' and coalesce((c.data->>'release')::date, _today()) <= _today()))$a$);
+  if d2 = d then raise exception '_ap_pick anchor'; end if;
   execute d2;
   -- the daily cards push names the new piles
   d := pg_get_functiondef('public._daily_cards_tick()'::regprocedure);
