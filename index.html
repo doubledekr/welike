@@ -1157,6 +1157,8 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .tfa{flex:none;padding:8px 12px;border-radius:999px;background:rgba(255,154,128,.16);color:#ffd5c8;font-weight:700;font-size:13.5px;box-shadow:none}
 .wfa{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}.wfa .btn{padding:14px 8px;font-size:15px}.wfa .btn.on{background:rgba(45,212,191,.18);color:#7be0cf;box-shadow:none}
 .popts{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 12px;margin:-2px 0 6px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}.popt{flex:none;width:132px;scroll-snap-align:start;padding:0 0 9px;border-radius:16px;background:rgba(255,255,255,.06);text-align:left;overflow:hidden;box-shadow:none;display:flex;flex-direction:column}.popt img,.popt .pimg{width:100%;height:84px;object-fit:cover;display:grid;place-items:center;font-size:28px;background:rgba(255,255,255,.04)}.popt b{font-size:13.5px;line-height:1.25;padding:7px 9px 2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.popt small{font-size:11.5px;color:var(--muted);padding:0 9px}.popt small.lk{color:#ffb38a}
+.psug{margin:-4px 0 10px 66px;padding:9px 12px;border-radius:14px;background:rgba(255,210,63,.1);font-size:13px;line-height:1.4;color:#f3e3b8}.psug.mine{background:rgba(255,255,255,.05);color:var(--muted)}.psug .jlink{display:inline;margin-left:8px;padding:0;font-size:13px}.psb{display:flex;gap:8px;margin-top:8px}.psugb{display:block;margin:4px 0 10px 66px;padding:4px 0;background:none;box-shadow:none;color:#ffd5c8;font-size:12.5px;font-weight:600}
+.pquest{display:flex;align-items:center;gap:6px;margin:2px 0 10px 66px;padding:7px 12px;border-radius:999px;background:rgba(255,154,128,.12);color:#ffd5c8;font-size:12.5px;font-weight:700;box-shadow:none}.pqo{display:flex;align-items:center;gap:12px;padding:10px;border-radius:16px;background:rgba(255,255,255,.05);margin-bottom:8px}.pqo img,.pqo .pimg{width:56px;height:56px;border-radius:12px;object-fit:cover;flex:none;display:grid;place-items:center}.pqo b{display:block;font-size:14.5px}.pqo small{font-size:12.5px;color:var(--muted)}
 #tcbar{position:fixed;left:50%;bottom:calc(var(--sb) + 86px);transform:translateX(-50%);z-index:19;display:flex;align-items:center;gap:9px;max-width:92%;padding:8px 14px;border-radius:999px;background:linear-gradient(135deg,rgba(84,38,44,.96),rgba(70,26,52,.96));box-shadow:0 8px 24px -10px rgba(255,90,110,.9);color:#fff;font-size:13.5px;white-space:nowrap}
 #tcbar .dot{width:8px;height:8px;border-radius:50%;background:#ff6a6a;animation:tcdot 1.6s ease-in-out infinite}#tcbar .go{font-weight:700;color:#ffd5c8}@keyframes tcdot{50%{opacity:.35}}
 @media (prefers-reduced-motion:reduce){.tcpts,#tcbar .dot{animation:none}}
@@ -1701,7 +1703,7 @@ const homeSig = () => { try { return JSON.stringify([S.state, S.plans, S.share, 
 const swPend = new Set();   // swipes still being saved
 async function refresh() {
   if (swPend.size) await Promise.allSettled([...swPend]);   // a refresh right after the last swipe must include it
-  const [st, pantry, settings, share, plans, inbox, favs, surp, dates, poll, triv, idea, tf] = await Promise.all([rpc('get_state', { p_code: S.code, p_member: S.me }), rpc('get_pantry', { p_code: S.code }), rpc('get_settings', { p_code: S.code }), rpc('share_state', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('plan_list', { p_code: S.code }).catch(() => []), rpc('inbox_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('fav_list', { p_code: S.code }).catch(() => null), rpc('surprise_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('dates_get', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('poll_state', { p_code: S.code }).catch(() => null), rpc('trivia_state', { p_code: S.code, p_member: S.me, p_event: S.trivId || null }).catch(() => null), rpc('idea_today', { p_code: S.code }).catch(() => null), rpc('trivia_funnel', { p_code: S.code, p_member: S.me }).catch(() => undefined)]);
+  const [st, pantry, settings, share, plans, inbox, favs, surp, dates, poll, triv, idea, tf] = await Promise.all([rpc('get_state', { p_code: S.code, p_member: S.me }), rpc('get_pantry', { p_code: S.code }), rpc('get_settings', { p_code: S.code }), rpc('share_state', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('plan_list', { p_code: S.code, p_member: S.me }).catch(() => []), rpc('inbox_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('fav_list', { p_code: S.code }).catch(() => null), rpc('surprise_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('dates_get', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('poll_state', { p_code: S.code }).catch(() => null), rpc('trivia_state', { p_code: S.code, p_member: S.me, p_event: S.trivId || null }).catch(() => null), rpc('idea_today', { p_code: S.code }).catch(() => null), rpc('trivia_funnel', { p_code: S.code, p_member: S.me }).catch(() => undefined)]);
   S.surp = surp || S.surp || null; S.dates = dates || S.dates || null; S.poll = poll || null; S.idea = idea || null; if (tf !== undefined) S.tf = tf || null; if (!S.tq) S.triv = triv || null; setTimeout(notifSweep, 400);
   S.state = st; S.plans = plans || []; S.pool = null; if (inbox) S.inbox = inbox; if (favs) S.favs = favs; S.share = share; S.pantry = pantry || []; S.settings = settings || {};
 }
@@ -2677,7 +2679,10 @@ function tdeckInit() {
 /* ---------- plan a day ---------- */
 // A plan is a date and two to four things in order, built from what both people have liked. One person puts it
 // together and sends it, the other says yes, changes it or passes. An empty slot can be filled by a short swipe round.
-const PSLOT = { day: ['Daytime', '13:00'], drinks: ['Drinks', '17:30'], dinner: ['Dinner', '19:00'], evening: ['Evening', '21:00'], drinks2: ['Next bar', '21:15'], drinks3: ['One more', '22:30'] };
+const PSLOT = { day: ['Daytime', '13:00'], drinks: ['Drinks', '17:30'], dinner: ['Dinner', '19:00'], evening: ['Evening', '21:00'], drinks2: ['Next bar', '21:15'], drinks3: ['One more', '22:30'], quest: ['Side quest', '16:00'], quest2: ['Side quest', '20:30'] };
+// someone else's surprise stop stays a surprise until an hour before (the server does the same; this covers answers that come back unmasked)
+const pMask = p => !p?.items ? p : { ...p, items: p.items.map(i => i.hidden && i.hidden !== S.me && i.card && !i.card.data?.surprise && Date.now() < Date.parse(i.reveal || 0) ? { ...i, card: { id: 'hid:' + i.slot, deck: i.card.deck, kind: 'surprise', title: `A surprise from ${i.hidden}`, subtitle: 'Shows itself an hour before', image: null, data: { surprise: true } } } : i) };
+const pHid = c => !!c?.data?.surprise;
 const PMAIN = ['day', 'drinks', 'dinner', 'evening'];
 const PDAYT = ['Museum', 'Gallery', 'Bookstore', 'Aquarium', 'Zoo', 'Garden', 'Museums & sights', 'Shops', 'Games & fun', 'Bowling'];
 const PEVE = ['Night out', 'Games & fun', 'Bowling'];
@@ -2757,7 +2762,7 @@ const pStatus = p => p.closed?.length && p.day >= pToday() ? 'something is not o
 async function dayStart() {
   if (!partner() && twoOnly()) return; if (!partner()) { toast('Plans are made from what you both like. Invite your other half first.', 4000); return inviteSheet(); }
   sheet('<div class="grab"></div><div class="body"><p class="muted">Looking at what you both like…</p></div>');
-  await dayPool(); try { S.plans = await rpc('plan_list', { p_code: S.code }); } catch {}
+  await dayPool(); try { S.plans = await rpc('plan_list', { p_code: S.code, p_member: S.me }); } catch {}
   const t = pToday(), live = (S.plans || []).filter(p => p.day >= t && (p.status === 'sent' || p.status === 'agreed'));
   const anch = S.pool.filter(c => c.deck === 'event' || (c.deck === 'dinner' && c.kind !== 'cook')).sort((a, b) => (isDated(b) - isDated(a)) || String(a.event_date || '').localeCompare(String(b.event_date || '')) || ((b.loves || 0) - (a.loves || 0))).slice(0, 14);
   let mine = []; try { mine = (await rpc('plan_my_likes', { p_code: S.code, p_member: S.me })).filter(c => !anch.some(x => x.id === c.id)); } catch {}
@@ -2783,7 +2788,8 @@ function dayDraft({ mode = 'out', anchor = null, plan = null, day = null }) {
   const now = pNow(), t = pToday();
   if (plan) {
     const pl = S.pl = { id: plan.id, day: plan.day < t ? t : plan.day, mode: plan.mode, anchor: null, slots: [], items: {} };
-    for (const i of plan.items) { pl.slots.push(i.slot); pl.items[i.slot] = { time: i.time || PSLOT[i.slot][1], card: i.card || null, find: !!i.find && !i.card, empty: !i.card && !i.find, why: i.why || null, orig: i.card?.id || null }; }
+    plan = pMask(plan); pl.where = plan.where || null;
+    for (const i of plan.items) { pl.slots.push(i.slot); pl.items[i.slot] = { time: i.time || PSLOT[i.slot][1], card: i.card || null, find: !!i.find && !i.card, empty: !i.card && !i.find, why: i.why || null, orig: i.card?.id || null, hidden: i.hidden || null, keep: pHid(i.card) || i.slot.startsWith('quest') || i.card?.data?.own === true }; }
     const d = plan.items.map(i => i.card).find(c => c && isDated(c)); if (d) { pl.anchor = d; pl.fixed = true; }
     return dayEdit();
   }
@@ -2807,13 +2813,76 @@ function dayDraft({ mode = 'out', anchor = null, plan = null, day = null }) {
 
 // The choices for one stop, in a row you scroll: places you both like, then yours, then well-rated places a short walk from the stops around it
 async function plOptLoad(s) { const pl = S.pl, ref = pRef(s), used = pl.slots.map(x => pl.items[x]?.card?.id).filter(Boolean); let list = [];
-  try { list = await rpc('plan_options', { p_code: S.code, p_member: S.me, p_day: pl.day, p_time: pl.items[s]?.time || PSLOT[s][1], p_slot: s, p_mode: pl.mode, p_lat: ref?.data?.lat ?? null, p_lng: ref?.data?.lng ?? null, p_used: used }); } catch {}
+  try { list = await rpc('plan_options', { p_code: S.code, p_member: S.me, p_day: pl.day, p_time: pl.items[s]?.time || PSLOT[s][1], p_slot: s, p_mode: pl.mode, p_lat: ref?.data?.lat ?? pl.where?.lat ?? null, p_lng: ref?.data?.lng ?? pl.where?.lng ?? null, p_used: used }); } catch {}
   const liked = pCands(s).filter(c => !used.includes(c.id) && !list.some(x => x.id === c.id)).map(c => ({ ...c, why: 'both', mi: ref ? pMi(ref, c) : null }));
   if (S.plOpt?.s !== s || S.pl !== pl) return; S.plOpt.list = [...list.filter(x => x.why === 'both'), ...liked, ...list.filter(x => x.why !== 'both')]; S.plOpt.ref = ref?.title || ''; dayEdit(); }
 function plOptRow(s) { const o = S.plOpt; if (!o.list) return '<div class="popts"><p class="muted" style="font-size:13px;padding:6px 2px">Finding options…</p></div>';
   if (!o.list.length) return '<div class="popts"><p class="muted" style="font-size:13px;padding:6px 2px">Nothing else open nearby at that time. Try another time.</p></div>';
-  const tag = x => x.why === 'both' ? 'You both like' : x.why === 'mine' ? 'You like' : x.data?.rating ? `★ ${x.data.rating}` : 'Nearby';
+  const tag = x => x.why === 'yours' ? 'Your place' : x.why === 'both' ? 'You both like' : x.why === 'mine' ? 'You like' : x.data?.rating ? `★ ${x.data.rating}` : 'Nearby';
   return `<div class="popts" role="list">${o.list.map(x => `<button class="popt" role="listitem" data-pl="opt|${s}|${x.id}">${x.image ? `<img src="${esc(x.image)}" alt="" loading="lazy">` : `<span class="pimg">${emojiFor(x)}</span>`}<b>${esc(x.title)}</b><small class="${x.why === 'near' ? '' : 'lk'}">${tag(x)}</small>${x.mi != null && o.ref ? `<small>${legTxt(x.mi)}</small>` : ''}</button>`).join('')}</div>`; }
+
+// ---- Hamoody's plan ideas: where the day happens, your own places, surprises, swap suggestions, side quests ----
+const pAddMin = (t, m) => { const x = toMin(t || '12:00') + m, h = Math.floor(((x % 1440) + 1440) % 1440 / 60), mm = ((x % 60) + 60) % 60; return String(h).padStart(2, '0') + ':' + String(mm).padStart(2, '0'); };
+function pWhereRow() { const pl = S.pl; if (S.places === undefined) { S.places = null; rpc('place_list', { p_code: S.code }).then(x => { S.places = x || []; if (S.pl) dayEdit(); }).catch(() => { S.places = []; }); }
+  const ps = S.places || [], on = pl.where?.name;
+  return `<p class="pstep">Where?</p><div class="chips pwh"><button class="chip ${!on ? 'on' : ''}" data-pl="where|">Around home</button>${ps.map(c => `<button class="chip ${on === c.title ? 'on' : ''}" data-pl="where|${c.id}">${esc(c.title)}</button>`).join('')}<button class="chip" data-pl="wadd">+ Your place</button></div>`; }
+async function pWhere(id) { const pl = S.pl; if (!pl) return; const c = (S.places || []).find(x => x.id === id);
+  pl.where = c ? { name: c.title, lat: c.data.lat, lng: c.data.lng } : null; S.plOpt = null;
+  if (c) { // put the place in the day if there's room, and find restaurants around it so dinner can be there too
+    if (!pl.slots.some(s => pl.items[s]?.card?.id === c.id) && !(pl.items.day?.card && pl.slots.includes('day'))) { if (!pl.slots.includes('day')) pl.slots.unshift('day'); pl.items.day = { time: pl.items.day?.time || PSLOT.day[1], card: c, find: false, keep: true }; }
+    placeFn({ action: 'away', lat: c.data.lat, lng: c.data.lng, city: c.title.slice(0, 40) }).catch(() => {}); toast(`Planning around ${c.title}. Tap Options on a stop to see what’s close by.`, 3500); }
+  dayEdit(); }
+function placeSheet(found) { step('place_open');
+  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('pin')}</span><h2>Add your own place</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">A cottage, family’s house, your favourite park. Plans can happen there, and you’ll get ideas close by.</p></div></div>
+    <label class="field"><span>What you call it</span><input id="pln" maxlength="40" placeholder="The cottage" value="${esc(S.plName || '')}"></label>
+    <label class="field"><span>Address or town</span><input id="pla" maxlength="120" placeholder="123 Lake Rd, Traverse City" value="${esc(S.plAddr || '')}"></label>
+    ${found ? (found.length ? `<div class="sect">Which one?</div>${found.map((f, k) => `<button class="pollo" data-pl="wpick|${k}"><span>${esc(f.name)}<small>${esc(f.address)}</small></span></button>`).join('')}` : '<p class="muted" style="font-size:13.5px">Nothing found. Try the full address.</p>') : ''}
+    <div style="height:12px"></div><button class="btn" data-pl="wfind">Find it</button>${(S.places || []).length ? `<div class="sect" style="margin-top:18px">Your places</div>${S.places.map(c => `<div class="tfr"><span class="grow"><b>${esc(c.title)}</b><small>${esc(c.subtitle || '')}</small></span><button class="tfa" data-pl="wrm|${c.id}">Remove</button></div>`).join('')}` : ''}<button class="jlink" data-pl="wback">Back to the plan</button>`); }
+async function placeFind() { S.plName = (document.getElementById('pln')?.value || '').trim(); S.plAddr = (document.getElementById('pla')?.value || '').trim();
+  if (!S.plName || S.plAddr.length < 3) return toast('Give it a name and an address or town.');
+  try { const { data } = await sb.functions.invoke('whereis', { body: { code: S.code, action: 'geocode', q: S.plAddr } }); S.plFound = data?.places || []; } catch { S.plFound = []; } placeSheet(S.plFound); }
+async function placePick(k) { const f = S.plFound?.[k]; if (!f) return; try { S.places = await rpc('place_save', { p_code: S.code, p_member: S.me, p_name: S.plName, p_address: f.address, p_lat: f.lat, p_lng: f.lng }); } catch { return toast('That didn’t save. Try again.'); }
+  step('place_saved'); const c = S.places.find(x => x.title === S.plName.slice(0, 40)); S.plName = S.plAddr = ''; S.plFound = null; if (S.pl) { closeSheet(); dayEdit(); if (c) pWhere(c.id); } else closeSheet(); }
+// suggestions: either of you can suggest a different stop; the other swaps it in or keeps theirs
+function pSug(p, i, past) { const g = p.suggest?.[i.slot], c = i.card; if (past || !c || pHid(c)) return '';
+  if (i.hidden === S.me) return `<div class="psug mine">${ic('gem')} A surprise: ${esc(them())} sees it at ${pT(pAddMin(i.time, -60))}</div>`;
+  if (g?.card) return g.by === S.me ? `<div class="psug mine">You suggested ${esc(g.card.title)} · waiting on ${esc(them())}<button class="jlink" data-pl="sugx|${i.slot}">Take back</button></div>`
+    : `<div class="psug">${esc(g.by)} suggests <b>${esc(g.card.title)}</b> instead<span class="psb"><button class="pill hot" data-pl="sugok|${i.slot}">Swap it in</button><button class="pill" data-pl="sugno|${i.slot}">Keep ${esc(c.title.split(/[,(]/)[0])}</button></span></div>`;
+  return partner() && (p.status === 'sent' || p.status === 'agreed') && !i.slot.startsWith('quest') ? `<button class="psugb" data-pl="sug|${i.slot}">Suggest something else</button>` : ''; }
+async function sugSheet(slot) { const p = (S.plans || []).find(x => x.id === S.plView); if (!p) return; const i = p.items.find(x => x.slot === slot); if (!i) return;
+  const ref = p.items.filter(x => x.slot !== slot).map(x => x.card).find(c => c?.data?.lat != null) || null, used = p.items.map(x => x.card?.id).filter(x => /^[0-9a-f-]{36}$/.test(x || ''));
+  sheet(`<div class="grab"></div><div class="body"><h2>Suggest something else</h2><p class="muted">Finding options for ${PSLOT[slot]?.[0].toLowerCase() || 'this stop'}…</p></div>`, 'plan', 'sug');
+  let list = []; try { list = await rpc('plan_options', { p_code: S.code, p_member: S.me, p_day: p.day, p_time: i.time || PSLOT[slot][1], p_slot: slot.startsWith('quest') ? 'day' : slot, p_mode: p.mode, p_lat: ref?.data?.lat ?? p.where?.lat ?? null, p_lng: ref?.data?.lng ?? p.where?.lng ?? null, p_used: used }); } catch {}
+  S.sugList = list; const tag = x => x.why === 'yours' ? 'Your place' : x.why === 'both' ? 'You both like' : x.why === 'mine' ? 'You like' : x.data?.rating ? `★ ${x.data.rating}` : 'Nearby';
+  sheet(`<div class="grab"></div><div class="body"><h2>Suggest something else</h2><p class="muted" style="margin-top:6px">Instead of ${esc(i.card.title)} at ${pT(i.time)}. ${esc(them())} gets to swap it in or keep it.</p><div style="height:10px"></div>
+    ${list.length ? list.map(x => `<button class="pollo" data-pl="sugpick|${slot}|${x.id}"><span>${esc(x.title)}<small>${tag(x)}${x.mi != null && ref ? ' · ' + legTxt(x.mi) + ' from ' + esc(ref.title.split(/[,(]/)[0]) : ''}</small></span></button>`).join('') : '<p class="muted">Nothing else open nearby at that time.</p>'}
+    <button class="jlink" data-pl="sugback">Back</button></div>`, 'plan', 'sug'); }
+async function sugAct(v, slot, id) { const p = (S.plans || []).find(x => x.id === S.plView); if (!p) return; let r;
+  try { r = v === 'sugpick' || v === 'sugx' ? await rpc('plan_suggest', { p_code: S.code, p_member: S.me, p_plan: p.id, p_slot: slot, p_card: v === 'sugx' ? null : id })
+      : await rpc('plan_suggest_answer', { p_code: S.code, p_member: S.me, p_plan: p.id, p_slot: slot, p_take: v === 'sugok' }); } catch { return toast('That didn’t save. Try again.'); }
+  planPut(r); step('plan_' + v); send({ type: 'dayplan', id: p.id, day: p.day, edit: true, minor: true });
+  const was = p.items.find(x => x.slot === slot)?.card?.title?.split(/[,(]/)[0], nw = (S.sugList || []).find(x => x.id === id)?.title?.split(/[,(]/)[0];
+  if (v === 'sugpick') push(`${S.me} suggests a swap`, `${nw} instead of ${was} on ${pDayLow(p.day)}. Swap it in or keep yours.`, `./?plan=${p.id}`, { plan: p.id });
+  if (v === 'sugok') { const g = p.suggest?.[slot]; push(`${S.me} took your swap`, `${g?.card?.title || 'Your pick'} is in for ${pDayLow(p.day)}.`, `./?plan=${p.id}`, { plan: p.id }); }
+  if (v === 'sugno') { const g = p.suggest?.[slot]; push(`${S.me} kept the plan`, `${was} stays in for ${pDayLow(p.day)}.`, `./?plan=${p.id}`, { plan: p.id }); }
+  toast(v === 'sugpick' ? `Sent to ${them()}.` : v === 'sugok' ? 'Swapped in.' : v === 'sugno' ? 'Kept as it was.' : 'Taken back.'); daySheet(p.id); }
+// side quests: a short, great stop on the way between two stops
+function pQuestLink(p, k, past) { const a = p.items[k], b = p.items[k + 1]; if (past || !a?.card || !b?.card || pHid(a.card) || pHid(b.card) || !(p.status === 'sent' || p.status === 'agreed')) return '';
+  if (a.slot.startsWith('quest') || b.slot.startsWith('quest') || a.card.data?.lat == null || b.card.data?.lat == null || p.items.filter(i => i.slot.startsWith('quest')).length >= 2) return '';
+  return `<button class="pquest" data-pl="quest|${k}">${ic('spark')} Side quest on the way?</button>`; }
+async function questSheet(k) { const p = (S.plans || []).find(x => x.id === S.plView); if (!p) return; const a = p.items[k], b = p.items[k + 1]; if (!a || !b) return;
+  const at = (() => { const out = pAddMin(a.time, PSTAY[a.slot] || 60); return toMin(out) < toMin(b.time) - 20 ? out : pAddMin(a.time, Math.max(15, Math.round((toMin(b.time) - toMin(a.time)) / 2))); })();
+  sheet(`<div class="grab"></div><div class="body"><h2>A side quest</h2><p class="muted">Looking between ${esc(a.card.title.split(/[,(]/)[0])} and ${esc(b.card.title.split(/[,(]/)[0])}…</p></div>`, 'plan', 'quest');
+  let d = null; try { ({ data: d } = await sb.functions.invoke('whereis', { body: { code: S.code, action: 'quest', lat: a.card.data.lat, lng: a.card.data.lng, lat2: b.card.data.lat, lng2: b.card.data.lng, day: p.day, time: at } })); } catch {}
+  const qs = d?.quests || []; S.quests = { list: qs, time: at }; step('quest_open');
+  sheet(`<div class="grab"></div><div class="body"><h2>A side quest on the way</h2><p class="muted" style="margin-top:6px">Around ${pT(at)}, between ${esc(a.card.title.split(/[,(]/)[0])} and ${esc(b.card.title.split(/[,(]/)[0])}. Rated 4.4 or better and open then.</p><div style="height:10px"></div>
+    ${qs.length ? qs.map((q, j) => `<div class="pqo">${q.image ? `<img src="${esc(q.image)}" alt="">` : `<span class="pimg">${ic('spark')}</span>`}<span class="grow"><b>${esc(q.name)}</b><small>${esc([q.type, q.rating ? '★ ' + q.rating : '', q.detour < 0.05 ? 'right on the way' : `about ${Math.max(1, Math.round(q.detour * 20))} min out of the way`].filter(Boolean).join(' · '))}</small></span><button class="pill hot" data-pl="qadd|${j}">Add</button></div>`).join('') : '<p class="muted">Nothing great on the way at that time. Try it on another part of the day.</p>'}
+    <button class="jlink" data-pl="sugback">Back</button></div>`, 'plan', 'quest'); }
+async function questAdd(j) { const p = (S.plans || []).find(x => x.id === S.plView), q = S.quests?.list?.[j]; if (!p || !q) return; let r;
+  try { r = await rpc('quest_add', { p_code: S.code, p_member: S.me, p_plan: p.id, p_place: q, p_time: S.quests.time }); } catch (e) { return toast(String(e?.message || '').includes('two_quests') ? 'Two side quests is plenty for one day.' : 'That didn’t save. Try again.'); }
+  planPut(r); step('quest_add'); send({ type: 'dayplan', id: p.id, day: p.day, edit: true, minor: true });
+  if (partner()) push(`${S.me} added a side quest`, `${q.name} on the way, ${pDayLow(p.day)} around ${pT(S.quests.time)}.`, `./?plan=${p.id}`, { plan: p.id, hold: 120 });
+  toast(`${q.name} is in.`); daySheet(p.id); }
 function dayEdit() {
   const pl = S.pl; pFill(); const t = pToday();
   const ordered = [...pl.slots].sort((a, b) => String(pl.items[a].time).localeCompare(String(pl.items[b].time)));
@@ -2826,13 +2895,15 @@ function dayEdit() {
     const o = isDated(c) ? true : openAt(c, pl.day, it.time, PSTAY[s] || 60), mi = ref && ref.id !== c.id && c.id !== pl.anchor?.id ? pMi(ref, c) : null, cl = !isDated(c) && o ? closesAt(c, pl.day, it.time) : null;
     const note = [o === false ? '<span class="pwarn">Closed then, or closes too soon</span>' : cl ? 'open until ' + cl : isDated(c) && !evStart(c) ? 'pick a start time when you book' : '', mi != null ? `${mi} mi from ${esc((n => n.length > 20 ? n.slice(0, 19).trim() + '…' : n)(ref.title.split(/[,(]/)[0].trim()))}` : '', pl.mode === 'in' && s === 'dinner' ? (c.kind === 'cook' ? 'cook at home' : 'order in') : ''].filter(Boolean).join(' · ');
     const more = pCands(s).filter(x => x.id !== c.id).length;
-    return `<div class="prow">${c.image ? `<img src="${esc(c.image)}" alt="">` : `<span class="pimg">${emojiFor(c)}</span>`}<span class="grow"><small>${tm} · ${lab}</small><b>${esc(c.title)}</b><small>${note || esc((c.subtitle || '').split(' · ')[0])}</small></span>${c.id !== pl.anchor?.id ? `<button class="pill ${S.plOpt?.s === s ? 'hot' : ''}" data-pl="swap|${s}">${S.plOpt?.s === s ? 'Close' : 'Options'}</button>` : ''}</div>`;
+    if (pHid(c)) return `<div class="prow"><span class="pimg">${ic('gem')}</span><span class="grow"><small>${tm} · ${lab}</small><b>${esc(c.title)}</b><small>It stays where it is. You’ll see it an hour before.</small></span></div>`;
+    const sp = partner() && !s.startsWith('quest') ? `<button class="pill ${it.hidden ? 'hot' : ''}" data-pl="hide|${s}" aria-pressed="${!!it.hidden}">${it.hidden ? 'Surprise' : 'Keep secret'}</button>` : '';
+    return `<div class="prow">${c.image ? `<img src="${esc(c.image)}" alt="">` : `<span class="pimg">${emojiFor(c)}</span>`}<span class="grow"><small>${tm} · ${lab}</small><b>${esc(c.title)}</b><small>${it.hidden ? `A surprise: ${esc(them())} sees “a surprise” until an hour before` : note || esc((c.subtitle || '').split(' · ')[0])}</small></span>${sp}${c.id !== pl.anchor?.id ? `<button class="pill ${S.plOpt?.s === s ? 'hot' : ''}" data-pl="swap|${s}">${S.plOpt?.s === s ? 'Close' : 'Options'}</button>` : ''}</div>`;
   };
-  const wrap = s => { const c = pl.items[s].card; return (c && c.id === pl.anchor?.id && pl.fixed ? row(s) : plSw(s, row(s))) + (S.plOpt?.s === s ? plOptRow(s) : ''); };
+  const wrap = s => { const c = pl.items[s].card; return (c && (pHid(c) || (c.id === pl.anchor?.id && pl.fixed)) ? row(s) : plSw(s, row(s))) + (S.plOpt?.s === s ? plOptRow(s) : ''); };
   const addable = (pl.mode === 'in' ? ['dinner', 'evening'] : pl.slots.includes('drinks') && isBar(pl.items.drinks?.card || {}) && pl.anchor && isBar(pl.anchor) ? ['dinner', 'drinks2', 'drinks3'] : PMAIN).filter(s => !pl.slots.includes(s));
   sheet(`<div class="grab"></div><div class="body"><h2>${pl.id ? 'Change the plan' : pl.mode === 'in' ? 'A night in' : 'Plan a day'}</h2>
     <p class="pstep">Which day?</p>
-    <div class="pdays big">${days.map(d => `<button class="chip ${d === pl.day ? 'on' : ''}" data-pl="day|${d}">${d === t ? 'Today' : d === pAdd(t, 1) ? 'Tomorrow' : dfmt(d)}</button>`).join('')}</div>
+    <div class="pdays big">${days.map(d => `<button class="chip ${d === pl.day ? 'on' : ''}" data-pl="day|${d}">${d === t ? 'Today' : d === pAdd(t, 1) ? 'Tomorrow' : dfmt(d)}</button>`).join('')}</div>${pl.mode === 'out' ? pWhereRow() : ''}
     ${pl.anchor ? '' : `<p class="pstep">Going out or staying in?</p><div class="seg" style="margin:8px 0 2px"><button data-pl="mode|out" class="${pl.mode === 'out' ? 'on' : ''}">Going out</button><button data-pl="mode|in" class="${pl.mode === 'in' ? 'on' : ''}">Night in</button></div>`}
     ${ls.get('pdtip') ? '' : `<div class="ptip"><span><b>Tap a time</b> to change it. <b>Options</b> shows what else fits: places you both like, then yours, then great spots a short walk away. <b>Swipe a stop left</b> to take it out. An empty spot can be filled with <b>Find together</b>: you each get 8 picks and the first match goes in.</span><button data-pl="tip" aria-label="Got it">×</button></div>`}
     <div style="margin-top:6px">${ordered.map(wrap).join('')}</div>
@@ -2846,10 +2917,11 @@ const pFindFor = (slot, mode) => mode === 'in' ? (slot === 'dinner' ? ['dinner',
 async function daySend(btn) {
   const pl = S.pl, bt = btn.textContent; btn.disabled = true; btn.textContent = 'Sending…';
   const ordered = [...pl.slots].sort((a, b) => String(pl.items[a].time).localeCompare(String(pl.items[b].time))).filter(s => pl.items[s].card || pl.items[s].find);
-  const items = ordered.map(s => ({ slot: s, time: pl.items[s].time, card: pl.items[s].card?.id || null, find: !pl.items[s].card && pl.items[s].find, why: !pl.items[s].card ? null : pl.items[s].card.id === pl.items[s].orig ? pl.items[s].why : 'both' }));
+  const items = ordered.map(s => ({ slot: s, time: pl.items[s].time, card: pl.items[s].card?.id || null, find: !pl.items[s].card && pl.items[s].find, why: !pl.items[s].card ? null : pl.items[s].card.id === pl.items[s].orig ? pl.items[s].why : 'both', hidden: pl.items[s].card && !pHid(pl.items[s].card) ? pl.items[s].hidden || null : null }));
   let p; try { p = await rpc('plan_save', { p_code: S.code, p_member: S.me, p_id: pl.id, p_day: pl.day, p_mode: pl.mode, p_items: items }); }
   catch { btn.disabled = false; btn.textContent = bt; return toast('Could not send that. Check your connection and try again.'); }
   const finds = items.filter(i => i.find), sent = S.plSent = { id: p.id, minor: !!p.minor, rounds: finds.length ? null : 0, round: null };
+  if ((pl.where?.name || null) !== (p.where?.name || null)) { try { p = await rpc('plan_where', { p_code: S.code, p_member: S.me, p_plan: p.id, p_where: pl.where || null }); } catch {} }
   planPut(p); S.pl = null; daySheet(p.id);   // lands right away, in the same sheet
   // A short round for each empty slot: both people get the same picks and the first match fills the slot.
   const ref = ordered.map(s => pl.items[s].card).find(c => c?.data?.lat != null), have = new Set((S.state?.sessions || []).filter(s => s.filters?.plan === p.id).map(s => s.filters.slot));
@@ -2876,13 +2948,13 @@ async function daySend(btn) {
   else if (noRound) toast(`Nothing new nearby fits the ${PSLOT[noRound][0].toLowerCase()} spot. Tap Pick to choose from what either of you has liked.`, 5000);
 }
 // Keep the plan list current without a full reload.
-function planPut(p) { S.plans = S.plans || []; const i = S.plans.findIndex(x => x.id === p.id); if (i < 0) S.plans.unshift(p); else S.plans[i] = p; }
+function planPut(p) { p = pMask(p); S.plans = S.plans || []; const i = S.plans.findIndex(x => x.id === p.id); if (i < 0) S.plans.unshift(p); else S.plans[i] = p; }
 // Tell the other person about a saved plan. A small change (minor) refreshes their screen quietly; anything else is one
 // push, held two minutes on edits so several changes in a row arrive as one.
 function planTell(p, edit, rounds = 0) {
   send({ type: 'dayplan', id: p.id, day: p.day, edit, minor: !!p.minor && !rounds });
   if (!partner() || (p.minor && !rounds)) return;
-  const names = p.items.filter(i => i.card).map(i => i.card.title.split(/[,(]/)[0].trim()).slice(0, 3).join(', then ');
+  const names = p.items.filter(i => i.card).map(i => i.hidden ? 'a surprise' : i.card.title.split(/[,(]/)[0].trim()).slice(0, 3).join(', then ');
   push(`${S.me} ${edit ? 'changed the plan for' : 'planned'} ${pDayLow(p.day)}`, names + (rounds ? '. One spot is open: swipe a few picks to fill it.' : '. Say yes, swap something, or pass.'), `./?plan=${p.id}`, { plan: p.id, need: 'answer', hold: edit ? 120 : 0 });
 }
 // Swipe a stop left to take it out. In the editor it just goes; on a saved plan it saves once Undo has had its moment.
@@ -2975,6 +3047,7 @@ function daySheet(id) {
       if (pk.tb) return `<div class="prow pe"><span class="pimg">+</span><span class="grow"><small>${pT(i.time)} · ${lab}</small><b>Two picks, one spot</b><small>${esc(mineP?.title || '')} or ${esc(theirP?.title || '')}. A quick game decides.</small></span><button class="pill hot" data-pl="sidegame|${pk.tb}">Play</button></div>`;
       if (theirP) return `<div class="prow pe">${theirP.image ? `<img src="${esc(theirP.image)}" alt="">` : `<span class="pimg">${emojiFor(theirP)}</span>`}<span class="grow"><small>${pT(i.time)} · ${lab}</small><b>${esc(them())} picked ${esc(theirP.title)}</b><small>Go with it, or pick your own and play for it.</small></span><button class="pill hot" data-pl="sidepick|${theirP.id}" data-slot="${i.slot}">Go with it</button><button class="pill" data-pl="side|${p.id}|${i.slot}">Pick mine</button></div>`;
       return `<div class="prow pe"><span class="pimg">+</span><span class="grow"><small>${pT(i.time)} · ${lab}</small><b>${mineP ? `You picked ${esc(mineP.title)}` : 'Still to find'}</b><small>${mineP ? `Waiting to hear from ${esc(them())}.` : s ? (s.my_left ? `${s.my_left} picks waiting for you` : `No match yet. Waiting on ${esc(them())}, or pick from your likes.`) : 'Pick from things either of you has liked.'}</small></span>${s && s.my_left ? `<button class="pill hot" data-open="${s.id}">Swipe</button>` : mineP ? '' : `<button class="pill hot" data-pl="side|${p.id}|${i.slot}">Pick</button>`}</div>`; }
+    if (pHid(c)) return `<div class="prow"><span class="pimg">${ic('gem')}</span><span class="grow"><small>${pT(i.time)} · ${lab}</small><b>${esc(c.title)}</b><small>It shows itself at ${pT(pAddMin(i.time, -60))}. No peeking.</small></span></div>`;
     const d = c.data || {}, o = (p.closed || []).includes(c.id) ? false : isDated(c) ? null : openAt(c, p.day, i.time || PSLOT[i.slot][1], PSTAY[i.slot] || 60);
     const links = [d.maps ? `<a href="${esc(d.maps)}" target="_blank" rel="noopener">Map</a>` : '', isBar(c) && d.lat != null ? `<a href="https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff%5Blatitude%5D=${d.lat}&dropoff%5Blongitude%5D=${d.lng}&dropoff%5Bnickname%5D=${encodeURIComponent(c.title)}" target="_blank" rel="noopener">Get a ride</a>` : '', isDated(c) && d.url ? `<a href="${esc(d.url)}" target="_blank" rel="noopener">${evStart(c) ? 'Tickets' : 'Check times and book'}</a>` : '', p.mode !== 'in' && !past && d.book?.url ? `<a href="${esc(bookUrl(c, p.day, i.time))}" target="_blank" rel="noopener">${esc(bookLabel(c))}</a>` : p.mode !== 'in' && isRest(c) && d.reservable === false ? 'Walk-in' : p.mode !== 'in' && isRest(c) && d.reservable === true && d.phone && !past ? `<a href="tel:${esc(String(d.phone).replace(/[^\d+]/g, ''))}">Call to book</a>` : '', p.mode === 'in' && c.deck === 'dinner' && c.kind !== 'cook' && (d.url || d.maps) ? `<a href="${esc(d.url || d.maps)}" target="_blank" rel="noopener">Order</a>` : ''].filter(Boolean).join(' · ');
     return `<div class="prow"><button data-detail="${c.id}" style="flex:none;padding:0">${c.image ? `<img src="${esc(c.image)}" alt="">` : `<span class="pimg">${emojiFor(c)}</span>`}</button><span class="grow"><small>${pT(i.time)} · ${lab}${o === false ? ' · <span class="pwarn">not open then</span>' : ''}</small><b>${esc(c.title)}</b><small class="plk">${links || esc((c.subtitle || '').split(' · ')[0])}</small>${i.why && PWHY(i.why) ? `<small class="pwhy">${PWHY(i.why)}</small>` : ''}${c.data?.hours_src === 'site' ? '<small class="pwhy">Hours from their website. Worth a quick check.</small>' : ''}</span>${(p.bookable || []).includes(c.id) && !past ? `<button class="pill ${p.booked?.[c.id] ? '' : 'hot'}" data-pl="book|${c.id}">${p.booked?.[c.id] ? 'Booked ✓' : 'Mark booked'}</button>` : ''}${c.deck !== 'movie' && c.kind !== 'cook' ? `<button class="x fav ${isFav(c.id) ? 'on' : ''}" data-pl="fav|${c.id}" aria-label="${isFav(c.id) ? 'Remove from favorites' : 'Make it a favorite'}">${isFav(c.id) ? '★' : '☆'}</button>` : ''}</div>`;
@@ -2993,7 +3066,7 @@ function daySheet(id) {
   if (!$layer.querySelector('.sheet #pwx') || S.kgId !== id) { S.kgId = id; S.kgAt = Date.now(); }
   sheet(`<div class="grab"></div><div class="body"><h2>${auto ? pAutoName(p) + (pDayName(p.day) !== dfmt(p.day) ? ' · ' + pDayName(p.day) : '') : pDayName(p.day) + (p.mode === 'in' ? ': a night in' : '')}</h2><p class="muted" style="margin-top:6px;font-size:14px">${auto ? (solo ? 'Put together from what you like.' : `Put together from things you like${p.by !== 'auto' ? `, then changed by ${p.by === S.me ? 'you' : esc(p.by)}` : ''}. Swap anything you like.`) : `${p.by === S.me ? 'You' : esc(p.by)} put this together${pDayName(p.day) !== dfmt(p.day) ? ' for ' + esc(dfmt(p.day)) : ''}.`}</p>
     <div id="pwx" class="pwx" hidden></div>
-    ${land}<div style="margin-top:8px">${p.items.map(i => (canRm ? plSw(i.slot, row(i)) : row(i)) + pLeg(p, i)).join('')}</div>${canRm && !ls.get('plswiped') && p.items.length > 2 ? '<p class="inhint" style="margin-top:6px">Swipe a stop left to take it out.</p>' : ''}${shapes}
+    ${land}${p.where ? `<p class="muted" style="font-size:13px;margin-top:4px">${ic('pin')} Around ${esc(p.where.name)}</p>` : ''}<div style="margin-top:8px">${p.items.map((i, k) => (pHid(i.card) ? row(i) : canRm ? plSw(i.slot, row(i)) : row(i)) + pSug(p, i, past) + pLeg(p, i) + pQuestLink(p, k, past)).join('')}</div>${canRm && !ls.get('plswiped') && p.items.length > 2 ? '<p class="inhint" style="margin-top:6px">Swipe a stop left to take it out.</p>' : ''}${shapes}
     ${BETA && !past && p.items.some(i => i.card) ? `<a class="pcal" href="${CFG.url}/functions/v1/ics?plan=${p.id}" target="_blank" rel="noopener">${ic('cal')}Add ${p.items.filter(i => i.card).length > 1 ? 'every stop' : 'it'} to my calendar</a>` : ''}
     ${near.length ? `<p class="muted" style="margin-top:12px;font-size:13px">Also a short walk away, and you both like them: ${near.map(x => `${esc(x.c.title)} (${x.mi} mi)`).join(', ')}.</p>` : ''}${acts}</div>`, 'plan', 'view');
   { const sc = $layer.querySelector('.scrim'), el = (Date.now() - S.kgAt) / 1000, on = el < 1.9;   // a redraw while it is still arriving carries on from where it was
@@ -3003,10 +3076,15 @@ function daySheet(id) {
   if (!S.pool) dayPool().then(() => { if (S.plView === id && document.querySelector('[data-pl^="resp"],[data-pl="edit"]')) daySheet(id); }).catch(() => {});
 }
 async function dayAct(v, a, t) {
+  if (v === 'sug') return sugSheet(a);
+  if (['sugpick', 'sugx', 'sugok', 'sugno'].includes(v)) { if (t) t.disabled = true; return sugAct(v, a, (t?.dataset?.pl || '').split('|')[2]); }
+  if (v === 'sugback') return daySheet(S.plView);
+  if (v === 'quest') return questSheet(Number(a));
+  if (v === 'qadd') { if (t) t.disabled = true; return questAdd(Number(a)); }
   if (v === 'sidegame') { closeSheet(); return openGame(a); }
   if (v === 'new') return dayDraft({ mode: a });
   if (v === 'around') { if (!partner() && twoOnly()) return; if (!partner()) return toast('Invite your other half first.'); if (!S.pool) await dayPool(); let c = S.pool.find(x => x.id === a) || (S.listCards || []).find(x => x.id === a) || (S.detailCard?.id === a ? S.detailCard : null); if (!c) { try { c = await rpc('get_card', { p_code: S.code, p_id: a }); } catch {} } if (!c) return dayStart(); if (!S.pool.some(x => x.id === c.id)) S.pool.push(c); document.querySelector('.cele')?.remove(); return dayDraft({ anchor: c }); }
-  if (v === 'view') { if (!(S.plans || []).some(p => p.id === a)) S.plans = await rpc('plan_list', { p_code: S.code }); return daySheet(a); }
+  if (v === 'view') { if (!(S.plans || []).some(p => p.id === a)) S.plans = await rpc('plan_list', { p_code: S.code, p_member: S.me }); return daySheet(a); }
   if (v === 'edit') { const p = S.plans.find(x => x.id === S.plView); if (!p) return; if (!S.pool) await dayPool(); for (const i of p.items) if (i.card && !S.pool.some(x => x.id === i.card.id)) S.pool.push(i.card); return dayDraft({ plan: p }); }
   if (v === 'fav') {
     const on = !isFav(a); t.disabled = true;
@@ -3044,13 +3122,20 @@ async function dayAct(v, a, t) {
   if (v === 'rm') { if (pl.items[a]?.card || pl.items[a]?.find || pl.slots.length > 1) { if (pl.items[a].card && pCands(a).length <= 1 || !pl.items[a].card) { pl.slots = pl.slots.filter(s => s !== a); delete pl.items[a]; } else { pl.items[a].card = null; pl.items[a].find = false; pl.items[a].empty = true; } } }
   if (v === 'add') { pl.slots.push(a); delete pl.items[a]; }
   if (v === 'find') { pl.items[a].find = !pl.items[a].find; pl.items[a].empty = !pl.items[a].find; }
+  if (v === 'hide') { const it = pl.items[a]; if (it) it.hidden = it.hidden ? null : S.me; step('plan_hide'); if (it?.hidden && !ls.get('hidetip')) { ls.set('hidetip', '1'); toast(`${them()} sees “a surprise” at that time until an hour before. Then they get a notification.`, 4500); } return dayEdit(); }
+  if (v === 'where') return pWhere(a);
+  if (v === 'wadd') return placeSheet();
+  if (v === 'wfind') return placeFind();
+  if (v === 'wpick') return placePick(Number(a));
+  if (v === 'wrm') { try { S.places = await rpc('place_remove', { p_code: S.code, p_member: S.me, p_card: a }); } catch {} return placeSheet(); }
+  if (v === 'wback') { closeSheet(); return dayEdit(); }
   if (v === 'swap') { if (S.plOpt?.s === a) { S.plOpt = null; return dayEdit(); } S.plOpt = { s: a, list: null }; dayEdit(); return plOptLoad(a); }
   if (v === 'opt') { const id2 = (t?.dataset?.pl || '').split('|')[2], c = (S.plOpt?.list || []).find(x => x.id === id2); if (c) { pl.items[a] = { ...pl.items[a], card: c, find: false, empty: false, keep: true }; } S.plOpt = null; step('plan_opt'); return dayEdit(); }
   dayEdit();
 }
 // Things only one of you has liked that fit the open spot: right kind of place, open for the visit, nearest first.
 async function sideLikes(planId, slot) {
-  if (!(S.plans || []).some(p => p.id === planId)) S.plans = await rpc('plan_list', { p_code: S.code });
+  if (!(S.plans || []).some(p => p.id === planId)) S.plans = await rpc('plan_list', { p_code: S.code, p_member: S.me });
   const p = S.plans.find(x => x.id === planId), it = p?.items.find(i => i.slot === slot); if (!p || !it || it.card) return p ? daySheet(planId) : toast('That plan is not around any more.');
   const base = slot.startsWith('drinks') ? 'drinks' : slot, t = it.time || PSLOT[slot][1], ref = p.items.map(i => i.card).find(c => c?.data?.lat != null);
   const hasEv = p.items.some(i => i.card && isDated(i.card));
