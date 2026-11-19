@@ -2379,6 +2379,13 @@ async function ideaPlan() { const i0 = S.ideaCur || S.idea; if (!i0) return; con
 const pollTodo = q => q ? (q.todo ?? (q.mine ? 0 : 1)) : 0;
 const pollBanner = () => { const q = S.poll; if (!q || !q.open || !pollTodo(q)) return ''; const n = 1 + (q.more || []).length;
   return `<button class="tripbar kc k-match" data-act="poll" data-id="${esc(q.id)}" style="width:100%;text-align:left"><span class="tic">${ic('spark')}</span><span class="grow"><b>${esc(q.title)}</b><small>${q.mine ? `${pollTodo(q)} more to vote on` : n > 1 ? 'Vote on the night, the time and the movie' : 'The community is voting. One vote per couple'}</small></span><span class="go">Vote</span></button>`; };
+// A trivia night's prize. Only the winning team gets the link; opening this is recorded so the host knows it arrived.
+async function prizeSheet(ev) {
+  let r = null; try { r = await rpc('prize_open', { p_code: S.code, p_member: S.me, p_event: ev }); } catch {}
+  if (!r?.ok || !/^https:\/\//.test(r.link || '')) return toast('That prize is not for this team.');
+  sheet(`<div class="grab"></div><div class="body" style="text-align:center"><h2>You won trivia night</h2><p class="muted" style="margin:8px 0 18px">Your ${esc(r.label)} is ready. It opens on the gift card’s own page.</p>
+    <a class="btn" href="${esc(r.link)}" target="_blank" rel="noopener">Open your gift card</a><p class="muted" style="font-size:12.5px;margin-top:14px">Either of you can open it. Treat the link like cash and don’t share it.</p></div>`);
+}
 async function pollSheet(id) {
   let q; try { q = await rpc('poll_state', { p_code: S.code, p_id: id || null }); } catch {} if (!q) return toast('That vote has closed.');
   if (S.poll?.id === q.id || !S.poll) S.poll = q; step('poll_open'); pollDraw(q);
@@ -3108,6 +3115,7 @@ function inboxGo(u) {
   if (q.get('night')) return nightOpen(q.get('night'));
   if (q.get('idea')) { const go = () => q.get('idea') === 'wild' ? wildSheet() : ideaSheet(); if (S.idea) return go(); return rpc('idea_today', { p_code: S.code }).then(x => { S.idea = x || null; go(); }).catch(() => {}); }
   if (q.get('poll')) return pollSheet(q.get('poll'));
+  if (q.get('prize')) return prizeSheet(q.get('prize'));
   if (q.get('bdays')) return bdaysSheet();
   if (q.get('plansurprise')) return surpStart(['birthday', 'anniversary'].includes(q.get('plansurprise')) ? q.get('plansurprise') : undefined);
   if (q.get('occasion')) return occSheet(q.get('occasion'));
@@ -5855,7 +5863,8 @@ async function boot() {
   const spq = new URLSearchParams(location.search).get('surprise'); if (spq) history.replaceState(null, '', location.pathname);
   const plq = new URLSearchParams(location.search).get('plan'); S.favAsk = new URLSearchParams(location.search).get('fav') ? plq : null; const plf = new URLSearchParams(location.search).get('planfor'); if (plq || plf) history.replaceState(null, '', location.pathname);
   const idq = new URLSearchParams(location.search).get('idea'); if (idq) history.replaceState(null, '', location.pathname);
-  render(); if (sbA && ls.get('fpend')) return frOpen(); if (idq) return inboxGo('./?idea=' + encodeURIComponent(idq)); if (rc) return openRec(rc, rk); if (tpq) return openTripPlan(tpq); if (tp) return openGetaway(tp, partner()); if (SHW[shq]) return openShareTab(shq);
+  const pzq = new URLSearchParams(location.search).get('prize'); if (pzq) history.replaceState(null, '', location.pathname);
+  render(); if (sbA && ls.get('fpend')) return frOpen(); if (idq) return inboxGo('./?idea=' + encodeURIComponent(idq)); if (pzq) return inboxGo('./?prize=' + encodeURIComponent(pzq)); if (rc) return openRec(rc, rk); if (tpq) return openTripPlan(tpq); if (tp) return openGetaway(tp, partner()); if (SHW[shq]) return openShareTab(shq);
   if (invq && !partner()) { carrySignIn(); return inviteSheet(); }
   if (gmq) gemOpen();
   if (tlq) tellSheet();
