@@ -1,0 +1,6 @@
+-- Never again (19 Nov 2026): a down swipe is stored as verdict 'seen' + feel 'no'.
+-- Migrations never_again_disposition and never_again_private_in_swipe:
+--  * _never(couple, card, member default null): latest swipe of that member (or anyone) is seen + feel 'no'.
+--  * _ap_pick skips any card either partner said never again to (plans, This or That, auto plans).
+--  * _pick: a never-again card never comes back around to that person.
+--  * swipe: seen_by leaves out never-again, so nobody hears "X has been there".
