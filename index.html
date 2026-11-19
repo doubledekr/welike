@@ -1473,7 +1473,7 @@ const fmtDate = d => { if (!d) return ''; const x = new Date(d + 'T12:00:00'); c
 let toastT;
 let toastFin = null;   // an Undo toast that another toast replaces still finishes (its change is saved)
 function toast(msg, ms = 2600) { if (!msg) return; toastFin?.(); clearTimeout(toastT); document.querySelector('.toast')?.remove(); const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); toastT = setTimeout(() => t.remove(), ms); }
-function errMsg(e) { const m = (e?.message || String(e)); if (m.includes('bad_code')) return 'That code does not match a couple. New here? Start a new couple instead.'; if (m.includes('couple_full')) return 'Two people have already joined with this code.'; if (m.includes('bad_name')) return 'Enter a name.'; return 'Something went wrong. Try again.'; }
+function errMsg(e) { const m = (e?.message || String(e)); if (m.includes('bad_code')) return 'That code does not match a couple. New here? Start a new couple instead.'; if (m.includes('couple_full')) return 'This couple is already complete: both people have joined. To use Let’s Together with your own partner, start a new couple instead.'; if (m.includes('bad_name')) return 'Enter a name.'; return 'Something went wrong. Try again.'; }
 
 /* ---------- realtime + push ---------- */
 function connect() {
