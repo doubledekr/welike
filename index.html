@@ -1846,7 +1846,7 @@ function ob2Steps() {
   if (needInvite()) s.push('invite');
   if (!standalone() && isPhone() && !ls.get('a2hs')) s.push('install');
   if (needPushAsk()) s.push('push');                                 // on an iPhone this only exists in the Home Screen app, so it waits for the icon
-  if (datesNeed()) s.push('dates');                                 // the second person in is only asked for what is still missing
+  if (datesNeed() && !soloMode()) s.push('dates');                  // the second person in is only asked for what is still missing; a person on their own has no one to remind
   if (needSetup() || needLoc()) s.push('setup');
   return s;
 }
@@ -3841,7 +3841,7 @@ function renderFriends() {
   const d = FR.d; if (!d) return renderStart();
   const solo = frSolo(), ids = new Set(d.plans.map(p => p.id)), plans = d.plans.filter(p => !p.parent || !ids.has(p.parent)), pn = d.couple?.partner;
   const gOf = id => d.groups.filter(g => g.members.includes(id)).map(g => g.name).join(', '), rv = d.reveal?.friends?.length ? d.reveal : null;
-  $app.innerHTML = `<div class="view fr you"><div class="topbar" style="margin-bottom:6px">${solo ? '' : '<button class="back" data-tab="home" aria-label="Back to you two">‹</button>'}<div class="brand grow">Friends</div><button class="ib" data-fr="refresh" aria-label="Refresh">${ic('repeat')}</button><button class="ib" data-act="acct" aria-label="Your account" style="margin-left:8px">${ic('user')}</button></div>
+  $app.innerHTML = `<div class="view fr you"><div class="topbar" style="margin-bottom:6px">${solo ? '' : `<button class="back" data-tab="home" aria-label="${soloMode() ? 'Back to your cards' : 'Back to you two'}">‹</button>`}<div class="brand grow">Friends</div><button class="ib" data-fr="refresh" aria-label="Refresh">${ic('repeat')}</button><button class="ib" data-act="acct" aria-label="Your account" style="margin-left:8px">${ic('user')}</button></div>
     ${solo ? `<button class="frcta" data-fr="couple"><span class="tic">${ic('heart')}</span><span class="grow"><b>Set up your own decks</b><small>Movies, places and trips to swipe on your own, or with your person later</small></span><span class="ych">›</span></button>` : ''}
     ${rv ? `<div class="frrev"><small>This week</small><b>You and ${esc(frNames(rv.friends.map(f => f.name)))} ${rv.friends.length > 1 ? 'all' : 'both'} love ${esc(rv.title)}</b>${rv.sub ? `<span>${esc(rv.sub)}</span>` : ''}<button class="btn sm" data-fr="revealgo">${rv.deck === 'trip' ? 'Plan the trip' : 'Plan a hang'}</button></div>` : ''}
     ${!d.friends.length ? `<button class="frcta" data-fr="invite"><span class="tic">${ic('share')}</span><span class="grow"><b>Invite your first friend</b><small>One link. They join with a first name, no partner needed</small></span><span class="ych">›</span></button>` : ''}
@@ -4055,7 +4055,7 @@ function frCosts(p) {
     <p class="muted frfine">The app does the arithmetic. Paying happens in your own payment app, and whoever was owed ticks it off.</p></div></div>`;
 }
 /* ----- the planning helper's finds: at most two waiting, each a tap to put to the group, park, or pass ----- */
-const frFindCard = (f, fresh) => `<div class="frfind${fresh ? ' frnew' : ''}"><small>${f.kind === 'season' ? 'Worth knowing' : f.kind === 'match' ? 'Fits your group' : f.kind === 'gem' ? 'Found a hidden gem' : 'Found for your group'}</small><b>${esc(f.title)}</b>${f.body ? `<span>${esc(f.body)}</span>` : ''}${f.why ? `<span class="frwhy">${esc(f.why)}</span>` : ''}
+const frFindCard = (f, fresh) => `<div class="frfind${fresh ? ' frnew' : ''}"><small>${f.kind === 'season' ? 'Worth knowing' : f.kind === 'match' && f.why ? 'Fits your group' : f.kind === 'gem' ? 'Found a hidden gem' : 'Found for your group'}</small><b>${esc(f.title)}</b>${f.body ? `<span>${esc(f.body)}</span>` : ''}${f.why ? `<span class="frwhy">${esc(f.why)}</span>` : ''}
     <div class="frrow2">${f.card ? `<button class="btn sm" data-fr="find" data-id="${f.id}" data-do="add">Put it to the group</button><button class="btn sm ghost" data-fr="find" data-id="${f.id}" data-do="maybe">Maybe pile</button>` : ''}<button class="frlink" data-fr="find" data-id="${f.id}" data-do="no">${f.card ? 'Skip it' : 'Got it'}</button></div></div>`;
 function frFinds(p) {
   const nw = (p.finds || []).filter(f => f.status === 'new');
