@@ -1375,6 +1375,9 @@ body:has(#layer>*) #app :is(.brand i,.hdr .ic,.card .art,.btn,.go.blink,.dbg .mo
 
 .frfind{display:flex;flex-direction:column;gap:4px;padding:14px;border-radius:20px;background:linear-gradient(135deg,rgba(45,212,191,.16),rgba(77,155,255,.14));margin-top:10px}
 .frfind small{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:#bfeee6}.frfind b{font-size:16px}.frfind>span{color:#d9d0dc;font-size:14px;line-height:1.4}.frfind .frrow2{margin-top:8px;align-items:center}.frfind .frrow2>*{flex:none}
+.frfind .frwhy{color:#bfeee6;font-size:13px}.frfind.frnew{animation:frin .25s ease-out}@keyframes frin{from{opacity:0;transform:translateY(6px)}}
+.frhold{min-height:150px;position:relative;overflow:hidden}.frhold i{display:block;height:12px;border-radius:6px;background:rgba(255,255,255,.1);margin-top:8px;width:86%}.frhold i:nth-of-type(1){height:16px;width:58%}.frhold i:nth-of-type(3){width:70%}
+.frhold::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.12) 50%,transparent 65%);transform:translateX(-120%);animation:frhs 1.4s ease-in-out 8}@keyframes frhs{to{transform:translateX(120%)}}
 .frlist em button{font-size:12.5px}
 </style>
 </head>
@@ -3922,7 +3925,21 @@ async function frNpGo(t) {
 /* ----- one plan ----- */
 async function frOpenPlan(id, quiet) {
   try { const r = await frRpc('fr_plan', { p_id: id }); if (!r?.ok) { if (!quiet) frWhy(r?.why); FR.plan = null; S.view = 'friends'; await frLoad().catch(() => {}); return render(); }
-    FR.plan = r; FR.wk = {}; S.view = 'fplan'; render(); } catch { if (!quiet) toast('Could not reach the server. Check your connection.'); }
+    FR.plan = r; FR.wk = {}; S.view = 'fplan'; frMatch(r); render(); } catch { if (!quiet) toast('Could not reach the server. Check your connection.'); }
+}
+// The planning helper's matcher: when the plan says a matched find is due, ask for one in the background. A placeholder
+// holds its place; the find fades in where the placeholder was. It never interrupts typing, and it asks once per load.
+function frMatch(p) {
+  if (SIM || !p.match_due || FR.match || p.status !== 'in') return;
+  const id = p.id; FR.match = id;
+  Promise.race([sbA.functions.invoke('planfinds', { body: { plan: id } }).then(r => r.data).catch(() => null), new Promise(r => setTimeout(() => r(null), 25000))]).then(async d => {
+    let r = null; if (d?.added && FR.plan?.id === id) r = await frRpc('fr_plan', { p_id: id }).catch(() => null);
+    FR.match = null; if (FR.plan?.id !== id) return;
+    const had = new Set((FR.plan.finds || []).map(f => f.id)); let f = null;
+    if (r?.ok) { FR.plan = r; f = (r.finds || []).find(x => x.status === 'new' && !had.has(x.id)) || null; } else FR.plan.match_due = false;
+    const h = S.view === 'fplan' ? document.querySelector('.frp .frhold') : null; if (!h) return;   // swap only the placeholder, so typing and open sheets are never disturbed
+    if (f) { h.insertAdjacentHTML('afterend', frFindCard(f, true)); } h.remove();
+  });
 }
 async function frAct(kind, data, t) {
   if (t) t.disabled = true;
@@ -4038,11 +4055,13 @@ function frCosts(p) {
     <p class="muted frfine">The app does the arithmetic. Paying happens in your own payment app, and whoever was owed ticks it off.</p></div></div>`;
 }
 /* ----- the planning helper's finds: at most two waiting, each a tap to put to the group, park, or pass ----- */
+const frFindCard = (f, fresh) => `<div class="frfind${fresh ? ' frnew' : ''}"><small>${f.kind === 'season' ? 'Worth knowing' : f.kind === 'match' ? 'Fits your group' : f.kind === 'gem' ? 'Found a hidden gem' : 'Found for your group'}</small><b>${esc(f.title)}</b>${f.body ? `<span>${esc(f.body)}</span>` : ''}${f.why ? `<span class="frwhy">${esc(f.why)}</span>` : ''}
+    <div class="frrow2">${f.card ? `<button class="btn sm" data-fr="find" data-id="${f.id}" data-do="add">Put it to the group</button><button class="btn sm ghost" data-fr="find" data-id="${f.id}" data-do="maybe">Maybe pile</button>` : ''}<button class="frlink" data-fr="find" data-id="${f.id}" data-do="no">${f.card ? 'Skip it' : 'Got it'}</button></div></div>`;
 function frFinds(p) {
   const nw = (p.finds || []).filter(f => f.status === 'new');
-  if (!nw.length) return p.flow === 'trip' && !(p.finds || []).length && !p.data.stay ? '<p class="muted frfine">Looking for things that fit this trip. They’ll show up here as they’re found.</p>' : '';
-  return nw.map(f => `<div class="frfind"><small>${f.kind === 'season' ? 'Worth knowing' : f.kind === 'gem' ? 'Found a hidden gem' : 'Found for your group'}</small><b>${esc(f.title)}</b>${f.body ? `<span>${esc(f.body)}</span>` : ''}
-    <div class="frrow2">${f.card ? `<button class="btn sm" data-fr="find" data-id="${f.id}" data-do="add">Put it to the group</button><button class="btn sm ghost" data-fr="find" data-id="${f.id}" data-do="maybe">Maybe pile</button>` : ''}<button class="frlink" data-fr="find" data-id="${f.id}" data-do="no">${f.card ? 'Skip it' : 'Got it'}</button></div></div>`).join('');
+  const hold = FR.match === p.id && nw.length < 2 ? '<div class="frfind frhold" aria-hidden="true"><small>Finding something that fits your group</small><i></i><i></i><i></i></div>' : '';
+  if (!nw.length) return hold || (p.flow === 'trip' && !(p.finds || []).length && !p.data.stay ? '<p class="muted frfine">Looking for things that fit this trip. They’ll show up here as they’re found.</p>' : '');
+  return hold + nw.map(f => frFindCard(f)).join('');
 }
 const frMaybe = p => { const m = (p.finds || []).filter(f => f.status === 'maybe'); return m.length ? `<div class="frlist"><b>Maybe pile</b>${m.map(f => `<span>${esc(f.title)}<em><button class="frlink" data-fr="find" data-id="${f.id}" data-do="add">Put it to the group</button> · <button class="frlink" data-fr="find" data-id="${f.id}" data-do="no">Drop</button></em></span>`).join('')}</div>` : ''; };
 /* ----- group swipe: one idea at a time, yes or no ----- */
