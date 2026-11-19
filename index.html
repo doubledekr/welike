@@ -1159,6 +1159,9 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .popts{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 12px;margin:-2px 0 6px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}.popt{flex:none;width:132px;scroll-snap-align:start;padding:0 0 9px;border-radius:16px;background:rgba(255,255,255,.06);text-align:left;overflow:hidden;box-shadow:none;display:flex;flex-direction:column}.popt img,.popt .pimg{width:100%;height:84px;object-fit:cover;display:grid;place-items:center;font-size:28px;background:rgba(255,255,255,.04)}.popt b{font-size:13.5px;line-height:1.25;padding:7px 9px 2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.popt small{font-size:11.5px;color:var(--muted);padding:0 9px}.popt small.lk{color:#ffb38a}
 .psug{margin:-4px 0 10px 66px;padding:9px 12px;border-radius:14px;background:rgba(255,210,63,.1);font-size:13px;line-height:1.4;color:#f3e3b8}.psug.mine{background:rgba(255,255,255,.05);color:var(--muted)}.psug .jlink{display:inline;margin-left:8px;padding:0;font-size:13px}.psb{display:flex;gap:8px;margin-top:8px}.psugb{display:block;margin:4px 0 10px 66px;padding:4px 0;background:none;box-shadow:none;color:#ffd5c8;font-size:12.5px;font-weight:600}
 .pquest{display:flex;align-items:center;gap:6px;margin:2px 0 10px 66px;padding:7px 12px;border-radius:999px;background:rgba(255,154,128,.12);color:#ffd5c8;font-size:12.5px;font-weight:700;box-shadow:none}.pqo{display:flex;align-items:center;gap:12px;padding:10px;border-radius:16px;background:rgba(255,255,255,.05);margin-bottom:8px}.pqo img,.pqo .pimg{width:56px;height:56px;border-radius:12px;object-fit:cover;flex:none;display:grid;place-items:center}.pqo b{display:block;font-size:14.5px}.pqo small{font-size:12.5px;color:var(--muted)}
+.wfh{display:flex;gap:12px;align-items:center;margin:12px 0 14px;padding:10px;border-radius:16px;background:rgba(255,255,255,.05)}.wfh img,.wfh .pimg{width:58px;height:58px;border-radius:12px;object-fit:cover;flex:none;display:grid;place-items:center}.wfh b{display:block;font-size:15px;line-height:1.3}.wfh small{display:block;font-size:12.5px;color:var(--muted);margin-top:3px}
+.wftl{display:grid;gap:6px;margin-bottom:8px}.wfl{display:flex;align-items:baseline;gap:10px;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.04)}.wfl small{flex:none;width:96px;font-size:12.5px;color:var(--muted)}.wfl b{flex:1;font-size:14px;font-weight:600}.wfl em{font-style:normal;font-size:12px;font-weight:700}.wfl.new{background:rgba(45,212,191,.12)}.wfl.new em{color:#7be0cf}.wfl.clash{background:rgba(255,90,110,.12)}.wfl.clash em{color:#ff9aa8}
+.pkeep{display:inline-block;margin-top:4px;padding:2px 0;background:none;box-shadow:none;color:#ffd5c8;font-size:12.5px;font-weight:600}.pkeep.on{color:#ffd23f}
 #tcbar{position:fixed;left:50%;bottom:calc(var(--sb) + 86px);transform:translateX(-50%);z-index:19;display:flex;align-items:center;gap:9px;max-width:92%;padding:8px 14px;border-radius:999px;background:linear-gradient(135deg,rgba(84,38,44,.96),rgba(70,26,52,.96));box-shadow:0 8px 24px -10px rgba(255,90,110,.9);color:#fff;font-size:13.5px;white-space:nowrap}
 #tcbar .dot{width:8px;height:8px;border-radius:50%;background:#ff6a6a;animation:tcdot 1.6s ease-in-out infinite}#tcbar .go{font-weight:700;color:#ffd5c8}@keyframes tcdot{50%{opacity:.35}}
 @media (prefers-reduced-motion:reduce){.tcpts,#tcbar .dot{animation:none}}
@@ -2447,27 +2450,48 @@ const wildDay = w => w.when && w.when >= pToday() ? w.when : (() => { let d = pT
 const wildDayName = w => { const d = wildDay(w), pl = (S.plans || []).find(p => p.day === d && p.status !== 'cancelled'); const n = d === pToday() ? 'tonight' : new Date(d + 'T12:00').toLocaleDateString([], { weekday: 'long' }); return pl ? `${n === 'tonight' ? 'tonight' : n + '’s'} plan` : `a ${n === 'tonight' ? 'plan for tonight' : n + ' plan'}`; };
 const legTxt = mi => mi == null ? '' : mi <= 1.1 ? `${Math.max(2, Math.round(mi * 20))} min walk` : `about ${Math.round(mi * 2.6 + 4)} min drive`;
 const cLL = c => c?.data?.lat != null && c?.data?.lng != null ? [Number(c.data.lat), Number(c.data.lng)] : null;
-function wildFits(plan, card) {
-  const its = (plan.items || []).filter(i => i.card), slots = plan.mode === 'in' ? ['dinner', 'evening'] : ['day', 'drinks', 'dinner', 'evening'], here = cLL(card), fixed = isDated(card) && evStart(card);
-  return slots.map(s => { const time = fixed || PSLOT[s][1], cur = (plan.items || []).find(i => i.slot === s && i.card);
-    const near = its.filter(i => i.slot !== s && cLL(i.card)).map(i => ({ i, mi: here ? milesApart(...here, ...cLL(i.card)) : null, gap: Math.abs(toMin(i.time || PSLOT[i.slot]?.[1] || '12:00') - toMin(time)) })).sort((a, b) => a.gap - b.gap)[0];
-    const clash = its.find(i => i.slot !== s && Math.abs(toMin(i.time || PSLOT[i.slot]?.[1] || '12:00') - toMin(time)) < 75);
-    const score = (cur ? 100 : 0) + (clash ? 60 : 0) + (near?.mi != null ? near.mi * 10 : 15);
-    return { s, time, cur, near, clash, score }; }).filter(o => !fixed || o.time === fixed).sort((a, b) => a.score - b.score); }
 const toMin = t => { const [h, m] = String(t).split(':').map(Number); return (h || 0) * 60 + (m || 0); };
+// one stop's time window: start, and how long it lasts
+const pSpan = i => { const c = i.card, st = toMin(i.time || PSLOT[i.slot]?.[1] || '12:00'), dur = c?.data?.minutes || PSTAY[i.slot] || (i.slot.startsWith('quest') ? 30 : 60); return [st, st + dur]; };
+const pName = i => i.card ? i.card.title.split(/[,(]/)[0].trim() : i.pair?.length === 2 ? `the This or That (${i.pair.map(c => c.title.split(/[,(]/)[0]).join(' or ')})` : `the open ${PSLOT[i.slot]?.[0].toLowerCase() || ''} spot`;
+const pRange = (a, b) => `${pT(pAddMin('00:00', a))}–${pT(pAddMin('00:00', b))}`;
+function wildFits(plan, card) {   // for a find with no set time: each spot it could take, in plain words
+  const its = (plan.items || []), here = cLL(card), slots = plan.mode === 'in' ? ['dinner', 'evening'] : ['day', 'drinks', 'dinner', 'evening'];
+  return slots.map(s => { const cur = its.find(i => i.slot === s && (i.card || i.pair?.length)), time = cur?.time || PSLOT[s][1];
+    const near = its.filter(i => i.slot !== s && cLL(i.card)).map(i => ({ i, mi: here ? milesApart(...here, ...cLL(i.card)) : null, gap: Math.abs(toMin(i.time || '12:00') - toMin(time)) })).sort((a, b) => a.gap - b.gap)[0];
+    return { s, time, cur, near, score: (cur ? 100 : 0) + (near?.mi != null ? near.mi * 10 : 15) }; }).sort((a, b) => a.score - b.score); }
 async function wildPlan() { const w = S.idea?.wild; if (!w) return; step('wild_plan'); let c;
   try { c = await rpc('wild_act', { p_code: S.code, p_member: S.me, p_id: w.id, p_action: 'card' }); } catch { return toast('That didn’t work. Try again.'); }
-  toast('Finding where it is…', 2500); await new Promise(r => setTimeout(r, 3500));
-  try { c = await rpc('wild_act', { p_code: S.code, p_member: S.me, p_id: w.id, p_action: 'card' }); } catch {}
-  const day = wildDay(w), plan = (S.plans || []).find(p => p.day === day && p.status !== 'cancelled');
+  sheet(`<div class="grab"></div><div class="body"><h2>Finding where it fits…</h2><p class="muted">Looking up ${esc(c.title)}.</p></div>`);
+  for (let k = 0; k < 4 && !cLL(c); k++) { await new Promise(r => setTimeout(r, 1500)); try { c = await rpc('wild_act', { p_code: S.code, p_member: S.me, p_id: w.id, p_action: 'card' }); } catch {} }
+  const day = wildDay(w), plan = (S.plans || []).find(p => p.day === day && p.status !== 'cancelled' && p.status !== 'dropped');
   if (!S.pool) await dayPool().catch(() => {});
   if (!plan) { closeSheet(); return dayDraft({ mode: 'out', anchor: c, day }); }
-  S.wildC = c; S.wildP = plan; const fits = wildFits(plan, c), best = fits[0], when = t => pT(t);
-  const line = o => [`${PSLOT[o.s][0]}, ${when(o.time)}`, o.cur ? `instead of ${esc(o.cur.card.title)}` : '', o.clash && !o.cur ? `close to ${esc(o.clash.card.title)} at ${when(o.clash.time || PSLOT[o.clash.slot][1])}` : '', o.near?.mi != null ? `${legTxt(o.near.mi)} from ${esc(o.near.i.card.title)}` : ''].filter(Boolean).join(' · ');
-  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('cal')}</span><h2>Where it fits ${esc(new Date(day + 'T12:00').toLocaleDateString([], { weekday: 'long' }))}</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">${esc(c.title)}${cLL(c) ? '' : '. We couldn’t pin down where it is, so travel times are a guess.'}</p></div></div>
-    ${best.clash || best.cur ? `<div class="note" style="margin:10px 0">${best.cur ? `Every slot is taken. Best swap: ${esc(best.cur.card.title)}.` : `Heads up: it’s close to ${esc(best.clash.card.title)}. You may want to move one.`}</div>` : ''}
-    ${fits.map((o, k) => `<button class="pollo ${k ? '' : 'on'}" data-act="wildslot" data-s="${o.s}" data-t="${o.time}"><span>${k ? '' : '<b style="display:block;font-size:12px;color:var(--muted);margin-bottom:2px">Fits best</b>'}${line(o)}</span></button>`).join('')}
-    <button class="jlink" data-act="closesheet">Not now</button>`); }
+  S.wildC = c; S.wildP = plan; const dn = new Date(day + 'T12:00').toLocaleDateString([], { weekday: 'long' }), st = evStart(c), its = (plan.items || []).filter(i => i.card || i.pair?.length);
+  const head = `<div class="wfh">${c.image ? `<img src="${esc(c.image)}" alt="">` : `<span class="pimg">${ic('ticket')}</span>`}<span class="grow"><b>${esc(c.title)}</b><small>${esc([st ? pRange(toMin(st), toMin(st) + (c.data?.minutes || 120)) : 'No set time', c.data?.venue || ''].filter(Boolean).join(' · '))}</small></span></div>`;
+  const leg = (a, b) => { const A = cLL(a?.card || a), B = cLL(b?.card || b); return A && B ? legTxt(milesApart(...A, ...B)) : ''; };
+  let body;
+  if (st) { // it has a time: show the day with it in place, say what it bumps into, and offer the fixes
+    const s0 = toMin(st), e0 = s0 + (c.data?.minutes || 120), clash = its.filter(i => { const [a, b] = pSpan(i); return a < e0 && b > s0; });
+    const before = its.filter(i => pSpan(i)[0] < s0).sort((a, b) => pSpan(b)[0] - pSpan(a)[0])[0], after = its.filter(i => pSpan(i)[0] >= s0).sort((a, b) => pSpan(a)[0] - pSpan(b)[0])[0];
+    const line = [...its.map(i => ({ t: pSpan(i)[0], h: `<div class="wfl ${clash.includes(i) ? 'clash' : ''}"><small>${pRange(...pSpan(i))}</small><b>${esc(pName(i))}</b>${clash.includes(i) ? '<em>overlaps</em>' : ''}</div>` })),
+      { t: s0, h: `<div class="wfl new"><small>${pRange(s0, e0)}</small><b>${esc(c.title)}</b><em>new</em></div>` }].sort((a, b) => a.t - b.t).map(x => x.h).join('');
+    const go = [before && leg(before, c) ? `${leg(before, c)} from ${esc(pName(before))}` : '', after && leg(c, after) ? `${leg(c, after)} to ${esc(pName(after))}` : ''].filter(Boolean).join(' · ');
+    const acts = !clash.length ? `<button class="btn" data-act="wildgo2" data-o="">Add it at ${pT(st)}</button>`
+      : clash.map(i => { const later = pAddMin('00:00', e0 + 20), fits = !its.some(j => j !== i && j !== clash[0] && Math.abs(pSpan(j)[0] - (e0 + 20)) < 60) && e0 + 20 < 23 * 60;
+          return `<button class="btn" data-act="wildgo2" data-o="rm:${i.slot}">Add it and take out ${esc(pName(i))}</button>${fits && i.card ? `<div style="height:8px"></div><button class="btn ghost" data-act="wildgo2" data-o="mv:${i.slot}:${later}">Add it and move ${esc(pName(i))} to ${pT(later)}</button>` : ''}`; }).join('<div style="height:8px"></div>')
+        + `<button class="jlink" data-act="wildgo2" data-o="">Add it anyway, they overlap</button>`;
+    body = `<div class="wftl">${line}</div>${go ? `<p class="muted" style="font-size:13.5px;margin:6px 0 12px">${go}${cLL(c) ? '' : ' (rough: we couldn’t pin down where it is)'}</p>` : ''}${clash.length ? `<div class="note" style="margin:0 0 12px">It starts at ${pT(st)} and runs to ${pT(pAddMin('00:00', e0))}, so it overlaps ${clash.map(i => esc(pName(i))).join(' and ')}.</div>` : ''}${acts}`;
+  } else { // no set time: each spot it could take, said plainly
+    const fits = wildFits(plan, c);
+    body = `<p class="muted" style="font-size:14px;margin:4px 0 10px">It has no set time. Pick where it goes:</p>${fits.map((o, k) => `<button class="pollo ${k ? '' : 'on'}" data-act="wildslot" data-s="${o.s}" data-t="${o.time}"><span>${o.cur ? `Swap out ${esc(pName(o.cur))} at ${pT(o.time)}` : `Put it at ${pT(o.time)}, in the free ${PSLOT[o.s][0].toLowerCase()} spot`}<small>${[k ? '' : 'Fits best', o.near?.mi != null ? `${legTxt(o.near.mi)} from ${esc(pName(o.near.i))}` : ''].filter(Boolean).join(' · ')}</small></span></button>`).join('')}`;
+  }
+  sheet(`<div class="grab"></div><div class="body"><h2>Add to ${esc(dn)}</h2>${head}${body}<p class="muted" style="font-size:12.5px;margin-top:10px">Nothing is sent yet: you’ll see the plan and can change it before it goes to ${esc(them())}.</p><button class="jlink" data-act="closesheet">Not now</button></div>`); }
+function wildGo(o) { const plan = S.wildP, c = S.wildC; if (!plan || !c) return; closeSheet(); dayDraft({ plan }); const pl = S.pl, [k, sl, t] = (o || '').split(':');
+  if (k === 'rm') { pl.slots = pl.slots.filter(x => x !== sl); delete pl.items[sl]; }
+  if (k === 'mv' && pl.items[sl]) pl.items[sl].time = t + (o.split(':')[3] ? ':' + o.split(':')[3] : '');
+  const slot = ['event', 'event2'].find(x => !pl.slots.includes(x)) || 'event'; if (!pl.slots.includes(slot)) pl.slots.push(slot);
+  pl.items[slot] = { time: evStart(c), card: c, find: false, why: 'both', keep: true }; S.wildP = S.wildC = null; step('wild_fit'); dayEdit(); }
 function wildSlot(sl, time) { const plan = S.wildP, c = S.wildC; if (!plan || !c) return; closeSheet(); dayDraft({ plan });
   const pl = S.pl; if (!pl.slots.includes(sl)) pl.slots.push(sl); pl.items[sl] = { time, card: c, find: false, why: 'both', keep: true }; S.wildP = S.wildC = null; dayEdit(); }
 async function wildVote(a) { const w = S.idea?.wild; if (!w) return; let r; try { r = await rpc('wild_act', { p_code: S.code, p_member: S.me, p_id: w.id, p_action: a }); } catch { return toast('That didn’t save. Try again.'); }
@@ -2679,7 +2703,7 @@ function tdeckInit() {
 /* ---------- plan a day ---------- */
 // A plan is a date and two to four things in order, built from what both people have liked. One person puts it
 // together and sends it, the other says yes, changes it or passes. An empty slot can be filled by a short swipe round.
-const PSLOT = { day: ['Daytime', '13:00'], drinks: ['Drinks', '17:30'], dinner: ['Dinner', '19:00'], evening: ['Evening', '21:00'], drinks2: ['Next bar', '21:15'], drinks3: ['One more', '22:30'], quest: ['Side quest', '16:00'], quest2: ['Side quest', '20:30'] };
+const PSLOT = { day: ['Daytime', '13:00'], drinks: ['Drinks', '17:30'], dinner: ['Dinner', '19:00'], evening: ['Evening', '21:00'], drinks2: ['Next bar', '21:15'], drinks3: ['One more', '22:30'], quest: ['Side quest', '16:00'], quest2: ['Side quest', '20:30'], event: ['Event', '15:00'], event2: ['Event', '20:00'] };
 // someone else's surprise stop stays a surprise until an hour before (the server does the same; this covers answers that come back unmasked)
 const pMask = p => !p?.items ? p : { ...p, items: p.items.map(i => i.hidden && i.hidden !== S.me && i.card && !i.card.data?.surprise && Date.now() < Date.parse(i.reveal || 0) ? { ...i, card: { id: 'hid:' + i.slot, deck: i.card.deck, kind: 'surprise', title: `A surprise from ${i.hidden}`, subtitle: 'Shows itself an hour before', image: null, data: { surprise: true } } } : i) };
 const pHid = c => !!c?.data?.surprise;
@@ -2896,8 +2920,8 @@ function dayEdit() {
     const note = [o === false ? '<span class="pwarn">Closed then, or closes too soon</span>' : cl ? 'open until ' + cl : isDated(c) && !evStart(c) ? 'pick a start time when you book' : '', mi != null ? `${mi} mi from ${esc((n => n.length > 20 ? n.slice(0, 19).trim() + '…' : n)(ref.title.split(/[,(]/)[0].trim()))}` : '', pl.mode === 'in' && s === 'dinner' ? (c.kind === 'cook' ? 'cook at home' : 'order in') : ''].filter(Boolean).join(' · ');
     const more = pCands(s).filter(x => x.id !== c.id).length;
     if (pHid(c)) return `<div class="prow"><span class="pimg">${ic('gem')}</span><span class="grow"><small>${tm} · ${lab}</small><b>${esc(c.title)}</b><small>It stays where it is. You’ll see it an hour before.</small></span></div>`;
-    const sp = partner() && !s.startsWith('quest') ? `<button class="pill ${it.hidden ? 'hot' : ''}" data-pl="hide|${s}" aria-pressed="${!!it.hidden}">${it.hidden ? 'Surprise' : 'Keep secret'}</button>` : '';
-    return `<div class="prow">${c.image ? `<img src="${esc(c.image)}" alt="">` : `<span class="pimg">${emojiFor(c)}</span>`}<span class="grow"><small>${tm} · ${lab}</small><b>${esc(c.title)}</b><small>${it.hidden ? `A surprise: ${esc(them())} sees “a surprise” until an hour before` : note || esc((c.subtitle || '').split(' · ')[0])}</small></span>${sp}${c.id !== pl.anchor?.id ? `<button class="pill ${S.plOpt?.s === s ? 'hot' : ''}" data-pl="swap|${s}">${S.plOpt?.s === s ? 'Close' : 'Options'}</button>` : ''}</div>`;
+    const sp = partner() && !s.startsWith('quest') ? `<button class="pkeep ${it.hidden ? 'on' : ''}" data-pl="hide|${s}" aria-pressed="${!!it.hidden}">${it.hidden ? 'Kept secret · show it' : 'Keep it a surprise'}</button>` : '';
+    return `<div class="prow">${c.image ? `<img src="${esc(c.image)}" alt="">` : `<span class="pimg">${emojiFor(c)}</span>`}<span class="grow"><small>${tm} · ${lab}</small><b>${esc(c.title)}</b><small>${it.hidden ? `A surprise: ${esc(them())} sees “a surprise” until an hour before` : note || esc((c.subtitle || '').split(' · ')[0])}</small>${sp}</span>${c.id !== pl.anchor?.id ? `<button class="pill ${S.plOpt?.s === s ? 'hot' : ''}" data-pl="swap|${s}">${S.plOpt?.s === s ? 'Close' : 'Options'}</button>` : ''}</div>`;
   };
   const wrap = s => { const c = pl.items[s].card; return (c && (pHid(c) || (c.id === pl.anchor?.id && pl.fixed)) ? row(s) : plSw(s, row(s))) + (S.plOpt?.s === s ? plOptRow(s) : ''); };
   const addable = (pl.mode === 'in' ? ['dinner', 'evening'] : pl.slots.includes('drinks') && isBar(pl.items.drinks?.card || {}) && pl.anchor && isBar(pl.anchor) ? ['dinner', 'drinks2', 'drinks3'] : PMAIN).filter(s => !pl.slots.includes(s));
@@ -5949,6 +5973,7 @@ document.addEventListener('click', async e => {
       case 'wildin': return wildVote('in');
       case 'wildplan': t.disabled = true; return wildPlan();
       case 'wildslot': return wildSlot(ds.s, ds.t);
+      case 'wildgo2': return wildGo(ds.o);
       case 'ideaplan': return ideaPlan();
       case 'sharefriends': return friendSheet();
       case 'sharehow': return friendHow(ds.how);

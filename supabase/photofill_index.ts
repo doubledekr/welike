@@ -69,7 +69,7 @@ Deno.serve(async (req: Request) => {
     const { data: cards } = await sb.from("cards").select("id,title,image,data").in("id", ids);
     if (a.geo) for (const c of (cards ?? []) as any[]) {
       if (c.data?.lat || !(c.data?.address || c.title)) continue;
-      const g = await locate(key, [c.title, c.data?.address].filter(Boolean).join(", "));
+      const g = await locate(key, [c.data?.venue || c.title, c.data?.address, c.data?.near].filter(Boolean).join(", "));
       if (!g) continue;
       c.data = { ...c.data, lat: g.lat, lng: g.lng, place_id: c.data?.place_id ?? g.id, ...(g.photo && !c.data?.photo ? { photo: g.photo } : {}), ...(g.credit ? { photo_credit: g.credit } : {}) };
       await sb.from("cards").update({ data: c.data }).eq("id", c.id);
