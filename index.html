@@ -4091,7 +4091,7 @@ async function frClick(t, ds) {
   switch (a) {
     case 'open': return frOpen();
     case 'simkey': { const k = (document.getElementById('simk')?.value || '').trim(); if (!k) return; ls.set('simkey', k); return simSheet(); }
-    case 'simpick': ['code', 'name', 'acctl', 'solo', 'fpend'].forEach(k => ls.del(k)); ls.set('simp', ds.id); ls.set('simn', ds.n); return void location.reload();
+    case 'simpick': simSwitch(ds.id, ds.n, ds.c, ds.m); return void location.reload();
     case 'refresh': t.disabled = true; try { await frLoad(); } catch {} return render();
     case 'reload': return frOpenPlan(p.id);
     case 'signout': try { await sbA.auth.signOut(); } catch {} S.acct = null; FR.d = null; ls.del('solo'); S.startMode = ''; return render();
@@ -4166,7 +4166,7 @@ document.addEventListener('visibilitychange', () => {   // coming back to the ap
 // ===== Accounts =====
 async function acctRpc(fn, args) { const { data, error } = await sbA.rpc(fn, args || {}); if (error) throw error; return data; }
 async function acctInit() {
-  if (SIM) { S.acct = ls.get('simp') ? { email: 'Test person' } : null; S.acctName = ls.get('simn') || '';
+  if (SIM) { await simCheck(); S.acct = ls.get('simp') ? { email: 'Test person' } : null; S.acctName = ls.get('simn') || '';
     try { const t = await rpc('sim_now'); if (t && window.__simShift) { const real = performance.timeOrigin + performance.now(), sh = Math.round((new Date(t).getTime() - real) / 60000) * 60000; if (Math.abs(sh - Number(ls.get('simshift') || 0)) > 90000) { window.__simShift(sh); ls.set('simshift', String(sh)); } } } catch {}
     return; }
   try { const { data } = await sbA.auth.getSession(); const u = data.session?.user; S.acct = u ? { email: u.email || '' } : null; S.acctName = acctNameOf(u); } catch { S.acct = null; }
@@ -4185,6 +4185,29 @@ async function acctRestore() {
     S.code = r.code; S.me = r.name; ls.set('code', r.code); ls.set('name', r.name); ls.set('acctl', r.code + '|' + r.name); return true;
   } catch { return false; }
 }
+// Simulation copy only. Each test person keeps their own saved flags (intro tour, asks, tips), as if each had their own phone.
+// Only the sim key, the clock shift and the device id belong to the browser.
+const SIMKEEP = ['simkey', 'simshift', 'dev'];
+function simTake() { const P = 'wl_', out = {}; try { Object.keys(localStorage).forEach(k => { if (!k.startsWith(P)) return; const s = k.slice(P.length); if (SIMKEEP.includes(s) || s.startsWith('simbox:')) return; out[s] = localStorage.getItem(k); localStorage.removeItem(k); }); } catch {} return out; }
+function simSwitch(id, name, code, member) {
+  const old = ls.get('simp'), mine = simTake();
+  if (old && old !== id) ls.set('simbox:' + old, JSON.stringify(mine));
+  let theirs = {}; try { theirs = JSON.parse(ls.get('simbox:' + id) || (old === id ? JSON.stringify(mine) : '{}')) || {}; } catch {}
+  Object.entries(theirs).forEach(([k, v]) => ls.set(k, v)); ls.del('simbox:' + id);
+  ['code', 'name', 'acctl', 'solo', 'fpend'].forEach(k => ls.del(k));
+  ls.set('simp', id); ls.set('simn', name);
+  // The roster already says which couple and member this person is, so the page never waits on a lookup to know.
+  if (code && member) { ls.set('code', code); ls.set('name', member); ls.set('acctl', code + '|' + member); }
+}
+// The saved test person may be gone (the sandbox was reset) or may not match what is saved. The roster decides.
+async function simCheck() {
+  const id = ls.get('simp'), key = ls.get('simkey'); if (!id || !key) return;
+  let r = null; try { r = await rpc('sim_roster', { p_key: key }); } catch { return; }
+  if (!r?.ok) return;
+  const p = r.people.find(x => x.id === id);
+  if (!p) { simTake(); try { Object.keys(localStorage).filter(k => k.startsWith('wl_' + 'simbox:')).forEach(k => localStorage.removeItem(k)); } catch {} S.code = S.me = null; return; }
+  if (p.couple_code && p.member && (S.code !== p.couple_code || S.me !== p.member)) { S.code = p.couple_code; S.me = p.member; ls.set('code', S.code); ls.set('name', S.me); ls.set('acctl', S.code + '|' + S.me); }
+}
 // Simulation copy: pick which made-up person this phone is.
 async function simSheet() {
   if (!ls.get('simkey')) return sheet(`<div class="grab"></div><div class="body acs"><h2>Simulation</h2><p class="muted">This copy runs on made-up people only. Paste the sim key to pick one.</p><input id="simk" class="acin" autocomplete="off" autocapitalize="none" placeholder="Sim key" aria-label="Sim key"><button class="btn" data-fr="simkey">Continue</button></div>`);
@@ -4193,7 +4216,7 @@ async function simSheet() {
   if (!r?.ok) { ls.del('simkey'); return simSheet(); }
   const me = ls.get('simp'), by = {}; r.people.forEach(x => (by[x.city || 'No home yet'] = by[x.city || 'No home yet'] || []).push(x));
   sheet(`<div class="grab"></div><div class="body you"><h2>Who are you?</h2><p class="muted" style="margin:6px 0 4px">Sim date: ${new Date(r.now).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}. ${r.people.length} test people.</p>
-    ${r.people.length ? Object.entries(by).map(([c, ps]) => `<div class="sect">${esc(c)}</div><div class="ycard">${ps.map(x => `<button class="yrow" data-fr="simpick" data-id="${x.id}" data-n="${esc(x.name)}"><span class="tic">${ic(x.solo ? 'user' : 'heart')}</span><span class="grow"><b>${esc(x.name)}${x.id === me ? ' (you now)' : ''}</b><small>${x.solo ? 'On their own' : 'With ' + esc(x.partner || 'nobody yet')} · ${x.friends} friends</small></span><span class="ych">›</span></button>`).join('')}</div>`).join('') : '<p class="muted">No test people yet. Make some with sim_seed.</p>'}</div>`);
+    ${r.people.length ? Object.entries(by).map(([c, ps]) => `<div class="sect">${esc(c)}</div><div class="ycard">${ps.map(x => `<button class="yrow" data-fr="simpick" data-id="${x.id}" data-n="${esc(x.name)}" data-c="${esc(x.couple_code || '')}" data-m="${esc(x.member || '')}"><span class="tic">${ic(x.solo ? 'user' : 'heart')}</span><span class="grow"><b>${esc(x.name)}${x.id === me ? ' (you now)' : ''}</b><small>${x.solo ? 'On their own' : 'With ' + esc(x.partner || 'nobody yet')} · ${x.friends} ${x.friends === 1 ? 'friend' : 'friends'}</small></span><span class="ych">›</span></button>`).join('')}</div>`).join('') : '<p class="muted">No test people yet. Make some with sim_seed.</p>'}</div>`);
 }
 function acctSheet(stage) {
   if (SIM) return simSheet();
