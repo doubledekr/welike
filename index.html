@@ -1155,6 +1155,7 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .tfb small{display:block}.tfl{display:grid;gap:8px;margin:14px 0 8px}.tfr{display:flex;align-items:center;gap:12px;padding:12px 13px;border-radius:16px;background:rgba(255,255,255,.06);text-align:left}.tfr.done{background:rgba(255,255,255,.03)}.tfr.done b{color:var(--muted);text-decoration:line-through}
 .tfr b{display:block;font-size:14.5px}.tfr small{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}.tfc{width:24px;height:24px;flex:none;border-radius:50%;border:2px solid rgba(255,255,255,.25);display:grid;place-items:center}.tfr.done .tfc{border-color:#2dd4bf;color:#2dd4bf}.tfc svg{width:14px;height:14px}
 .tfa{flex:none;padding:8px 12px;border-radius:999px;background:rgba(255,154,128,.16);color:#ffd5c8;font-weight:700;font-size:13.5px;box-shadow:none}
+.wfa{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}.wfa .btn{padding:14px 8px;font-size:15px}.wfa .btn.on{background:rgba(45,212,191,.18);color:#7be0cf;box-shadow:none}
 #tcbar{position:fixed;left:50%;bottom:calc(var(--sb) + 86px);transform:translateX(-50%);z-index:19;display:flex;align-items:center;gap:9px;max-width:92%;padding:8px 14px;border-radius:999px;background:linear-gradient(135deg,rgba(84,38,44,.96),rgba(70,26,52,.96));box-shadow:0 8px 24px -10px rgba(255,90,110,.9);color:#fff;font-size:13.5px;white-space:nowrap}
 #tcbar .dot{width:8px;height:8px;border-radius:50%;background:#ff6a6a;animation:tcdot 1.6s ease-in-out infinite}#tcbar .go{font-weight:700;color:#ffd5c8}@keyframes tcdot{50%{opacity:.35}}
 @media (prefers-reduced-motion:reduce){.tcpts,#tcbar .dot{animation:none}}
@@ -2434,8 +2435,44 @@ function wildSheet() { const w = S.idea?.wild; if (!w) return; step('wild_open')
   const main = w.book_url ? A(w.book_url, `Reserve on ${esc(w.book_name || 'the booking page')}`, 'btn') : w.venue_url ? A(w.venue_url, `See it on ${esc(w.venue_host || 'their site')}`, 'btn') : A(w.url, `See it on ${esc(w.source || 'the web')}`, 'btn');
   const more = [w.book_url && w.venue_url ? A(w.venue_url, `Details on ${esc(w.venue_host || 'their site')}`, 'jlink') : '', w.book_url || w.venue_url ? A(w.url, `Where we found it: ${esc(w.source || 'the web')}`, 'jlink') : ''].join('');
   sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('spark')}</span><h2>${esc(w.title)}</h2>${when || w.address ? `<p class="muted" style="margin-top:6px;font-size:14px">${esc([when, w.address].filter(Boolean).join(' · '))}</p>` : ''}<p class="muted" style="margin-top:10px;font-size:15.5px;line-height:1.5;color:var(--text)">${esc(w.body)}</p></div></div>
-    <div style="height:14px"></div>${main}${more}<button class="jlink" data-act="wildoff">Not this one</button>
+    <div class="wfa"><button class="btn ${w.votes?.[S.me] === 'in' ? 'on' : 'ghost'}" data-act="wildin">${w.votes?.[S.me] === 'in' ? ic('check') + ' Interested' : 'Interested'}</button><button class="btn" data-act="wildplan">Add to ${esc(wildDayName(w))}</button></div>
+    <div style="height:10px"></div>${main.replace("class=\"btn\"", "class=\"btn ghost\"")}${more}<button class="jlink" data-act="wildoff">Not for us</button>
     <p class="muted" style="font-size:12px;text-align:center;margin-top:6px">Found on the web, not in your decks. Check the page for times before you go.</p>`); }
+
+// Found for this week: Interested (private until you both are), Not for us, or Add to a plan where it fits best
+const wildDay = w => w.when && w.when >= pToday() ? w.when : (() => { let d = pToday(); for (let i = 0; i < 7; i++) { if (new Date(d + 'T12:00').getDay() === 6) return d; d = pAdd(d, 1); } return d; })();
+const wildDayName = w => { const d = wildDay(w), pl = (S.plans || []).find(p => p.day === d && p.status !== 'cancelled'); const n = d === pToday() ? 'tonight' : new Date(d + 'T12:00').toLocaleDateString([], { weekday: 'long' }); return pl ? `${n === 'tonight' ? 'tonight' : n + '’s'} plan` : `a ${n === 'tonight' ? 'plan for tonight' : n + ' plan'}`; };
+const legTxt = mi => mi == null ? '' : mi <= 1.1 ? `${Math.max(2, Math.round(mi * 20))} min walk` : `about ${Math.round(mi * 2.6 + 4)} min drive`;
+const cLL = c => c?.data?.lat != null && c?.data?.lng != null ? [Number(c.data.lat), Number(c.data.lng)] : null;
+function wildFits(plan, card) {
+  const its = (plan.items || []).filter(i => i.card), slots = plan.mode === 'in' ? ['dinner', 'evening'] : ['day', 'drinks', 'dinner', 'evening'], here = cLL(card), fixed = isDated(card) && evStart(card);
+  return slots.map(s => { const time = fixed || PSLOT[s][1], cur = (plan.items || []).find(i => i.slot === s && i.card);
+    const near = its.filter(i => i.slot !== s && cLL(i.card)).map(i => ({ i, mi: here ? milesApart(...here, ...cLL(i.card)) : null, gap: Math.abs(toMin(i.time || PSLOT[i.slot]?.[1] || '12:00') - toMin(time)) })).sort((a, b) => a.gap - b.gap)[0];
+    const clash = its.find(i => i.slot !== s && Math.abs(toMin(i.time || PSLOT[i.slot]?.[1] || '12:00') - toMin(time)) < 75);
+    const score = (cur ? 100 : 0) + (clash ? 60 : 0) + (near?.mi != null ? near.mi * 10 : 15);
+    return { s, time, cur, near, clash, score }; }).filter(o => !fixed || o.time === fixed).sort((a, b) => a.score - b.score); }
+const toMin = t => { const [h, m] = String(t).split(':').map(Number); return (h || 0) * 60 + (m || 0); };
+async function wildPlan() { const w = S.idea?.wild; if (!w) return; step('wild_plan'); let c;
+  try { c = await rpc('wild_act', { p_code: S.code, p_member: S.me, p_id: w.id, p_action: 'card' }); } catch { return toast('That didn’t work. Try again.'); }
+  toast('Finding where it is…', 2500); await new Promise(r => setTimeout(r, 3500));
+  try { c = await rpc('wild_act', { p_code: S.code, p_member: S.me, p_id: w.id, p_action: 'card' }); } catch {}
+  const day = wildDay(w), plan = (S.plans || []).find(p => p.day === day && p.status !== 'cancelled');
+  if (!S.pool) await dayPool().catch(() => {});
+  if (!plan) { closeSheet(); return dayDraft({ mode: 'out', anchor: c, day }); }
+  S.wildC = c; S.wildP = plan; const fits = wildFits(plan, c), best = fits[0], when = t => pT(t);
+  const line = o => [`${PSLOT[o.s][0]}, ${when(o.time)}`, o.cur ? `instead of ${esc(o.cur.card.title)}` : '', o.clash && !o.cur ? `close to ${esc(o.clash.card.title)} at ${when(o.clash.time || PSLOT[o.clash.slot][1])}` : '', o.near?.mi != null ? `${legTxt(o.near.mi)} from ${esc(o.near.i.card.title)}` : ''].filter(Boolean).join(' · ');
+  sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('cal')}</span><h2>Where it fits ${esc(new Date(day + 'T12:00').toLocaleDateString([], { weekday: 'long' }))}</h2><p class="muted" style="margin-top:8px;font-size:15px;line-height:1.5">${esc(c.title)}${cLL(c) ? '' : '. We couldn’t pin down where it is, so travel times are a guess.'}</p></div></div>
+    ${best.clash || best.cur ? `<div class="note" style="margin:10px 0">${best.cur ? `Every slot is taken. Best swap: ${esc(best.cur.card.title)}.` : `Heads up: it’s close to ${esc(best.clash.card.title)}. You may want to move one.`}</div>` : ''}
+    ${fits.map((o, k) => `<button class="pollo ${k ? '' : 'on'}" data-act="wildslot" data-s="${o.s}" data-t="${o.time}"><span>${k ? '' : '<b style="display:block;font-size:12px;color:var(--muted);margin-bottom:2px">Fits best</b>'}${line(o)}</span></button>`).join('')}
+    <button class="jlink" data-act="closesheet">Not now</button>`); }
+function wildSlot(sl, time) { const plan = S.wildP, c = S.wildC; if (!plan || !c) return; closeSheet(); dayDraft({ plan });
+  const pl = S.pl; if (!pl.slots.includes(sl)) pl.slots.push(sl); pl.items[sl] = { time, card: c, find: false, why: 'both', keep: true }; S.wildP = S.wildC = null; dayEdit(); }
+async function wildVote(a) { const w = S.idea?.wild; if (!w) return; let r; try { r = await rpc('wild_act', { p_code: S.code, p_member: S.me, p_id: w.id, p_action: a }); } catch { return toast('That didn’t save. Try again.'); }
+  w.votes = { ...(w.votes || {}), [S.me]: a }; step('wild_' + a);
+  if (a === 'out') { ls.set('wildoff', w.id); closeSheet(); return render(); }
+  if (r.both) { push('You’re both interested', `${w.title}. Want to put it in a plan?`, './?idea=wild'); toast(`You’re both in. Add it to a plan?`, 4000); }
+  else toast(partner() ? `Saved. If ${partner()} is interested too, you’ll both hear.` : 'Saved.', 3500);
+  wildSheet(); }
 /* the days an idea can actually happen: a dated event only on its date; places on days they are open at a usual hour */
 function ideaDays(i) { const t = pToday(), dated = i.cards.filter(isDated);
   if (dated.length) { const d = dated[0].event_date; return d >= t && dated.every(c => c.event_date === d) ? [d] : []; }
@@ -2702,8 +2739,8 @@ function pFill() {
   const pl = S.pl;
   for (const s of pl.slots) {
     const it = pl.items[s] || (pl.items[s] = { time: PSLOT[s][1], card: null, find: false });
-    if (it.card && it.card.id !== pl.anchor?.id && !pFits(it.card, s.startsWith('drinks') ? 'drinks' : s, pl.day, pl.mode)) it.card = null;
-    if (it.card && it.card.id !== pl.anchor?.id && isDated(it.card) && pl.slots.some(x => x !== s && pl.items[x]?.card && isDated(pl.items[x].card) && (pl.items[x].card.id === pl.anchor?.id || pl.slots.indexOf(x) < pl.slots.indexOf(s)))) it.card = null;
+    if (it.card && !it.keep && it.card.id !== pl.anchor?.id && !pFits(it.card, s.startsWith('drinks') ? 'drinks' : s, pl.day, pl.mode)) it.card = null;
+    if (it.card && !it.keep && it.card.id !== pl.anchor?.id && isDated(it.card) && pl.slots.some(x => x !== s && pl.items[x]?.card && isDated(pl.items[x].card) && (pl.items[x].card.id === pl.anchor?.id || pl.slots.indexOf(x) < pl.slots.indexOf(s)))) it.card = null;
     if (!it.card && !it.find && !it.empty) it.card = pCands(s)[0] || null;
     if (it.card && isDated(it.card) && evStart(it.card)) it.time = evStart(it.card);
   }
@@ -5810,7 +5847,10 @@ document.addEventListener('click', async e => {
       case 'idea': return ideaSheet();
       case 'wild': return wildSheet();
       case 'wildgo': step('wild_go'); return;
-      case 'wildoff': { if (S.idea?.wild) ls.set('wildoff', S.idea.wild.id); closeSheet(); step('wild_off'); return render(); }
+      case 'wildoff': return wildVote('out');
+      case 'wildin': return wildVote('in');
+      case 'wildplan': t.disabled = true; return wildPlan();
+      case 'wildslot': return wildSlot(ds.s, ds.t);
       case 'ideaplan': return ideaPlan();
       case 'sharefriends': return friendSheet();
       case 'sharehow': return friendHow(ds.how);

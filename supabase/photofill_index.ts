@@ -6,7 +6,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 //   3. The image the venue's own website shares as its preview (og:image / twitter:image), only if it is a real,
 //      reasonably large picture and not a logo or icon.
 // A card with none of these is marked photo_tried so it isn't asked again for a month; the emoji cover stays.
-// Body: { ids?: uuid[], limit?: number }. With no ids it takes the next cards from _photo_queue. Auth: x-sync-key.
+// Body: { ids?: uuid[], limit?: number, geo?: true } (geo: also find where it is, for finds from the web). With no ids it takes the next cards from _photo_queue. Auth: x-sync-key.
 const json = (o: unknown, status = 200) => new Response(JSON.stringify(o), { status, headers: { "Content-Type": "application/json" } });
 const UA = "Mozilla/5.0 (compatible; LetsTogether/1.0; +https://letstogether.app)";
 
@@ -21,6 +21,16 @@ async function placePhoto(key: string, id: string): Promise<{ name: string; cred
     const r = await fetch(`https://places.googleapis.com/v1/places/${encodeURIComponent(id)}`, { headers: { "X-Goog-Api-Key": key, "X-Goog-FieldMask": "photos" } });
     const d = await r.json(); const p = d?.photos?.[0];
     return r.ok && p?.name ? { name: p.name, credit: p.authorAttributions?.[0]?.displayName ?? null } : null;
+  } catch (_) { return null; }
+}
+// where a find from the web is, and Google's photo of it: one text search on its name and address
+async function locate(key: string, q: string): Promise<{ id: string; lat: number; lng: number; photo: string | null; credit: string | null } | null> {
+  try {
+    const r = await fetch("https://places.googleapis.com/v1/places:searchText", { method: "POST",
+      headers: { "Content-Type": "application/json", "X-Goog-Api-Key": key, "X-Goog-FieldMask": "places.id,places.location,places.photos" },
+      body: JSON.stringify({ textQuery: q, pageSize: 1 }) });
+    const d = await r.json(); const p = d?.places?.[0];
+    return r.ok && p?.location ? { id: p.id, lat: p.location.latitude, lng: p.location.longitude, photo: p.photos?.[0]?.name ?? null, credit: p.photos?.[0]?.authorAttributions?.[0]?.displayName ?? null } : null;
   } catch (_) { return null; }
 }
 async function siteImage(url: string): Promise<string | null> {
@@ -56,7 +66,14 @@ Deno.serve(async (req: Request) => {
     let ids: string[] = Array.isArray(a.ids) ? a.ids.map(String).slice(0, 60) : [];
     if (!ids.length) { const { data } = await sb.rpc("_photo_queue", { p_n: Math.min(Math.max(Number(a.limit) || 30, 1), 60) }); ids = ((data ?? []) as any[]).map((x) => String(x.id ?? x)); }
     if (!ids.length) return json({ ok: true, done: 0 });
-    const { data: cards } = await sb.from("cards").select("id,image,data").in("id", ids);
+    const { data: cards } = await sb.from("cards").select("id,title,image,data").in("id", ids);
+    if (a.geo) for (const c of (cards ?? []) as any[]) {
+      if (c.data?.lat || !(c.data?.address || c.title)) continue;
+      const g = await locate(key, [c.title, c.data?.address].filter(Boolean).join(", "));
+      if (!g) continue;
+      c.data = { ...c.data, lat: g.lat, lng: g.lng, place_id: c.data?.place_id ?? g.id, ...(g.photo && !c.data?.photo ? { photo: g.photo } : {}), ...(g.credit ? { photo_credit: g.credit } : {}) };
+      await sb.from("cards").update({ data: c.data }).eq("id", c.id);
+    }
     const out = { google: 0, site: 0, none: 0 };
     const today = new Date().toISOString().slice(0, 10);
     await Promise.all(((cards ?? []) as any[]).filter((c) => !c.image).map(async (c) => {
