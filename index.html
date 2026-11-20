@@ -1498,7 +1498,7 @@ const SVC_DOT = { 'Netflix': '#e50914', 'Hulu': '#1ce783', 'Prime Video': '#00a8
 
 const ls = { get: k => { try { return localStorage.getItem('wl_' + k) } catch { return null } }, set: (k, v) => { try { localStorage.setItem('wl_' + k, v) } catch {} }, del: k => { try { localStorage.removeItem('wl_' + k) } catch {} } };
 const S = { code: ls.get('code'), me: ls.get('name'), state: null, pantry: [], tab: 'home', view: 'home', sess: null, deck: [], hist: [], matches: [], listTab: 'activity', chan: null };
-S.homeDeck = ({ event: 'drinks', art: 'all' })[ls.get('deck')] || ls.get('deck') || 'all'; S.revEntry = true; try { S.doneHtml = JSON.parse(ls.get('donehtml') || '{}'); } catch { S.doneHtml = {}; } S.tripCity = ls.get('tripcity') || '';
+S.homeDeck = ({ drinks: 'dinner', art: 'all' })[ls.get('deck')] || ls.get('deck') || 'all'; S.revEntry = true; try { S.doneHtml = JSON.parse(ls.get('donehtml') || '{}'); } catch { S.doneHtml = {}; } S.tripCity = ls.get('tripcity') || '';
 const $app = document.getElementById('app'), $layer = document.getElementById('layer');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const rpc = async (fn, args) => { const { data, error } = await sb.rpc(fn, args); if (error) throw error; return data; };
@@ -1925,7 +1925,7 @@ function ob2Draw() {
   const body = {
     flip: () => `${kick()}<h2 class="wk-h">Tap a card to flip it</h2><p class="wk-p">Swipe whenever you have a minute, no homework. When a card catches your eye, tap it for the details.</p>${flipStage()}<button class="btn wk-cta wait" id="wkgo" data-act="ob2flip" disabled>Tap the card</button>`,
     try: () => `${kick()}<h2 class="wk-h">Now, how the cards work</h2><p class="wk-p">Flick this card each way. ${esc(p || 'Your person')} never sees your swipes unless you both say yes.</p>${ob2SwipeStage()}<button class="btn wk-cta wait" id="wkgo" data-act="ob2try" disabled>Flick the card</button>`,
-    piles: () => `${kick()}<h2 class="wk-h">Five piles, and a few surprises</h2><p class="wk-p">Discover is a bit of everything near you. Watch, Eat, Drinks and Trips are what they say. Some cards come covered: hidden gems, one-of-a-kind shops, and food or drink events. Wipe to see.</p>
+    piles: () => `${kick()}<h2 class="wk-h">Five piles, and a few surprises</h2><p class="wk-p">Discover is a bit of everything near you. Watch is movies, Eat & Drink is restaurants and bars, Go Out is things to do, and Trips is places you might go. Some cards come covered: hidden gems, one-of-a-kind shops, and food or drink events. Wipe to see.</p>
       <div class="wk-stage"><div class="wk-gem" id="obpg" style="background:radial-gradient(90% 60% at 50% 30%,#3d8f86,#16454a 55%,#0c2226)"><span class="wk-gcap"><span class="gemk"><span>Unique spot</span></span><b>A magic shop with a back-room stage</b></span><canvas id="obpv"></canvas></div></div><button class="btn wk-cta wait" id="wkgo" data-act="ob2piles" disabled>Wipe the window</button>`,
     invite: () => `${kick()}<h2 class="wk-h">Bring your person in</h2><p class="wk-p">Nothing can match until you’re both here. The link fills in the code for them.</p>
       <div class="ob2-code">${esc(S.code)}<small>Your couple code</small></div><div class="wk-bub ob2-msg"><b>Your text</b>Join me on Let’s Together so we can stop asking “what do you want to do?”</div>${sp}
@@ -2024,7 +2024,7 @@ function paintHearts() {   // header total plus the small per-category counts
   if (pill) { pill.textContent = '♥ ' + (c.shortlist || 0); pill.classList.toggle('hot', !!c.shortlist); }
   document.querySelectorAll('[data-hdeck]').forEach(b => { b.querySelector('.hc')?.remove(); b.insertAdjacentHTML('beforeend', heartTag(b.dataset.hdeck)); });
 }
-const HDECKS = [['all', 'Discover'], ['movie', 'Watch'], ['dinner', 'Eat'], ['drinks', 'Drinks'], ['trip', 'Trips']];
+const HDECKS = [['all', 'Discover'], ['movie', 'Watch'], ['dinner', 'Eat & Drink'], ['event', 'Go Out'], ['trip', 'Trips']];   // Dave, 19 Nov: Eat and Drinks merged; Go Out is things to do
 function homeHTML() {
   const st = S.state, p = partner(), incoming = (st.sessions || []).filter(s => s.from !== S.me && s.my_left > 0 && !(s.filters?.evshare && s.created_at && Date.now() - new Date(s.created_at) > 8 * 864e5)).sort((a, b) => (a.filters?.share || a.filters?.evshare ? 1 : 0) - (b.filters?.share || b.filters?.evshare ? 1 : 0));   // a nudge for right now takes the one slot ahead of a some-time-soon list
   if (!ls.get('allv1')) { ls.set('allv1', '1'); S.homeDeck = 'all'; ls.set('deck', 'all'); }   // the Everything deck is the new front door, once
@@ -2941,7 +2941,7 @@ async function dayStart() {
     <div class="stiles" style="margin-top:14px"><button class="stile kc k-sat" data-pl="new|out"><span class="tic">${ic('sun')}</span><span><b>A whole day</b><small>Daytime, dinner, something after</small></span></button>
       <button class="stile kc k-fri" data-pl="new|in"><span class="tic">${ic('moon')}</span><span><b>Night in</b><small>A movie, and dinner to order or cook</small></span></button></div>
     ${S.listCards.length ? `<div class="sect" style="margin-top:20px">Or plan around one thing</div><p class="muted" style="font-size:13px;margin-top:-2px">Swipe through what you and ${esc(them())} like. Tap one to build a day around it.</p>
-      <div class="trow parow">${anch.map(c => tile(c, true)).join('')}${mine.map(c => tile(c, false)).join('')}</div>` : `<p class="muted" style="margin-top:18px;font-size:13.5px">Nothing liked in Eat, Drinks or Discover yet. You can still start a plan and find places together as you go.</p>`}
+      <div class="trow parow">${anch.map(c => tile(c, true)).join('')}${mine.map(c => tile(c, false)).join('')}</div>` : `<p class="muted" style="margin-top:18px;font-size:13.5px">Nothing liked in Eat & Drink, Go Out or Discover yet. You can still start a plan and find places together as you go.</p>`}
   </div>`);
 }
 // From the weekly "a night you've both said yes to" message: open a plan with the place and the movie or event already in it.
@@ -3510,7 +3510,7 @@ async function inboxSheet() {
     </div>
     <a class="sess inrow" href="./hello/?app=1#board" style="text-decoration:none;color:inherit"><span class="tic">${ic('heart')}</span><span class="grow"><b>Report a bug or suggest something</b><small>A public board. Vote on what you want most</small></span></a>
     <button class="sess inrow" data-act="howto"><span class="tic">${ic('spark')}</span><span class="grow"><b>How it works</b><small>Swipes, piles, covered cards, plans and more</small></span></button>
-    <button class="sess inrow" data-act="whatsnew"><span class="tic">${ic('spark')}</span><span class="grow"><b>What’s new</b><small>Discover, Watch, Eat, Drinks and Trips, unique spots, close by</small></span></button>
+    <button class="sess inrow" data-act="whatsnew"><span class="tic">${ic('spark')}</span><span class="grow"><b>What’s new</b><small>Discover, Watch, Eat & Drink, Go Out and Trips, unique spots, close by</small></span></button>
   </div>`);
   ls.set('bellseen', '|' + w.map(x => x.k).join('|') + '|');
   if (items.some(i => !i.seen)) { rpc('inbox_seen', { p_code: S.code, p_member: S.me }).catch(() => {}); items.forEach(i => i.seen = true); }
@@ -3637,8 +3637,8 @@ function inboxGo(u) {
 function howTo() {
   const p = esc(partner() || 'your person'), H = [
     ['Swiping', 'Right is maybe, up is hell yeah, left is nah, down is never again. Tap a card to flip it for the details. ' + p.charAt(0).toUpperCase() + p.slice(1) + ' only sees what you both said yes to.'],
-    ['The five piles', 'Discover is a bit of everything near you. Watch is movies. Eat is places to eat, Drinks is bars and nights out, and Trips is places you might go. A pile is a short handful a day; when it runs out you get a grid of everything you’ve liked.'],
-    ['Covered cards', 'Hidden gems you scratch, unique spots (independent shops) you wipe like a window, and food or drink events you scratch in Eat and Drinks. Both of you get the same one.'],
+    ['The five piles', 'Discover is a bit of everything near you. Watch is movies. Eat & Drink is restaurants and bars, Go Out is things to do (escape rooms, comedy, bowling, museums, what’s on), and Trips is places you might go. A pile is a short handful a day; when it runs out you get a grid of everything you’ve liked.'],
+    ['Covered cards', 'Hidden gems you scratch, unique spots (independent shops) you wipe like a window, and food or drink events you scratch in Eat & Drink. Both of you get the same one.'],
     ['Matches', 'When you both say yes it’s a match. Matches live behind the heart at the top: pick one, shuffle, or play a quick game for it.'],
     ['Close by', 'Open a place and tap “What else you like close by” to see your other likes a short walk away, then put two in a plan with the times worked out.'],
     ['Plans', 'Plan a day builds a day from what you both like, with travel time between stops. Weekend plans arrive on their own; say yes, swap a stop, or keep one secret as a surprise.'],
@@ -3659,9 +3659,9 @@ function newsShow(force) {
 }
 /* ---------- what's new, as a walkthrough you play with: one tap or swipe per screen ---------- */
 const WALK = [
-  { k: 'tabs', a: '#ffb547', b: '#ff7a4d', kick: 'New: five piles', h: 'Discover, Watch, Eat, Drinks, Trips', p: 'Discover is a bit of everything, with finds near you mixed in. Movies are now Watch, and Go out is now Drinks. Art is retired.', open: true },
+  { k: 'tabs', a: '#ffb547', b: '#ff7a4d', kick: 'New: five piles', h: 'Discover, Watch, Eat & Drink, Go Out, Trips', p: 'Discover is a bit of everything, with finds near you mixed in. Movies are now Watch. Restaurants and bars share Eat & Drink, and Go Out is things to do. Art is retired.', open: true },
   { k: 'uq', a: '#9fb8cc', b: '#ffb547', kick: 'New: unique spots', h: 'Wipe the window', p: 'Independent shops near you, like record stores, bookshops, candy and magic shops, arrive covered in Discover. Wipe the glass to see what’s inside. You can put them in a plan.', wait: 'Wipe the window' },
-  { k: 'food', a: '#ff7a4d', b: '#ff4d7e', kick: 'New in Eat and Drinks', h: 'Food and drink finds', p: 'Hidden-gem restaurants and bars, and things like a chili cook-off or a wine tasting, show up as scratch cards in Eat and Drinks.', wait: 'Scratch the card' },
+  { k: 'food', a: '#ff7a4d', b: '#ff4d7e', kick: 'New in Eat & Drink', h: 'Food and drink finds', p: 'Hidden-gem restaurants and bars, and things like a chili cook-off or a wine tasting, show up as scratch cards in Eat & Drink.', wait: 'Scratch the card' },
   { k: 'close', a: '#2dd4bf', b: '#ffb547', kick: 'New: close by', h: 'What else you like nearby', p: 'Open a place and tap “What else you like close by” to see your other likes a short walk away, then put two in a plan. When a pile runs out, you get a grid of everything you’ve liked.', open: true },
   { k: 'end', a: '#ffb547', b: '#ff4d7e', kick: 'That’s it', h: 'Swipe whenever you like', p: 'Hell yeah is for the places you’d love to go, and the ones you’ve been and loved.' },
 ];
@@ -3685,7 +3685,7 @@ function walkDraw() {
     trip: () => `<div id="wkb" class="wk-ban">${T}’s phone · Leave the flights to ${me}.</div><div class="wk-step"><span class="grow"><b>Dates</b><small>Dec 11 to 13 · Agreed</small></span><span class="tpill on">Agreed</span></div><div class="wk-step"><span class="grow"><b>Flights</b><small id="wkfs">Nobody’s on it yet</small></span><button class="tpill go wk-pulse" id="wkp" data-wk="claim">I’m on it</button></div><div class="wk-step" style="opacity:.6"><span class="grow"><b>A place to stay</b><small>${T}’s on it</small></span></div>`,
     gold: () => `<div class="wk-gold" id="wkgold" role="button" aria-label="Pull the bow"><span class="wk-gt">Yours to plan</span><span class="gband"><span class="wk-bow"><i></i><i></i><b></b></span></span></div>`,
     end: () => `<div class="wk-bell" id="wkbell">${ic('bell')}</div>`,
-    tabs: () => [['Discover', 'A bit of everything, plus finds'], ['Watch', 'Movies'], ['Eat', 'Places to eat, and food finds'], ['Drinks', 'Bars, and drink finds'], ['Trips', 'Places you might go']].map(([t, d]) => `<div class="wk-step"><span class="grow"><b>${t}</b><small>${d}</small></span></div>`).join(''),
+    tabs: () => [['Discover', 'A bit of everything, plus finds'], ['Watch', 'Movies'], ['Eat & Drink', 'Restaurants, bars, and food and drink finds'], ['Go Out', 'Escape rooms, comedy, museums, what’s on'], ['Trips', 'Places you might go']].map(([t, d]) => `<div class="wk-step"><span class="grow"><b>${t}</b><small>${d}</small></span></div>`).join(''),
     uq: () => `<div class="wk-gem" style="background:radial-gradient(90% 60% at 50% 30%,#3d8f86,#16454a 55%,#0c2226)"><span class="wk-gcap"><span class="gemk"><span>Unique spot</span></span><b>A record shop with listening booths</b></span><canvas id="wkw"></canvas></div>`,
     food: () => `<div class="wk-gem" style="background:radial-gradient(90% 60% at 50% 30%,#8f3d5a,#4a1630 55%,#22090f)"><span class="wk-gcap"><span class="gemk"><span>Food event</span></span><b>A chili cook-off, Saturday afternoon</b></span><canvas id="wkw"></canvas></div>`,
     close: () => `<div class="wk-step"><span class="grow"><b>A ramen spot</b><small>You both like it · 2 min walk</small></span></div><div class="wk-step"><span class="grow"><b>A cocktail bar</b><small>You like it · 6 min walk</small></span></div>`,
@@ -5438,7 +5438,8 @@ function drawStack() {
   const st = document.getElementById('stack'); if (!st) return; updateBar(); if (S.deck[0]?.data?.gem) tip1('gem', 'A hidden gem: somewhere most people walk past.');
   else if (S.deck[0]?.data?.unique) tip1('uq', 'A unique spot: an independent shop near you. Wipe the window to look inside.');
   else if (evFind(S.deck[0])) tip1('evfind', 'A food or drink event, on for a day or two. Scratch to see what’s on.');
-  else if (S.homeDeck === 'drinks') tip1('drinks', 'Drinks is bars and nights out. A drink find shows up covered now and then.');
+  else if (S.homeDeck === 'dinner') tip1('eatdrink', 'Eat & Drink is restaurants and bars together, with a food or drink find covered now and then.');
+  else if (S.homeDeck === 'event') tip1('goout', 'Go Out is things to do: escape rooms, comedy, bowling, museums and what’s on.');
   else if (S.homeDeck === 'all') tip1('disc', 'Discover is a bit of everything, with finds near you mixed in.');
   const acts = document.getElementById('acts'), seen = document.getElementById('seenb');
   if (biteGoal()) { S.revEntry = false; acts.style.visibility = 'hidden'; if (seen) seen.style.display = 'none'; deckWhy(); return setDone(st, biteGoalHTML()); }
@@ -5475,7 +5476,7 @@ function drawStack() {
   attachDrag(cs[0]);
   if (S.deck[0]?.data?.gem && !gemSeen().includes(S.deck[0].id)) gemCover(cs[0], S.deck[0]);
   else if (S.deck[0]?.data?.unique && !gemSeen().includes(S.deck[0].id)) uniqueCover(cs[0], S.deck[0]);
-  else if (evFind(S.deck[0]) && !gemSeen().includes(S.deck[0].id)) { const c = S.deck[0], dr = S.homeDeck === 'drinks';
+  else if (evFind(S.deck[0]) && !gemSeen().includes(S.deck[0].id)) { const c = S.deck[0], dr = DRINKW.test(`${c.title} ${c.kind || ''}`);
     gemCover(cs[0], c, { k: dr ? 'Drinks event' : 'Food event', h: 'Scratch to see what’s on', small: dr ? 'Drinks event' : 'Food event', line: c.title, sub: c.subtitle || '' }); }
   if (S.bite) revealCards(st);
 }
@@ -5549,6 +5550,7 @@ function flipCard(el, c, yn) { if (!el || !c || el._flipping) return; el._flippi
 // A hidden gem arrives covered: scratch it off to see what it is. Once scratched it stays revealed on this phone.
 const gemSeen = () => { try { return JSON.parse(ls.get('gemsc') || '[]'); } catch { return []; } };
 // a dated food or drink event dealt into the Eat or Drinks pile (the server only puts those there): it arrives covered too
+const DRINKW = /\b(wines?|winery|vino|beers?|brews?|brewery|breweries|brewfest|ales?|ciders?|whiske?y|bourbon|cocktails?|mixology|tequila|mezcal|sake|distillery|spirits|happy hour|pub crawl|bar crawl|oktoberfest|sommelier)\b/i;
 const evFind = c => !!c && (S.homeDeck === 'dinner' || S.homeDeck === 'drinks') && c.deck === 'event' && !c.data?.place && !c.data?.gem;
 // o (food and drink events in Eat and Drinks): { k, h, small, line, sub } replace the hidden-gem words
 function gemCover(el, c, o = {}) { if (!el || el.querySelector('.gcov')) return; const w = document.createElement('div'); w.className = 'gcov'; w.innerHTML = `<canvas></canvas><span class="gcov-k">${esc(o.k || 'Hidden gem')}</span><span class="gcov-h">${esc(o.h || 'Scratch to see what it is')}</span>`; el.appendChild(w);
