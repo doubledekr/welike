@@ -2710,7 +2710,7 @@ async function ideaPlan() { const i0 = S.ideaCur || S.idea; if (!i0) return; con
 const pollHeroNow = () => { const q = S.poll; if (!q || !q.open || !pollTodo(q) || ls.get('phero_' + q.id)) return false; pollHero(false); return true; };
 const pollTodo = q => q ? (q.todo ?? (q.mine ? 0 : 1)) : 0;
 const pollBanner = () => { const q = S.poll; if (!q || !q.open || !pollTodo(q)) return ''; const n = 1 + (q.more || []).length;
-  return `<button class="tripbar kc k-match" data-act="poll" data-id="${esc(q.id)}" style="width:100%;text-align:left"><span class="tic">${ic('spark')}</span><span class="grow"><b>${esc(q.title)}</b><small>${q.mine ? `${pollTodo(q)} more to vote on` : n > 1 ? 'Vote on the night, the time and the movie' : 'The community is voting. One vote per couple'}</small></span><span class="go">Vote</span></button>`; };
+  return `<button class="tripbar kc k-match" data-act="poll" data-id="${esc(q.id)}" style="width:100%;text-align:left"><span class="tic">${ic('spark')}</span><span class="grow"><b>${esc(q.title)}</b><small>${q.mine ? `${pollTodo(q)} more to vote on` : n > 1 ? 'Vote on the night and the time' : 'The community is voting. One vote per couple'}</small></span><span class="go">Vote</span></button>`; };
 // A trivia night's prize. Only the winning team gets the link; opening this is recorded so the host knows it arrived.
 async function prizeSheet(ev) {
   let r = null; try { r = await rpc('prize_open', { p_code: S.code, p_member: S.me, p_event: ev }); } catch {}
@@ -2727,7 +2727,7 @@ async function pollHero(force, id) {
   const triv = /^trivia/.test(q.id), p = partner(), n = q.voted || 0, title = esc(q.title || '').replace(/:\s*/, ':<br><em>') + (/:/.test(q.title || '') ? '</em>' : '');
   const el = document.createElement('div'); el.className = 'phero';
   el.innerHTML = `<small class="ph-k">${triv ? 'Community night' : 'Community vote'}</small><h1>${title}</h1>
-    <p class="ph-p">${triv ? `One evening next week, every couple a team. Same movie on your own couch, dinner in, and 30 quick questions.${p ? '' : ' You can play on your own; the gift card goes to a couple.'}` : esc(q.body || '')}</p>
+    <p class="ph-p">${triv ? `One evening next week, every couple a team. Dinner in, on your own couch, and 30 quick questions.${p ? '' : ' You can play on your own; the gift card goes to a couple.'}` : esc(q.body || '')}</p>
     ${triv ? `<div class="ph-row"><span><b>$25</b>Amazon gift card for the top couple</span><span><b>${n}</b>${n === 1 ? 'couple has' : 'couples have'} voted. We need 3</span></div>` : ''}
     <button class="btn" data-act="pherogo">${triv ? 'Pick the night' : 'Vote'}</button><button class="jlink" data-act="pherooff">Not now</button>`;
   document.body.appendChild(el); try { navigator.vibrate?.(15); } catch {} return true;
