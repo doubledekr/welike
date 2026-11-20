@@ -2,9 +2,10 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { logAi } from "./ai_log.ts";
 logAi("finds");
 
-// finds (Dave, 19 Nov, TRIAL): one discovery job for ANY town, city or place in the world. Claude reads the web with its
+// finds (Dave, 19 Nov; live 20 Nov): one discovery job for ANY town, city or place in the world. Claude reads the web with its
 // search tool (search results only, no scraping; Reddit refuses Anthropic's crawler, so it is reached only through pages
-// that quote it). Writes NOTHING to cards yet: it returns what it found.
+// that quote it). With save: true (the scheduler, _finds_tick) it hands what it kept to _finds_apply, which feeds the
+// existing card paths; without it, it only returns what it found.
 //   sources:  the area's own event calendars, city and regional magazines, food and travel guides, newsletters, tourism
 //             boards and community boards, so later runs know where to look first.
 //   openings: restaurants, bars, cafes, bakeries and independent shops that opened in the last ~4 months (or open soon).
@@ -13,7 +14,8 @@ logAi("finds");
 //   events:   one-off and offbeat events in the next 14 days, each with a date, start time, venue and a source.
 // Places (openings, gems) are then matched to Google Places: must be open, 4.0+ stars once 10+ people rated it,
 // with hours and one photo. Google calls are logged in google_calls and count against the daily guard.
-// Body: { mode, place: "Lititz, Pennsylvania", city, region, country: "US", lat, lng, today: "YYYY-MM-DD", sites?: string[] }.
+// Body: { mode, place: "Lititz, Pennsylvania", city, region, country: "US", lat, lng, today: "YYYY-MM-DD", sites?: string[], save?, area? }.
+// mode "name" (area, zip, lat, lng): one Google search names a new home area ("Lititz, Pennsylvania") for later runs.
 // Auth: x-sync-key.
 const json = (o: unknown, status = 200) => new Response(JSON.stringify(o), { status, headers: { "Content-Type": "application/json" } });
 const apiKey = () => Deno.env.get("ANTHROPIC_API_KEY") ?? Deno.env.get("CLAUDE_API_KEY") ?? Deno.env.get("CLAUDE_KEY") ?? Deno.env.get("ANTHROPIC_KEY") ?? "";
@@ -50,6 +52,13 @@ function lastArray(t: string | null): any[] {
 }
 const miles = (a: number, b: number, c: number, d: number) => { const r = (x: number) => x * Math.PI / 180, q = Math.sin(r(c - a) / 2) ** 2 + Math.cos(r(a)) * Math.cos(r(c)) * Math.sin(r(d - b) / 2) ** 2; return 3958.8 * 2 * Math.asin(Math.sqrt(q)); };
 
+function packHours(h: any): unknown {
+  const ps = h?.periods; if (!Array.isArray(ps) || !ps.length) return null;
+  if (ps.length === 1 && ps[0].open && !ps[0].close) return "always";
+  const out: number[][] = [];
+  for (const p of ps) { const o = p.open, c = p.close; if (!o || !c) continue; out.push([o.day ?? 0, (o.hour ?? 0) * 100 + (o.minute ?? 0), c.day ?? 0, (c.hour ?? 0) * 100 + (c.minute ?? 0)]); }
+  return out.length ? out : null;
+}
 const RULES = `Use only what your sources say. Never guess a date, time, address or opening. Every item needs at least one source URL you actually read.
 The "line" is shown to couples on a card: one sentence, at most 100 characters, saying what the place or event IS and why it is worth going, in plain warm words. Never tell the reader to check, confirm or call ahead, never mention your sources or the article, no superlatives you cannot back up, no prices unless a source gives them, no emoji, no exclamation marks.`;
 const NEAR = (p: string) => `in or near ${p} (within about 30 miles / 50 km; include the nearby towns people from there actually go to)`;
@@ -91,18 +100,40 @@ Deno.serve(async (req: Request) => {
     const today = String(a.today ?? new Date().toISOString().slice(0, 10));
     const lat = Number(a.lat), lng = Number(a.lng), sites = Array.isArray(a.sites) ? a.sites.map(String) : [];
     if (mode === "reddit") return json({ ok: false, mode, reason: "reddit_blocks_search" });
+    const area = typeof a.area === "string" ? a.area : null, save = !!a.save && !!area;
+    const done = async (items: any[], extra: Record<string, unknown>) => {
+      let saved: unknown = null;
+      if (save) { const { data, error } = await sb.rpc("_finds_apply", { p_area: area, p_mode: mode, p_items: items }); saved = error ? { error: error.message } : data; }
+      if (area && extra.err) await sb.from("find_areas").update({ last_note: `${mode}: ${String(extra.err).slice(0, 200)}` }).eq("id", area);
+      return json({ ok: true, mode, place, ...extra, found: items.length, saved, items });
+    };
+    if (mode === "name") {   // a new home area: name it from its ZIP code or point
+      const gkey = Deno.env.get("GOOGLE_PLACES_KEY") ?? "";
+      const body: Record<string, unknown> = { textQuery: a.zip ? `${a.zip} ${loc.country || "US"}` : "town center", pageSize: 1, includedType: a.zip ? "postal_code" : "locality" };
+      if (Number.isFinite(lat)) body.locationBias = { circle: { center: { latitude: lat, longitude: lng }, radius: 20000 } };
+      const g = await fetch("https://places.googleapis.com/v1/places:searchText", { method: "POST", headers: { "Content-Type": "application/json", "X-Goog-Api-Key": gkey, "X-Goog-FieldMask": "places.addressComponents,places.formattedAddress" }, body: JSON.stringify(body) });
+      const d = await g.json().catch(() => null); await sb.from("google_calls").insert({ api: "places", sku: "Text Search Pro", ok: g.ok, note: "finds name" });
+      const cs = (d?.places?.[0]?.addressComponents ?? []) as any[]; const pick = (t: string) => cs.find((c) => (c.types ?? []).includes(t));
+      const city = (pick("locality") ?? pick("postal_town") ?? pick("sublocality") ?? pick("administrative_area_level_2"))?.longText;
+      const region = pick("administrative_area_level_1")?.longText, country = pick("country")?.shortText, county = pick("administrative_area_level_2")?.longText;
+      if (area && city) await sb.from("find_areas").update({ city, region, country: country ?? "US", place: [city, region].filter(Boolean).join(", ") + (county && county !== city ? ` (${county})` : "") }).eq("id", area);
+      return json({ ok: !!city, mode, city, region, country, county });
+    }
     if (!place || !["sources", "openings", "gems", "events"].includes(mode)) return json({ ok: false, reason: "bad_args" });
     const t0 = Date.now();
 
     if (mode === "sources") {
       const r = await ask(promptSources(place), loc, 7);
       const items = lastArray(r.text).filter((x) => x?.name && /^https?:\/\//.test(String(x?.url ?? "")));
-      return json({ ok: true, mode, place, searches: r.searches, ms: Date.now() - t0, err: r.err || undefined, found: items.length, items, raw_tail: items.length ? undefined : (r.text ?? "").slice(-600) });
+      return done(items, { searches: r.searches, ms: Date.now() - t0, err: r.err || undefined });
     }
     if (mode === "events") {
       const r = await ask(promptEvents(place, today, sites), loc);
       const items = lastArray(r.text).filter((x) => x?.title && x?.date && x?.time && x?.venue && Array.isArray(x?.sources) && x.sources.length && x.date >= today);
-      return json({ ok: true, mode, place, searches: r.searches, ms: Date.now() - t0, err: r.err || undefined, found: items.length, items, raw_tail: items.length ? undefined : (r.text ?? "").slice(-600) });
+      // the line under the title: venue, then the town from the address (never just the state)
+      for (const x of items) { const ps = String(x.address ?? "").split(",").map((t: string) => t.trim()).filter(Boolean); const town = ps.length && /^[A-Z]{2}( \d{5})?$/.test(ps[ps.length - 1]) ? ps[ps.length - 2] : ps[ps.length - 1];
+        x.subtitle = town && !String(x.venue).toLowerCase().includes(String(town).toLowerCase()) ? `${x.venue} · ${town}` : x.venue; }
+      return done(items, { searches: r.searches, ms: Date.now() - t0, err: r.err || undefined });
     }
 
     // openings and gems: then confirm each on Google Places
@@ -120,13 +151,14 @@ Deno.serve(async (req: Request) => {
         if (Number.isFinite(lat) && Number.isFinite(lng)) body.locationBias = { circle: { center: { latitude: lat, longitude: lng }, radius: 50000 } };
         const g = await fetch("https://places.googleapis.com/v1/places:searchText", { method: "POST",
           headers: { "Content-Type": "application/json", "X-Goog-Api-Key": gkey,
-            "X-Goog-FieldMask": "places.id,places.displayName,places.location,places.shortFormattedAddress,places.businessStatus,places.rating,places.userRatingCount,places.primaryType,places.googleMapsUri,places.photos,places.regularOpeningHours" },
+            "X-Goog-FieldMask": "places.id,places.displayName,places.location,places.shortFormattedAddress,places.formattedAddress,places.businessStatus,places.rating,places.userRatingCount,places.primaryType,places.googleMapsUri,places.photos,places.regularOpeningHours" },
           body: JSON.stringify(body) });
         const d = await g.json().catch(() => null); await log("Text Search Enterprise", g.ok, `${mode} ${x.name}`);
         const p = ((d?.places ?? []) as any[]).find((q) => { const a1 = n(q.displayName?.text ?? ""), b1 = n(x.name); return a1 && b1 && (a1.includes(b1.slice(0, 8)) || b1.includes(a1.slice(0, 8))); });
         if (!p) { x.google = "not_found"; continue; }
         x.google = p.businessStatus ?? "OPERATIONAL"; x.place_id = p.id; x.g_name = p.displayName?.text; x.g_address = p.shortFormattedAddress;
-        x.rating = p.rating ?? null; x.ratings = p.userRatingCount ?? 0; x.ptype = p.primaryType ?? null; x.maps = p.googleMapsUri ?? null; x.has_hours = !!p.regularOpeningHours;
+        x.rating = p.rating ?? null; x.ratings = p.userRatingCount ?? 0; x.ptype = p.primaryType ?? null; x.maps = p.googleMapsUri ?? null; x.has_hours = !!p.regularOpeningHours; x.hours = packHours(p.regularOpeningHours); x.lat = p.location?.latitude; x.lng = p.location?.longitude; x.photo = p.photos?.[0]?.name ?? null;
+        x.country = String(p.formattedAddress ?? "").split(",").pop()?.trim().slice(0, 40) || null;
         if (p.location && Number.isFinite(lat)) x.miles = Math.round(miles(lat, lng, p.location.latitude, p.location.longitude) * 10) / 10;
         x.keep = x.google === "OPERATIONAL" && !(x.ratings >= 10 && Number(x.rating) < 4) && (x.miles ?? 0) <= 35;
         if (x.keep && p.photos?.[0]?.name && left > 0) {
@@ -135,7 +167,6 @@ Deno.serve(async (req: Request) => {
         }
       } catch (_) { x.google = "error"; }
     }
-    return json({ ok: true, mode, place, searches: r.searches, google_calls: gcalls, ms: Date.now() - t0, err: r.err || undefined, found: items.length,
-      kept: items.filter((x) => x.keep).length, items, raw_tail: items.length ? undefined : (r.text ?? "").slice(-600) });
+    return done(items, { searches: r.searches, google_calls: gcalls, ms: Date.now() - t0, err: r.err || undefined, kept: items.filter((x) => x.keep).length });
   } catch (e) { return json({ ok: false, reason: "error", detail: String(e).slice(0, 200) }); }
 });
