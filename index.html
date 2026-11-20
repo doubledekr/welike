@@ -1747,6 +1747,7 @@ async function refresh() {
   const [st, pantry, settings, share, plans, inbox, favs, surp, dates, poll, triv, idea, tf] = await Promise.all([rpc('get_state', { p_code: S.code, p_member: S.me }), rpc('get_pantry', { p_code: S.code }), rpc('get_settings', { p_code: S.code }), rpc('share_state', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('plan_list', { p_code: S.code, p_member: S.me }).catch(() => []), rpc('inbox_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('fav_list', { p_code: S.code }).catch(() => null), rpc('surprise_list', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('dates_get', { p_code: S.code, p_member: S.me }).catch(() => null), rpc('poll_state', { p_code: S.code }).catch(() => null), rpc('trivia_state', { p_code: S.code, p_member: S.me, p_event: S.trivId || (S.trivId = trivKept()) || null }).catch(() => null), rpc('idea_today', { p_code: S.code }).catch(() => null), rpc('trivia_funnel', { p_code: S.code, p_member: S.me }).catch(() => undefined)]);
   S.surp = surp || S.surp || null; S.dates = dates || S.dates || null; S.poll = poll || null; S.idea = idea || null; if (tf !== undefined) S.tf = tf || null; if (!S.tq) S.triv = triv || null; setTimeout(notifSweep, 400);
   S.state = st; S.plans = plans || []; S.pool = null; if (inbox) S.inbox = inbox; if (favs) S.favs = favs; S.share = share; S.pantry = pantry || []; S.settings = settings || {};
+  if (!window.LT_BETA && !window.LT_SIM) { const e = Array.isArray(S.settings.early) && S.settings.early.includes(S.me); if (e !== (ls.get('early') === '1')) { e ? ls.set('early', '1') : ls.del('early'); let n = 0; try { n = +sessionStorage.getItem('wl_earlyre') || 0; sessionStorage.setItem('wl_earlyre', n + 1); } catch {} if (n < 2 && (ls.get('early') === '1') === e) location.reload(); } }   // early layout: switch once, then reload
 }
 async function loadSession(id, keep) {
   const d = await rpc('get_session', { p_code: S.code, p_session: id, p_member: S.me });
@@ -2053,7 +2054,7 @@ function paintHearts() {   // header total plus the small per-category counts
   document.querySelectorAll('[data-hdeck]').forEach(b => { b.querySelector('.hc')?.remove(); b.insertAdjacentHTML('beforeend', heartTag(b.dataset.hdeck)); });
 }
 // Beta and sim (Dave, 19 Nov): Trips moves to its own space behind the Trip button, People replaces Surprise, Tonight gets the spin.
-const NEWUI = true;   // Dave, 20 Nov: the tested beta layout is live for everyone; friends-only parts stay behind sbA (sign-in)
+const NEWUI = !!(window.LT_BETA || window.LT_SIM) || ls.get('early') === '1';   // Dave, 20 Nov 1:30am: Davy gets the tested beta layout tonight (couples.settings.early lists member names), everyone on the morning of 21 Nov; friends-only parts stay behind sbA (sign-in)
 const HDECKS = [['all', 'Discover'], ['movie', 'Watch'], ['dinner', 'Eat & Drink'], ['event', 'Go Out'], ['trip', 'Trips']].filter(d => !(NEWUI && d[0] === 'trip'));   // Dave, 19 Nov: Eat and Drinks merged; Go Out is things to do
 function homeHTML() {
   hintLoad(); recapLoad();
@@ -3881,7 +3882,7 @@ function howTo() {
 // here before the update. Someone who has just joined got the intro tour and does not need a second one.
 const NEWS = { v: 'n9-layout', since: '2026-11-21T14:00:00Z' };   // Dave, 20 Nov: the tested beta layout goes live (heart up top, Tonight spin, Trips someday); people who saw n8 get only these screens
 // was: n8-nights, 2026-11-20T03:45:00Z   // Dave, 19 Nov 10:40pm: after-the-night check-in, Go again, plan gaps; people who saw n7 get only the new screens
-function newsDue() { const b = S.inbox; return !!b && b.news !== NEWS.v && !!b.joined && new Date(b.joined) < new Date(NEWS.since); }
+function newsDue() { const b = S.inbox; return NEWUI && !!b && b.news !== NEWS.v && !!b.joined && new Date(b.joined) < new Date(NEWS.since); }
 function newsShow(force) {
   if (!force && (!newsDue() || S.view !== 'home' || $layer.innerHTML || document.querySelector('.coach,.scr,.sco,.match,.lfront,.wn'))) return false;
   S.walkSeen7 = S.inbox?.news === 'n7-discover'; S.walkSeen8 = S.inbox?.news === 'n8-nights';
