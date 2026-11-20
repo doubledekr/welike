@@ -2374,6 +2374,33 @@ function dayCtxFor(f) { const keep = [S.view, S.gdId, S.gdDay, S.tdCity, S.tdDay
 let LF = null;
 function lfLoad() { if (LF) return LF; LF = new Promise((ok, no) => { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'; document.head.appendChild(l);
   const sc = document.createElement('script'); sc.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'; sc.onload = () => ok(window.L); sc.onerror = () => { LF = null; no(); }; document.head.appendChild(sc); }); return LF; }
+// Map base (Dave, 20 Nov: "more like this"): OpenFreeMap vector tiles (free, no key) drawn by MapLibre inside Leaflet,
+// recoloured to a quiet sage: green-grey land, lighter streets, near-black water, no labels. Falls back to darkened
+// OpenStreetMap tiles if MapLibre can't load.
+let MLF = null;
+const mlLoad = () => MLF || (MLF = new Promise((ok, no) => {
+  const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css'; document.head.appendChild(l);
+  const a = document.createElement('script'); a.src = 'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js';
+  a.onload = () => { const b = document.createElement('script'); b.src = 'https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js'; b.onload = () => ok(); b.onerror = () => { MLF = null; no(); }; document.head.appendChild(b); };
+  a.onerror = () => { MLF = null; no(); }; document.head.appendChild(a); }));
+let MSTY = null;
+async function mapStyle() {
+  if (MSTY) return MSTY;
+  const st = await (await fetch('https://tiles.openfreemap.org/styles/liberty')).json();
+  const LAND = '#4b5e57', PARK = '#51665d', WATER = '#1d2628', MINOR = '#8a9f95', MAJOR = '#a8bbb1', RAIL = '#2c3633';
+  st.layers = st.layers.filter(l => l.type !== 'symbol' && l.type !== 'fill-extrusion' && l.type !== 'hillshade' && !/boundary|aeroway|building/.test(l.id + (l['source-layer'] || ''))).map(l => {
+    const sl = l['source-layer'] || '', p = l.paint = l.paint || {};
+    if (l.type === 'background') p['background-color'] = LAND;
+    else if (l.type === 'fill') { p['fill-color'] = sl === 'water' ? WATER : /park|landcover|landuse/.test(sl) ? PARK : LAND; p['fill-opacity'] = 1; delete p['fill-pattern']; delete p['fill-outline-color']; }
+    else if (l.type === 'line') { if (/water/.test(sl)) p['line-color'] = WATER; else if (/rail|transit/.test(l.id)) { p['line-color'] = RAIL; delete p['line-dasharray']; } else if (/motorway|trunk|primary|major/.test(l.id)) p['line-color'] = MAJOR; else p['line-color'] = MINOR; if (/casing/.test(l.id)) p['line-color'] = LAND; p['line-opacity'] = 1; delete p['line-pattern']; }
+    return l; });
+  return (MSTY = st);
+}
+async function mapBase(map) {
+  try { await mlLoad(); const style = await mapStyle(); L.maplibreGL({ style, attribution: '© OpenFreeMap © OpenStreetMap contributors' }).addTo(map); el2bg(map); return; } catch (e) { console.warn('map style', e); }
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors', maxZoom: 19, className: 'ltdark' }).addTo(map);
+}
+const el2bg = map => { const c = map.getContainer(); if (c) c.style.background = '#4b5e57'; };
 async function tripMap(day) {
   const g = S.view === 'gday' ? S.gdId : tripGid(), f = S.view === 'tday' ? S.tdCity : tripFocus(); if (!g && !f) return;
   const ctx = g ? dayCtxFor({ g, day: day || gtDays(gtOf(g))[0]?.k }) : dayCtxFor({ c: f, day: day || tripDays(f)[0]?.k }); if (!ctx) return;
@@ -2396,8 +2423,8 @@ function renderTripMap() {
     <div class="tleg"><span><i class="b"></i>Booked</span><span><i class="o"></i>On the plan</span><span><i class="t"></i>Tentative</span>${m.day ? '' : '<span><i class="l"></i>Liked</span>'}</div>
     ${m.missing ? `<small class="muted" style="display:block;margin:6px 4px 0;font-size:12px">${m.missing} without a location yet (tours that start from a meeting point).</small>` : ''}</div>`;
   if (!m.pts) return;
-  lfLoad().then(L => { const el = document.getElementById('tmapc'); if (!el || !L) return; el.innerHTML = '';
-    const map = L.map(el, { zoomControl: false, attributionControl: true }); L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors', maxZoom: 19, className: 'ltdark' }).addTo(map);
+  lfLoad().then(async L => { const el = document.getElementById('tmapc'); if (!el || !L) return; el.innerHTML = '';
+    const map = L.map(el, { zoomControl: false, attributionControl: true }); await mapBase(map); if (!el.isConnected) return;
     const col = { booked: '#ff8a65', on: '#3ee0c5', tent: '#3ee0c5', like: '#8a8f98' }, ll = [];
     show.forEach(p => { const mk = L.circleMarker([p.lat, p.lng], { radius: p.kind === 'like' ? 6 : 9, color: col[p.kind], weight: p.kind === 'tent' ? 2.5 : 1.5, fillColor: col[p.kind], fillOpacity: p.kind === 'tent' ? 0.15 : p.kind === 'like' ? 0.55 : 0.9, dashArray: p.kind === 'tent' ? '3 3' : null }).addTo(map);
       const sub = [p.day ? dpFmt(p.day) : '', p.time ? tm12(p.time) : '', p.kind === 'tent' ? 'tentative' : p.kind === 'booked' ? 'booked' : ''].filter(Boolean).join(' · ');
