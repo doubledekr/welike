@@ -28,3 +28,7 @@
 --   'ordered' turns each "Everyone gets one" item into a fr_costs row: price x people, mode 'each', claims = who has a size.
 -- merch function: opts {plan,item} reads colours/sizes/variant ids; checkout {plan} builds
 --   https://<shop>/cart/checkout?products=variantId:qty,... (ships to whoever checks out: the planner).
+
+-- Round 5 (20 Nov, 5:30pm): trip day screen. Migration trip_day_details on production:
+--   fr_trip_set(p_id, 'flight'|'stay', value)  (group: data.flights[uid] = {code, day, land, from}; also sets arrive_at/arrive_how)
+--   plan_trip_set(code, member, city, 'flight'|'stay', value)  (couple: plan_meta[city].flights_by[member], plan_meta[city].stay)
