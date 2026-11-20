@@ -18,7 +18,9 @@ const apiKey = () => Deno.env.get("ANTHROPIC_API_KEY") ?? Deno.env.get("CLAUDE_A
 const DAILY_GUARD = 1500, RADIUS_M = 16000, FRESH_DAYS = 60;
 const QUERIES = ["magic shop", "oddities and curiosities shop", "independent bookstore", "candy shop", "chocolate shop", "independent bakery",
   "record store", "vintage shop", "antique shop", "toy store", "independent gift shop", "plant shop", "stationery and paper shop",
-  "cheese shop", "spice shop", "makers market"];
+  "cheese shop", "spice shop", "makers market",
+  // home goods and design (Dave, 19 Nov: places like Nest and Shinola)
+  "home goods boutique", "design shop", "locally made goods store", "leather goods store"];
 const NOT_TYPES = new Set(["restaurant", "fast_food_restaurant", "bar", "night_club", "meal_takeaway", "meal_delivery", "supermarket", "grocery_store",
   "convenience_store", "gas_station", "pharmacy", "drugstore", "department_store", "shopping_mall", "warehouse_store", "discount_store",
   "hotel", "lodging", "car_dealer", "car_repair", "bank", "atm", "doctor", "dentist", "hospital", "school", "storage", "moving_company",
@@ -51,7 +53,7 @@ async function ask(prompt: string, max = 3500): Promise<string | null> {
   }
   return null;
 }
-const KINDS = ["Magic shop", "Oddities", "Bookshop", "Candy shop", "Chocolatier", "Bakery", "Record store", "Vintage shop", "Antiques", "Toy shop",
+const KINDS = ["Home goods", "Design shop", "Magic shop", "Oddities", "Bookshop", "Candy shop", "Chocolatier", "Bakery", "Record store", "Vintage shop", "Antiques", "Toy shop",
   "Gift shop", "Plant shop", "Stationery", "Cheese shop", "Spice shop", "Makers' market", "Design shop", "Comic shop", "Game shop", "Craft shop"];
 
 Deno.serve(async (req: Request) => {
