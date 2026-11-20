@@ -994,7 +994,7 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .mcard img,.mcard .pimg{width:100%;height:100%;object-fit:cover;display:flex;align-items:center;justify-content:center;font-size:42px}.mcard b{position:absolute;left:0;right:0;bottom:0;padding:26px 11px 10px;font-family:var(--serif);font-weight:400;font-size:18px;line-height:1.08;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.75))}
 .mstk .mcard:nth-child(1){z-index:3}.mstk .mcard:nth-child(2){z-index:2;transform:rotate(3deg) translate(4px,2px)}.mstk .mcard:nth-child(3){z-index:1;transform:rotate(-4deg) translate(-4px,4px)}.mstk .mcard:nth-child(n+4){opacity:0;pointer-events:none}
 .mstk .mcard.outl{transform:translateX(-115%) rotate(-12deg);opacity:0}.mstk .mcard.outr{transform:translateX(115%) rotate(12deg);opacity:0}.mhint{text-align:center;font-size:12px;margin-top:12px}
-.tside .btn>.ic,.trp .btn>.ic{width:17px;height:17px;margin-right:8px;vertical-align:-3px}.mzl{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}.mzi{display:flex;flex-direction:column;gap:4px;text-decoration:none;color:#fff}.mzi img,.mzi .pimg{width:100%;aspect-ratio:1;border-radius:12px;object-fit:cover;background:#ecebe8}.mzi b{font-size:13.5px}.mzi small{color:#3ee0c5;font-size:12px}
+.tside .btn>.ic,.trp .btn>.ic{width:17px;height:17px;margin-right:8px;vertical-align:-3px}.mzl{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}.mzi{display:flex;flex-direction:column;gap:4px;text-decoration:none;color:#fff}.mzi img,.mzi .pimg{width:100%;aspect-ratio:1;border-radius:12px;object-fit:cover;background:#ecebe8}.mzi b{font-size:13.5px}.mzi small{color:#3ee0c5;font-size:12px}.mzi{background:none;border:0;padding:0;font:inherit;text-align:left;cursor:pointer}.mzhero{width:100%;max-height:260px;object-fit:contain;border-radius:14px;background:#ecebe8;margin:10px 0 6px}.mzsz{flex-wrap:wrap}.mzrow select{width:auto;min-width:72px;margin:0}.mzs a.btn{display:flex;align-items:center;justify-content:center;width:100%;box-sizing:border-box;text-decoration:none}.mzs small+a.btn{margin-top:16px!important}
 .mzp{margin:14px auto 10px;width:260px;height:260px;border-radius:20px;background:#2a2b31;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}.mzp.lt{background:#ece8e0}.mzp canvas{width:100%;height:100%;object-fit:contain}.mzp small{position:absolute;color:var(--muted);font-size:13px}.mzin{margin-top:8px;height:44px;font-size:15px}.mzup{display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
 .mzk{display:block;margin:12px 2px 6px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.mzg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.mzb{display:flex;flex-direction:column;gap:4px;padding:6px 6px 8px;border-radius:14px;background:rgba(255,255,255,.05);border:2px solid transparent;color:#fff;text-align:left}.mzb.on{border-color:#3ee0c5}.mzb img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;background:#ecebe8}.mzb span{font-size:11.5px;line-height:1.25;min-height:2.5em}.mzb i{font-style:normal;font-weight:600;font-size:12.5px;color:#3ee0c5}
 .ttop{display:flex;flex-direction:column;gap:8px;margin:2px 0 12px}.tmrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.05);color:#fff;border:0}.tmrow .ic{width:20px;height:20px;color:#3ee0c5;flex:none}.tmrow b{display:block;font-size:15px}.tmrow small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}.tmrow i{font-style:normal;font-weight:600;font-size:13.5px;color:#3ee0c5}.tmrow.hot{background:rgba(62,224,197,.1)}
@@ -2214,7 +2214,7 @@ function gTripHome(id) {
     ${step('pin', 'A place to stay', p.data?.stay?.name ? esc(p.data.stay.name) : 'Not picked yet', p.data?.stay?.name ? '' : '<button class="tpill" data-act="gfull">Pick</button>')}
     ${(p.data?.booked || []).length ? `<div class="sect">Booked</div>${p.data.booked.slice().sort((a, b) => (a.day + (a.time || '')).localeCompare(b.day + (b.time || ''))).map(b => bkRow(b, id)).join('')}` : ''}
     ${debts.length ? `<div class="sect">Money</div>${debts.map(r => `<div class="prow"><span class="pimg">${ic('users')}</span><span class="grow"><b>${r.to === me.id ? `${esc(frNames(r.from.map(f => byP[f]?.name || 'Someone')))} ${r.from.length > 1 ? 'owe' : 'owes'} you ${frUsd(r.cents - r.paid)}` : `You owe ${esc(byP[r.to]?.name || 'someone')} ${frUsd(r.cents - r.paid)}`}</b><small>Settle up on the group page</small></span></div>`).join('')}` : ''}
-    ${(p.data?.merch || []).length ? `<div class="sect">Trip merch</div>${mzList(p)}` : ''}${mzHost(p) && p.city && p.day && (frD(p.day) - Date.now()) / 864e5 >= 10 && (p.data?.merch || []).length < 6 ? `<button class="tmrow" data-act="mzopen" data-id="${esc(p.id)}" style="margin-top:8px">${ic('star')}<span class="grow"><b>${(p.data?.merch || []).length ? 'Add more trip merch' : 'Make trip merch'}</b><small>Shirts, hoodies and hats. Everyone orders their own.</small></span><i>Make</i></button>` : ''}
+    ${(p.data?.merch || []).length ? `<div class="sect">Trip merch</div>${mzList(p)}${mzGroupNote(p)}` : ''}${mzHost(p) && p.city && p.day && (frD(p.day) - Date.now()) / 864e5 >= 10 && (p.data?.merch || []).length < 6 ? `<button class="tmrow" data-act="mzopen" data-id="${esc(p.id)}" style="margin-top:8px">${ic('star')}<span class="grow"><b>${(p.data?.merch || []).length ? 'Add more trip merch' : 'Make trip merch'}</b><small>Shirts, hoodies and hats, for everyone or on their own.</small></span><i>Make</i></button>` : ''}
     <div class="sect">Everyone likes</div>
     ${allin.length ? allin.slice(0, 8).map(c => `<div class="prow">${c.img ? `<img src="${esc(c.img)}" alt="">` : `<span class="pimg">${ic('ticket')}</span>`}<span class="grow"><b>${esc(c.title)}</b><small>${D[c.id] ? (D[c.id].on ? 'On ' + esc(dpFmt(D[c.id].day)) : 'Suggested for ' + esc(dpFmt(D[c.id].day))) : 'Not on a day yet'}</small></span></div>`).join('') : `<p class="muted" style="font-size:14px">Nothing everyone likes yet. Swipe ${esc(p.city || 'the trip')} in To do.</p>`}
     <div style="height:14px"></div><button class="btn ghost" data-act="gfull">Open the group page</button><div style="height:10px"></div></div>`;
@@ -2388,12 +2388,69 @@ const tripWaits = key => { const g = key.startsWith('g:') ? key.slice(2) : '', D
 // upload), picks up to 3 blanks (tees, hoodies, crewnecks, hats, kids), and we create hidden products in the Let's Together
 // Fourthwall shop, $5 over cost each, reachable only by link. Everyone orders their own size and pays Fourthwall.
 const mzHost = p => { const me = p?.members?.find(x => x.me); return !!(me && (me.host || /host/i.test(me.role || '') || p.owner === me.id)); };
-const mzList = p => { const m = p?.data?.merch || []; return m.length ? `<div class="mzl">${m.map(x => `<a class="mzi" href="${esc(x.url)}" target="_blank" rel="noopener">${x.img ? `<img src="${esc(x.img)}" alt="">` : `<span class="pimg">${ic('star')}</span>`}<b>${esc(x.kind === 'Kids' ? 'Kids' : x.kind)}</b><small>${x.price ? '$' + Number(x.price).toFixed(2) + ' · ' : ''}Get yours</small></a>`).join('')}</div>` : ''; };
+const mzList = p => { const m = p?.data?.merch || []; return m.length ? `<div class="mzl">${m.map(x => `<button class="mzi" data-act="mzitem" data-id="${esc(p.id)}" data-it="${esc(x.id)}">${x.img ? `<img src="${esc(x.img)}" alt="">` : `<span class="pimg">${ic('star')}</span>`}<b>${esc(x.kind)}</b><small>${x.ordered ? 'Ordered' : x.mode === 'all' ? (x.sz?.[mzMe(p)] ? 'Your size: ' + esc(x.sz[mzMe(p)]) : 'Pick your size') : (x.price ? '$' + Number(x.price).toFixed(2) + ' · ' : '') + 'Get yours'}</small></button>`).join('')}</div>` : ''; };
+// Group order (Dave, 20 Nov): an item is "Optional" (everyone orders their own) or "Everyone gets one" (people tap their size,
+// the planner can fill in anyone, then orders them all in one checkout that ships to the planner). Once the planner says the
+// order went through, each item lands in who owes what at its exact price per person. Record only, no money moves here.
+const mzMe = p => p?.members?.find(x => x.me)?.id || '';
+const mzPlan = id => FR.plan?.id === id ? FR.plan : gtOf(id);
+const mzSet = (id, merch) => { for (const q of [FR.plan?.id === id ? FR.plan : null, gtOf(id)]) if (q && merch) q.data = { ...(q.data || {}), merch }; };
+const mzTodo = p => (p?.data?.merch || []).filter(x => x.mode === 'all' && !x.ordered && !x.sz?.[mzMe(p)]);
+const mzOpenItems = p => (p?.data?.merch || []).filter(x => x.mode === 'all' && !x.ordered);
+const mzIn = p => (p?.members || []).filter(x => x.status === 'in');
+function mzGroupNote(p) {   // one line under the merch grid: what's waiting
+  const host = mzHost(p), open = mzOpenItems(p), mine = mzTodo(p), n = mzIn(p).length;
+  if (!open.length) return '';
+  if (mine.length) return `<button class="tmrow hot" data-act="mzitem" data-id="${esc(p.id)}" data-it="${esc(mine[0].id)}">${ic('star')}<span class="grow"><b>Pick your size</b><small>The planner is ordering ${mine.length > 1 ? 'these' : 'one'} for everyone</small></span><i>Pick</i></button>`;
+  const got = Math.min(...open.map(x => Object.keys(x.sz || {}).length));
+  return host ? `<button class="tmrow" data-act="mzitem" data-id="${esc(p.id)}" data-it="${esc(open[0].id)}">${ic('check')}<span class="grow"><b>${got} of ${n} sizes in</b><small>Order for the group when you’re ready. It ships to you in one box.</small></span><i>Order</i></button>`
+    : `<p class="muted" style="font-size:13px;margin:6px 0 0">You’re all set. The planner orders for everyone and it ships to them.</p>`;
+}
+async function mzItem(id, it) {
+  const p = mzPlan(id); if (!p) return; S.mzi = { id, it, url: null, busy: false }; mzItemDraw();
+  const x = (p.data?.merch || []).find(q => q.id === it);
+  if (x && !x.opts) { const r = await sbA.functions.invoke('merch', { body: { action: 'opts', plan: id, item: it } }).catch(() => null); if (r?.data?.ok) { mzSet(id, r.data.merch); if (S.mzi?.it === it) mzItemDraw(); } }
+}
+function mzItemDraw() {
+  const z = S.mzi; if (!z) return; const p = mzPlan(z.id), x = (p?.data?.merch || []).find(q => q.id === z.it); if (!x) return closeSheet();
+  const host = mzHost(p), me = mzMe(p), sizes = x.opts?.sizes || [], colors = x.opts?.colors || [], all = x.mode === 'all', ppl = mzIn(p), hm = p.members.find(m => m.host || p.owner === m.id), hostName = hm?.me ? 'you' : hm?.name || 'the planner';
+  const pills = (who, cur) => sizes.length ? `<div class="stdays mzsz">${sizes.map(sz => `<button class="tpill ${cur === sz ? 'on' : ''}" data-act="mzsize" data-p="${esc(who)}" data-s="${esc(sz)}" ${x.ordered ? 'disabled' : ''}>${esc(sz)}</button>`).join('')}</div>` : '<p class="muted" style="font-size:13px">Loading sizes…</p>';
+  const picked = Object.keys(x.sz || {}).filter(k => ppl.some(m => m.id === k)).length, open = mzOpenItems(p).filter(q => Object.keys(q.sz || {}).length);
+  sheet(`<div class="grab"></div><div class="trp kc k-book mzs"><small class="tkick">Trip merch</small><h2>${esc(x.kind === 'Kids' ? 'Kids' : x.kind)}</h2>
+    ${x.img ? `<img class="mzhero" src="${esc(x.img)}" alt="">` : ''}
+    <small class="muted" style="display:block;font-size:13px">${x.price ? '$' + Number(x.price).toFixed(2) + ' each' : ''}${x.blank ? ' · ' + esc(x.blank) : ''}${all && x.color ? ' · ' + esc(x.color) : ''}</small>
+    ${host && !x.ordered ? `<div class="stdays" style="margin-top:12px"><button class="tpill ${all ? '' : 'on'}" data-act="mzmode2" data-m="own">Optional</button><button class="tpill ${all ? 'on' : ''}" data-act="mzmode2" data-m="all">Everyone gets one</button></div>
+      <small class="muted" style="display:block;margin-top:6px;font-size:12.5px">${all ? 'You order one for each person in a single checkout. It ships to you in one box.' : 'Each person orders their own and it ships to them.'}</small>` : ''}
+    ${x.ordered ? `<p style="margin-top:12px">Ordered for ${x.ordered.n} ${x.ordered.n === 1 ? 'person' : 'people'}. It ships to ${esc(hostName)}. Everyone’s share is in who owes what.</p>`
+    : all ? `${host && colors.length > 1 ? `<div class="sect" style="margin-top:14px">Colour for everyone</div><div class="stdays">${colors.map(c => `<button class="tpill ${x.color === c ? 'on' : ''}" data-act="mzcolor" data-c="${esc(c)}">${esc(c)}</button>`).join('')}</div>` : ''}
+      <div class="sect" style="margin-top:14px">Your size</div>${pills(me, x.sz?.[me])}
+      ${host ? `<div class="sect" style="margin-top:14px">Everyone’s sizes · ${picked} of ${ppl.length}</div>${ppl.filter(m => m.id !== me).map(m => `<div class="fropt mzrow"><span class="grow"><b>${esc(m.name)}</b>${x.sz?.[m.id] ? '' : '<small>Hasn’t picked yet</small>'}</span><select class="frsel" data-act="mzfor" data-p="${esc(m.id)}" aria-label="Size for ${esc(m.name)}"><option value="">—</option>${sizes.map(sz => `<option ${x.sz?.[m.id] === sz ? 'selected' : ''}>${esc(sz)}</option>`).join('')}</select></div>`).join('')}
+        <div style="height:12px"></div>${z.url ? `<a class="btn" href="${esc(z.url)}" target="_blank" rel="noopener" data-act="mzwent">Check out on Fourthwall</a><button class="btn ghost" style="margin-top:8px" data-act="mzdone" ${z.went ? '' : 'disabled'}>I placed the order</button>
+          <small class="muted" style="display:block;text-align:center;margin-top:8px;font-size:12px">Use your own address so it all comes to you. When it’s placed, each person’s share goes into who owes what. Shipping and tax aren’t included, so add them as a cost if you want them split.</small>`
+        : `<button class="btn" data-act="mzorder" ${open.length && !z.busy ? '' : 'disabled'}>${z.busy ? 'Getting checkout…' : `Order for the group${open.length > 1 ? ` · ${open.length} items` : ''}`}</button><small class="muted" style="display:block;text-align:center;margin-top:8px;font-size:12px">One checkout for everything set to “Everyone gets one.” Anyone without a size is left out.</small>`}`
+      : `<small class="muted" style="display:block;margin-top:10px;font-size:13px">${esc(hostName[0].toUpperCase() + hostName.slice(1))} orders these for everyone and they ship to ${esc(hostName)}. Want another for yourself? You can still buy your own.</small>`}`
+    : ''}
+    ${!x.ordered || !all ? `<a class="btn ${all ? 'ghost' : ''}" style="margin-top:12px" href="${esc(x.url)}" target="_blank" rel="noopener">${all ? 'Buy an extra for yourself' : 'Get yours'}</a>` : ''}</div>`);
+  document.querySelectorAll('[data-act=mzfor]').forEach(el => el.addEventListener('change', e => mzSize(e.target.dataset.p, e.target.value)));
+}
+async function mzRpc(kind, data) {
+  const z = S.mzi; if (!z) return; try { const r = await frRpc('fr_merch_act', { p_id: z.id, p_kind: kind, p_data: { item: z.it, ...data } });
+    if (r?.ok) { mzSet(z.id, r.merch); if (S.view === 'fplan') renderFPlan(); else render(); mzItemDraw(); return r; }
+    toast(r?.why === 'not_host' ? 'Only the planner can change that.' : r?.why === 'ordered' ? 'That’s already been ordered.' : r?.why === 'nothing' ? 'Nothing left to add.' : 'That didn’t save. Try again.'); } catch { toast('Could not reach the server. Try again.'); }
+}
+const mzSize = (who, sz) => { const z = S.mzi, p = z && mzPlan(z.id), x = p?.data?.merch?.find(q => q.id === z.it); if (!x) return; const cur = x.sz?.[who]; return mzRpc('size', { person: who === mzMe(p) ? '' : who, size: cur === sz ? '' : sz }); };
+async function mzOrder() {
+  const z = S.mzi; if (!z) return; z.busy = true; mzItemDraw();
+  const r = await sbA.functions.invoke('merch', { body: { action: 'checkout', plan: z.id } }).catch(() => null); z.busy = false;
+  if (r?.data?.ok) { z.url = r.data.url; if (r.data.miss?.length) toast(`Left out: ${r.data.miss.join(', ')}. Those sizes aren’t available.`, 3600); }
+  else toast(r?.data?.why === 'nothing' ? 'Nobody has picked a size yet.' : 'Couldn’t start the checkout. Try again.');
+  mzItemDraw();
+}
 function mzStep(p) {
   const m = p.data?.merch || [], host = mzHost(p), soon = p.day && (frD(p.day) - Date.now()) / 864e5 >= 10;
   if (!m.length && !(host && p.city && soon)) return '';
   return `<div class="frstep"><div class="frsh"><b>Trip merch</b><small>${m.length ? 'Order your own' : 'Optional'}</small></div><div class="frsb">
-    <p>${m.length ? 'Everyone picks their own size and pays for their own. It ships to you.' : 'Make a shirt, hoodie or hat for the trip. Everyone orders their own size and pays for their own, so nobody fronts the money.'}</p>${mzList(p)}
+    <p>${m.length ? (m.some(x => x.mode === 'all') ? 'Some of it is ordered for everyone by the planner. Anything else, order your own.' : 'Everyone picks their own size and pays for their own. It ships to you.') : 'Make a shirt, hoodie or hat for the trip. Order one for everyone in a single box, or let each person order their own.'}</p>${mzList(p)}${mzGroupNote(p)}
     ${host && soon && m.length < 6 ? `<button class="btn sm ${m.length ? 'ghost' : ''}" data-act="mzopen" data-id="${esc(p.id)}">${m.length ? 'Add another' : 'Make trip merch'}</button>` : ''}</div></div>`;
 }
 async function mzOpen(id) {
@@ -6904,6 +6961,13 @@ document.addEventListener('click', async e => {
       case 'mzink': if (S.mz) { S.mz.ink = t.dataset.i; mzDraw(); } return;
       case 'mzsel': if (S.mz) { const k = t.dataset.id; if (S.mz.sel.has(k)) S.mz.sel.delete(k); else if (S.mz.sel.size >= 3) return toast('Pick up to 3.'); else S.mz.sel.add(k); mzDraw(); } return;
       case 'mzgo': return mzGo(t);
+      case 'mzitem': return mzItem(t.dataset.id, t.dataset.it);
+      case 'mzmode2': return mzRpc('mode', { mode: t.dataset.m });
+      case 'mzcolor': return mzRpc('color', { color: t.dataset.c });
+      case 'mzsize': return mzSize(t.dataset.p, t.dataset.s);
+      case 'mzorder': return mzOrder();
+      case 'mzwent': if (S.mzi) { S.mzi.went = true; setTimeout(mzItemDraw, 300); } return;
+      case 'mzdone': return mzRpc('ordered', {}).then(r => { if (r?.ok) { toast('Added to who owes what.', 2600); S.mzi.url = null; mzItemDraw(); if (FR.plan?.id === S.mzi.id) frRpc('fr_plan', { p_id: S.mzi.id }).then(q => { if (q?.ok && FR.plan?.id === q.id) { FR.plan = q; if (S.view === 'fplan') renderFPlan(); } }).catch(() => {}); } });
       case 'tmday': if (S.tmap) { S.tmap.day = t.dataset.day; renderTripMap(); } return;
       case 'tmback': { const b = S.tmap?.back; S.tmap = null; S.view = b === 'tday' || b === 'gday' ? b : 'home'; return render(); }
       case 'vtime': return vtimeSheet(t.dataset.ref, t.dataset.prod, t.dataset.g);

@@ -2,7 +2,9 @@
 // A trip's planner makes a design (ours, or their own upload), picks up to 3 blanks, and we create hidden products in
 // the Let's Together Fourthwall shop: $5 margin each, reachable only by link. Everyone orders their own size and pays
 // Fourthwall; the app never handles money. Keys stay in the backend.
-// Actions (signed-in, from the app): blanks; create {plan, templates[], image (base64), mime, w, h, name, ink}.
+// Actions (signed-in, from the app): blanks; create {plan, templates[], image (base64), mime, w, h, name, ink};
+// opts {plan, item} loads an item's colours, sizes and variant ids; checkout {plan} (planner) builds one Fourthwall checkout
+// link for every "everyone gets one" item, one per size picked, shipped to the planner in one box.
 import { createClient } from "npm:@supabase/supabase-js@2";
 const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type", "Access-Control-Allow-Methods": "POST, OPTIONS" };
 const json = (o: unknown, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { ...cors, "Content-Type": "application/json" } });
@@ -25,6 +27,23 @@ async function blanks() {
   }
   const order = ["Tee", "Hoodie", "Crewneck", "Hat", "Kids"];
   return out.sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind) || (a.price ?? 99) - (b.price ?? 99));
+}
+
+const SIZE_ORDER = ["XXS", "XS", "S", "M", "L", "XL", "2XL", "XXL", "3XL", "XXXL", "4XL", "5XL", "OS", "ONE SIZE"];
+const sizeRank = (x: string) => { const i = SIZE_ORDER.indexOf(x.toUpperCase()); return i < 0 ? 50 : i; };
+// Colours, sizes and variant ids for one product, read from the Open API.
+async function optsFor(productId: string) {
+  const r = await fw(`/products/${productId}`); if (!r.ok) return null;
+  const d = await r.json(), vs = (d?.variants || []) as any[];
+  const nm = (x: any) => typeof x === "string" ? x : x?.name || x?.value || "";
+  const v: Record<string, string> = {}, colors: string[] = [], sizes: string[] = [];
+  for (const x of vs) {
+    const a = x.attributes || {}, c = nm(a.color ?? x.color) || "One colour", z = nm(a.size ?? x.size) || "One size";
+    if (x.stock?.type === "LIMITED" && !(x.stock?.inStock > 0)) continue;
+    v[`${c}|${z}`] = x.id; if (!colors.includes(c)) colors.push(c); if (!sizes.includes(z)) sizes.push(z);
+  }
+  sizes.sort((a, b) => sizeRank(a) - sizeRank(b));
+  return { colors, sizes, v, slug: d?.slug || "" };
 }
 
 // Backend test only: a plain 1200px white square on a clear background, as a PNG, so the pipeline can be checked without an upload.
@@ -55,6 +74,41 @@ Deno.serve(async (req) => {
     }
     if (!uid) return json({ ok: false, why: "signin" }, 401);
     if (b.action === "blanks") return json({ ok: true, blanks: await blanks(), margin: MARGIN });
+    if (b.action === "probe" && req.headers.get("x-sync-key")) {   // backend test: what a product looks like
+      const r = await fw(`/products?page=0&size=5`); const j = r.ok ? await r.json() : { status: r.status };
+      const first = (j?.results || [])[0]; const one = first ? await (await fw(`/products/${first.id}`)).json() : null;
+      return json({ ok: true, n: (j?.results || []).length, names: (j?.results || []).map((p: any) => [p.id, p.name, p.state?.type || p.state]), keys: one ? Object.keys(one) : null, variant: one?.variants?.[0] || null, opts: first ? await optsFor(first.id) : null });
+    }
+
+    if (b.action === "opts" || b.action === "checkout") {
+      const { data: pl } = await db.from("fr_plans").select("id, owner, data").eq("id", b.plan).maybeSingle();
+      if (!pl) return json({ ok: false, why: "no_plan" });
+      const { data: me } = await db.from("fr_plan_members").select("role, status").eq("plan", pl.id).eq("person", uid).maybeSingle();
+      if (me?.status !== "in") return json({ ok: false, why: "gone" });
+      let merch = (pl.data?.merch || []) as any[];
+      if (b.action === "opts") {
+        const it = merch.find((m) => m.id === b.item); if (!it) return json({ ok: false, why: "item" });
+        const o = await optsFor(it.id); if (!o) return json({ ok: false, why: "fourthwall" });
+        const patch: Record<string, unknown> = { opts: { colors: o.colors, sizes: o.sizes, v: o.v } };
+        if (!it.color || !o.colors.includes(it.color)) patch.color = o.colors[0] || null;
+        const { data: m2 } = await db.rpc("fr_merch_patch", { p_id: pl.id, p_item: it.id, p_patch: patch });
+        return json({ ok: true, merch: m2 });
+      }
+      if (!(pl.owner === uid || /host/i.test(String(me?.role || "")))) return json({ ok: false, why: "not_host" });
+      const qty: Record<string, number> = {}, miss: string[] = [];
+      let items = 0, cents = 0;
+      for (const it of merch) {
+        if (it.mode !== "all" || it.ordered || !it.sz || !Object.keys(it.sz).length) continue;
+        const o = it.opts || await optsFor(it.id); if (!o) { miss.push(it.kind); continue; }
+        const color = it.color && o.colors.includes(it.color) ? it.color : o.colors[0];
+        for (const z of Object.values(it.sz) as string[]) { const vid = o.v[`${color}|${z}`]; if (!vid) { miss.push(`${it.kind} ${z}`); continue; } qty[vid] = (qty[vid] || 0) + 1; items++; cents += Math.round(Number(it.price || 0) * 100); }
+      }
+      if (!items) return json({ ok: false, why: miss.length ? "sizes" : "nothing", miss });
+      const { data: sh } = await (async () => { const r = await fw("/shops/current"); return { data: r.ok ? await r.json() : null }; })();
+      const dom = sh?.publicDomain || "lets-together-shop.fourthwall.com";
+      const url = `https://${dom}/cart/checkout?products=${Object.entries(qty).map(([v, n]) => `${v}:${n}`).join(",")}`;
+      return json({ ok: true, url, items, cents, miss });
+    }
 
     if (b.action === "create") {
       const { data: pl } = await db.from("fr_plans").select("id, owner, title, city, data").eq("id", b.plan).maybeSingle();
@@ -92,7 +146,9 @@ Deno.serve(async (req) => {
         const c = await r.json();
         let slug = "", raw = "";
         try { const g = await fw(`/products/${c.productId}`); const d = g.ok ? await g.json() : null; slug = d?.slug || d?.offerSlug || ""; raw = d ? Object.keys(d).join(",") : String(g.status); } catch (_) { /* link below falls back */ }
-        made.push({ id: c.productId, kind: t.kind, blank: t.name, price: t.price, img: c.images?.[0]?.url || null, url: slug ? `https://${host_}/products/${slug}` : `https://${host_}`, raw: slug ? undefined : raw });
+        const o = await optsFor(c.productId).catch(() => null);
+        made.push({ id: c.productId, kind: t.kind, blank: t.name, price: t.price, img: c.images?.[0]?.url || null, url: slug ? `https://${host_}/products/${slug}` : `https://${host_}`, raw: slug ? undefined : raw,
+          mode: "own", opts: o ? { colors: o.colors, sizes: o.sizes, v: o.v } : null, color: o?.colors?.[0] || null });
       }
       if (!made.length) return json({ ok: false, why: "create", detail: errs.join(" | ").slice(0, 400) });
       const { data: merch } = await db.rpc("fr_merch_add", { p_id: pl.id, p_items: made.map((m) => ({ ...m, by: uid, at: new Date().toISOString() })) });

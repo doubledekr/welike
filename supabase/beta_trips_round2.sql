@@ -21,3 +21,10 @@
 
 -- Trip merch (20 Nov evening): edge function merch (source supabase/merch_index.ts) on Fourthwall, fr_merch_add(plan, items).
 -- Planner-only; up to 3 blanks per go, 6 per trip; hidden products, $5 margin; fr_plans.data.merch holds {id, kind, price, img, url}.
+
+-- Round 4 (20 Nov, evening): trip merch group order. Migration fr_merch_group_order on production:
+--   _fr_money: cost mode 'each' counts one share per person (plus-ones don't change a merch share)
+--   fr_merch_patch (service role only), fr_merch_act(p_id, p_kind mode|color|size|ordered, p_data)
+--   'ordered' turns each "Everyone gets one" item into a fr_costs row: price x people, mode 'each', claims = who has a size.
+-- merch function: opts {plan,item} reads colours/sizes/variant ids; checkout {plan} builds
+--   https://<shop>/cart/checkout?products=variantId:qty,... (ships to whoever checks out: the planner).
