@@ -4,21 +4,24 @@
 // they go into that person's own trip or group trip. Nothing is pushed to anyone.
 // Viator gives the travel date but not always the time: when the product has a single start time, we fill it in.
 // Auth: x-sync-key (cron). Body: { fake?: event } lets a test event through the same path.
+// Without the key: { times: productCode, code: coupleCode } returns that product's start times (nothing else).
 import { createClient } from "npm:@supabase/supabase-js@2";
 const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { "Content-Type": "application/json" } });
 async function secret(k: string) { const { data } = await db.from("app_secrets").select("value").eq("key", k).maybeSingle(); return data?.value as string | undefined; }
 const H = (key: string) => ({ "exp-api-key": key, "Accept": "application/json;version=2.0", "Accept-Language": "en-US" });
 
-async function oneStart(key: string, code: string): Promise<string | null> {
+async function allStarts(key: string, code: string): Promise<string[]> {
   try {
     const r = await fetch(`https://api.viator.com/partner/availability/schedules/${encodeURIComponent(code)}`, { headers: H(key) });
-    if (!r.ok) return null;
+    if (!r.ok) return [];
     const j = await r.json(), starts = new Set<string>();
     for (const bi of j?.bookableItems || []) for (const s of bi?.seasons || []) for (const pr of s?.pricingRecords || []) for (const t of pr?.timedEntries || []) if (t?.startTime) starts.add(String(t.startTime).slice(0, 5));
-    return starts.size === 1 ? [...starts][0] : null;
-  } catch { return null; }
+    return [...starts].sort();
+  } catch { return []; }
 }
+async function oneStart(key: string, code: string): Promise<string | null> { const a = await allStarts(key, code); return a.length === 1 ? a[0] : null; }
+const CORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info", "Access-Control-Allow-Methods": "POST, OPTIONS" };
 // Events may arrive flat or with the booking nested; pull out the fields _viator_apply reads.
 function flat(e: any) {
   const b = e?.booking || e || {};
@@ -37,7 +40,19 @@ async function apply(key: string, ev: any) {
 }
 
 Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   try {
+    // Public: the start times a product runs at, for a couple picking the time Viator didn't send. Needs a real couple code.
+    if (!req.headers.get("x-sync-key")) {
+      const b = await req.json().catch(() => ({}));
+      const pc = String(b.times || "").slice(0, 40), cc = String(b.code || "").slice(0, 20).toUpperCase();
+      const cj = (o: unknown) => new Response(JSON.stringify(o), { headers: { ...CORS, "Content-Type": "application/json" } });
+      if (!/^[A-Za-z0-9-]+$/.test(pc) || !cc) return cj({ times: [] });
+      const { data: cp } = await db.from("couples").select("id").eq("code", cc).maybeSingle();
+      if (!cp) return cj({ times: [] });
+      const key = await secret("viator_key"); if (!key) return cj({ times: [] });
+      return cj({ times: (await allStarts(key, pc)).slice(0, 24) });
+    }
     if (req.headers.get("x-sync-key") !== await secret("sync_key")) return json({ error: "forbidden" }, 403);
     const key = await secret("viator_key"); if (!key) return json({ ok: false, error: "no_key" });
     const b = await req.json().catch(() => ({}));

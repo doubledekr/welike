@@ -28,7 +28,7 @@ begin
   on conflict on constraint viator_bookings_pkey do update set travel_date = excluded.travel_date, travel_time = excluded.travel_time, status = excluded.status, price = coalesce(excluded.price, b.price),
     card = coalesce(excluded.card, b.card), raw = excluded.raw, updated_at = now(), fr_plan = null, city = null, cost_id = null;
   if cancel or d is null then return 'removed'; end if;
-  item := jsonb_build_object('ref', v_ref, 'title', coalesce(c.title, 'Booked on Viator'), 'card', c.id, 'day', d, 'time', tm, 'minutes', nullif(c.data->>'minutes', '')::int, 'where', v_city, 'by', tg.member);
+  item := jsonb_build_object('ref', v_ref, 'product', e->>'productCode', 'title', coalesce(c.title, 'Booked on Viator'), 'card', c.id, 'day', d, 'time', tm, 'minutes', nullif(c.data->>'minutes', '')::int, 'where', v_city, 'by', tg.member);
   -- a group trip this person is in, covering that day: the booking goes into its itinerary and its bill split
   select m2.user_id into uid from members m2 where m2.couple_id = tg.couple_id and m2.name = tg.member;
   if uid is not null then

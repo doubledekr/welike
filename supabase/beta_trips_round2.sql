@@ -1,0 +1,6 @@
+-- Applied to the live project 20 Nov as migrations beta_trips_round2, viator_item_product, start_trips_skip_eat.
+-- start_trip_eat(p_code, p_member, p_city): an Eat pile for a trip city (local food and drink cards not yet swiped).
+-- fr_day(p_id, p_card, p_day, p_vote add|up|down|off): stops on a group trip day; host adds straight in, others suggest,
+--   a suggestion goes on the day once half the group is in. Stored in fr_plans.data.days. Nothing is pushed.
+-- _viator_apply now keeps the product code on each booked item, so a missing start time can be picked from the tour's times.
+-- start_trips skips Eat sessions (filters ? 'eat').
