@@ -13,3 +13,8 @@
 --   planner adds directly or puts to a vote; planner can lock in. fr_day_rand(p_id, p_cards): planner lets chance pick.
 -- plan_stop(code, member, city, card|null, day, vote, opt) and plan_stop_rand(...): the same for couple trips
 --   (two people: on once the other is in; a card you both liked goes straight on).
+
+-- Festivals and Wikipedia photos (migration wiki_fests_and_photos, 20 Nov afternoon):
+-- city_fests (one Claude pass per city, kept 300 days), fests_upsert, edge function fests (source supabase/fests_index.ts),
+-- start_trip_explore(code, member, city, from, to) leads with festivals whose usual months overlap the trip.
+-- gems.photo_credit + trigger cards_gem_credit; gems edge function v8 uses wikiimg.ts before Google photos.
