@@ -18,3 +18,6 @@
 -- city_fests (one Claude pass per city, kept 300 days), fests_upsert, edge function fests (source supabase/fests_index.ts),
 -- start_trip_explore(code, member, city, from, to) leads with festivals whose usual months overlap the trip.
 -- gems.photo_credit + trigger cards_gem_credit; gems edge function v8 uses wikiimg.ts before Google photos.
+
+-- Trip merch (20 Nov evening): edge function merch (source supabase/merch_index.ts) on Fourthwall, fr_merch_add(plan, items).
+-- Planner-only; up to 3 blanks per go, 6 per trip; hidden products, $5 margin; fr_plans.data.merch holds {id, kind, price, img, url}.

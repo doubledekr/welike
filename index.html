@@ -994,7 +994,10 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .mcard img,.mcard .pimg{width:100%;height:100%;object-fit:cover;display:flex;align-items:center;justify-content:center;font-size:42px}.mcard b{position:absolute;left:0;right:0;bottom:0;padding:26px 11px 10px;font-family:var(--serif);font-weight:400;font-size:18px;line-height:1.08;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.75))}
 .mstk .mcard:nth-child(1){z-index:3}.mstk .mcard:nth-child(2){z-index:2;transform:rotate(3deg) translate(4px,2px)}.mstk .mcard:nth-child(3){z-index:1;transform:rotate(-4deg) translate(-4px,4px)}.mstk .mcard:nth-child(n+4){opacity:0;pointer-events:none}
 .mstk .mcard.outl{transform:translateX(-115%) rotate(-12deg);opacity:0}.mstk .mcard.outr{transform:translateX(115%) rotate(12deg);opacity:0}.mhint{text-align:center;font-size:12px;margin-top:12px}
-.tside .btn>.ic,.trp .btn>.ic{width:17px;height:17px;margin-right:8px;vertical-align:-3px}.ttop{display:flex;flex-direction:column;gap:8px;margin:2px 0 12px}.tmrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.05);color:#fff;border:0}.tmrow .ic{width:20px;height:20px;color:#3ee0c5;flex:none}.tmrow b{display:block;font-size:15px}.tmrow small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}.tmrow i{font-style:normal;font-weight:600;font-size:13.5px;color:#3ee0c5}.tmrow.hot{background:rgba(62,224,197,.1)}
+.tside .btn>.ic,.trp .btn>.ic{width:17px;height:17px;margin-right:8px;vertical-align:-3px}.mzl{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}.mzi{display:flex;flex-direction:column;gap:4px;text-decoration:none;color:#fff}.mzi img,.mzi .pimg{width:100%;aspect-ratio:1;border-radius:12px;object-fit:cover;background:#ecebe8}.mzi b{font-size:13.5px}.mzi small{color:#3ee0c5;font-size:12px}
+.mzp{margin:14px auto 10px;width:260px;height:260px;border-radius:20px;background:#2a2b31;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}.mzp.lt{background:#ece8e0}.mzp canvas{width:100%;height:100%;object-fit:contain}.mzp small{position:absolute;color:var(--muted);font-size:13px}.mzin{margin-top:8px;height:44px;font-size:15px}.mzup{display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+.mzk{display:block;margin:12px 2px 6px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.mzg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.mzb{display:flex;flex-direction:column;gap:4px;padding:6px 6px 8px;border-radius:14px;background:rgba(255,255,255,.05);border:2px solid transparent;color:#fff;text-align:left}.mzb.on{border-color:#3ee0c5}.mzb img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;background:#ecebe8}.mzb span{font-size:11.5px;line-height:1.25;min-height:2.5em}.mzb i{font-style:normal;font-weight:600;font-size:12.5px;color:#3ee0c5}
+.ttop{display:flex;flex-direction:column;gap:8px;margin:2px 0 12px}.tmrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.05);color:#fff;border:0}.tmrow .ic{width:20px;height:20px;color:#3ee0c5;flex:none}.tmrow b{display:block;font-size:15px}.tmrow small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}.tmrow i{font-style:normal;font-weight:600;font-size:13.5px;color:#3ee0c5}.tmrow.hot{background:rgba(62,224,197,.1)}
 .tdst.tent{opacity:.92}.tdst.tent b{color:rgba(255,255,255,.82)}.tdst.tent .tdt{color:rgba(62,224,197,.6);border:1px dashed rgba(62,224,197,.45)}.tdst .ttwo{display:flex;gap:8px;margin-top:8px}.tdst .tb{flex:1;padding:7px 0;font-size:13.5px}.tclw{display:block;color:#ffb38a !important;font-size:12px;margin-top:3px}.tlink{font-size:12.5px;color:#3ee0c5;margin-top:3px;display:inline-block}.tgone{display:block;margin:10px 4px 0;font-size:12.5px}.trand{margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px}.trand .ic{width:17px;height:17px}
 .tdays button.wait:after{content:'';position:absolute;top:6px;right:8px;width:6px;height:6px;border-radius:6px;background:#ff9a7a}.tdays button{position:relative}
 .stdays{display:flex;flex-wrap:wrap;gap:8px}.stdays .tpill,.vtgrid .tpill.on,.stdays .tpill.on{}.rsel{width:100%;text-align:left;background:none;border:0;color:#fff;opacity:.45}.rsel.on{opacity:1}.rsel:not(.on) .rck{visibility:hidden}.rsel .rck .ic{width:18px;height:18px;color:#3ee0c5}
@@ -2211,6 +2214,7 @@ function gTripHome(id) {
     ${step('pin', 'A place to stay', p.data?.stay?.name ? esc(p.data.stay.name) : 'Not picked yet', p.data?.stay?.name ? '' : '<button class="tpill" data-act="gfull">Pick</button>')}
     ${(p.data?.booked || []).length ? `<div class="sect">Booked</div>${p.data.booked.slice().sort((a, b) => (a.day + (a.time || '')).localeCompare(b.day + (b.time || ''))).map(b => bkRow(b, id)).join('')}` : ''}
     ${debts.length ? `<div class="sect">Money</div>${debts.map(r => `<div class="prow"><span class="pimg">${ic('users')}</span><span class="grow"><b>${r.to === me.id ? `${esc(frNames(r.from.map(f => byP[f]?.name || 'Someone')))} ${r.from.length > 1 ? 'owe' : 'owes'} you ${frUsd(r.cents - r.paid)}` : `You owe ${esc(byP[r.to]?.name || 'someone')} ${frUsd(r.cents - r.paid)}`}</b><small>Settle up on the group page</small></span></div>`).join('')}` : ''}
+    ${(p.data?.merch || []).length ? `<div class="sect">Trip merch</div>${mzList(p)}` : ''}${mzHost(p) && p.city && p.day && (frD(p.day) - Date.now()) / 864e5 >= 10 && (p.data?.merch || []).length < 6 ? `<button class="tmrow" data-act="mzopen" data-id="${esc(p.id)}" style="margin-top:8px">${ic('star')}<span class="grow"><b>${(p.data?.merch || []).length ? 'Add more trip merch' : 'Make trip merch'}</b><small>Shirts, hoodies and hats. Everyone orders their own.</small></span><i>Make</i></button>` : ''}
     <div class="sect">Everyone likes</div>
     ${allin.length ? allin.slice(0, 8).map(c => `<div class="prow">${c.img ? `<img src="${esc(c.img)}" alt="">` : `<span class="pimg">${ic('ticket')}</span>`}<span class="grow"><b>${esc(c.title)}</b><small>${D[c.id] ? (D[c.id].on ? 'On ' + esc(dpFmt(D[c.id].day)) : 'Suggested for ' + esc(dpFmt(D[c.id].day))) : 'Not on a day yet'}</small></span></div>`).join('') : `<p class="muted" style="font-size:14px">Nothing everyone likes yet. Swipe ${esc(p.city || 'the trip')} in To do.</p>`}
     <div style="height:14px"></div><button class="btn ghost" data-act="gfull">Open the group page</button><div style="height:10px"></div></div>`;
@@ -2380,6 +2384,67 @@ function tripTop(key) { const g = key.startsWith('g:') ? key.slice(2) : '', D = 
   const wait = Object.values(D).filter(x => stopTent(x) && !stopMine(x, me)).sort((a, b) => String(a.day).localeCompare(String(b.day)));
   return `<div class="ttop">${wait.length ? `<button class="tmrow hot" data-act="${g ? 'gday' : 'tday'}" data-day="${esc(String(wait[0].day))}">${ic('check')}<span class="grow"><b>${wait.length} stop${wait.length > 1 ? 's' : ''} to vote on</b><small>Tentative until ${g ? 'most of the group is' : `${esc(them())} is`} in</small></span><i>See</i></button>` : ''}<button class="tmrow" data-act="tmap">${ic('pin')}<span class="grow"><b>See it on a map</b><small>Booked, planned and liked, by day</small></span><i>Map</i></button></div>`; }
 const tripWaits = key => { const g = key.startsWith('g:') ? key.slice(2) : '', D = (g ? gtOf(g)?.data?.days : planMeta(key.slice(2)).days) || {}, me = g ? gtOf(g)?.members?.find(m => m.me)?.id : S.me; return Object.values(D).some(x => stopTent(x) && !stopMine(x, me)); };
+// Trip merch (beta, Dave 20 Nov): the trip's planner makes a design (ours from the trip's name and dates, or their own
+// upload), picks up to 3 blanks (tees, hoodies, crewnecks, hats, kids), and we create hidden products in the Let's Together
+// Fourthwall shop, $5 over cost each, reachable only by link. Everyone orders their own size and pays Fourthwall.
+const mzHost = p => { const me = p?.members?.find(x => x.me); return !!(me && (me.host || /host/i.test(me.role || '') || p.owner === me.id)); };
+const mzList = p => { const m = p?.data?.merch || []; return m.length ? `<div class="mzl">${m.map(x => `<a class="mzi" href="${esc(x.url)}" target="_blank" rel="noopener">${x.img ? `<img src="${esc(x.img)}" alt="">` : `<span class="pimg">${ic('star')}</span>`}<b>${esc(x.kind === 'Kids' ? 'Kids' : x.kind)}</b><small>${x.price ? '$' + Number(x.price).toFixed(2) + ' · ' : ''}Get yours</small></a>`).join('')}</div>` : ''; };
+function mzStep(p) {
+  const m = p.data?.merch || [], host = mzHost(p), soon = p.day && (frD(p.day) - Date.now()) / 864e5 >= 10;
+  if (!m.length && !(host && p.city && soon)) return '';
+  return `<div class="frstep"><div class="frsh"><b>Trip merch</b><small>${m.length ? 'Order your own' : 'Optional'}</small></div><div class="frsb">
+    <p>${m.length ? 'Everyone picks their own size and pays for their own. It ships to you.' : 'Make a shirt, hoodie or hat for the trip. Everyone orders their own size and pays for their own, so nobody fronts the money.'}</p>${mzList(p)}
+    ${host && soon && m.length < 6 ? `<button class="btn sm ${m.length ? 'ghost' : ''}" data-act="mzopen" data-id="${esc(p.id)}">${m.length ? 'Add another' : 'Make trip merch'}</button>` : ''}</div></div>`;
+}
+async function mzOpen(id) {
+  const p = FR.plan?.id === id ? FR.plan : gtOf(id); if (!p) return;
+  const d = String(p.day || '').slice(0, 10), dt = d ? new Date(d + 'T12:00') : null, city = p.city || p.title || 'Our trip';
+  S.mz = { id, mode: 'make', l1: city, l2: dt ? dt.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : '', l3: (String(p.title || '').replace(new RegExp(city.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'ig'), '').replace(/^\s*(with|and|&|-|·)\s+/i, '').replace(/\s+/g, ' ').trim()) || 'The crew', ink: 'light', sel: new Set(), img: null, mime: 'image/png' };
+  try { await document.fonts.load('italic 100px "Instrument Serif"'); await document.fonts.load('600 40px Inter'); } catch {}
+  mzDraw();
+  if (!S.mzB) { const r = await sbA.functions.invoke('merch', { body: { action: 'blanks' } }).catch(() => null); const seen = new Set(); S.mzB = (r?.data?.blanks || []).filter(b => !seen.has(b.name) && seen.add(b.name)); if (S.mz?.id === id) mzDraw(); }
+}
+function mzPaint(cv, z, N) {
+  const c = cv.getContext('2d');
+  if (z.mode === 'upload') { if (!z.img) { cv.width = cv.height = N; return; } const s = Math.min(1, N / Math.max(z.img.width, z.img.height)); cv.width = Math.round(z.img.width * s); cv.height = Math.round(z.img.height * s); c.drawImage(z.img, 0, 0, cv.width, cv.height); return; }
+  cv.width = cv.height = N; c.clearRect(0, 0, N, N);
+  const ink = z.ink === 'dark' ? '#17171c' : '#ffffff'; c.fillStyle = ink; c.strokeStyle = ink; c.textAlign = 'center';
+  const fit = (txt, font, max, start) => { let s = start; c.font = font.replace('{s}', s); while (c.measureText(txt).width > max && s > 12) { s -= Math.max(2, s * 0.04); c.font = font.replace('{s}', Math.round(s)); } return s; };
+  const top = (z.l3 || '').toUpperCase().split('').join(' '), mid = z.l1 || '', bot = (z.l2 || '').toUpperCase().split('').join(' ');
+  const ms = fit(mid, 'italic {s}px "Instrument Serif", Georgia, serif', N * 0.86, N * 0.26);
+  c.fillText(mid, N / 2, N * 0.5 + ms * 0.3);
+  if (top) { fit(top, '600 {s}px Inter, system-ui, sans-serif', N * 0.7, N * 0.05); c.fillText(top, N / 2, N * 0.5 - ms * 0.55); }
+  if (bot) { const bs = fit(bot, '600 {s}px Inter, system-ui, sans-serif', N * 0.6, N * 0.042); const y = N * 0.5 + ms * 0.3 + bs * 2.1, w = c.measureText(bot).width;
+    c.fillText(bot, N / 2, y); c.lineWidth = Math.max(2, N * 0.003); c.beginPath(); c.moveTo(N / 2 - w / 2 - N * 0.09, y - bs * 0.35); c.lineTo(N / 2 - w / 2 - N * 0.03, y - bs * 0.35); c.moveTo(N / 2 + w / 2 + N * 0.03, y - bs * 0.35); c.lineTo(N / 2 + w / 2 + N * 0.09, y - bs * 0.35); c.stroke(); }
+}
+function mzDraw() {
+  const z = S.mz; if (!z) return; const B = S.mzB, kinds = ['Tee', 'Hoodie', 'Crewneck', 'Hat', 'Kids'], label = { Tee: 'Tees', Hoodie: 'Hoodies', Crewneck: 'Crewnecks', Hat: 'Hats', Kids: 'Kids' };
+  sheet(`<div class="grab"></div><div class="trp kc k-book mzs"><small class="tkick">Trip merch</small><h2>Make it yours</h2>
+    <div class="stdays" style="margin-top:12px"><button class="tpill ${z.mode === 'make' ? 'on' : ''}" data-act="mzmode" data-m="make">Make one for us</button><button class="tpill ${z.mode === 'upload' ? 'on' : ''}" data-act="mzmode" data-m="upload">Upload your own</button></div>
+    <div class="mzp ${z.mode === 'make' && z.ink === 'dark' ? 'lt' : ''}"><canvas id="mzc"></canvas>${z.mode === 'upload' && !z.img ? '<small>Your design shows here</small>' : ''}</div>
+    ${z.mode === 'make' ? `<input id="mzl3" class="acin mzin" maxlength="28" value="${esc(z.l3)}" aria-label="Top line"><input id="mzl1" class="acin mzin" maxlength="24" value="${esc(z.l1)}" aria-label="Big line"><input id="mzl2" class="acin mzin" maxlength="28" value="${esc(z.l2)}" aria-label="Bottom line">
+      <div class="stdays" style="margin-top:10px"><button class="tpill ${z.ink === 'light' ? 'on' : ''}" data-act="mzink" data-i="light">Light ink, dark shirts</button><button class="tpill ${z.ink === 'dark' ? 'on' : ''}" data-act="mzink" data-i="dark">Dark ink, light shirts</button></div>`
+      : `<label class="btn ghost mzup">${ic('plus')}${z.img ? 'Choose a different file' : 'Choose a PNG or JPG'}<input id="mzf" type="file" accept="image/png,image/jpeg" hidden></label><small class="muted" style="display:block;margin-top:8px;font-size:12.5px">A PNG with a clear background prints best, at least 2000 pixels wide.</small>`}
+    <div class="sect" style="margin-top:16px">Pick up to 3</div>
+    ${B == null ? '<p class="muted" style="font-size:13.5px">Loading shirts, hoodies and hats…</p>' : !B.length ? '<p class="muted" style="font-size:13.5px">Couldn’t load the options. Try again in a minute.</p>'
+      : kinds.filter(k => B.some(b => b.kind === k)).map(k => `<small class="mzk">${label[k]}</small><div class="mzg">${B.filter(b => b.kind === k).map(b => `<button class="mzb ${z.sel.has(b.id) ? 'on' : ''}" data-act="mzsel" data-id="${esc(b.id)}">${b.thumb ? `<img src="${esc(b.thumb)}" alt="">` : ''}<span>${esc(b.name.replace(/^(Bella\+Canvas|AS Colour|Stanley\/Stella|Comfort Colors|Valucap|Beechfield|Lane Seven|Rabbit Skins)\s*/i, ''))}</span><i>${b.price ? '$' + b.price.toFixed(2) : ''}</i></button>`).join('')}</div>`).join('')}
+    <div style="height:14px"></div><button class="btn" data-act="mzgo" ${z.sel.size && (z.mode === 'make' ? z.l1.trim() : z.img) ? '' : 'disabled'}>Create the merch</button>
+    <small class="muted" style="display:block;text-align:center;margin-top:8px;font-size:12px">Sold through Fourthwall. Prices include a small Let’s Together cut.</small></div>`);
+  const cv = document.getElementById('mzc'); if (cv) mzPaint(cv, z, 520);
+  for (const k of ['l1', 'l2', 'l3']) document.getElementById('mz' + k)?.addEventListener('input', e => { z[k] = e.target.value; const c2 = document.getElementById('mzc'); if (c2) mzPaint(c2, z, 520); const go = document.querySelector('[data-act=mzgo]'); if (go) go.disabled = !(z.sel.size && z.l1.trim()); });
+  document.getElementById('mzf')?.addEventListener('change', e => { const f = e.target.files?.[0]; if (!f) return; if (f.size > 12e6) return toast('That file is too big. Try one under 12 MB.');
+    const im = new Image(); im.onload = () => { z.img = im; z.mime = 'image/png'; mzDraw(); }; im.onerror = () => toast('That file didn’t open. Try a PNG or JPG.'); im.src = URL.createObjectURL(f); });
+}
+async function mzGo(btn) {
+  const z = S.mz; if (!z || !z.sel.size) return; btn.disabled = true; btn.textContent = 'Making your merch…';
+  const cv = document.createElement('canvas'); mzPaint(cv, z, 2400);
+  const blob = await new Promise(r => cv.toBlob(r, 'image/png')); const b64 = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(String(fr.result).split(',')[1]); fr.readAsDataURL(blob); });
+  const p = FR.plan?.id === z.id ? FR.plan : gtOf(z.id);
+  const r = await sbA.functions.invoke('merch', { body: { action: 'create', plan: z.id, templates: [...z.sel], image: b64, mime: 'image/png', w: cv.width, h: cv.height, name: p?.title || z.l1, ink: z.ink } }).catch(() => null);
+  const d = r?.data; if (!d?.ok) { btn.disabled = false; btn.textContent = 'Create the merch'; console.warn('merch', d); return toast(d?.why === 'not_host' ? 'Only the trip’s planner can make merch.' : d?.why === 'enough' ? 'This trip already has plenty of merch.' : 'That didn’t go through. Try again.'); }
+  for (const q of [FR.plan?.id === z.id ? FR.plan : null, gtOf(z.id)]) if (q) q.data = { ...(q.data || {}), merch: d.merch || [...(q.data?.merch || []), ...d.made] };
+  S.mz = null; closeSheet(); toast(`Your merch is ready. The group can order from the trip.`, 3200); return render();
+}
 function tripPills() {
   const l = tripList(), sel = tripSel(), lbl = t => t.from ? new Date(t.from + 'T12:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : t.needs ? 'vote' : 'planning';
   return `<div class="tpills tsw"><button data-act="tsel" data-k="someday" class="${sel === 'someday' ? 'on' : ''}">Someday</button>${l.map(t => `<button data-act="tsel" data-k="${esc(t.key)}" class="${sel === t.key ? 'on' : ''} ${t.needs ? 'need' : ''}">${esc(t.title)}<small>${t.state === 'now' ? 'now' : esc(lbl(t))}</small></button>`).join('')}</div>`;
@@ -5224,8 +5289,8 @@ function renderFPlan() {
           ${frRides(p).map(x => `<p class="frride">${esc(x)}</p>`).join('')}
           <input id="frat" class="frin" type="datetime-local" value="${mineArr}" aria-label="When you arrive"><div class="frrow2"><select id="frah" class="frsel wide">${['Flying', 'Driving', 'Train or bus'].map(h => `<option ${me?.arrive_how === h ? 'selected' : ''}>${h}</option>`).join('')}</select><button class="btn sm ghost" data-fr="arrive">${me?.arrive_at ? 'Update my arrival' : 'Add my arrival'}</button></div>`, !p.city || !p.day)
       + frStep(6, 'Things to do', false, p.allin.length ? `${p.allin.length} everyone’s in` : '', p.city ? frIdeas(p, can) + frMaybe(p) : '<p class="muted">Opens as soon as the place is picked.</p>', !p.city)
-      + (p.data.shirts ? `<div class="frstep"><div class="frsh"><b>Trip shirts</b></div><div class="frsb"><p>Pick your own size and pay for your own.</p><div class="frrow2"><a class="btn sm" href="${esc(p.data.shirts)}" target="_blank" rel="noopener">Pick my size</a>${p.owner ? '<button class="frlink" data-fr="shirtsoff">Remove the link</button>' : ''}</div></div></div>`
-        : p.owner && p.city && p.day && (frD(p.day) - Date.now()) / 864e5 >= 10 ? `<div class="frstep"><div class="frsh"><b>Trip shirts</b><small>Optional</small></div><div class="frsb"><p>Design one shirt and start a group order. Everyone picks their own size and pays for their own, so nobody fronts the money.</p><a class="frlink" href="https://www.customink.com/" target="_blank" rel="noopener">Design it at Custom Ink</a><input id="frshu" class="frin" inputmode="url" placeholder="Paste the group order link (https://…)" aria-label="Group order link"><button class="btn sm ghost frsend" data-fr="shirts">Share it with the group</button></div></div>` : '');
+      + (DOCK2 ? mzStep(p) : (p.data.shirts ? `<div class="frstep"><div class="frsh"><b>Trip shirts</b></div><div class="frsb"><p>Pick your own size and pay for your own.</p><div class="frrow2"><a class="btn sm" href="${esc(p.data.shirts)}" target="_blank" rel="noopener">Pick my size</a>${p.owner ? '<button class="frlink" data-fr="shirtsoff">Remove the link</button>' : ''}</div></div></div>`
+        : p.owner && p.city && p.day && (frD(p.day) - Date.now()) / 864e5 >= 10 ? `<div class="frstep"><div class="frsh"><b>Trip shirts</b><small>Optional</small></div><div class="frsb"><p>Design one shirt and start a group order. Everyone picks their own size and pays for their own, so nobody fronts the money.</p><a class="frlink" href="https://www.customink.com/" target="_blank" rel="noopener">Design it at Custom Ink</a><input id="frshu" class="frin" inputmode="url" placeholder="Paste the group order link (https://…)" aria-label="Group order link"><button class="btn sm ghost frsend" data-fr="shirts">Share it with the group</button></div></div>` : ''));
   } else {
     const pq = frPollOf('pick'), pk = p.data.pick;
     body = (pk ? `<div class="frstep fdone"><div class="frsh"><i>${frCheck}</i><b>It’s decided</b></div><div class="frsb"><h3 class="frpk">${esc(pk.label)}</h3>${pk.sub ? `<p>${esc(pk.sub)}</p>` : ''}<p>${esc([p.day ? frDay(p.day) : '', p.at || ''].filter(Boolean).join(' at ') || 'No day set yet.')}</p>${pk.url ? `<a class="btn sm" href="${esc(pk.url)}" target="_blank" rel="noopener">Open it</a>` : ''}</div></div>` : '')
@@ -6834,6 +6899,11 @@ document.addEventListener('click', async e => {
           await Promise.race([sb.functions.invoke('trips', { body: { action: 'explore', code: S.code, city: c, from, to } }).catch(() => null), new Promise(r => setTimeout(r, 9000))]); }
         return render(); }
       case 'tmap': return tripMap(t.dataset.day || '');
+      case 'mzopen': return mzOpen(t.dataset.id);
+      case 'mzmode': if (S.mz) { S.mz.mode = t.dataset.m; mzDraw(); } return;
+      case 'mzink': if (S.mz) { S.mz.ink = t.dataset.i; mzDraw(); } return;
+      case 'mzsel': if (S.mz) { const k = t.dataset.id; if (S.mz.sel.has(k)) S.mz.sel.delete(k); else if (S.mz.sel.size >= 3) return toast('Pick up to 3.'); else S.mz.sel.add(k); mzDraw(); } return;
+      case 'mzgo': return mzGo(t);
       case 'tmday': if (S.tmap) { S.tmap.day = t.dataset.day; renderTripMap(); } return;
       case 'tmback': { const b = S.tmap?.back; S.tmap = null; S.view = b === 'tday' || b === 'gday' ? b : 'home'; return render(); }
       case 'vtime': return vtimeSheet(t.dataset.ref, t.dataset.prod, t.dataset.g);
