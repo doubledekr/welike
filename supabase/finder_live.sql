@@ -8,3 +8,10 @@
 -- _finds_tick() (cron welike-finds, every 30 min): adds areas, names one new area per tick (finds mode name), then starts
 -- at most two runs: sources every 30 days, events every 84 h, openings every 7 days, gems every 14 days (trips: sources, gems).
 -- The definitions are in the live database; see the migration text in the sync log entry of 20 Nov.
+
+-- 20 Nov, 12:35am (Dave: "surface hidden gems sparingly and randomly"), migration surprise_rhythm:
+-- _surprise_next(prev, tz): 2 to 6 days after prev (never before today), at a random time 11am to 8pm local.
+-- _surprise_respace(couple): one queue for all held scratch cards (hidden gems and unique spots; not travel gems, not
+-- events), about every third a unique spot; the first keeps its moment if within 6 days, the rest get the random rhythm.
+-- _gems_deal continues from the last held card of any kind and calls the respace when it deals; _spots_deal too.
+-- All couples re-spaced once on 20 Nov.
