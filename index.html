@@ -975,6 +975,17 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .tside .tphead{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:12px 4px 0}
 .tside .tphead b{font-family:var(--serif);font-style:italic;font-weight:400;font-size:30px;line-height:1.05;color:#7ff0de;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tside .tphead small{flex:0 0 auto;font-size:12px;font-weight:600;color:#8fb8b3;text-align:right;line-height:1.35}
+.ltdp{width:100%;text-align:left;font:inherit;font-size:16px;font-weight:600;color:var(--text,#fff);background:rgba(255,255,255,.06);border:0;border-radius:14px;padding:13px 14px;display:flex;align-items:center;gap:10px}
+.ltdp .ic{width:18px;height:18px;color:#ff9a7a}.ltdp.empty{color:rgba(255,255,255,.45);font-weight:500}
+#dpk{position:fixed;inset:0;z-index:90;display:flex;align-items:flex-end;justify-content:center;background:rgba(8,6,10,.55);animation:dpf .2s ease}
+#dpk .dpp{width:100%;max-width:440px;margin:0 10px calc(10px + env(safe-area-inset-bottom));padding:18px 16px 14px;border-radius:28px;background:linear-gradient(180deg,#2a2028,#1c161d);box-shadow:0 20px 60px -10px rgba(0,0,0,.7);animation:dpu .24s ease}
+#dpk .dph{display:flex;align-items:center;gap:6px;margin:0 2px 10px}#dpk .dph b{flex:1;font-family:var(--serif);font-style:italic;font-weight:400;font-size:26px;color:#fff}
+#dpk .dph button{width:40px;height:40px;border-radius:99px;border:0;background:rgba(255,255,255,.06);color:#ffb08a;font-size:20px;line-height:1}
+#dpk .dpw,#dpk .dpg{display:grid;grid-template-columns:repeat(7,1fr);text-align:center}#dpk .dpw span{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);padding:6px 0}
+#dpk .dpg button{height:44px;margin:2px auto;width:44px;border-radius:99px;border:0;background:none;color:#f3eef1;font-size:16px;font-weight:600}
+#dpk .dpg button.td{color:#ffb08a}#dpk .dpg button.on{background:linear-gradient(135deg,#ff7a4d,#ff4d7e);color:#fff;box-shadow:0 0 18px -3px rgba(255,77,126,.75)}
+#dpk .dpg button:disabled{opacity:.22}#dpk .dpf{display:flex;justify-content:space-between;align-items:center;margin:8px 4px 0}#dpk .dpf button{border:0;background:none;color:rgba(255,255,255,.6);font:inherit;font-size:14px;font-weight:600;padding:10px 6px}
+@keyframes dpf{from{opacity:0}}@keyframes dpu{from{transform:translateY(24px);opacity:0}}
 .tpills{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:10px 4px 10px;margin:0 -4px}.tpills::-webkit-scrollbar{display:none}
 .tpills button{flex:0 0 auto;font-size:13px;font-weight:600;padding:8px 13px;border-radius:99px;background:rgba(255,255,255,.06);color:#d7ece9}
 .tpills button.both{color:#bff6ee}.tpills button.on{background:linear-gradient(135deg,rgba(45,212,191,.3),rgba(77,155,255,.18));color:#fff;box-shadow:0 0 12px -4px rgba(45,212,191,.7)}
@@ -2095,6 +2106,31 @@ if (DOCK2) { let x0 = null, y0 = 0;
   document.addEventListener('touchstart', e => { x0 = e.target.closest?.('.d2') ? e.touches[0].clientX : null; y0 = e.touches[0].clientY; }, { passive: true });
   document.addEventListener('touchend', e => { if (x0 == null) return; const t = e.changedTouches[0], dx = t.clientX - x0; x0 = null;
     if (Math.abs(dx) > 40 && Math.abs(t.clientY - y0) < 40) { S.dockSlid = Date.now(); setSide(dx < 0 ? 'trips' : 'local'); } }, { passive: true }); }
+// Our own date picker (beta, Dave 20 Nov: the iPhone calendar didn't look like Let's Together). Every date field gets a button
+// that opens this; the real input stays hidden underneath, so all the code that reads .value keeps working.
+const dpFmt = v => { if (!v) return ''; const [y, m, d] = v.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: y !== new Date().getFullYear() ? 'numeric' : undefined }); };
+function dpEnhance() { document.querySelectorAll('input[type=date]:not([data-dpx])').forEach(inp => { inp.dataset.dpx = '1'; if (!inp.id) inp.id = 'dp' + Math.random().toString(36).slice(2, 8); inp.style.display = 'none';
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'ltdp' + (inp.value ? '' : ' empty'); b.dataset.dpfor = inp.id; b.innerHTML = `${ic('cal')}<span>${inp.value ? esc(dpFmt(inp.value)) : 'Pick a day'}</span>`; inp.after(b); }); }
+function dpOpen(inp, ym) {
+  const v = inp.value, min = inp.min || '', base = ym || (v || min || isoDay(Date.now())).slice(0, 7), [y, m] = base.split('-').map(Number), first = new Date(y, m - 1, 1), days = new Date(y, m, 0).getDate(), today = isoDay(Date.now());
+  const prev = isoDay(new Date(y, m - 2, 1)).slice(0, 7), next = isoDay(new Date(y, m, 1)).slice(0, 7);
+  let g = ''; for (let i = 0; i < first.getDay(); i++) g += '<span></span>';
+  for (let d = 1; d <= days; d++) { const k = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`; g += `<button data-dpd="${k}" class="${k === v ? 'on' : ''} ${k === today ? 'td' : ''}" ${min && k < min ? 'disabled' : ''}>${d}</button>`; }
+  let el = document.getElementById('dpk'); if (!el) { el = document.createElement('div'); el.id = 'dpk'; document.body.appendChild(el);
+    el.addEventListener('click', e => { const t = e.target.closest('button'); const i = document.getElementById(el.dataset.for);
+      if (e.target === el) return el.remove(); if (!t || !i) return;
+      if (t.dataset.dpm) return dpOpen(i, t.dataset.dpm);
+      const val = t.dataset.dpd != null ? t.dataset.dpd : t.dataset.dpclear != null ? '' : null; if (val == null) return;
+      i.value = val; i.dispatchEvent(new Event('input', { bubbles: true })); i.dispatchEvent(new Event('change', { bubbles: true }));
+      const b = document.querySelector(`.ltdp[data-dpfor="${i.id}"]`); if (b) { b.classList.toggle('empty', !val); b.querySelector('span').textContent = val ? dpFmt(val) : 'Pick a day'; }
+      el.remove(); }); }
+  el.dataset.for = inp.id;
+  el.innerHTML = `<div class="dpp" role="dialog" aria-label="Pick a day"><div class="dph"><b>${first.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</b><button data-dpm="${prev}" aria-label="Previous month" ${min && prev < min.slice(0, 7) ? 'disabled style="opacity:.3"' : ''}>‹</button><button data-dpm="${next}" aria-label="Next month">›</button></div>
+    <div class="dpw">${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => `<span>${d}</span>`).join('')}</div><div class="dpg">${g}</div>
+    <div class="dpf"><button data-dpclear="1">Clear</button><button data-dpd="${min && today < min ? min : today}">Today</button></div></div>`;
+}
+if (DOCK2) { new MutationObserver(dpEnhance).observe(document.body, { childList: true, subtree: true });
+  document.addEventListener('click', e => { const b = e.target.closest?.('.ltdp'); if (!b) return; e.preventDefault(); e.stopPropagation(); const i = document.getElementById(b.dataset.dpfor); if (i) dpOpen(i); }, true); }
 function tripCityPick(c) { S.tPick = S.tripCity === c ? '' : c; S.tripCity = S.tPick; if (S.dc) delete S.dc.trip; render(); }
 function tripHead() {
   const f = tripFocus();
@@ -4920,7 +4956,7 @@ function renderFPlan() {
       + (!pk ? frStep(1, 'Ideas', !!pq, '', frIdeas(p, can) + (p.owner && !pq ? `<button class="btn sm frsend" data-fr="shortlist">Take the favorites to a vote</button>` : '')) : frStep(1, 'Ideas', true, '', frIdeas(p, false)))
       + (!pk && pq ? frStep(2, 'The vote', false, `${pq.voted} of ${p.n} voted`, frRanked(pq, 'Rank the shortlist.')) : '');
   }
-  $app.innerHTML = `<div class="view fr frp you"><div class="topbar"><button class="back" data-fr="back" aria-label="Back">‹</button><div class="grow"></div><button class="ib" data-fr="reload" aria-label="Refresh">${ic('repeat')}</button></div>
+  $app.innerHTML = `<div class="view fr frp you"><div class="topbar"><button class="back" data-fr="back" aria-label="Back">‹</button><div class="grow"></div>${can ? `<button class="ib" data-fr="cal" aria-label="Group calendar">${ic('cal')}</button>` : ''}<button class="ib" data-fr="reload" aria-label="Refresh">${ic('repeat')}</button></div>
     ${p.up ? `<small class="frup">${esc(p.up.title)}</small>` : ''}<h2 class="frh">${esc(p.title)}</h2>
     <p class="frwho">${going.map(who).join(', ')}${wait.length ? `<span> · waiting on ${wait.map(m => esc(m.name)).join(', ')}</span>` : ''}</p>
     ${p.surprise ? `<p class="frsurp">${ic('eye')}Kept a surprise from ${esc(p.surprise)}. ${esc(p.surprise)} can’t see this plan.</p>` : ''}
@@ -5003,6 +5039,16 @@ async function frClick(t, ds) {
     case 'simpick': ['code', 'name', 'acctl', 'solo', 'fpend'].forEach(k => ls.del(k)); ls.set('simp', ds.id); ls.set('simn', ds.n); return void location.reload();
     case 'refresh': t.disabled = true; try { await frLoad(); } catch {} return render();
     case 'reload': return frOpenPlan(p.id);
+    case 'cal': { t.disabled = true; const r = await frRpc('fr_cal', { p_id: p.id }).catch(() => null); t.disabled = false;
+      if (!r?.ok) return toast('Couldn’t make the calendar link. Try again.');
+      const https = `${CFG.url}/functions/v1/ics?group=${r.token}`, wc = https.replace(/^https:/, 'webcal:'); S.calLink = https;
+      const txt = `Our ${p.title} calendar on Let’s Together. Tap to subscribe and it stays up to date: ${https}`;
+      return sheet(`<div class="grab"></div><div class="body acs"><span class="acsic">${ic('cal')}</span><h2>The group’s calendar</h2>
+        <p class="muted">${p.day ? 'The dates are in, and anything the group books shows up here too.' : 'Once the group picks a date, it shows up here, and so does anything the group books.'} Changes update on their own.</p>
+        <a class="btn" href="${wc}">Add to my iPhone calendar</a>
+        <button class="btn ghost" data-act="calcopy" style="margin-top:10px">Copy the link for Google Calendar</button>
+        <a class="btn ghost" style="margin-top:10px" href="sms:&body=${encodeURIComponent(txt)}">Text it to the group</a>
+        <p class="muted acfine">Anyone with the link can see this plan’s dates and stops, so share it with the group only.</p></div>`); }
     case 'signout': try { await sbA.auth.signOut(); } catch {} S.acct = null; FR.d = null; ls.del('solo'); S.startMode = ''; return render();
     case 'start': S.startName = document.getElementById('sn')?.value || ''; S.startMode = ds.m; return renderStart();
     case 'startback': S.startName = document.getElementById('sn')?.value || ''; S.startMode = ''; return render();
