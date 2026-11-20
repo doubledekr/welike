@@ -6377,6 +6377,26 @@ setInterval(() => { if (document.visibilityState === 'visible') { checkVersion()
 setTimeout(checkVersion, 4000);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && S.bookCity && S.bookTouched && document.querySelector('.bookframe')) S.bookLeft = true; if (document.visibilityState === 'visible' && S.bookLeft) setTimeout(bookBack, 400); if (document.visibilityState === 'hidden' && updReady && S.view === 'home' && !$layer.innerHTML && !document.querySelector('.match,.lfront,.coach,.wn,.scr,.sco,.bookframe')) reloadKeep(); if (document.visibilityState === 'visible') { returnAt = Date.now(); tryUpdate(true); evPeek(); checkVersion(true); checkTravel(); S.peekTried = false; scratchCheck(); } });
 document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && S.code && S.me) { try { const was = homeSig(); await refresh(); bellSync(); if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) { if (homeSig() !== was) render(); } else if (S.view === 'swipe' && S.sess) { const d = await rpc('get_session', { p_code: S.code, p_session: S.sess.id, p_member: S.me }); S.theirLeft = d.their_left; S.total = d.total; if (d.matches.length !== S.matches.length) { S.matches = d.matches; } if (d.deck.length !== S.deck.length && !busy) { S.deck = d.deck; drawStack(); } else updateBar(); } } catch {} } });
+/* ---------- updates: when a new version is published, the app reloads itself at a safe moment (Dave, 19 Nov) ----------
+   It asks the server for the page's version tag (a HEAD request, no download) on open, on coming back to the app and every
+   5 minutes. A new version reloads at once when you come back to the app or while it's in the background; otherwise it waits
+   for a quiet moment: no sheet or typing open, not mid-round or mid-game, and in trivia only between questions. */
+const UPD = { tag: null, ready: false, at: 0 };
+async function updTag() { try { const r = await fetch(location.pathname, { method: 'HEAD', cache: 'no-store' }); return r.ok ? (r.headers.get('etag') || r.headers.get('last-modified')) : null; } catch { return null; } }
+function updQuiet() {
+  if (document.querySelector('.scrim, .match, .wn, .lfront') || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || '')) return false;
+  if (S.view === 'trivia') { const t = S.triv; if (!t || t.mode !== 'clock' || t.phase === 'after') return true; const w = tcWhere(t);
+    return (w.k === 'welcome' || w.k === 'between' || w.k === 'board' || w.k === 'before') && (!w.next || tcMs(w.next.s) - tcNow() > 12000); }
+  if (swPend.size || Date.now() - (UPD.touch || 0) < 4000) return false;   // never mid-swipe
+  return !S.view || ['home', 'matches', 'library', 'trips', 'friends', 'gallery'].includes(S.view); }
+addEventListener('pointerdown', () => { UPD.touch = Date.now(); }, { passive: true, capture: true });
+function updGo() { const t = S.triv, q = S.view === 'trivia' && t?.id ? '?trivia=' + encodeURIComponent(t.id) : ''; location.replace(location.pathname + q); }
+async function updCheck(resume) { if (Date.now() - UPD.at < 20000 && !resume) return; UPD.at = Date.now(); const t = await updTag(); if (!t) return;
+  if (!UPD.tag) { UPD.tag = t; return; } if (t !== UPD.tag) UPD.ready = true;
+  if (UPD.ready && (document.visibilityState === 'hidden' || (resume && !/^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName || '') && (S.view !== 'trivia' || updQuiet())) || updQuiet())) updGo(); }
+updCheck();
+document.addEventListener('visibilitychange', () => updCheck(document.visibilityState === 'visible'));
+setInterval(() => { if (UPD.ready) { if (updQuiet()) updGo(); } else if (document.visibilityState === 'visible' && Date.now() - UPD.at > 5 * 60000) updCheck(); }, 3000);
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); navigator.serviceWorker.addEventListener('message', e => { if (e.data?.pushed) return inboxPoll(); const u = e.data?.open; if (u) { const q = new URL(u).searchParams, s = q.get('s'), r = q.get('rec'), g = q.get('tb'); if (q.get('idea') && S.me) inboxGo(u); else if (s && S.me) openSession(s); else if (r && S.me) openRec(r, q.get('keen')); else if (g && S.me) openGame(g); else if (q.get('night') && S.me) nightOpen(q.get('night')); else if (q.get('trivia') && S.me) openTrivia(q.get('trivia')); else if (q.get('reveal') && S.me) { prepRevealTest(); render(); }
     else if (q.get('surprise') && S.me) surpOpen(q.get('surprise'));
     else if (q.get('plan') && S.me) { S.favAsk = q.get('fav') ? q.get('plan') : null; dayAct('view', q.get('plan')).catch(() => {}); } else if (q.get('planfor') && S.me) dayAct('around', q.get('planfor')).catch(() => {}); else if (q.get('invite') && S.me) { if (!partner()) inviteSheet(); } else if (q.get('tripplan') && S.me) openTripPlan(q.get('tripplan')); else if (q.get('trip') && S.me) openGetaway(q.get('trip'), partner()); else if (SHW[q.get('share')] && S.me) openShareTab(q.get('share')); } }); }
