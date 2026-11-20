@@ -2791,8 +2791,8 @@ const SPINK = { movie: ['A movie', 'film', 'movie'], dinner: ['Dinner', 'dine', 
 // Who's in: your partner by default. Pick one of your friend groups and it becomes a plan with them.
 function whoRow(kind) {
   const gs = (FR.d?.groups || []).filter(g => g.members.length);
-  if (!FR.d && S.acct && !S.frTry) { S.frTry = 1; frLoad().catch(() => {}); }
-  return `<div class="whorow"><small>Who’s in</small><div class="frpicks"><button class="frpick on" aria-pressed="true">${esc(partner() || 'You')}</button>${gs.map(g => `<button class="frpick grp" data-act="whogroup" data-id="${g.id}" data-k="${kind}">${ic('list')}${esc(g.name)}</button>`).join('')}<button class="frpick" data-act="people">${gs.length ? 'Someone else' : 'Friends'}</button></div></div>`;
+  if (!FR.d && S.acct && !S.frTry) { S.frTry = 1; frLoad().then(() => document.querySelectorAll('.whorow[data-k]').forEach(el => { el.outerHTML = whoRow(el.dataset.k); })).catch(() => {}); }
+  return `<div class="whorow" data-k="${kind}"><small>Who’s in</small><div class="frpicks"><button class="frpick on" aria-pressed="true">${esc(partner() || 'You')}</button>${gs.map(g => `<button class="frpick grp" data-act="whogroup" data-id="${g.id}" data-k="${kind}">${ic('list')}${esc(g.name)}</button>`).join('')}<button class="frpick" data-act="people">${gs.length ? 'Someone else' : 'Friends'}</button></div></div>`;
 }
 // a group spin: only what everyone in the group liked. Spin again as often as you like, then send it to the group as a plan.
 function gSpinPick(id) { const g = FR.d?.groups.find(x => x.id === id); if (!g) return;
