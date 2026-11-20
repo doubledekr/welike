@@ -2388,11 +2388,11 @@ async function mapStyle() {
   if (MSTY) return MSTY;
   const st = await (await fetch('https://tiles.openfreemap.org/styles/liberty')).json();
   const LAND = '#4b5e57', PARK = '#51665d', WATER = '#1d2628', MINOR = '#8a9f95', MAJOR = '#a8bbb1', RAIL = '#2c3633';
-  st.layers = st.layers.filter(l => l.type !== 'symbol' && l.type !== 'fill-extrusion' && l.type !== 'hillshade' && !/boundary|aeroway|building/.test(l.id + (l['source-layer'] || ''))).map(l => {
+  st.layers = st.layers.filter(l => l.type !== 'symbol' && l.type !== 'fill-extrusion' && l.type !== 'hillshade' && l.type !== 'raster' && !/boundary|aeroway|building/.test(l.id + (l['source-layer'] || ''))).map(l => {
     const sl = l['source-layer'] || '', p = l.paint = l.paint || {};
     if (l.type === 'background') p['background-color'] = LAND;
-    else if (l.type === 'fill') { p['fill-color'] = sl === 'water' ? WATER : /park|landcover|landuse/.test(sl) ? PARK : LAND; p['fill-opacity'] = 1; delete p['fill-pattern']; delete p['fill-outline-color']; }
-    else if (l.type === 'line') { if (/water/.test(sl)) p['line-color'] = WATER; else if (/rail|transit/.test(l.id)) { p['line-color'] = RAIL; delete p['line-dasharray']; } else if (/motorway|trunk|primary|major/.test(l.id)) p['line-color'] = MAJOR; else p['line-color'] = MINOR; if (/casing/.test(l.id)) p['line-color'] = LAND; p['line-opacity'] = 1; delete p['line-pattern']; }
+    else if (l.type === 'fill') { p['fill-color'] = sl === 'water' ? WATER : /park|landcover/.test(sl) ? PARK : LAND; p['fill-opacity'] = 1; delete p['fill-pattern']; delete p['fill-outline-color']; }
+    else if (l.type === 'line') { if (/water/.test(sl)) p['line-color'] = WATER; else if (/rail|transit/.test(l.id)) { p['line-color'] = RAIL; delete p['line-dasharray']; } else if (/motorway|trunk|primary|major/.test(l.id)) p['line-color'] = MAJOR; else p['line-color'] = MINOR; if (/casing/.test(l.id)) p['line-color'] = LAND; if (/path|pedestrian/.test(l.id)) p['line-opacity'] = .45; else p['line-opacity'] = 1; delete p['line-pattern']; delete p['line-dasharray']; }
     return l; });
   return (MSTY = st);
 }
