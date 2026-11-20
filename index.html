@@ -1800,6 +1800,7 @@ function render() {
   $app.innerHTML = homeHTML(); slotWire();
   loadBite();
 }
+const tvHello = () => { if (new URLSearchParams(location.search).get('tv') === '1') ls.set('tvHello', '1'); return !!ls.get('tvHello') && !S.code; };
 function renderLanding() {
   // Before sign-up: hello, a card to flick, two phones that match, then name and ZIP on the last screen.
   if (sbA && ls.get('fpend') && S.obI == null) S.obI = 3;   // came from a friend's link: straight to sign-in
@@ -1808,7 +1809,7 @@ function renderLanding() {
   const top = skip => `<div class="wn-top"><span class="wk-dots">${[1, 2, 3].map(k => `<i class="${k <= i ? 'on' : ''}"></i>`).join('')}</span>${skip ? '<button data-act="ob2go" data-i="3">Skip</button>' : `<button data-act="ob2go" data-i="${i - 1}">Back</button>`}</div>`;
   const code = '<button class="jlink" data-act="getstarted" data-mode="code">I have a code from my partner</button>' + (BETA ? '<button class="jlink" data-act="acct">I already have an account</button>' : '');
   const body = [
-    () => `<div class="ob2-hello">${MARK}<div class="brand">${BRAND}</div><h1>Stop asking <em>“what do you want to do?”</em></h1><p class="wk-p">Swipe whenever you like. It only shows what you both said yes to, ready for the night you want a plan. Let’s do more together.</p></div><button class="btn wk-cta" data-act="ob2go" data-i="1">See how it works</button>${code}`,
+    () => `<div class="ob2-hello">${MARK}<div class="brand">${BRAND}</div>${tvHello() ? '<small class="wk-k" style="margin-top:22px">Couples Night: Trivia Edition</small>' : ''}<h1${tvHello() ? ' style="margin-top:6px"' : ''}>Stop asking <em>“what do you want to do?”</em></h1><p class="wk-p">Swipe whenever you like. It only shows what you both said yes to, ready for the night you want a plan. Let’s do more together.${tvHello() ? ' Set up your couple first, and the trivia vote is right after.' : ''}</p></div><button class="btn wk-cta" data-act="ob2go" data-i="1">See how it works</button>${code}`,
     () => `${top(1)}<small class="wk-k">Try all four</small><h2 class="wk-h">You each swipe on your own</h2><p class="wk-p">Flick this card each way. Nobody sees your swipes unless you both say yes.</p>${ob2SwipeStage()}<button class="btn wk-cta wait" id="wkgo" data-act="ob2go" data-i="2" disabled>Flick the card</button>`,
     () => `${top(1)}<small class="wk-k">Tap both phones</small><h2 class="wk-h">Two yeses make a match</h2><p class="wk-p">Matches land in a shared list, ready for whenever you want a plan.</p>
       <div class="wk-stage ob2-match"><div class="ob2-two"><button class="ob2-mini" data-w="Hell yeah"><b>You</b><span></span><em>Tap</em></button><button class="ob2-mini" data-w="Maybe"><b>Your person</b><span></span><em>Tap</em></button></div><div class="ob2-hit" id="ob2hit"><b>It’s a match</b><small>Then pick one, shuffle, or let a tie-breaker decide</small></div></div>
@@ -1906,7 +1907,7 @@ function ob2Show() {
   S.ob2 = { i: 0, steps, loc: false, kids: S.settings?.kids === true }; ob2Draw(); return true;
 }
 function ob2End() {
-  const loc = S.ob2?.loc; S.ob2 = null; ls.set('ob2', '1'); ls.set('coach', '1'); ls.set('ob2try', '1'); ls.set('ob2flip', '1'); ls.set('ob2piles', '1'); a2hsArrow(''); document.querySelector('.wn.ob2')?.remove();
+  const loc = S.ob2?.loc; S.ob2 = null; S.heroDue = 1; ls.set('ob2', '1'); ls.set('coach', '1'); ls.set('ob2try', '1'); ls.set('ob2flip', '1'); ls.set('ob2piles', '1'); a2hsArrow(''); document.querySelector('.wn.ob2')?.remove();
   if (S.view === 'home' && S.tab === 'home') render();
   if (loc) return locAsk(); if (needLoc()) ls.set('askedloc', '1');
   nextOnboard();
@@ -2405,7 +2406,7 @@ async function tfSheet() { let f = S.tf; try { f = await rpc('trivia_funnel', { 
     standalone() || f.installed ? '' : tfRow(false, 'Put it on your Home Screen', 'So trivia can buzz you on the night. iPhone needs this', 'tfhome', 'Show me'),
     f.teams < f.need ? tfRow(false, f.need - f.teams === 1 ? 'Bring one more couple' : 'Bring a couple', `We need ${tfMore(f)} for the gift card night`, 'tftell', 'Invite') : ''].join('');
   sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('spark')}</span><h2>${f.teams >= f.need ? 'Trivia night is on!' : 'You’re in. A few things before the night'}</h2></div></div>${tfMeter(f)}<div class="tfl">${rows}</div>${f.host ? '<p class="muted" style="font-size:13px;text-align:center">You two play hidden: you never count toward the 3 and can’t win.</p>' : ''}<button class="jlink" data-act="closesheet">Done</button>`, 'tf'); }
-const TELLT = () => `We’re doing a couples trivia night on Let’s Together, every couple a team, and the top couple wins a $25 Amazon gift card. They need ${tfMore(S.tf)}. You each swipe on movies, places and things to do, and it only shows what you both said yes to. One of you starts it and sends the other your couple code.`;
+const TELLT = () => `We’re playing Couples Night: Trivia Edition on Let’s Together. Every couple is a team, playing from their own couch, and the top couple wins a $25 Amazon gift card. We need ${tfMore(S.tf)} to make it happen. Want in? Join and vote on the night here:`;
 async function tfAct(a, t) { const f = S.tf, p = partner();
   if (a === 'tf') return tfSheet();
   if (a === 'tfin' || a === 'tfout') { t.disabled = true; try { S.tf = await rpc('trivia_rsvp_set', { p_code: S.code, p_member: S.me, p_in: a === 'tfin' }); } catch { t.disabled = false; return toast('That didn’t save. Try again.'); }
@@ -5036,6 +5037,7 @@ function pushAskSheet() {
     <p class="muted" style="font-size:12.5px;text-align:center;margin-top:12px">You can change this any time on the You screen.</p>`);
 }
 function nextOnboard() {
+  if (S.heroDue) { S.heroDue = 0; if (pollHeroNow()) return; }
   if (!S.code || !S.me || S.view !== 'home') return;
   if (document.querySelector('.wn.ob2')) return;
   if (ob2Need() && S.state && ob2Show()) return;
@@ -6150,7 +6152,7 @@ document.addEventListener('click', async e => {
       case 'planday': return dayStart();
       case 'inbox': return inboxSheet();
       case 'shareapp': return shareApp();
-      case 'tellsend': { const url = 'https://letstogether.app/'; step('tell_' + ds.how);
+      case 'tellsend': { const url = 'https://letstogether.app/' + (S.tellT ? '?tv=1' : ''); step('tell_' + ds.how);
         const TX = S.tellT ? TELLT() : TELL;
         if (ds.how === 'text') { const body = encodeURIComponent(`${TX}\n${url}`); location.href = /iphone|ipad|ipod|macintosh/i.test(navigator.userAgent) ? `sms:&body=${body}` : `sms:?body=${body}`; return; }
         if (navigator.share) { try { await navigator.share({ text: TX + '\n' + url }); } catch {} return; }
