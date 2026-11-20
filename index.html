@@ -6434,7 +6434,10 @@ addEventListener('pointerdown', () => { UPD.touch = Date.now(); }, { passive: tr
 function updGo() { const t = S.triv, q = S.view === 'trivia' && t?.id ? '?trivia=' + encodeURIComponent(t.id) : ''; location.replace(location.pathname + q); }
 async function updCheck(resume) { if (Date.now() - UPD.at < 20000 && !resume) return; UPD.at = Date.now(); const t = await updTag(); if (!t) return;
   if (!UPD.tag) { UPD.tag = t; return; } if (t !== UPD.tag) UPD.ready = true;
-  if (UPD.ready && (document.visibilityState === 'hidden' || (resume && !/^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName || '') && (S.view !== 'trivia' || updQuiet())) || updQuiet())) updGo(); }
+  if (UPD.ready && updSafe() && (document.visibilityState === 'hidden' || resume || updQuiet())) updGo(); }
+// never reload over something half done: an open sheet (plan editor, check-in), a match screen, a walkthrough or typing; in trivia only between questions
+function updSafe() { if (document.querySelector('.scrim, .match, .wn, .lfront') || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || '') || swPend.size) return false;
+  return S.view !== 'trivia' || updQuiet(); }
 updCheck();
 document.addEventListener('visibilitychange', () => updCheck(document.visibilityState === 'visible'));
 setInterval(() => { if (UPD.ready) { if (updQuiet()) updGo(); } else if (document.visibilityState === 'visible' && Date.now() - UPD.at > 5 * 60000) updCheck(); }, 3000);
