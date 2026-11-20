@@ -1,4 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { logAi } from "./ai_log.ts";
+logAi("hours");
 
 // One-off research for a place Google holds no opening hours for: read the venue's own website and take the weekly
 // hours it states. Used only when a plan spot has nothing else that fits (see _hours_ask).
