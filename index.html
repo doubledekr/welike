@@ -2449,6 +2449,8 @@ function tcWhere(t) { const T = tcNow(), sc = t.sched || [], st = tcMs(t.starts)
   if (!next) return { k: 'final', prev };
   if (prev && prev.n % t.per === 0) return { k: 'board', next, prev };
   return { k: prev ? 'between' : 'welcome', next, prev }; }
+// what the trivia screen shows: no separate "get together" screen before a question, just the countdown (Dave, 19 Nov)
+const tcShown = t => { const w = tcWhere(t); if (w.k !== 'soon') return w; return { ...w, k: !w.prev ? 'welcome' : w.prev.n % t.per === 0 ? 'board' : 'between' }; };
 const tcRing = (frac, label, sub, big) => { const r = 48, L = 2 * Math.PI * r;
   return `<div class="tcring${big ? ' big' : ''}"><svg viewBox="0 0 110 110"><circle cx="55" cy="55" r="${r}" class="tk"></circle><circle cx="55" cy="55" r="${r}" class="fl" style="stroke-dasharray:${L};stroke-dashoffset:${(L * (1 - Math.max(0, Math.min(1, frac)))).toFixed(1)}"></circle></svg><span><b id="tcn">${label}</b>${sub ? `<small>${sub}</small>` : ''}</span></div>`; };
 function tcFrame(body, sub) { unshift(); const t = S.triv;
@@ -2461,12 +2463,12 @@ function tcBoard(b, final) { if (!b) return ''; const me = b.me || {};
   const mine = me.hidden ? `<p class="muted" style="font-size:13.5px">You two play hidden: ${tvPts(me.pts)}, which would be ${tvOrd(me.as_if || 1)}. You’re never listed and can’t win.</p>`
     : me.rank && b.lead != null && me.rank > 1 ? `<p class="muted" style="font-size:14px">${b.lead - me.pts === 0 ? 'Tied with first.' : `${b.lead - me.pts} point${b.lead - me.pts === 1 ? '' : 's'} behind first.`}</p>` : me.rank === 1 ? `<p class="muted" style="font-size:14px">${final ? '' : 'You’re out in front.'}</p>` : '';
   return `<div class="tcboard">${rows || '<p class="muted">No couples on the board yet.</p>'}${solo}</div>${mine}`; }
-function tcRender() { const t = S.triv; tcSync(t); const w = tcWhere(t); S.tcK = w.k + (w.q?.n || w.next?.n || ''); const T = tcNow(), p = partner();
+function tcRender() { const t = S.triv; tcSync(t); const w = tcShown(t); S.tcK = w.k + (w.q?.n || w.next?.n || ''); const T = tcNow(), p = partner();
   if (!ls.get('tvTut') && w.k !== 'read' && w.k !== 'answer') { ls.set('tvTut', '1'); setTimeout(tcTutorial, 300); }
   if (w.k === 'before') return tcFrame(`<span class="badge">${ic('spark')}</span><h3>${trivDay(t.starts)}</h3><p class="muted">${t.questions} questions in about an hour, in ${t.rounds} round${t.rounds > 1 ? 's' : ''}.${t.prize ? ' Top couple wins a $25 Amazon gift card.' : ''}${t.solo ? ' Solo players can play, but the prize is for couples.' : ''}</p>${tcHow()}${trivTeamRow(t)}${tcBuzz(t)}${t.host ? '<p class="muted" style="font-size:13px">You two play hidden: you see your own score, never listed, can’t win.</p>' : ''}`);
-  if (w.k === 'welcome' || w.k === 'between' || w.k === 'board') { const to = tcMs(w.next.s) - T, gap = w.k === 'board' ? 210000 : w.k === 'welcome' ? 180000 : 44000;
+  if (w.k === 'welcome' || w.k === 'between' || w.k === 'board') { const to = tcMs(w.next.s) - T, gap = w.k === 'board' ? 210000 : w.k === 'welcome' ? 180000 : 30000;
     const head = w.k === 'board' ? `<h3>Round ${w.prev.r} board</h3>${tcBoard(t.board)}<p class="muted">Round ${w.next.r} starts in <b id="tcn2">${tcClock(to)}</b></p>`
-      : `${tcRing(1 - to / gap, tcClock(to), w.k === 'welcome' ? 'to question 1' : 'to question ' + w.next.n, true)}<h3>${w.k === 'welcome' ? 'Welcome in' : `Question ${w.next.n} next`}</h3><p class="muted">${w.k === 'welcome' ? tcSoloLine(t, p) : 'Keep swiping or planning. A bar at the top counts down, and the question takes over for the last 10 seconds.'}</p>`;
+      : `${tcRing(1 - to / gap, tcClock(to), w.k === 'welcome' ? 'to question 1' : 'to question ' + w.next.n, true)}<h3>${w.k === 'welcome' ? 'Welcome in' : `Question ${w.next.n} next`}</h3><p class="muted">${w.k === 'welcome' ? tcSoloLine(t, p) : 'Keep swiping or planning. A bar at the top counts down, and the game pulls you back in for the last 10 seconds.'}</p>`;
     return tcFrame(`${head}${w.k === 'welcome' ? tcHow() : `<div class="tvstats"><div><b>${t.score}</b><small>point${t.score === 1 ? '' : 's'}</small></div>${t.solo ? '' : `<div><b>${t.sync}</b><small>in sync</small></div>`}<div><b>${t.done}/${t.questions}</b><small>done</small></div></div>`}<button class="btn ghost" data-act="tcback">Back to the app</button>${tcBuzz(t)}${trivTeamRow(t)}<button class="jlink" data-act="tcoff">Not playing tonight</button>`, `Round ${(w.next || w.prev).r} of ${t.rounds}`); }
   if (w.k === 'soon') return tcFrame(`<h3 style="font-size:38px">${t.solo ? 'Get ready' : 'Get together'}</h3><p class="muted">Question ${w.next.n} starts on every phone at the same second.${t.solo ? '' : ` Sit next to ${esc(them())}.`}</p>${tcRing((tcMs(w.next.s) - T) / 10000, tcClock(tcMs(w.next.s) - T), 'seconds', true)}${w.next.mine ? '<p class="muted">This one’s made from movies you both said yes to.</p>' : ''}`, `Question ${w.next.n} of ${t.questions}`);
   if (w.k === 'read' || w.k === 'answer') { const q = S.tcQ?.[w.q.qid]; if (!q) { tcFetch(w.q); return tcFrame(`<p class="muted">Question ${w.q.n}…</p>`, `Question ${w.q.n} of ${t.questions}`); }
@@ -2517,9 +2519,9 @@ function tcTick() { const t = S.triv; if (!t || t.mode !== 'clock' || !S.me) { d
     if (w0.next && tcMs(w0.next.s) - tcNow() < 1200) tcFetch(w0.next);
     if (tcStale()) tcClockCheck('stale'); }
   const T = tcNow(), live = T > tcMs(t.starts) - 15 * 60000 && T < tcMs(t.ends);
-  if (S.view === 'trivia') { document.getElementById('tcbar')?.remove(); const w = tcWhere(t), k = w.k + (w.q?.n || w.next?.n || '');
+  if (S.view === 'trivia') { document.getElementById('tcbar')?.remove(); const w = tcShown(t), k = w.k + (w.q?.n || w.next?.n || '');
     if (k !== S.tcK) { if (document.querySelector('.scrim')) { if (/^(soon|read|answer)/.test(k)) closeSheet(); else return; } if (w.k === 'board' || w.k === 'final') { S.tcK = k; trivLoad().then(() => { if (S.view === 'trivia') tcRender(); }); } else tcRender(); return; }
-    const n = document.getElementById('tcn'), n2 = document.getElementById('tcn2'), ref = w.k === 'answer' ? tcMs(w.q.c) : w.next ? tcMs(w.next.s) : 0, gap = w.k === 'answer' ? 4000 : w.k === 'soon' ? 10000 : w.k === 'welcome' ? 180000 : w.k === 'board' ? 210000 : 44000;
+    const n = document.getElementById('tcn'), n2 = document.getElementById('tcn2'), ref = w.k === 'answer' ? tcMs(w.q.c) : w.next ? tcMs(w.next.s) : 0, gap = w.k === 'answer' ? 4000 : w.k === 'welcome' ? 180000 : w.k === 'board' ? 210000 : 30000;
     if (ref && (n || n2)) { const v = tcStale() && w.k !== 'answer' && w.k !== 'read' ? 'Syncing…' : tcClock(ref - T); if (n && n.textContent !== v) n.textContent = v; if (n2 && n2.textContent !== v) n2.textContent = v;
       const fl = document.querySelector('.tcring .fl'); if (fl) { const L = 2 * Math.PI * 48; fl.style.strokeDashoffset = (L * (1 - Math.max(0, Math.min(1, (ref - T) / gap)))).toFixed(1); } }
     return; }
