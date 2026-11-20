@@ -1196,6 +1196,7 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .whyl{display:flex;align-items:flex-end;text-align:left;font-size:12.5px;line-height:16px;font-weight:600;color:#ffe2b0;margin:10px 20px -4px;height:32px;overflow:hidden}.whyl.tap{cursor:pointer;text-decoration:underline;text-decoration-color:rgba(255,226,176,.45);text-underline-offset:3px}
 .lgrid .sect{margin:18px 2px 8px}.lgw{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.lgt{position:relative;aspect-ratio:3/4;border-radius:14px;overflow:hidden;background:rgba(255,255,255,.05);text-align:left}.lgt img,.lgt .pimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:grid;place-items:center;font-size:30px}.lgt b{position:absolute;left:0;right:0;bottom:0;padding:18px 8px 7px;font-size:12px;line-height:1.2;font-weight:600;background:linear-gradient(transparent,rgba(0,0,0,.78));color:#fff}
 .tag.uqt{background:rgba(120,190,230,.2);color:#cfeaff}
+.card .fcov .gcov-k{color:#4a1f38;text-shadow:0 1px 0 rgba(255,255,255,.6)}.card .fcov .gcov-h{color:#3a2a34}.card .fflake{position:absolute;width:5px;height:3px;border-radius:1px;background:linear-gradient(90deg,#d8dde2,#8f98a2);pointer-events:none;animation:fflake .7s ease-in forwards}@keyframes fflake{to{transform:translate(var(--dx),70px) rotate(220deg);opacity:0}}.card .hcov .gcov-k{color:#ffe3b0}.card .hcov .gcov-h{color:#d9c6ef}
 .card .ucov .gcov-k{color:#1f2d3a}.card .ucov .gcov-h{color:#2a3a48}
 .card .usign{position:absolute;left:50%;top:0;z-index:8;width:132px;margin-left:-66px;padding-top:44px;transform-origin:50% 0;animation:uswing 1.5s cubic-bezier(.3,.7,.3,1) both;pointer-events:none;transition:opacity .4s}.card .usign.out{opacity:0}
 .card .usign::before,.card .usign::after{content:"";position:absolute;top:0;width:2px;height:52px;background:#3b2a1c}.card .usign::before{left:30px;transform:rotate(18deg);transform-origin:0 0}.card .usign::after{right:30px;transform:rotate(-18deg);transform-origin:100% 0}
@@ -1898,6 +1899,7 @@ function ob2Steps() {
   if (!ls.get('ob2flip')) s.push('flip');                            // first: swipe whenever, and tap to flip
   if (!ls.get('ob2try') && !standalone()) s.push('try');           // someone who came in by invite never saw the card
   if (!ls.get('ob2piles')) s.push('piles');                          // the five piles, and the cards that arrive covered
+  if (!ls.get('ob2out')) s.push('out');                              // then go do it: plans, and the check-in after (Dave, 19 Nov)
   if (needInvite()) s.push('invite');
   if (!standalone() && isPhone() && !ls.get('a2hs')) s.push('install');
   if (needPushAsk()) s.push('push');                                 // on an iPhone this only exists in the Home Screen app, so it waits for the icon
@@ -1911,7 +1913,7 @@ function ob2Show() {
   S.ob2 = { i: 0, steps, loc: false, kids: S.settings?.kids === true }; ob2Draw(); return true;
 }
 function ob2End() {
-  const loc = S.ob2?.loc; S.ob2 = null; S.heroDue = 1; ls.set('ob2', '1'); ls.set('coach', '1'); ls.set('ob2try', '1'); ls.set('ob2flip', '1'); ls.set('ob2piles', '1'); a2hsArrow(''); document.querySelector('.wn.ob2')?.remove();
+  const loc = S.ob2?.loc; S.ob2 = null; S.heroDue = 1; ls.set('ob2', '1'); ls.set('coach', '1'); ls.set('ob2try', '1'); ls.set('ob2flip', '1'); ls.set('ob2piles', '1'); ls.set('ob2out', '1'); a2hsArrow(''); document.querySelector('.wn.ob2')?.remove();
   if (S.view === 'home' && S.tab === 'home') render();
   if (loc) return locAsk(); if (needLoc()) ls.set('askedloc', '1');
   nextOnboard();
@@ -1926,14 +1928,16 @@ function ob2Skip() {   // "Later" on a step: remember it was offered, so it does
 }
 function ob2Draw() {
   const el = document.querySelector('.wn.ob2'), o = S.ob2; if (!el || !o) return; const k = o.steps[o.i], n = o.steps.length, p = partner(), last = o.i === n - 1;
-  const C = { flip: ['#ff7a9c', '#ff4d7e'], try: ['#ffb547', '#ff7a4d'], piles: ['#9fb8cc', '#ffb547'], invite: ['#ff7a4d', '#ff4d7e'], install: ['#2dd4bf', '#4d9bff'], push: ['#ffb547', '#ff4d7e'], notif: ['#ffb547', '#ff4d7e'], dates: ['#ff7a9c', '#ff4d7e'], setup: ['#ffb547', '#ff7a4d'] }[k];
+  const C = { flip: ['#ff7a9c', '#ff4d7e'], try: ['#ffb547', '#ff7a4d'], piles: ['#9fb8cc', '#ffb547'], out: ['#4d9bff', '#2dd4bf'], invite: ['#ff7a4d', '#ff4d7e'], install: ['#2dd4bf', '#4d9bff'], push: ['#ffb547', '#ff4d7e'], notif: ['#ffb547', '#ff4d7e'], dates: ['#ff7a9c', '#ff4d7e'], setup: ['#ffb547', '#ff7a4d'] }[k];
   const kick = (x = '') => `<small class="wk-k">Step ${o.i + 1} of ${n}${x}</small>`, sp = '<div class="ob2-sp"></div>';
   step('ob2_' + k);
   const body = {
     flip: () => `${kick()}<h2 class="wk-h">Tap a card to flip it</h2><p class="wk-p">Swipe whenever you have a minute, no homework. When a card catches your eye, tap it for the details.</p>${flipStage()}<button class="btn wk-cta wait" id="wkgo" data-act="ob2flip" disabled>Tap the card</button>`,
     try: () => `${kick()}<h2 class="wk-h">Now, how the cards work</h2><p class="wk-p">Flick this card each way. ${esc(p || 'Your person')} never sees your swipes unless you both say yes.</p>${ob2SwipeStage()}<button class="btn wk-cta wait" id="wkgo" data-act="ob2try" disabled>Flick the card</button>`,
-    piles: () => `${kick()}<h2 class="wk-h">Five piles, and a few surprises</h2><p class="wk-p">Discover is a bit of everything near you. Watch is movies, Eat & Drink is restaurants and bars, Go Out is things to do, and Trips is places you might go. Some cards come covered: hidden gems, one-of-a-kind shops, and food or drink events. Wipe to see.</p>
+    piles: () => `${kick()}<h2 class="wk-h">Five piles, and a few surprises</h2><p class="wk-p">Discover is a bit of everything near you. Watch is movies, Eat & Drink is restaurants and bars, Go Out is things to do, and Trips is places you might go. Some cards come covered: hold a hidden gem to light it up, wipe a one-of-a-kind shop’s window, scratch a food or drink ticket.</p>
       <div class="wk-stage"><div class="wk-gem" id="obpg" style="background:radial-gradient(90% 60% at 50% 30%,#3d8f86,#16454a 55%,#0c2226)"><span class="wk-gcap"><span class="gemk"><span>Unique spot</span></span><b>A magic shop with a back-room stage</b></span><canvas id="obpv"></canvas></div></div><button class="btn wk-cta wait" id="wkgo" data-act="ob2piles" disabled>Wipe the window</button>`,
+    out: () => `${kick()}<h2 class="wk-h">Then go do it</h2><p class="wk-p">Matches turn into plans: Plan a day builds a day from what you both like, with time to get between stops. The day after, tap what you loved. Places you both loved come back.</p>
+      <div class="wk-stage" style="display:block"><div class="wk-step"><span class="grow"><b>Saturday</b><small>Museum, a snack break, then tacos</small></span></div><div class="wk-step" style="display:block"><b>How was it?</b><span class="rcv">${RCV.map(([, l], j) => `<span class="pill ${j ? '' : 'hot'}">${l}</span>`).join('')}</span></div></div>${sp}<button class="btn wk-cta" data-act="ob2out">Next</button>`,
     invite: () => `${kick()}<h2 class="wk-h">Bring your person in</h2><p class="wk-p">Nothing can match until you’re both here. The link fills in the code for them.</p>
       <div class="ob2-code">${esc(S.code)}<small>Your couple code</small></div><div class="wk-bub ob2-msg"><b>Your text</b>Join me on Let’s Together so we can stop asking “what do you want to do?”</div>${sp}
       <button class="btn wk-cta" data-act="ob2inv" data-how="${isPhone() ? 'text' : 'share'}">${isPhone() ? 'Text the invite' : 'Copy the invite'}</button>${isPhone() ? '<button class="jlink" data-act="ob2inv" data-how="share">Other apps</button>' : ''}`,
@@ -3712,7 +3716,7 @@ function howTo() {
   const p = esc(partner() || 'your person'), H = [
     ['Swiping', 'Right is maybe, up is hell yeah, left is nah, down is never again. Tap a card to flip it for the details. ' + p.charAt(0).toUpperCase() + p.slice(1) + ' only sees what you both said yes to.'],
     ['The five piles', 'Discover is a bit of everything near you. Watch is movies. Eat & Drink is restaurants and bars, Go Out is things to do (escape rooms, comedy, bowling, museums, what’s on), and Trips is places you might go. A pile is a short handful a day; when it runs out you get a grid of everything you’ve liked.'],
-    ['Covered cards', 'Hidden gems you scratch, unique spots (independent shops) you wipe like a window, and food or drink events you scratch in Eat & Drink. Both of you get the same one.'],
+    ['Covered cards', 'Hidden gems you press and hold to light up, unique spots (independent shops) you wipe like a window, and food or drink events you scratch off like a ticket in Eat & Drink. Both of you get the same one.'],
     ['Matches', 'When you both say yes it’s a match. Matches live behind the heart at the top: pick one, shuffle, or play a quick game for it.'],
     ['Close by', 'Open a place and tap “What else you like close by” to see your other likes a short walk away, then put two in a plan with the times worked out.'],
     ['Plans', 'Plan a day builds a day from what you both like, with travel time between stops. Weekend plans arrive on their own; say yes, swap a stop, or keep one secret as a surprise.'],
@@ -3724,10 +3728,11 @@ function howTo() {
 /* ---------- what's new ---------- */
 // Shown once per person (kept on the account, so Safari and the Home Screen app agree) to people who were already
 // here before the update. Someone who has just joined got the intro tour and does not need a second one.
-const NEWS = { v: 'n7-discover', since: '2026-11-19T23:30:00Z' };
+const NEWS = { v: 'n8-nights', since: '2026-11-20T03:45:00Z' };   // Dave, 19 Nov 10:40pm: after-the-night check-in, Go again, plan gaps; people who saw n7 get only the new screens
 function newsDue() { const b = S.inbox; return !!b && b.news !== NEWS.v && !!b.joined && new Date(b.joined) < new Date(NEWS.since); }
 function newsShow(force) {
   if (!force && (!newsDue() || S.view !== 'home' || $layer.innerHTML || document.querySelector('.coach,.scr,.sco,.match,.lfront,.wn'))) return false;
+  S.walkSeen7 = S.inbox?.news === 'n7-discover';
   if (S.inbox) S.inbox.news = NEWS.v; rpc('news_seen', { p_code: S.code, p_member: S.me, p_v: NEWS.v }).catch(() => {});
   return walkShow();
 }
@@ -3737,8 +3742,12 @@ const WALK = [
   { k: 'uq', a: '#9fb8cc', b: '#ffb547', kick: 'New: unique spots', h: 'Wipe the window', p: 'Independent shops near you, like record stores, bookshops, candy and magic shops, arrive covered in Discover. Wipe the glass to see what’s inside. You can put them in a plan.', wait: 'Wipe the window' },
   { k: 'food', a: '#ff7a4d', b: '#ff4d7e', kick: 'New in Eat & Drink', h: 'Food and drink finds', p: 'Hidden-gem restaurants and bars, and things like a chili cook-off or a wine tasting, show up as scratch cards in Eat & Drink.', wait: 'Scratch the card' },
   { k: 'close', a: '#2dd4bf', b: '#ffb547', kick: 'New: close by', h: 'What else you like nearby', p: 'Open a place and tap “What else you like close by” to see your other likes a short walk away, then put two in a plan. When a pile runs out, you get a grid of everything you’ve liked.', open: true },
+  { k: 'plans', a: '#4d9bff', b: '#2dd4bf', kick: 'New in plans', h: 'Fill the gaps', p: 'A long gap after a museum or show now offers a snack break nearby, or moves the next stop up. “Suggest something else” opens a gallery of places you both like, your likes and hidden gems close by.', open: true, n8: 1 },
+  { k: 'night', a: '#ff7a4d', b: '#ffb547', kick: 'New: after the night', h: 'How was it?', p: 'The day after a plan, tap what you loved. Only you see your answers. Places you both loved come back in future plans; “Not again” never does.', wait: 'Tap one', n8: 1 },
+  { k: 'again', a: '#ff4d7e', b: '#ffb547', kick: 'New: go again', h: 'Back to a favorite', p: 'When a place you both loved is close to something already in your plans, we’ll ask if you want to go again. One tap adds it.', open: true, n8: 1 },
   { k: 'end', a: '#ffb547', b: '#ff4d7e', kick: 'That’s it', h: 'Swipe whenever you like', p: 'Hell yeah is for the places you’d love to go, and the ones you’ve been and loved.' },
 ];
+const WALKS = () => S.walkSeen7 ? WALK.filter(x => x.n8 || x.k === 'end') : WALK;
 function walkShow() {
   document.querySelector('.wn')?.remove(); closeSheet();
   const el = document.createElement('div'); el.className = 'wn wk'; document.body.appendChild(el);
@@ -3747,7 +3756,7 @@ function walkShow() {
 }
 function walkOk() { const b = document.getElementById('wkgo'); if (!b || !b.disabled) return; b.disabled = false; b.classList.remove('wait'); b.textContent = 'Next'; try { navigator.vibrate?.(15); } catch {} }
 function walkDraw() {
-  const el = document.querySelector('.wn.wk'), w = S.walk; if (!el || !w) return; const st = WALK[w.i], last = w.i === WALK.length - 1, T = esc(them()), me = esc(S.me || 'You');
+  const el = document.querySelector('.wn.wk'), w = S.walk; if (!el || !w) return; const WK = WALKS(), st = WK[w.i], last = w.i === WK.length - 1, T = esc(them()), me = esc(S.me || 'You');
   const stage = {
     swipe: () => `<div class="wk-card" id="wkc"><span class="wk-stamp" id="wks"></span></div><div class="wk-dirs">${[['l', '←', 'Nah'], ['r', '→', 'Maybe'], ['u', '↑', 'Hell yeah'], ['d', '↓', 'Never again']].map(([d, a, t]) => `<div data-d="${d}"><b>${a}</b>${t}</div>`).join('')}</div>`,
     flip: () => flipStage().replace('wk-stage wk-flip', 'wk-flip'),
@@ -3762,11 +3771,14 @@ function walkDraw() {
     tabs: () => [['Discover', 'A bit of everything, plus finds'], ['Watch', 'Movies'], ['Eat & Drink', 'Restaurants, bars, and food and drink finds'], ['Go Out', 'Escape rooms, comedy, museums, what’s on'], ['Trips', 'Places you might go']].map(([t, d]) => `<div class="wk-step"><span class="grow"><b>${t}</b><small>${d}</small></span></div>`).join(''),
     uq: () => `<div class="wk-gem" style="background:radial-gradient(90% 60% at 50% 30%,#3d8f86,#16454a 55%,#0c2226)"><span class="wk-gcap"><span class="gemk"><span>Unique spot</span></span><b>A record shop with listening booths</b></span><canvas id="wkw"></canvas></div>`,
     food: () => `<div class="wk-gem" style="background:radial-gradient(90% 60% at 50% 30%,#8f3d5a,#4a1630 55%,#22090f)"><span class="wk-gcap"><span class="gemk"><span>Food event</span></span><b>A chili cook-off, Saturday afternoon</b></span><canvas id="wkw"></canvas></div>`,
+    plans: () => `<div class="wk-step"><span class="grow"><b>Museum</b><small>2:00 to 4:00</small></span></div><div class="wk-step" style="border-style:dashed"><span class="grow"><b>Free time, 2 hours</b><small>Snack break nearby · Move dinner to 5:00</small></span></div><div class="wk-step"><span class="grow"><b>Dinner</b><small>6:30</small></span></div>`,
+    night: () => `<div class="wk-step" style="display:block"><b>A taco spot you went to</b><span class="rcv">${RCV.map(([k, l]) => `<button class="pill" data-wkrc="${k}">${l}</button>`).join('')}</span></div><p class="muted" id="wkrcm" style="font-size:13px;margin-top:10px;min-height:18px"></p>`,
+    again: () => `<div class="wk-step" style="display:block"><b>Go again?</b><small style="display:block;margin-top:4px;line-height:1.4">You both loved that taco spot from your date night last month, and it’s 4 min on foot from Saturday’s show. Go again?</small></div>`,
     close: () => `<div class="wk-step"><span class="grow"><b>A ramen spot</b><small>You both like it · 2 min walk</small></span></div><div class="wk-step"><span class="grow"><b>A cocktail bar</b><small>You like it · 6 min walk</small></span></div>`,
   }[st.k]();
   const pushOff = last && standalone() && pushState() === 'default';
   el.style.setProperty('--ka', st.a); el.style.setProperty('--kb', st.b);
-  el.innerHTML = `<div class="wn-in wk-in"><div class="wn-top"><span class="wk-dots">${WALK.slice(0, -1).map((_, i) => `<i class="${i <= w.i - (last ? 1 : 0) ? 'on' : ''}"></i>`).join('')}</span>${last ? '<span></span>' : '<button data-act="newsdone" aria-label="Skip">Skip</button>'}</div>
+  el.innerHTML = `<div class="wn-in wk-in"><div class="wn-top"><span class="wk-dots">${WK.slice(0, -1).map((_, i) => `<i class="${i <= w.i - (last ? 1 : 0) ? 'on' : ''}"></i>`).join('')}</span>${last ? '<span></span>' : '<button data-act="newsdone" aria-label="Skip">Skip</button>'}</div>
     <small class="wk-k">${st.kick}</small><h2 class="wk-h">${st.h}</h2><p class="wk-p">${st.p}</p><div class="wk-stage wk-s-${st.k}">${stage}</div>
     ${pushOff ? `<button class="btn wk-cta" data-act="walkpush">Turn on nudges</button><div style="height:8px"></div><button class="btn ghost" data-act="newsdone">Start swiping</button>` : last ? `<button class="btn wk-cta" data-act="newsdone">Start swiping</button>` : st.open ? `<button class="btn wk-cta" data-act="walknext">Next</button>` : `<button class="btn wk-cta wait" id="wkgo" data-act="walknext" disabled>${st.wait}</button>`}</div>`;
   if (st.k === 'flip') flipWire(el);
@@ -5551,7 +5563,7 @@ function drawStack() {
   if (S.deck[0]?.data?.gem && !gemSeen().includes(S.deck[0].id)) gemCover(cs[0], S.deck[0]);
   else if (S.deck[0]?.data?.unique && !gemSeen().includes(S.deck[0].id)) uniqueCover(cs[0], S.deck[0]);
   else if (evFind(S.deck[0]) && !gemSeen().includes(S.deck[0].id)) { const c = S.deck[0], dr = DRINKW.test(`${c.title} ${c.kind || ''}`);
-    gemCover(cs[0], c, { k: dr ? 'Drinks event' : 'Food event', h: 'Scratch to see what’s on', small: dr ? 'Drinks event' : 'Food event', line: c.title, sub: c.subtitle || '' }); }
+    gemCover(cs[0], c, { k: dr ? 'Drinks event' : 'Food event', h: 'Scratch the ticket to see what’s on', small: dr ? 'Drinks event' : 'Food event', line: c.title, sub: c.subtitle || '' }); }
   if (S.bite) revealCards(st);
 }
 // The first time each day a fresh handful shows in a category (opening the app or coming back to it), the cards fan
@@ -5621,26 +5633,41 @@ function flipCard(el, c, yn) { if (!el || !c || el._flipping) return; el._flippi
   const P3 = 'perspective(1400px) '; el.style.zIndex = '5'; el.style.transition = 'transform .16s ease-in'; el.style.transform = P3 + 'rotateY(90deg)';
   setTimeout(() => { el.classList.toggle('flipped', to); if (to) el.querySelector('.cback').scrollTop = 0; el.style.transition = 'none'; el.style.transform = P3 + 'rotateY(-90deg)'; void el.offsetWidth;
     el.style.transition = 'transform .22s cubic-bezier(.2,.9,.3,1)'; el.style.transform = P3 + 'rotateY(0deg)'; setTimeout(() => { el._flipping = false; el.style.transition = 'none'; el.style.transform = ''; el.style.zIndex = ''; }, 240); }, 170); }
-// A hidden gem arrives covered: scratch it off to see what it is. Once scratched it stays revealed on this phone.
+// A hidden gem arrives covered: press and hold to light it up. Once scratched it stays revealed on this phone.
 const gemSeen = () => { try { return JSON.parse(ls.get('gemsc') || '[]'); } catch { return []; } };
 // a dated food or drink event dealt into the Eat or Drinks pile (the server only puts those there): it arrives covered too
 const DRINKW = /\b(wines?|winery|vino|beers?|brews?|brewery|breweries|brewfest|ales?|ciders?|whiske?y|bourbon|cocktails?|mixology|tequila|mezcal|sake|distillery|spirits|happy hour|pub crawl|bar crawl|oktoberfest|sommelier)\b/i;
 const evFind = c => !!c && (S.homeDeck === 'dinner' || S.homeDeck === 'drinks') && c.deck === 'event' && !c.data?.place && !c.data?.gem;
 // o (food and drink events in Eat and Drinks): { k, h, small, line, sub } replace the hidden-gem words
-function gemCover(el, c, o = {}) { if (!el || el.querySelector('.gcov')) return; const w = document.createElement('div'); w.className = 'gcov'; w.innerHTML = `<canvas></canvas><span class="gcov-k">${esc(o.k || 'Hidden gem')}</span><span class="gcov-h">${esc(o.h || 'Scratch to see what it is')}</span>`; el.appendChild(w);
+// Covered cards each uncover their own way (Dave, 19 Nov): a hidden gem is held to light up (a spotlight grows under your finger),
+// a food or drink event is a silver scratch-off ticket (narrow coin strokes, foil flakes), a unique spot is a frosted window you wipe.
+function gemCover(el, c, o = {}) { if (!el || el.querySelector('.gcov')) return; const foil = !!o.k, w = document.createElement('div'); w.className = 'gcov' + (foil ? ' fcov' : ' hcov');
+  w.innerHTML = `<canvas></canvas><span class="gcov-k">${esc(o.k || 'Hidden gem')}</span><span class="gcov-h">${esc(foil ? 'Scratch the ticket to see what’s on' : 'Press and hold to light it up')}</span>`; el.appendChild(w);
   const cv = w.querySelector('canvas'), box = el.getBoundingClientRect(), W = cv.width = Math.round(box.width), H = cv.height = Math.round(box.height), g = cv.getContext('2d');
-  const gr = g.createLinearGradient(0, 0, W, H); gr.addColorStop(0, '#2a1840'); gr.addColorStop(.45, '#7a3df0'); gr.addColorStop(.75, '#ff4d7e'); gr.addColorStop(1, '#ffb547'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
-  g.fillStyle = 'rgba(255,255,255,.10)'; for (let i = -H; i < W; i += 30) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i + 9, 0); g.lineTo(i + 9 + H, H); g.lineTo(i + H, H); g.fill(); }
-  g.fillStyle = 'rgba(255,255,255,.8)'; for (let i = 0; i < 46; i++) { const x = (i * 97 % W), y = (i * 211 % H), r = 1 + (i % 3); g.globalAlpha = .25 + (i % 5) * .12; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); } g.globalAlpha = 1;
-  g.globalCompositeOperation = 'destination-out'; g.lineCap = 'round'; g.lineJoin = 'round'; g.lineWidth = Math.max(54, W / 4.5);
-  let down = false, lx = 0, ly = 0, moves = 0, done = false; const pt = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; };
+  if (foil) {   // silver foil with a printed border, like a lottery ticket
+    const gr = g.createLinearGradient(0, 0, W, H); gr.addColorStop(0, '#9aa3ad'); gr.addColorStop(.3, '#e6eaee'); gr.addColorStop(.5, '#aab2bb'); gr.addColorStop(.72, '#f2f4f6'); gr.addColorStop(1, '#8c949e'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    for (let i = 0; i < 1400; i++) { g.fillStyle = i % 2 ? 'rgba(255,255,255,.22)' : 'rgba(60,70,80,.10)'; g.fillRect(i * 151 % W, i * 233 % H, 1, 1); }
+    g.strokeStyle = 'rgba(70,40,60,.5)'; g.lineWidth = 2; g.setLineDash([6, 6]); g.strokeRect(12, 12, W - 24, H - 24); g.setLineDash([]);
+    g.fillStyle = 'rgba(70,40,60,.55)'; g.textAlign = 'center'; g.font = `700 ${Math.round(W / 26)}px Inter, sans-serif`; for (let y = 40; y < H - 20; y += H / 7) if (y < H * .3 || y > H * .55) g.fillText('★  SCRATCH  ★  SCRATCH  ★', W / 2, y);
+  } else {      // the dark velvet a jeweller keeps a gem under
+    const gr = g.createRadialGradient(W / 2, H * .4, 10, W / 2, H / 2, Math.max(W, H)); gr.addColorStop(0, '#3a1f5c'); gr.addColorStop(.6, '#1c0f2e'); gr.addColorStop(1, '#0c0614'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    for (let i = 0; i < 60; i++) { g.fillStyle = `rgba(255,${200 + i % 50},${150 + i % 90},${.15 + (i % 5) * .08})`; g.beginPath(); g.arc(i * 97 % W, i * 211 % H, .8 + (i % 3) * .6, 0, 7); g.fill(); }
+  }
+  g.globalCompositeOperation = 'destination-out'; g.lineCap = 'round'; g.lineJoin = 'round'; g.lineWidth = foil ? Math.max(26, W / 10) : 1;
+  let down = false, lx = 0, ly = 0, moves = 0, done = false, raf = 0, rad = 0; const pt = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; };
   const reveal = () => { if (done) return; done = true; const a = gemSeen(); a.push(c.id); ls.set('gemsc', JSON.stringify(a.slice(-80))); step('gem_scratch'); w.classList.add('off'); setTimeout(() => w.remove(), 560);
     try { el.animate([{ boxShadow: '0 0 0 0 transparent' }, { boxShadow: '0 0 110px 26px rgba(255,181,71,.85), 0 0 30px 6px rgba(255,255,255,.5)', offset: .3 }, { boxShadow: '0 0 0 0 transparent' }], { duration: 1100, easing: 'ease-out' }); navigator.vibrate?.([20, 30, 40]); } catch {}
     const n = document.createElement('div'); n.className = 'gfact'; n.innerHTML = o.k ? `<small>${esc(o.small)}</small><b>${esc(o.line)}</b>${o.sub ? `<span>${esc(o.sub)}</span>` : ''}` : `<small>Hidden gem</small><b>${esc(c.data?.fact || c.data?.notes || 'Somewhere most people walk past.')}</b><span>${partner() ? esc(them()) + ' gets this one too.' : 'Most people walk straight past it.'}</span>`; el.appendChild(n); setTimeout(() => n.classList.add('out'), 3600); setTimeout(() => n.remove(), 4200); n.addEventListener('pointerdown', e => { e.stopPropagation(); n.remove(); }); };
-  const check = () => { const d = g.getImageData(0, 0, W, H).data; let clear = 0, tot = 0; for (let i = 3; i < d.length; i += 4 * 41) { tot++; if (d[i] < 40) clear++; } if (clear / tot > .4) reveal(); };
-  w.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); if (done) return; down = true; [lx, ly] = pt(e); g.beginPath(); g.arc(lx, ly, g.lineWidth / 2, 0, 7); g.fill(); w.classList.add('go'); try { w.setPointerCapture(e.pointerId); } catch {} });
-  w.addEventListener('pointermove', e => { if (!down || done) return; e.preventDefault(); const [x, y] = pt(e); g.beginPath(); g.moveTo(lx, ly); g.lineTo(x, y); g.stroke(); lx = x; ly = y; if (++moves % 5 === 0) check(); });
-  const up = e => { e.stopPropagation(); if (down) { down = false; if (!done) check(); } }; w.addEventListener('pointerup', up); w.addEventListener('pointercancel', up); }
+  const check = () => { const d = g.getImageData(0, 0, W, H).data; let clear = 0, tot = 0; for (let i = 3; i < d.length; i += 4 * 41) { tot++; if (d[i] < 40) clear++; } if (clear / tot > (foil ? .45 : .4)) reveal(); };
+  const flake = (x, y) => { if (moves % 2) return; const f = document.createElement('i'); f.className = 'fflake'; const r = cv.getBoundingClientRect(); f.style.left = (x * r.width / W) + 'px'; f.style.top = (y * r.height / H) + 'px'; f.style.setProperty('--dx', ((Math.random() - .5) * 60) + 'px'); w.appendChild(f); setTimeout(() => f.remove(), 700); };
+  // hold: a soft spotlight grows under the finger and follows it; let go and the light that's on stays
+  const glow = () => { if (!down || done) return; rad = Math.min(rad + Math.max(W, H) / 70, Math.max(W, H)); const rg = g.createRadialGradient(lx, ly, rad * .55, lx, ly, rad); rg.addColorStop(0, 'rgba(0,0,0,1)'); rg.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = rg; g.beginPath(); g.arc(lx, ly, rad, 0, 7); g.fill(); if (++moves % 6 === 0) check(); if (!done) raf = requestAnimationFrame(glow); };
+  w.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); if (done) return; down = true; [lx, ly] = pt(e); w.classList.add('go'); try { w.setPointerCapture(e.pointerId); } catch {}
+    if (foil) { g.beginPath(); g.arc(lx, ly, g.lineWidth / 2, 0, 7); g.fill(); } else { rad = Math.max(rad * .6, 18); try { navigator.vibrate?.(8); } catch {} raf = requestAnimationFrame(glow); } });
+  w.addEventListener('pointermove', e => { if (!down || done) return; e.preventDefault(); const [x, y] = pt(e);
+    if (foil) { g.beginPath(); g.moveTo(lx, ly); g.lineTo(x, y); g.stroke(); flake(x, y); if (++moves % 5 === 0) check(); } lx = x; ly = y; });
+  const up = e => { e.stopPropagation(); if (down) { down = false; cancelAnimationFrame(raf); if (!done) check(); } }; w.addEventListener('pointerup', up); w.addEventListener('pointercancel', up); }
 function attachDrag(el) {
   let sx = 0, sy = 0, dx = 0, dy = 0, t0 = 0, on = false;
   const stamp = k => el.querySelector('.stamp.' + k);
@@ -6012,7 +6039,7 @@ async function saveAdd(t) {
 /* ---------- events ---------- */
 document.addEventListener('click', async e => {
   if (S.slDrag && Date.now() - S.slDrag < 350 && e.target.closest('.sli')) return;
-  const t = e.target.closest('[data-wk],[data-into],[data-tripclaim],[data-datesok],[data-tripstay],[data-staysave],[data-stayok],[data-sp],[data-pl],[data-inurl],[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-hdeck],[data-like],[data-final],[data-lad],[data-chg],[data-tbpick],[data-g],[data-seenany],[data-padd],[data-lib],[data-libf],[data-tripc],[data-who],[data-gcity],[data-getaway],[data-libc],[data-planf],[data-planact],[data-tripbook],[data-tripinvite],[data-tripsearch],[data-planbook],[data-planpick],[data-tripdates],[data-datesave],[data-tripitem],[data-astack],[data-shpick],[data-feel],[data-seenme],[data-pset],[data-fr],[data-rc],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
+  const t = e.target.closest('[data-wk],[data-into],[data-tripclaim],[data-datesok],[data-tripstay],[data-staysave],[data-stayok],[data-sp],[data-pl],[data-inurl],[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-hdeck],[data-like],[data-final],[data-lad],[data-chg],[data-tbpick],[data-g],[data-seenany],[data-padd],[data-lib],[data-libf],[data-tripc],[data-who],[data-gcity],[data-getaway],[data-libc],[data-planf],[data-planact],[data-tripbook],[data-tripinvite],[data-tripsearch],[data-planbook],[data-planpick],[data-tripdates],[data-datesave],[data-tripitem],[data-astack],[data-shpick],[data-feel],[data-seenme],[data-pset],[data-fr],[data-rc],[data-wkrc],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
   if (!t) return; const ds = t.dataset;
   try {
     if (ds.who) { const jn = document.getElementById('jn'); if (jn) jn.value = ds.who; return document.getElementById('jgo')?.click(); }
@@ -6020,6 +6047,7 @@ document.addEventListener('click', async e => {
     if ('scrim' in ds) return closeSheet();
     if (ds.fr) return await frClick(t, ds);
     if (ds.rc) return await recapAct(t);
+    if (ds.wkrc) { t.parentElement.querySelectorAll('.pill').forEach(x => x.classList.toggle('hot', x === t)); const m = document.getElementById('wkrcm'); if (m) m.textContent = ds.wkrc === 'loved' ? 'If ' + them() + ' loved it too, it can come back.' : ds.wkrc === 'nope' ? 'It won’t come back for you.' : 'Noted. Only you see this.'; return walkOk(); }
     if (ds.pset) { t.parentElement.querySelectorAll('[data-pset]').forEach(x => x.classList.toggle('on', x === t)); return; }
     if (ds.pl) { const [v, a, a2] = ds.pl.split('|'); if (v === 'side') return await sideLikes(a, a2); if (v === 'sidepick') return await sidePick(a, t); if (v === 'tip') { ls.set('pdtip', '1'); return dayEdit(); } return await dayAct(v, a, t); }
     if (ds.inurl) return inboxGo(ds.inurl);
@@ -6251,6 +6279,7 @@ document.addEventListener('click', async e => {
       case 'ob2try': ls.set('ob2try', '1'); return ob2Next();
       case 'ob2flip': ls.set('ob2flip', '1'); return ob2Next();
       case 'ob2piles': ls.set('ob2piles', '1'); return ob2Next();
+      case 'ob2out': ls.set('ob2out', '1'); return ob2Next();
       case 'howto': return howTo();
       case 'ob2skip': return ob2Skip();
       case 'ob2inv': { inviteAsked(); if (ds.how === 'text') { const body = encodeURIComponent(`${inviteMsg()}\n${inviteLink()}`); location.href = /iphone|ipad|ipod|macintosh/i.test(navigator.userAgent) ? `sms:&body=${body}` : `sms:?body=${body}`; return setTimeout(ob2Next, 1200); }
@@ -6268,7 +6297,7 @@ document.addEventListener('click', async e => {
         return ob2Next(); }
       case 'walkkids': { const on = S.settings?.kids !== true; t.disabled = true; try { S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { kids: on } }); step(on ? 'kids_on' : 'kids_off'); } catch { t.disabled = false; return toast('Could not save. Try again.'); }
         t.disabled = false; t.classList.toggle('on', on); t.textContent = on ? 'On' : 'Turn on'; return; }
-      case 'walknext': if (S.walk && S.walk.i < WALK.length - 1) { S.walk.i++; walkDraw(); } return;
+      case 'walknext': if (S.walk && S.walk.i < WALKS().length - 1) { S.walk.i++; walkDraw(); } return;
       case 'walkpush': document.querySelector('.wn')?.remove(); S.walk = null; ls.set('askedpush', '1'); await enablePush().catch(() => {}); return S.view === 'home' && S.tab === 'home' ? render() : null;
       case 'newsdone': S.walk = null; document.querySelector('.wn')?.remove(); return S.view === 'home' && S.tab === 'home' ? render() : null;
       case 'newstry': document.querySelector('.wn')?.remove(); return dayStart();
