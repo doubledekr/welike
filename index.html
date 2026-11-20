@@ -717,7 +717,12 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .ltrow::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,154,77,.10) 45%,rgba(255,61,138,.10) 55%,transparent 70%);transform:translateX(-120%);animation:frhs 1.6s ease-in-out infinite}
 @keyframes ltup{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.ltmk,.ltrow::after,.ltload b.in{animation:none}.ltrow{opacity:1;animation:none}}
-.ltdark{filter:invert(1) hue-rotate(180deg) brightness(.82) contrast(.9) saturate(.6)}.sheet.still{animation:none}.swapin{animation:fade .16s ease-out}
+.ltdark{filter:invert(1) hue-rotate(180deg) brightness(.82) contrast(.9) saturate(.6)}/* beta alignment pass (Dave, 20 Nov): rows of field + button share one height and centre line */
+.d2a .frrow2{align-items:center}.d2a .frrow2>.frin,.d2a .frrow2>.frsel,.d2a .frrow2>.btn,.d2a .frrow2>input,.d2a .frrow2>select{height:46px!important;margin-top:0!important;margin-bottom:0;box-sizing:border-box}
+.d2a .frrow2>.btn{display:inline-flex;align-items:center;justify-content:center;padding-top:0;padding-bottom:0}
+.d2a .fropt>.ysw,.d2a .fropt>.btn,.d2a .fropt>.tpill{align-self:center}
+.d2a .mzi small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sheet.still{animation:none}.swapin{animation:fade .16s ease-out}
 .ttw{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}.tto{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:8px;border-radius:14px;background:rgba(255,255,255,.05);text-align:left;color:var(--text);transition:transform .12s}.tto:active{transform:scale(.97)}.tto img,.tto .pimg{width:100%;height:76px;object-fit:cover;border-radius:10px;display:grid;place-items:center}.tto b{font-size:14px;line-height:1.25}.tto small{color:var(--muted);font-size:12px}.tto.their{box-shadow:0 0 22px -6px rgba(255,140,120,.85)}.prow.ptt{align-items:flex-start}
 .pstep{margin:14px 0 0;font-size:13px;font-weight:700;letter-spacing:.3px;color:var(--muted)}.pdays.big{margin-top:2px}.pdays.big .chip{padding:12px 18px;font-size:16px;font-weight:700;border-radius:16px}
 .plsent{display:flex;align-items:center;gap:12px;margin-top:12px;padding:12px 14px;border-radius:16px;background:rgba(80,220,150,.09);animation:plin .32s cubic-bezier(.2,.9,.3,1.2)}
@@ -1002,8 +1007,8 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .mcard img,.mcard .pimg{width:100%;height:100%;object-fit:cover;display:flex;align-items:center;justify-content:center;font-size:42px}.mcard b{position:absolute;left:0;right:0;bottom:0;padding:26px 11px 10px;font-family:var(--serif);font-weight:400;font-size:18px;line-height:1.08;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.75))}
 .mstk .mcard:nth-child(1){z-index:3}.mstk .mcard:nth-child(2){z-index:2;transform:rotate(3deg) translate(4px,2px)}.mstk .mcard:nth-child(3){z-index:1;transform:rotate(-4deg) translate(-4px,4px)}.mstk .mcard:nth-child(n+4){opacity:0;pointer-events:none}
 .mstk .mcard.outl{transform:translateX(-115%) rotate(-12deg);opacity:0}.mstk .mcard.outr{transform:translateX(115%) rotate(12deg);opacity:0}.mhint{text-align:center;font-size:12px;margin-top:12px}
-.tside .btn>.ic,.trp .btn>.ic{width:17px;height:17px;margin-right:8px;vertical-align:-3px}.mzl{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}.mzi{display:flex;flex-direction:column;gap:4px;text-decoration:none;color:#fff}.mzi img,.mzi .pimg{width:100%;aspect-ratio:1;border-radius:12px;object-fit:cover;background:#ecebe8}.mzi b{font-size:13.5px}.mzi small{color:#3ee0c5;font-size:12px}.mzi{background:none;border:0;padding:0;font:inherit;text-align:left;cursor:pointer}.mzhero{width:100%;max-height:260px;object-fit:contain;border-radius:14px;background:#ecebe8;margin:10px 0 6px}.mzsz{flex-wrap:wrap}.mzrow select{width:auto;min-width:72px;margin:0}.mzs a.btn{display:flex;align-items:center;justify-content:center;width:100%;box-sizing:border-box;text-decoration:none}.mzs small+a.btn{margin-top:16px!important}
-.mzp{margin:14px auto 10px;width:260px;height:260px;border-radius:20px;background:#2a2b31;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}.mzp.lt{background:#ece8e0}.mzp canvas{width:100%;height:100%;object-fit:contain}.mzp small{position:absolute;color:var(--muted);font-size:13px}.mzin{margin-top:8px;height:44px;font-size:15px}.mzup{display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+.tside .btn>.ic,.trp .btn>.ic{width:17px;height:17px;margin-right:8px;vertical-align:-3px}.mzl{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}.mzi{display:flex;flex-direction:column;gap:4px;text-decoration:none;color:#fff}.mzi img,.mzi .pimg{width:100%;aspect-ratio:1;border-radius:12px;object-fit:cover;background:#ecebe8}.mzi b{font-size:13.5px}.mzi small{color:#3ee0c5;font-size:12px}.mzi{background:none;border:0;padding:0;font:inherit;text-align:left;cursor:pointer}.mzhero{width:100%;max-height:260px;object-fit:contain;border-radius:14px;background:#ecebe8;margin:10px 0 6px}.mzsz{flex-wrap:wrap}.mzdel{display:block;margin:14px auto 0;color:#ff7a8a}.mzrow select{width:auto;min-width:72px;margin:0}.mzs a.btn{display:flex;align-items:center;justify-content:center;width:100%;box-sizing:border-box;text-decoration:none}.mzs small+a.btn{margin-top:16px!important}
+.mzp{margin:14px auto 10px;width:260px;height:260px;border-radius:20px;background:#2a2b31;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}.mzp.lt{background:#ece8e0}.mzp.shirt{background-size:cover;background-position:center;background-color:#ecebe8}.mzp.shirt canvas{position:absolute;width:38%;height:auto;top:27%;left:31%}.mzcs{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}.mzsw{width:30px;height:30px;border-radius:50%;background:var(--sw);border:2px solid rgba(255,255,255,.18);padding:0;box-shadow:inset 0 0 0 2px rgba(0,0,0,.25)}.mzsw.on{border-color:#3ee0c5;box-shadow:0 0 0 2px #3ee0c5}.mzsw.meh{opacity:.35}.mzp canvas{width:100%;height:100%;object-fit:contain}.mzp small{position:absolute;color:var(--muted);font-size:13px}.mzin{margin-top:8px;height:44px;font-size:15px}.mzup{display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
 .mzk{display:block;margin:12px 2px 6px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.mzg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.mzb{display:flex;flex-direction:column;gap:4px;padding:6px 6px 8px;border-radius:14px;background:rgba(255,255,255,.05);border:2px solid transparent;color:#fff;text-align:left}.mzb.on{border-color:#3ee0c5}.mzb img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;background:#ecebe8}.mzb span{font-size:11.5px;line-height:1.25;min-height:2.5em}.mzb i{font-style:normal;font-weight:600;font-size:12.5px;color:#3ee0c5}
 .ttop{display:flex;flex-direction:column;gap:8px;margin:2px 0 12px}.tmrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.05);color:#fff;border:0}.tmrow .ic{width:20px;height:20px;color:#3ee0c5;flex:none}.tmrow b{display:block;font-size:15px}.tmrow small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}.tmrow i{font-style:normal;font-weight:600;font-size:13.5px;color:#3ee0c5}.tmrow.hot{background:rgba(62,224,197,.1)}
 .tdst.tent{opacity:.92}.tdst.tent b{color:rgba(255,255,255,.82)}.tdst.tent .tdt{color:rgba(62,224,197,.6);border:1px dashed rgba(62,224,197,.45)}.tdst .ttwo{display:flex;gap:8px;margin-top:8px}.tdst .tb{flex:1;padding:7px 0;font-size:13.5px}.tclw{display:block;color:#ffb38a !important;font-size:12px;margin-top:3px}.tlink{font-size:12.5px;color:#3ee0c5;margin-top:3px;display:inline-block}.tgone{display:block;margin:10px 4px 0;font-size:12.5px}.trand{margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px}.trand .ic{width:17px;height:17px}
@@ -1850,7 +1855,18 @@ const emptyMsg = (d, f) => f?.wishlist ? 'Nothing new on your wishlist to share.
 function onHand(card) { const ing = card.data?.ingredients || []; if (!ing.length || !S.pantry.length) return null; const have = ing.filter(i => S.pantry.some(p => { const a = p.item.toLowerCase(), b = i.toLowerCase(); return a.includes(b) || b.includes(a); })); return { have: have.length, total: ing.length, missing: ing.filter(i => !have.includes(i)) }; }
 
 /* ---------- views ---------- */
+// Beta: every screen remembers where you were. Leaving a screen and coming back (or a redraw after a tap) lands you at the same spot.
+const SCR = {};
+const scrEl = () => $app.querySelector('.tov') || $app.querySelector('.view');
+const scrKey = () => { const v = scrEl(); if (!v) return null; return [S.view, S.tab, S.side, S.tSel || '', v.className, ($app.querySelector('h1,h2,.tphead b')?.textContent || '').slice(0, 40)].join('|'); };
 function render() {
+  if (!DOCK2) return renderCore();
+  const k0 = scrKey(), v0 = scrEl(); if (k0 && v0) SCR[k0] = v0.scrollTop;
+  const r = renderCore();
+  const k1 = scrKey(), v1 = scrEl(); if (k1 && v1 && SCR[k1] != null && v1 !== v0) { const y = SCR[k1]; v1.scrollTop = y; requestAnimationFrame(() => { if (v1.isConnected && v1.scrollTop < y) v1.scrollTop = y; }); }
+  return r;
+}
+function renderCore() {
   document.querySelector('.a2arrow')?.remove();
   if (sbA && S.acct && (!S.code || !S.me)) {   // signed in with no couple: friends only, or still choosing
     if (S.view === 'fplan' && FR.plan) return renderFPlan(); if (S.view === 'fswipe' && FR.plan) return renderFSwipe();
@@ -2119,6 +2135,7 @@ const HDECKS = [['all', 'Discover'], ['movie', 'Watch'], ['dinner', 'Eat & Drink
 // trip has dates, the Trips side is about that trip (its days, things to do there) until it ends; Explore goes back to all trips.
 // The logo never changes colour. No Local/Trips label anywhere: the pinned button and the teal accents say where you are.
 const DOCK2 = !!(window.LT_BETA || window.LT_SIM);
+if (DOCK2) document.documentElement.classList.add('d2a');
 S.side = DOCK2 && ls.get('side') === 'trips' ? 'trips' : 'local';
 const TRIPSIDE = () => DOCK2 && S.side === 'trips';
 const isoDay = d => { const x = new Date(d); return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`; };
@@ -2438,7 +2455,8 @@ function mzItemDraw() {
         : `<button class="btn" data-act="mzorder" ${open.length && !z.busy ? '' : 'disabled'}>${z.busy ? 'Getting checkout…' : `Order for the group${open.length > 1 ? ` · ${open.length} items` : ''}`}</button><small class="muted" style="display:block;text-align:center;margin-top:8px;font-size:12px">One checkout for everything set to “Everyone gets one.” Anyone without a size is left out.</small>`}`
       : `<small class="muted" style="display:block;margin-top:10px;font-size:13px">${esc(hostName[0].toUpperCase() + hostName.slice(1))} orders these for everyone and they ship to ${esc(hostName)}. Want another for yourself? You can still buy your own.</small>`}`
     : ''}
-    ${!x.ordered || !all ? `<a class="btn ${all ? 'ghost' : ''}" style="margin-top:12px" href="${esc(x.url)}" target="_blank" rel="noopener">${all ? 'Buy an extra for yourself' : 'Get yours'}</a>` : ''}</div>`);
+    ${!x.ordered || !all ? `<a class="btn ${all ? 'ghost' : ''}" style="margin-top:12px" href="${esc(x.url)}" target="_blank" rel="noopener">${all ? 'Buy an extra for yourself' : 'Get yours'}</a>` : ''}
+    ${host ? `<button class="jlink mzdel" data-act="mzdel">Remove this from the trip</button>` : ''}</div>`);
   document.querySelectorAll('[data-act=mzfor]').forEach(el => el.addEventListener('change', e => mzSize(e.target.dataset.p, e.target.value)));
 }
 async function mzRpc(kind, data) {
@@ -2447,6 +2465,13 @@ async function mzRpc(kind, data) {
     toast(r?.why === 'not_host' ? 'Only the planner can change that.' : r?.why === 'ordered' ? 'That’s already been ordered.' : r?.why === 'nothing' ? 'Nothing left to add.' : 'That didn’t save. Try again.'); } catch { toast('Could not reach the server. Try again.'); }
 }
 const mzSize = (who, sz) => { const z = S.mzi, p = z && mzPlan(z.id), x = p?.data?.merch?.find(q => q.id === z.it); if (!x) return; const cur = x.sz?.[who]; return mzRpc('size', { person: who === mzMe(p) ? '' : who, size: cur === sz ? '' : sz }); };
+async function mzDel(t) {
+  const z = S.mzi; if (!z) return; if (t.dataset.sure !== '1') { t.dataset.sure = '1'; t.textContent = 'Tap again to remove it for everyone'; return; }
+  t.disabled = true; t.textContent = 'Removing…';
+  const r = await sbA.functions.invoke('merch', { body: { action: 'remove', plan: z.id, item: z.it } }).catch(() => null);
+  if (!r?.data?.ok) { t.disabled = false; t.dataset.sure = ''; t.textContent = 'Remove this from the trip'; return toast(r?.data?.why === 'not_host' ? 'Only the planner can remove merch.' : 'That didn’t go through. Try again.'); }
+  mzSet(z.id, r.data.merch); S.mzi = null; closeSheet(); toast('Removed.'); if (S.view === 'fplan') renderFPlan(); else render();
+}
 async function mzOrder() {
   const z = S.mzi; if (!z) return; z.busy = true; mzItemDraw();
   const r = await sbA.functions.invoke('merch', { body: { action: 'checkout', plan: z.id } }).catch(() => null); z.busy = false;
@@ -2464,7 +2489,7 @@ function mzStep(p) {
 async function mzOpen(id) {
   const p = FR.plan?.id === id ? FR.plan : gtOf(id); if (!p) return;
   const d = String(p.day || '').slice(0, 10), dt = d ? new Date(d + 'T12:00') : null, city = p.city || p.title || 'Our trip';
-  S.mz = { id, mode: 'make', l1: city, l2: dt ? dt.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : '', l3: (String(p.title || '').replace(new RegExp(city.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'ig'), '').replace(/^\s*(with|and|&|-|·)\s+/i, '').replace(/\s+/g, ' ').trim()) || 'The crew', ink: 'light', sel: new Set(), img: null, mime: 'image/png' };
+  S.mz = { id, mode: 'make', l1: city, l2: dt ? dt.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : '', l3: (String(p.title || '').replace(new RegExp(city.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'ig'), '').replace(/^\s*(with|and|&|-|·)\s+/i, '').replace(/\s+/g, ' ').trim()) || 'The crew', ink: 'light', sel: new Set(), img: null, mime: 'image/png', pick: {} };
   try { await document.fonts.load('italic 100px "Instrument Serif"'); await document.fonts.load('600 40px Inter'); } catch {}
   mzDraw();
   if (!S.mzB) { const r = await sbA.functions.invoke('merch', { body: { action: 'blanks' } }).catch(() => null); const seen = new Set(); S.mzB = (r?.data?.blanks || []).filter(b => !seen.has(b.name) && seen.add(b.name)); if (S.mz?.id === id) mzDraw(); }
@@ -2482,17 +2507,29 @@ function mzPaint(cv, z, N) {
   if (bot) { const bs = fit(bot, '600 {s}px Inter, system-ui, sans-serif', N * 0.6, N * 0.042); const y = N * 0.5 + ms * 0.3 + bs * 2.1, w = c.measureText(bot).width;
     c.fillText(bot, N / 2, y); c.lineWidth = Math.max(2, N * 0.003); c.beginPath(); c.moveTo(N / 2 - w / 2 - N * 0.09, y - bs * 0.35); c.lineTo(N / 2 - w / 2 - N * 0.03, y - bs * 0.35); c.moveTo(N / 2 + w / 2 + N * 0.03, y - bs * 0.35); c.lineTo(N / 2 + w / 2 + N * 0.09, y - bs * 0.35); c.stroke(); }
 }
+// Shirt colours (beta): each picked blank loads its colours once; the ink decides which are ticked to start with.
+S.mzC = S.mzC || {};
+const mzFits = (c, ink) => c.lum == null ? true : ink === 'dark' ? c.lum > 0.62 : c.lum < 0.38;
+const mzDefault = (id, ink) => new Set((S.mzC[id] || []).filter(c => mzFits(c, ink)).slice(0, 6).map(c => c.name));
+async function mzCols(id) {
+  if (!S.mzC[id]) { const r = await sbA.functions.invoke('merch', { body: { action: 'colors', template: id } }).catch(() => null); S.mzC[id] = r?.data?.colors || []; }
+  const z = S.mz; if (z && z.sel.has(id) && !z.pick[id]) { z.pick[id] = mzDefault(id, z.ink); mzDraw(); }
+}
+const mzShirt = (z, id) => { const c = (S.mzC[id] || []).find(x => z.pick[id]?.has(x.name)); return c?.photo || null; };
 function mzDraw() {
   const z = S.mz; if (!z) return; const B = S.mzB, kinds = ['Tee', 'Hoodie', 'Crewneck', 'Hat', 'Kids'], label = { Tee: 'Tees', Hoodie: 'Hoodies', Crewneck: 'Crewnecks', Hat: 'Hats', Kids: 'Kids' };
   sheet(`<div class="grab"></div><div class="trp kc k-book mzs"><small class="tkick">Trip merch</small><h2>Make it yours</h2>
     <div class="stdays" style="margin-top:12px"><button class="tpill ${z.mode === 'make' ? 'on' : ''}" data-act="mzmode" data-m="make">Make one for us</button><button class="tpill ${z.mode === 'upload' ? 'on' : ''}" data-act="mzmode" data-m="upload">Upload your own</button></div>
-    <div class="mzp ${z.mode === 'make' && z.ink === 'dark' ? 'lt' : ''}"><canvas id="mzc"></canvas>${z.mode === 'upload' && !z.img ? '<small>Your design shows here</small>' : ''}</div>
+    ${(() => { const first = [...z.sel][0], ph = first && mzShirt(z, first); return `<div class="mzp ${z.mode === 'make' && z.ink === 'dark' ? 'lt' : ''} ${ph ? 'shirt' : ''}"${ph ? ` style="background-image:url('${esc(ph)}')"` : ''}><canvas id="mzc"></canvas>`; })()}${z.mode === 'upload' && !z.img ? '<small>Your design shows here</small>' : ''}</div>
     ${z.mode === 'make' ? `<input id="mzl3" class="acin mzin" maxlength="28" value="${esc(z.l3)}" aria-label="Top line"><input id="mzl1" class="acin mzin" maxlength="24" value="${esc(z.l1)}" aria-label="Big line"><input id="mzl2" class="acin mzin" maxlength="28" value="${esc(z.l2)}" aria-label="Bottom line">
       <div class="stdays" style="margin-top:10px"><button class="tpill ${z.ink === 'light' ? 'on' : ''}" data-act="mzink" data-i="light">Light ink, dark shirts</button><button class="tpill ${z.ink === 'dark' ? 'on' : ''}" data-act="mzink" data-i="dark">Dark ink, light shirts</button></div>`
       : `<label class="btn ghost mzup">${ic('plus')}${z.img ? 'Choose a different file' : 'Choose a PNG or JPG'}<input id="mzf" type="file" accept="image/png,image/jpeg" hidden></label><small class="muted" style="display:block;margin-top:8px;font-size:12.5px">A PNG with a clear background prints best, at least 2000 pixels wide.</small>`}
     <div class="sect" style="margin-top:16px">Pick up to 3</div>
     ${B == null ? '<p class="muted" style="font-size:13.5px">Loading shirts, hoodies and hats…</p>' : !B.length ? '<p class="muted" style="font-size:13.5px">Couldn’t load the options. Try again in a minute.</p>'
-      : kinds.filter(k => B.some(b => b.kind === k)).map(k => `<small class="mzk">${label[k]}</small><div class="mzg">${B.filter(b => b.kind === k).map(b => `<button class="mzb ${z.sel.has(b.id) ? 'on' : ''}" data-act="mzsel" data-id="${esc(b.id)}">${b.thumb ? `<img src="${esc(b.thumb)}" alt="">` : ''}<span>${esc(b.name.replace(/^(Bella\+Canvas|AS Colour|Stanley\/Stella|Comfort Colors|Valucap|Beechfield|Lane Seven|Rabbit Skins)\s*/i, ''))}</span><i>${b.price ? '$' + b.price.toFixed(2) : ''}</i></button>`).join('')}</div>`).join('')}
+      : kinds.filter(k => B.some(b => b.kind === k)).map(k => `<small class="mzk">${label[k]}</small><div class="mzg">${B.filter(b => b.kind === k).map(b => `<button class="mzb ${z.sel.has(b.id) ? 'on' : ''}" data-act="mzsel" data-id="${esc(b.id)}">${mzShirt(z, b.id) || b.thumb ? `<img src="${esc(mzShirt(z, b.id) || b.thumb)}" alt="">` : ''}<span>${esc(b.name.replace(/^(Bella\+Canvas|AS Colour|Stanley\/Stella|Comfort Colors|Valucap|Beechfield|Lane Seven|Rabbit Skins)\s*/i, ''))}</span><i>${b.price ? '$' + b.price.toFixed(2) : ''}</i></button>`).join('')}</div>`).join('')}
+    ${[...z.sel].map(id => { const b = (B || []).find(x => x.id === id), cs = S.mzC[id]; if (!b) return ''; const nm = b.name.replace(/^(Bella\+Canvas|AS Colour|Stanley\/Stella|Comfort Colors|Valucap|Beechfield|Lane Seven|Rabbit Skins)\s*/i, '');
+      return `<div class="sect" style="margin-top:14px">Colours · ${esc(nm)}</div>${cs == null ? '<p class="muted" style="font-size:13px">Loading colours…</p>' : !cs.length ? '<p class="muted" style="font-size:13px">One colour only.</p>'
+        : `<div class="mzcs">${cs.map(c => `<button class="mzsw ${z.pick[id]?.has(c.name) ? 'on' : ''} ${mzFits(c, z.ink) ? '' : 'meh'}" data-act="mzcol" data-id="${esc(id)}" data-c="${esc(c.name)}" style="--sw:${esc(c.hex || '#888')}" aria-label="${esc(c.name)}" title="${esc(c.name)}"></button>`).join('')}</div><small class="muted" style="display:block;font-size:12px;margin-top:4px">${z.pick[id]?.size || 0} picked${z.pick[id]?.size ? ': ' + esc([...z.pick[id]].slice(0, 3).join(', ')) + (z.pick[id].size > 3 ? '…' : '') : ''}. Faded ones won’t show your ${z.ink === 'dark' ? 'dark' : 'light'} ink well.</small>`}`; }).join('')}
     <div style="height:14px"></div><button class="btn" data-act="mzgo" ${z.sel.size && (z.mode === 'make' ? z.l1.trim() : z.img) ? '' : 'disabled'}>Create the merch</button>
     <small class="muted" style="display:block;text-align:center;margin-top:8px;font-size:12px">Sold through Fourthwall. Prices include a small Let’s Together cut.</small></div>`);
   const cv = document.getElementById('mzc'); if (cv) mzPaint(cv, z, 520);
@@ -2505,14 +2542,14 @@ async function mzGo(btn) {
   const cv = document.createElement('canvas'); mzPaint(cv, z, 2400);
   const blob = await new Promise(r => cv.toBlob(r, 'image/png')); const b64 = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(String(fr.result).split(',')[1]); fr.readAsDataURL(blob); });
   const p = FR.plan?.id === z.id ? FR.plan : gtOf(z.id);
-  const r = await sbA.functions.invoke('merch', { body: { action: 'create', plan: z.id, templates: [...z.sel], image: b64, mime: 'image/png', w: cv.width, h: cv.height, name: p?.title || z.l1, ink: z.ink } }).catch(() => null);
+  const r = await sbA.functions.invoke('merch', { body: { action: 'create', plan: z.id, templates: [...z.sel], colors: Object.fromEntries([...z.sel].map(id => [id, [...(z.pick[id] || [])]])), image: b64, mime: 'image/png', w: cv.width, h: cv.height, name: p?.title || z.l1, ink: z.ink } }).catch(() => null);
   const d = r?.data; if (!d?.ok) { btn.disabled = false; btn.textContent = 'Create the merch'; console.warn('merch', d); return toast(d?.why === 'not_host' ? 'Only the trip’s planner can make merch.' : d?.why === 'enough' ? 'This trip already has plenty of merch.' : 'That didn’t go through. Try again.'); }
   for (const q of [FR.plan?.id === z.id ? FR.plan : null, gtOf(z.id)]) if (q) q.data = { ...(q.data || {}), merch: d.merch || [...(q.data?.merch || []), ...d.made] };
   S.mz = null; closeSheet(); toast(`Your merch is ready. The group can order from the trip.`, 3200); return render();
 }
 function tripPills() {
   const l = tripList(), sel = tripSel(), lbl = t => t.from ? new Date(t.from + 'T12:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : t.needs ? 'vote' : 'planning';
-  return `<div class="tpills tsw"><button data-act="tsel" data-k="someday" class="${sel === 'someday' ? 'on' : ''}">Someday</button>${l.map(t => `<button data-act="tsel" data-k="${esc(t.key)}" class="${sel === t.key ? 'on' : ''} ${t.needs ? 'need' : ''}">${esc(t.title)}<small>${t.state === 'now' ? 'now' : esc(lbl(t))}</small></button>`).join('')}</div>`;
+  return `<div class="tpills tsw"><button data-act="tsel" data-k="someday" class="${sel === 'someday' ? 'on' : ''}">Someday</button>${l.map(t => `<button data-act="tsel" data-k="${esc(t.key)}" class="${sel === t.key ? 'on' : ''} ${t.needs ? 'need' : ''}">${esc(t.title)}<small>${t.state === 'now' ? 'now' : esc(lbl(t))}${DOCK2 ? ` · ${t.kind === 'g' ? 'group' : partner() ? 'with ' + esc(them()) : 'just you'}` : ''}</small></button>`).join('')}</div>`;
 }
 function tripHead() {
   const f = tripFocus();
@@ -5403,7 +5440,7 @@ function frCosts(p) {
       r.to === me.id ? `<button class="ysw ${done ? 'on' : ''}" data-fr="paid" data-from="${r.from.join(',')}" data-on="${done ? 0 : 1}">${done ? 'Paid' : 'Mark paid'}</button>`
       : done ? '<span class="frpaid">Paid</span>' : mine && to?.pay ? `<a class="btn sm" href="${esc(frPayLink(to.pay, r.cents - r.paid, p.title))}" target="_blank" rel="noopener">Pay on ${PAYN[to.pay.kind]}</a>` : ''}</div>`; };
   const bk = (p.data?.booked || []).slice().sort((a, b) => (a.day + (a.time || '')).localeCompare(b.day + (b.time || '')));
-  return `${bk.length ? `<div class="sect">Booked</div><div class="ycard">${bk.map(b => `<div class="fropt"><span class="grow"><b>${esc(b.title)}</b><small>${esc(dpFmt(b.day))}${b.time ? ' · ' + esc(tm12(b.time)) : ''} · booked by ${esc(b.by)}</small></span>${!b.time && b.by === S.me && b.ref && DOCK2 ? `<button class="ysw" data-act="vtime" data-ref="${esc(b.ref)}" data-prod="${esc(b.product || '')}" data-g="${esc(p.id)}">Set time</button>` : ''}</div>`).join('')}</div>` : ''}<div class="sect">Who owes what</div><div class="frstep" style="margin-top:0"><div class="frsb" style="margin:0">
+  return `${bk.length && DOCK2 ? `<div class="sect">Booked</div>${bk.map(b => bkRow(b, p.id)).join('')}` : bk.length ? `<div class="sect">Booked</div><div class="ycard">${bk.map(b => `<div class="fropt"><span class="grow"><b>${esc(b.title)}</b><small>${esc(dpFmt(b.day))}${b.time ? ' · ' + esc(tm12(b.time)) : ''} · booked by ${esc(b.by)}</small></span>${!b.time && b.by === S.me && b.ref && DOCK2 ? `<button class="ysw" data-act="vtime" data-ref="${esc(b.ref)}" data-prod="${esc(b.product || '')}" data-g="${esc(p.id)}">Set time</button>` : ''}</div>`).join('')}</div>` : ''}<div class="sect">Who owes what</div><div class="frstep" style="margin-top:0"><div class="frsb" style="margin:0">
     ${p.costs.length ? p.costs.map(c => `<div class="fropt"><span class="grow"><b>${esc(c.label)}</b><small>${frUsd(c.cents)} · ${c.payer === me.id ? 'you' : esc(c.payer_name)} paid · ${c.mode === 'all' ? 'split by everyone' : `${c.claims} in on it`}</small></span>${c.mode === 'claim' ? `<button class="ysw ${c.mine ? 'on' : ''}" data-fr="claim" data-id="${c.id}" data-on="${c.mine ? 0 : 1}">${c.mine ? 'I’m in' : 'Not me'}</button>` : ''}${c.can ? `<button class="frlink" data-fr="costdel" data-id="${c.id}">Remove</button>` : ''}</div>`).join('') : '<p>When someone pays for the stay or anything shared, add it here. Everyone’s share works itself out.</p>'}
     ${debts.length ? `<div class="frlist"><b>So far</b></div>${debts.map(row).join('')}` : ''}
     ${owedMe.length ? `<button class="btn sm ghost frsend" data-fr="remind">Send a reminder</button>` : ''}
@@ -6987,8 +7024,10 @@ document.addEventListener('click', async e => {
       case 'tmap': return tripMap(t.dataset.day || '');
       case 'mzopen': return mzOpen(t.dataset.id);
       case 'mzmode': if (S.mz) { S.mz.mode = t.dataset.m; mzDraw(); } return;
-      case 'mzink': if (S.mz) { S.mz.ink = t.dataset.i; mzDraw(); } return;
-      case 'mzsel': if (S.mz) { const k = t.dataset.id; if (S.mz.sel.has(k)) S.mz.sel.delete(k); else if (S.mz.sel.size >= 3) return toast('Pick up to 3.'); else S.mz.sel.add(k); mzDraw(); } return;
+      case 'mzink': if (S.mz) { S.mz.ink = t.dataset.i; for (const id of S.mz.sel) if (S.mzC[id]) S.mz.pick[id] = mzDefault(id, S.mz.ink); mzDraw(); } return;
+      case 'mzsel': if (S.mz) { const k = t.dataset.id; if (S.mz.sel.has(k)) { S.mz.sel.delete(k); delete S.mz.pick[k]; } else if (S.mz.sel.size >= 3) return toast('Pick up to 3.'); else { S.mz.sel.add(k); if (S.mzC[k]) S.mz.pick[k] = mzDefault(k, S.mz.ink); else mzCols(k); } mzDraw(); } return;
+      case 'mzcol': if (S.mz) { const p = S.mz.pick[t.dataset.id] ||= new Set(), c = t.dataset.c; if (p.has(c)) { if (p.size === 1) return toast('Keep at least one colour.'); p.delete(c); } else if (p.size >= 8) return toast('Up to 8 colours.'); else p.add(c); mzDraw(); } return;
+      case 'mzdel': return mzDel(t);
       case 'mzgo': return mzGo(t);
       case 'mzitem': return mzItem(t.dataset.id, t.dataset.it);
       case 'mzmode2': return mzRpc('mode', { mode: t.dataset.m });

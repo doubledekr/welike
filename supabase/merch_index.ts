@@ -2,6 +2,8 @@
 // A trip's planner makes a design (ours, or their own upload), picks up to 3 blanks, and we create hidden products in
 // the Let's Together Fourthwall shop: $5 margin each, reachable only by link. Everyone orders their own size and pays
 // Fourthwall; the app never handles money. Keys stay in the backend.
+// remove {plan,item} (planner) archives the product and takes it off the trip.
+// colors {template} lists a blank's colours with photos; create may pass colors {templateId: [names]}.
 // Actions (signed-in, from the app): blanks; create {plan, templates[], image (base64), mime, w, h, name, ink};
 // opts {plan, item} loads an item's colours, sizes and variant ids; checkout {plan} (planner) builds one Fourthwall checkout
 // link for every "everyone gets one" item, one per size picked, shipped to the planner in one box.
@@ -27,6 +29,19 @@ async function blanks() {
   }
   const order = ["Tee", "Hoodie", "Crewneck", "Hat", "Kids"];
   return out.sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind) || (a.price ?? 99) - (b.price ?? 99));
+}
+
+// The shirt colours a blank comes in, read from its template, sorted for the ink: light ink goes on dark shirts and the reverse.
+const lum = (hex: string) => { const m = String(hex || "").replace("#", "").match(/^([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i); if (!m) return null; const [r, g, b] = m.slice(1).map((x) => parseInt(x, 16) / 255); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+async function tplInfo(templateId: string) {   // a blank's colours: name, hex, brightness and a photo of the blank in that colour
+  const r = await fw(`/product-templates/${templateId}`); if (!r.ok) return [] as any[];
+  const t = await r.json();
+  return ((t.colorVariants || []) as any[]).map((cv) => ({ name: cv?.color?.name, hex: cv?.color?.hex || null, lum: lum(cv?.color?.hex || ""), photo: cv?.photos?.[0]?.url || null })).filter((c) => c.name);
+}
+async function tplColors(templateId: string, ink: string) {
+  const all = await tplInfo(templateId);
+  const pick = all.filter((c) => c.lum == null ? (ink === "dark" ? LIGHT : DARK).some((w) => c.name.toLowerCase().includes(w.toLowerCase())) : ink === "dark" ? c.lum > 0.62 : c.lum < 0.38).map((c) => c.name).slice(0, 8);
+  return { all: all.map((c) => c.name), pick };
 }
 
 const SIZE_ORDER = ["XXS", "XS", "S", "M", "L", "XL", "2XL", "XXL", "3XL", "XXXL", "4XL", "5XL", "OS", "ONE SIZE"];
@@ -74,10 +89,25 @@ Deno.serve(async (req) => {
     }
     if (!uid) return json({ ok: false, why: "signin" }, 401);
     if (b.action === "blanks") return json({ ok: true, blanks: await blanks(), margin: MARGIN });
+    if (b.action === "colors") return json({ ok: true, colors: await tplInfo(String(b.template || "")) });
+    if (b.action === "get" && req.headers.get("x-sync-key") && /^\/(product-templates|products)[\w\/?=&.-]*$/.test(String(b.path || ""))) {   // backend test: read-only look at a template or product
+      const r = await fw(String(b.path)); return json({ ok: r.ok, status: r.status, body: r.ok ? await r.json() : (await r.text()).slice(0, 300) });
+    }
     if (b.action === "probe" && req.headers.get("x-sync-key")) {   // backend test: what a product looks like
       const r = await fw(`/products?page=0&size=5`); const j = r.ok ? await r.json() : { status: r.status };
       const first = (j?.results || [])[0]; const one = first ? await (await fw(`/products/${first.id}`)).json() : null;
       return json({ ok: true, n: (j?.results || []).length, names: (j?.results || []).map((p: any) => [p.id, p.name, p.state?.type || p.state]), keys: one ? Object.keys(one) : null, variant: one?.variants?.[0] || null, opts: first ? await optsFor(first.id) : null });
+    }
+
+    if (b.action === "remove") {   // planner takes an item off the trip and archives it in Fourthwall
+      const { data: pl } = await db.from("fr_plans").select("id, owner, data").eq("id", b.plan).maybeSingle();
+      if (!pl) return json({ ok: false, why: "no_plan" });
+      const { data: me } = await db.from("fr_plan_members").select("role, status").eq("plan", pl.id).eq("person", uid).maybeSingle();
+      if (!(me?.status === "in" && (pl.owner === uid || /host/i.test(String(me?.role || ""))))) return json({ ok: false, why: "not_host" });
+      const it = ((pl.data?.merch || []) as any[]).find((m) => m.id === b.item); if (!it) return json({ ok: false, why: "item" });
+      const d = await fw(`/products/${it.id}`, { method: "DELETE" });
+      const { data: m2 } = await db.rpc("fr_merch_remove", { p_id: pl.id, p_item: it.id });
+      return json({ ok: true, merch: m2 || [], archived: d.ok || d.status === 204 });
     }
 
     if (b.action === "opts" || b.action === "checkout") {
@@ -139,7 +169,9 @@ Deno.serve(async (req) => {
       for (const t of pick) {
         const body: Record<string, unknown> = { type: "design", productTemplateId: t.id, name: `${name} ${t.kind === "Kids" ? "Kids" : t.kind}`.slice(0, 80),
           description: `Made in Let's Together for ${name}${pl.city ? ", " + pl.city : ""}.`, regions: [{ region: "front", imageId, placementStrategy: "AUTO" }], profitMargin: MARGIN, publishOnCreate: false };
-        if (t.kind !== "Hat") body.colors = b.ink === "dark" ? LIGHT : DARK;
+        const tc = await tplColors(t.id, b.ink).catch(() => ({ all: [] as string[], pick: [] as string[] }));
+        const chosen = (Array.isArray(b.colors?.[t.id]) ? b.colors[t.id] : []).filter((n: string) => tc.all.includes(n)).slice(0, 12);
+        if (chosen.length) body.colors = chosen; else if (tc.pick.length) body.colors = tc.pick; else if (t.kind !== "Hat") body.colors = b.ink === "dark" ? LIGHT : DARK;
         let r = await fw("/products", { method: "POST", body: JSON.stringify(body) });
         if (r.status === 400 && body.colors) { delete body.colors; r = await fw("/products", { method: "POST", body: JSON.stringify(body) }); }
         if (!r.ok) { errs.push(`${t.kind} ${r.status} ${(await r.text()).slice(0, 160)}`); continue; }
