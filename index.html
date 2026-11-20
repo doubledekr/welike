@@ -759,7 +759,7 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .a2f h1{font-family:var(--serif);font-weight:400;font-size:clamp(34px,10vw,44px);line-height:1.05;margin-top:14px}.a2f h1 em{color:#ff7a8a}
 .a2f>p{font-size:16px;line-height:1.5}.a2f .steps{margin:4px 0 0;gap:12px}.a2f .step{font-size:16px}
 .a2f-foot{display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:6px}
-.pwarn{color:#ffb020}.pwhy{display:block;margin-top:2px;font-size:11.5px;color:#ffb39c}.prow .x.fav{font-size:20px}.prow .x.fav.on{color:#ffc24d}.pwx{margin-top:10px;padding:10px 12px;border-radius:14px;font-size:13px;line-height:1.45;background:rgba(77,155,255,.14);color:#d6e6ff}.pshape{margin-top:12px}.plk a{color:#ffb39c;text-decoration:none;font-weight:600}
+.rcv{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}.rcv .pill{font-size:12.5px;padding:6px 10px}.pwarn{color:#ffb020}.pwhy{display:block;margin-top:2px;font-size:11.5px;color:#ffb39c}.prow .x.fav{font-size:20px}.prow .x.fav.on{color:#ffc24d}.pwx{margin-top:10px;padding:10px 12px;border-radius:14px;font-size:13px;line-height:1.45;background:rgba(77,155,255,.14);color:#d6e6ff}.pshape{margin-top:12px}.plk a{color:#ffb39c;text-decoration:none;font-weight:600}
 .pdays{display:flex;gap:8px;overflow-x:auto;margin:12px -18px 0;padding:0 18px 4px;scrollbar-width:none}.pdays::-webkit-scrollbar{display:none}.pdays .chip{flex:none;white-space:nowrap}
 .cele .cgo{flex:none;margin-left:6px;padding:7px 12px;border-radius:99px;background:#fff;color:#4a0f22;font-weight:700;font-size:12.5px;white-space:nowrap}
 .pbar{height:7px;border-radius:99px;background:var(--surface2);overflow:hidden;margin-top:10px}.pbar i{display:block;height:100%;background:linear-gradient(90deg,#ff7a4d,#ff4d7e)}
@@ -2046,7 +2046,7 @@ function paintHearts() {   // header total plus the small per-category counts
 const NEWUI = !!(window.LT_BETA || window.LT_SIM);
 const HDECKS = [['all', 'Discover'], ['movie', 'Watch'], ['dinner', 'Eat & Drink'], ['event', 'Go Out'], ['trip', 'Trips']].filter(d => !(NEWUI && d[0] === 'trip'));   // Dave, 19 Nov: Eat and Drinks merged; Go Out is things to do
 function homeHTML() {
-  hintLoad();
+  hintLoad(); recapLoad();
   const st = S.state, p = partner(), incoming = (st.sessions || []).filter(s => s.from !== S.me && s.my_left > 0 && !(s.filters?.evshare && s.created_at && Date.now() - new Date(s.created_at) > 8 * 864e5)).sort((a, b) => (a.filters?.share || a.filters?.evshare ? 1 : 0) - (b.filters?.share || b.filters?.evshare ? 1 : 0));   // a nudge for right now takes the one slot ahead of a some-time-soon list
   if (!ls.get('allv1')) { ls.set('allv1', '1'); S.homeDeck = 'all'; ls.set('deck', 'all'); }   // the Everything deck is the new front door, once
   if (!HDECKS.some(d => d[0] === S.homeDeck)) S.homeDeck = 'all';
@@ -2826,6 +2826,37 @@ async function hintAct(a) { const h = S.hint; if (!h) return; S.hint = null; ste
   try { await dayPool(); } catch {} if (!S.pool.some(x => x.id === h.card.id)) S.pool.push(h.card);
   dayDraft({ anchor: h.card }); const sl = Object.keys(S.pl?.items || {}).find(k => S.pl.items[k].card?.id === h.card.id); if (sl) { S.pl.items[sl].hidden = S.me; dayEdit(); }
   toast(`It’s in as a surprise. ${them()} sees it an hour before.`, 4000); }
+// After a plan or a Tonight spin (Dave, 19 Nov): each person says how each stop was. Private; only "you both loved it" shows.
+// Both-loved places become favorites, so plans bring them back; "Not again" is never again for that person. Then "Go again?".
+const RCV = [['loved', 'Loved it'], ['fine', 'It was fine'], ['nope', 'Not again']];
+const rcWhen = r => { const d = Math.round((new Date(new Date().toDateString()) - new Date(r.day + 'T00:00')) / 864e5); return d <= 1 ? 'yesterday' : d < 7 ? new Date(r.day + 'T12:00').toLocaleDateString('en-US', { weekday: 'long' }) : 'last ' + new Date(r.day + 'T12:00').toLocaleDateString('en-US', { weekday: 'long' }); };
+const rcName = r => /day$/.test(r.label) ? r.label : 'your ' + r.label;
+function recapLoad() { if (!NEWUI || S.rcTried || !S.code) return; S.rcTried = 1;
+  rpc('recap_get', { p_code: S.code, p_member: S.me }).then(r => { if (r?.id && (r.stops || []).length && !ls.get('rcno:' + r.id)) { S.recap = r; if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) render(); } }).catch(() => {});
+  rpc('again_get', { p_code: S.code, p_member: S.me }).then(g => { if (g?.plan) { S.goag = g; if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) render(); } }).catch(() => {}); }
+const recapBanner = () => !S.recap ? '' : `<button class="tripbar kc k-match" data-act="recap" style="width:100%;text-align:left"><span class="tic">${ic('star')}</span><span class="grow"><b>How was ${esc(rcName(S.recap))}?</b><small>Tap what you loved. It shapes your next plans</small></span><span class="go">Tell us</span></button>`;
+const goagBanner = () => !S.goag ? '' : `<button class="tripbar kc k-match" data-act="goag" style="width:100%;text-align:left"><span class="tic">${ic('heart')}</span><span class="grow"><b>Go again?</b><small>${esc(String(S.goag.card?.title || '').split(',')[0])}, close to your plan</small></span><span class="go">Look</span></button>`;
+async function recapOpen(id) { try { const r = await rpc('recap_get', { p_code: S.code, p_member: S.me, p_id: id }); if (r?.id) { S.recap = r; recapSheet(); } } catch {} }
+function recapSheet() { const r = S.recap; if (!r) return; step('recap_open');
+  const row = x => { const c = x.card || {}; return `<div class="prow">${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy">` : `<span class="pimg">${emojiFor(c)}</span>`}<span class="grow"><b>${esc(c.title || '')}</b>${x.both ? '<small class="pwhy">You both loved it. It’ll come back in a future plan.</small>' : x.mine === 'skip' ? '<small>Didn’t go</small>' : ''}<span class="rcv">${RCV.map(([k, l]) => `<button class="pill ${x.mine === k ? 'hot' : ''}" data-rc="${k}|${c.id}">${l}</button>`).join('')}</span></span></div>`; };
+  const all = (r.stops || []).every(x => x.mine);
+  sheet(`<div class="grab"></div><div class="body"><small class="spk">${esc(rcWhen(r))}</small><h2 style="margin-top:6px">How was ${esc(rcName(r))}?</h2><p class="muted" style="font-size:13.5px;margin:6px 0 12px;line-height:1.45">Just between you and us. ${partner() ? esc(them()) + ' only hears about places you both loved.' : ''}</p>
+    ${(r.stops || []).map(row).join('')}<div style="height:14px"></div>${all ? `<button class="btn" data-act="rcdone">Done</button>` : `<button class="jlink" data-rc="gone|">It didn’t happen</button>`}</div>`, 'recap'); }
+async function recapAct(t) { const [v, card] = t.dataset.rc.split('|'), r = S.recap; if (!r) return; t.disabled = true; step('recap_' + v);
+  try { S.recap = await rpc('recap_rate', { p_code: S.code, p_member: S.me, p_id: r.id, p_card: card || r.stops[0]?.card?.id, p_verdict: v }); } catch { t.disabled = false; return toast('Could not save that. Try again.'); }
+  if (v === 'gone') { ls.set('rcno:' + r.id, '1'); S.recap = null; closeSheet(); render(); return toast('No worries. Thanks for telling us.'); }
+  const x = S.recap.stops.find(s => s.card?.id === card); if (x?.both) toast('You both loved it. It can come back in a future plan.', 3500); else if (v === 'nope') toast('Got it. It won’t come back for you.', 3000);
+  recapSheet(); }
+function recapDone() { if (S.recap) ls.set('rcno:' + S.recap.id, '1'); S.recap = null; S.rcTried = 0; closeSheet(); render(); toast('Thanks. Your next plans will know.', 3000); }
+function goagSheet() { const g = S.goag; if (!g) return; const c = g.card || {}; step('goag_open');
+  sheet(`<div class="grab"></div><div class="body spin"><small class="spk">Go again?</small>${c.image ? `<div class="spcard"><img src="${esc(c.image)}" alt=""></div>` : ''}<h2 style="margin-top:14px">${esc(String(c.title || '').split(',')[0])}</h2><p class="spst" style="line-height:1.45">${esc(g.text)}</p>
+    <div style="height:16px"></div><button class="btn" data-act="goagadd">Add it to ${esc(pDayLow(g.day))}</button><button class="jlink" data-act="goagno">Not this time</button></div>`, 'goag'); }
+async function goagAct(a) { const g = S.goag; if (!g) return; S.goag = null; step('goag_' + a);
+  if (a !== 'add') { rpc('again_act', { p_code: S.code, p_member: S.me, p_plan: g.plan, p_card: g.card.id, p_act: 'no' }).catch(() => {}); closeSheet(); return render(); }
+  try { await rpc('again_act', { p_code: S.code, p_member: S.me, p_plan: g.plan, p_card: g.card.id, p_act: 'add' }); } catch { S.goag = g; return toast('Could not add it. The plan may already be full.'); }
+  const t = String(g.card.title || '').split(/[,(]/)[0].trim();
+  if (partner()) push(`${S.me} added ${t} to ${pDayLow(g.day)}`, 'You both loved it last time.', `./?plan=${g.plan}`, { plan: g.plan });
+  send({ type: 'dayplan', id: g.plan, day: g.day, edit: true }); closeSheet(); await refresh(); toast(`${t} is in for ${pDayLow(g.day)}.`, 3500); return dayAct('view', g.plan).catch(() => {}); }
 function whoGroup(id, kind) { const g = FR.d?.groups.find(x => x.id === id); if (!g) return;
   if (kind === 'trip') return gTripSheet(id);
   if (kind === 'tonight') return gSpinPick(id);
@@ -3352,7 +3383,7 @@ function toastAct(msg, label, fn, ms = 4000, onEnd) {
 // Weekend plans arrive on their own: Saturday's on Wednesday evening, Friday night's on Friday afternoon. Each is made from
 // what the two of you like, with one spot left open to swipe on together. Sunday is left alone.
 const pByName = p => p.by === 'auto' ? 'Let’s Together' : p.by;
-const PWHY = w => !w ? '' : w === 'keep' ? 'Keep watching: the next couple of episodes' : w === 'both' ? 'You both liked this' : w === 'fav' ? '★ One of your favorites' : w === 'new' ? 'New to you, and well rated' : '';   // a stop only one of you liked carries no line: swipes stay private
+const PWHY = w => !w ? '' : w === 'keep' ? 'Keep watching: the next couple of episodes' : w === 'both' ? 'You both liked this' : w === 'fav' ? '★ One of your favorites' : w === 'again' ? 'You both loved this last time' : w === 'new' ? 'New to you, and well rated' : '';   // a stop only one of you liked carries no line: swipes stay private
 const isFav = id => (S.favs || []).some(f => f.card?.id === id);
 const FSHAPE = { in: 'Night in', drink_movie: 'A drink, then a movie', bar_dinner: 'New bar, then dinner' };
 const pShape = p => p.auto !== 'fri' ? null : p.mode === 'out' ? 'bar_dinner' : p.items.some(i => i.slot === 'drinks') ? 'drink_movie' : 'in';
@@ -3559,6 +3590,8 @@ function slotHTML(incoming) {
     soloMode() && !(FR.d?.friends || []).length ? ['frinv:1', `<button class="nudge slim" data-fr="soloinvite"><span class="grow"><b>Invite a friend</b><small> · plan a night out or a trip without the group-chat mess</small></span><span class="go">Send link</span></button>`] : null,
     standalone() && pushState() === 'default' ? ['pin:push', `<button class="nudge slim" data-act="pushyes"><span class="grow"><b>Nudges are off on this phone</b><small> · you won’t hear when ${esc(p || 'your other half')} sends something</small></span><span class="go">Turn on</span></button>`] : null,
     ['sp:' + surpKey(), surpBanner()],
+    ['rc:' + (S.recap?.id || ''), recapBanner()],
+    ['ag:' + (S.goag?.plan || '') + (S.goag?.card?.id || ''), goagBanner()],
     ['occ:' + (occTop() ? occTop().k + occTop().day : ''), occBanner()],
     ['day:' + dayHomeKey(), dayHome()],
     s ? ['ses:' + s.id, `<button class="nudge slim" data-open="${s.id}"><span class="grow"><b>${s.from === 'Let’s Together' ? 'Swipe to fill your plan' : esc(s.from) + ' ' + (s.filters?.evshare ? 'liked events this week' : s.filters?.share ? 'liked places to eat' : s.filters?.wishlist ? 'shared a wishlist' : s.filters?.plan ? 'needs a pick for your plan' : 'wants to pick ' + pickWord(s.deck, s.filters))}</b><small> · ${esc(s.filters?.evshare ? 'before they pass' : s.filters?.share ? 'for some time soon' : s.filters?.wishlist ? 'movies to pick from' : s.note || DECKS[s.deck].label)}</small></span><span class="go">Swipe</span></button>`] : null,
@@ -3775,6 +3808,7 @@ function inboxGo(u) {
   if (q.get('plansurprise')) return surpStart(['birthday', 'anniversary'].includes(q.get('plansurprise')) ? q.get('plansurprise') : undefined);
   if (q.get('occasion')) return occSheet(q.get('occasion'));
   if (q.get('surprise')) return surpOpen(q.get('surprise'));
+  if (q.get('recap') && NEWUI) return recapOpen(q.get('recap'));
   if (q.get('plan')) { S.favAsk = q.get('fav') ? q.get('plan') : null; return dayAct('view', q.get('plan')).catch(() => {}); }
   if (q.get('reveal')) { prepRevealTest(); return render(); }
   if (q.get('planfor')) return dayAct('around', q.get('planfor')).catch(() => {});
@@ -6130,13 +6164,14 @@ async function saveAdd(t) {
 /* ---------- events ---------- */
 document.addEventListener('click', async e => {
   if (S.slDrag && Date.now() - S.slDrag < 350 && e.target.closest('.sli')) return;
-  const t = e.target.closest('[data-wk],[data-into],[data-tripclaim],[data-datesok],[data-tripstay],[data-staysave],[data-stayok],[data-sp],[data-pl],[data-inurl],[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-hdeck],[data-like],[data-final],[data-lad],[data-chg],[data-tbpick],[data-g],[data-seenany],[data-padd],[data-lib],[data-libf],[data-tripc],[data-who],[data-gcity],[data-getaway],[data-libc],[data-planf],[data-planact],[data-tripbook],[data-tripinvite],[data-tripsearch],[data-planbook],[data-planpick],[data-tripdates],[data-datesave],[data-tripitem],[data-astack],[data-shpick],[data-feel],[data-seenme],[data-pset],[data-fr],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
+  const t = e.target.closest('[data-wk],[data-into],[data-tripclaim],[data-datesok],[data-tripstay],[data-staysave],[data-stayok],[data-sp],[data-pl],[data-inurl],[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-hdeck],[data-like],[data-final],[data-lad],[data-chg],[data-tbpick],[data-g],[data-seenany],[data-padd],[data-lib],[data-libf],[data-tripc],[data-who],[data-gcity],[data-getaway],[data-libc],[data-planf],[data-planact],[data-tripbook],[data-tripinvite],[data-tripsearch],[data-planbook],[data-planpick],[data-tripdates],[data-datesave],[data-tripitem],[data-astack],[data-shpick],[data-feel],[data-seenme],[data-pset],[data-fr],[data-rc],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
   if (!t) return; const ds = t.dataset;
   try {
     if (ds.who) { const jn = document.getElementById('jn'); if (jn) jn.value = ds.who; return document.getElementById('jgo')?.click(); }
     if (t.id === 'jgo') { const name = document.getElementById('jn').value.trim(), code = document.getElementById('jc').value.trim().toUpperCase(); if (!name || !code) return toast('Enter your name and the couple code.'); t.disabled = true; try { const r = await rpc('join_couple', { p_code: code, p_name: name }); step('joined'); try { document.cookie = 'wl_inv=; max-age=0; path=/; Secure; SameSite=Lax'; } catch {} S.code = code; S.me = r.name; ls.set('code', code); ls.set('name', r.name); history.replaceState(null, '', location.pathname); await boot(); send({ type: 'joined' }); } catch (er) { t.disabled = false; toast(errMsg(er)); } return; }
     if ('scrim' in ds) return closeSheet();
     if (ds.fr) return await frClick(t, ds);
+    if (ds.rc) return await recapAct(t);
     if (ds.pset) { t.parentElement.querySelectorAll('[data-pset]').forEach(x => x.classList.toggle('on', x === t)); return; }
     if (ds.pl) { const [v, a, a2] = ds.pl.split('|'); if (v === 'side') return await sideLikes(a, a2); if (v === 'sidepick') return await sidePick(a, t); if (v === 'tip') { ls.set('pdtip', '1'); return dayEdit(); } return await dayAct(v, a, t); }
     if (ds.inurl) return inboxGo(ds.inurl);
@@ -6313,6 +6348,11 @@ document.addEventListener('click', async e => {
       case 'gtrip': return gTrip(ds.id, ds.c || '');
       case 'gspin': return gSpin(ds.id, ds.k);
       case 'hint': return hintSheet();
+      case 'recap': return recapSheet();
+      case 'rcdone': return recapDone();
+      case 'goag': return goagSheet();
+      case 'goagadd': return goagAct('add');
+      case 'goagno': return goagAct('no');
       case 'hintgo': return hintAct('plan');
       case 'hintkeep': return hintAct('keep');
       case 'frreq': { t.disabled = true; const r = await frRpc('fr_request_answer', { p_from: ds.id, p_yes: !!ds.y }).catch(() => null); if (r?.friends) toast('You’re friends now.'); S.frReqAt = 0; S.frReq = null; await frLoad().catch(() => {}); return render(); }
@@ -6553,6 +6593,7 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 document.addEventListener('visibilitychange', async () => { if (document.visibilityState === 'visible' && S.code && S.me) { try { const was = homeSig(); await refresh(); bellSync(); if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) { if (homeSig() !== was) render(); } else if (S.view === 'swipe' && S.sess) { const d = await rpc('get_session', { p_code: S.code, p_session: S.sess.id, p_member: S.me }); S.theirLeft = d.their_left; S.total = d.total; if (d.matches.length !== S.matches.length) { S.matches = d.matches; } if (d.deck.length !== S.deck.length && !busy) { S.deck = d.deck; drawStack(); } else updateBar(); } } catch {} } });
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); navigator.serviceWorker.addEventListener('message', e => { if (e.data?.pushed) return inboxPoll(); const u = e.data?.open; if (u) { const q = new URL(u).searchParams, s = q.get('s'), r = q.get('rec'), g = q.get('tb'); if (q.get('idea') && S.me) inboxGo(u); else if (s && S.me) openSession(s); else if (r && S.me) openRec(r, q.get('keen')); else if (g && S.me) openGame(g); else if (q.get('night') && S.me) nightOpen(q.get('night')); else if (q.get('trivia') && S.me) openTrivia(q.get('trivia')); else if (q.get('reveal') && S.me) { prepRevealTest(); render(); }
     else if (q.get('surprise') && S.me) surpOpen(q.get('surprise'));
+    else if (q.get('recap') && S.me) recapOpen(q.get('recap'));
     else if (q.get('plan') && S.me) { S.favAsk = q.get('fav') ? q.get('plan') : null; dayAct('view', q.get('plan')).catch(() => {}); } else if (q.get('planfor') && S.me) dayAct('around', q.get('planfor')).catch(() => {}); else if (q.get('invite') && S.me) { if (!partner()) inviteSheet(); } else if (q.get('tripplan') && S.me) openTripPlan(q.get('tripplan')); else if (q.get('trip') && S.me) openGetaway(q.get('trip'), partner()); else if (SHW[q.get('share')] && S.me) openShareTab(q.get('share')); } }); }
 
 // iPhone keeps a Home Screen app's storage apart from the browser's, so signing up in Safari and then opening the
