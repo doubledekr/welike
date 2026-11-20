@@ -5112,8 +5112,8 @@ function acctSheet(stage) {
     ${pkOn() ? `<div id="pkrow" class="pkrow"><span>${ic('user')}</span><span class="grow"><b>Face ID sign-in</b><small>Checking…</small></span></div>` : ''}
     <div style="height:16px"></div><button class="btn ghost" data-act="acctout">Sign out of this account</button></div>`); if (pkOn()) pkRow(); return; }
   if (stage === 'code') return sheet(`<div class="grab"></div><div class="body acs"><span class="acsic">${ic('mail')}</span><h2>Check your email</h2>
-    <p class="muted">We sent a 6-digit code to <b>${esc(S.acctEmail)}</b>. It works for 10 minutes.</p>
-    <input id="acode" class="acin acnum" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" aria-label="6-digit code">
+    <p class="muted">We sent a code to <b>${esc(S.acctEmail)}</b>. Enter it here soon, before it expires.</p>
+    <input id="acode" class="acin acnum" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="Code" aria-label="Code from the email">
     <button class="btn" data-act="acctverify">Sign in</button>
     <button class="jlink" data-act="acctsend" data-again="1">Send a new code</button></div>`);
   sheet(`<div class="grab"></div><div class="body acs"><span class="acsic">${ic('user')}</span><h2>${S.code && S.me ? 'Save your account' : 'Sign in'}</h2>
@@ -5139,7 +5139,7 @@ async function acctSend(t) {
 }
 async function acctVerify(t) {
   const code = (document.getElementById('acode')?.value || '').replace(/\D/g, '');
-  if (code.length !== 6) return toast('Enter the 6-digit code from the email.');
+  if (code.length < 6 || code.length > 8) return toast('Enter the code from the email.');
   t.disabled = true;
   const { data, error } = await sbA.auth.verifyOtp({ email: S.acctEmail, token: code, type: 'email' });
   t.disabled = false;
