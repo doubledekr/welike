@@ -6149,7 +6149,7 @@ document.addEventListener('click', async e => {
       case 'tcback': S.view = 'home'; return render();
       case 'tcoff': ls.set('tvOff_' + S.triv.id, '1'); ls.del('tvIn_' + S.triv.id); S.view = 'home'; toast('No trivia buzz tonight. It’s on Home if you change your mind.'); return render();
       case 'tcbuzz': { const on = !S.triv.buzz; t.disabled = true; try { await rpc('trivia_buzz_set', { p_code: S.code, p_member: S.me, p_event: S.triv.id, p_on: on }); } catch { t.disabled = false; return toast('That didn’t save. Try again.'); }
-        S.triv.buzz = on; toast(on ? 'We’ll buzz you about a minute before each question. It stops if you miss three in a row.' : 'No more buzzes.', 4000); return tcRender(); }
+        S.triv.buzz = on; toast(on ? 'We’ll buzz you 10 seconds before each question. It stops if you miss three in a row.' : 'No more buzzes.', 4000); return tcRender(); }
       case 'teamadd': { const v = (document.getElementById('teamin')?.value || '').trim(); if (v.length < 3) return toast('Give it at least 3 letters.'); return teamDo('add', v); }
       case 'teamlike': return teamDo('like', ds.t);
       case 'teamreset': return teamDo('reset');
