@@ -3582,7 +3582,7 @@ function inboxGo(u) {
   if (q.get('night')) return nightOpen(q.get('night'));
   if (q.get('idea')) { const go = () => q.get('idea') === 'wild' ? wildSheet() : ideaSheet(); if (S.idea) return go(); return rpc('idea_today', { p_code: S.code }).then(x => { S.idea = x || null; go(); }).catch(() => {}); }
   if (q.get('trivia_in')) return tfSheet();
-  if (q.get('poll')) return pollSheet(q.get('poll'));
+  if (q.get('poll')) return pollHero(true, q.get('poll'));   // the inbox note opens the same full screen as the push
   if (q.get('prize')) return prizeSheet(q.get('prize'));
   if (q.get('bdays')) return bdaysSheet();
   if (q.get('plansurprise')) return surpStart(['birthday', 'anniversary'].includes(q.get('plansurprise')) ? q.get('plansurprise') : undefined);
