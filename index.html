@@ -2056,7 +2056,7 @@ function paintHearts() {   // header total plus the small per-category counts
   document.querySelectorAll('[data-hdeck]').forEach(b => { b.querySelector('.hc')?.remove(); b.insertAdjacentHTML('beforeend', heartTag(b.dataset.hdeck)); });
 }
 // Beta and sim (Dave, 19 Nov): Trips moves to its own space behind the Trip button, People replaces Surprise, Tonight gets the spin.
-const NEWUI = !!(window.LT_BETA || window.LT_SIM) || ls.get('early') === '1';   // Dave, 20 Nov 1:30am: Davy gets the tested beta layout tonight (couples.settings.early lists member names), everyone on the morning of 21 Nov; friends-only parts stay behind sbA (sign-in)
+const NEWUI = true;   // Dave, 20 Nov rollout: the tested beta layout for everyone; friends-only parts stay behind sbA (sign-in). The early flag (couples.settings.early) is no longer needed.
 const HDECKS = [['all', 'Discover'], ['movie', 'Watch'], ['dinner', 'Eat & Drink'], ['event', 'Go Out'], ['trip', 'Trips']].filter(d => !(NEWUI && d[0] === 'trip'));   // Dave, 19 Nov: Eat and Drinks merged; Go Out is things to do
 function homeHTML() {
   hintLoad(); recapLoad();
