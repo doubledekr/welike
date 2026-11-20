@@ -57,7 +57,7 @@ begin
 
   -- likes: one seed session per couple member
   for r in select * from (values (c_us, 'Dave'), (c_us, 'Ava'), (c_mj, 'Maya'), (c_mj, 'Jordan'), (c_sam, 'Sam')) v(cid, m) loop
-    insert into sessions (couple_id, deck, from_member, filters, created_at) values (r.cid, 'all', r.m, '{"seed":true,"solo":true}', now() - interval '7 days') returning id into s;
+    insert into sessions (couple_id, deck, from_member, filters, created_at) values (r.cid, 'mix', r.m, '{"seed":true,"solo":true}', now() - interval '7 days') returning id into s;
     -- movies: the first 14 by id both like; each person adds a few of their own
     insert into swipes (session_id, card_id, couple_id, member, verdict, created_at)
     select s, id, r.cid, r.m, 'yes', now() - interval '6 days' from (select id from cards where deck = 'movie' and couple_id is null and active order by id limit 14) q;
