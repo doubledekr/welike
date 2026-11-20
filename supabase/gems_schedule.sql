@@ -140,3 +140,9 @@ select cron.unschedule('welike-gems-tick');
 select cron.schedule('welike-gems-look', '20 3,12,17,22 * * *', $$select public._gems_tick('look')$$);     -- 10pm, 7am, 12pm, 5pm Eastern
 select cron.schedule('welike-gems-night', '*/5 6-10 * * *', $$select public._gems_tick('night')$$);         -- every 5 min, 1am to 6am Eastern
 select cron.schedule('welike-gems-notify', '7,22,37,52 * * * *', $$select public._gems_tick('notify')$$);   -- timed notices, every 15 min
+
+-- 19 Nov 2026 (Dave: "we look for gems bi-weekly"), migration gems_biweekly_refresh on live:
+-- at the top of the 'look' branch of _gems_tick, every area is looked at again after 14 days:
+--   update gem_areas set status = 'new', tries = 0 where status in ('picked', 'empty') and done_at < now() - interval '14 days';
+-- The gems pick stage skips pageids already in gems, so a re-look only makes an AI call when 5+ new Wikipedia places exist.
+-- Same migration: the unique-spot push now says "Scratch the card to see an independent spot near you." (was "Wipe the window").

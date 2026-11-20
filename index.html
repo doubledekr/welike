@@ -1202,6 +1202,9 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 /* keep browsing: steering cards, the reason line, and the three questions for places */
 .whyl{display:flex;align-items:flex-end;text-align:left;font-size:12.5px;line-height:16px;font-weight:600;color:#ffe2b0;margin:10px 20px -4px;height:32px;overflow:hidden}.whyl.tap{cursor:pointer;text-decoration:underline;text-decoration-color:rgba(255,226,176,.45);text-underline-offset:3px}
 .lgrid .sect{margin:18px 2px 8px}.lgw{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.lgt{position:relative;aspect-ratio:3/4;border-radius:14px;overflow:hidden;background:rgba(255,255,255,.05);text-align:left}.lgt img,.lgt .pimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:grid;place-items:center;font-size:30px}.lgt b{position:absolute;left:0;right:0;bottom:0;padding:18px 8px 7px;font-size:12px;line-height:1.2;font-weight:600;background:linear-gradient(transparent,rgba(0,0,0,.78));color:#fff}
+.tag.jo{background:rgba(120,230,170,.2);color:#d6ffe6}
+.fpv{padding-bottom:40px}.fpv .fpa{display:flex;gap:8px;flex-wrap:wrap;padding:6px 18px 4px}.fpv .fph{margin:18px 18px 8px;font-size:17px}.fpv .fph span{opacity:.55;font-weight:500}
+.fpv .fpr{display:flex;gap:14px;overflow-x:auto;padding:4px 18px 16px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}.fpv .fpw{position:relative;flex:none;width:min(76vw,320px);aspect-ratio:320/480;scroll-snap-align:center}
 .tag.uqt{background:rgba(120,190,230,.2);color:#cfeaff}
 .card .ucov .gcov-k{color:#1f2d3a}.card .ucov .gcov-h{color:#2a3a48}
 .card .usign{position:absolute;left:50%;top:0;z-index:8;width:132px;margin-left:-66px;padding-top:44px;transform-origin:50% 0;animation:uswing 1.5s cubic-bezier(.3,.7,.3,1) both;pointer-events:none;transition:opacity .4s}.card .usign.out{opacity:0}
@@ -1949,7 +1952,7 @@ function ob2Draw() {
     try: () => `${kick()}<h2 class="wk-h">Now, how the cards work</h2><p class="wk-p">Flick this card each way. ${solo ? 'Your swipes stay private.' : `${esc(p || 'Your person')} never sees your swipes unless you both say yes.`}</p>${ob2SwipeStage()}<button class="btn wk-cta wait" id="wkgo" data-act="ob2try" disabled>Flick the card</button>`,
     someday: () => `${kick()}<h2 class="wk-h">Places you’d love to go</h2><p class="wk-p">Tap a few, someday or soon. ${solo ? 'They show up in Trips.' : `${esc(p || 'Your person')} only sees a place once you both pick it.`}</p><div class="frpicks ob2sd">${OB2SD.map(c => `<button class="frpick ${(S.sd?.mine || []).includes(c) ? 'on' : ''}" data-act="sdtog" data-c="${esc(c)}">${esc(c)}</button>`).join('')}</div>${sp}<button class="btn wk-cta" data-act="ob2sd">Next</button>`,
     piles: () => `${kick()}<h2 class="wk-h">${NEWUI ? 'Four piles' : 'Five piles'}, and a few surprises</h2><p class="wk-p">Discover is a bit of everything near you. Watch is movies, Eat & Drink is restaurants and bars, ${NEWUI ? 'and Go Out is things to do. Trips have their own place behind the Trip button.' : 'Go Out is things to do, and Trips is places you might go.'} Some cards come covered as scratch cards: hidden gems, one-of-a-kind shops, and food or drink events. Scratch to see.</p>
-      <div class="wk-stage"><div class="wk-gem" id="obpg" style="background:radial-gradient(90% 60% at 50% 30%,#3d8f86,#16454a 55%,#0c2226)"><span class="wk-gcap"><span class="gemk"><span>Unique spot</span></span><b>A magic shop with a back-room stage</b></span><canvas id="obpv"></canvas></div></div><button class="btn wk-cta wait" id="wkgo" data-act="ob2piles" disabled>Wipe the window</button>`,
+      <div class="wk-stage"><div class="wk-gem" id="obpg" style="background:radial-gradient(90% 60% at 50% 30%,#3d8f86,#16454a 55%,#0c2226)"><span class="wk-gcap"><span class="gemk"><span>Unique spot</span></span><b>A magic shop with a back-room stage</b></span><canvas id="obpv"></canvas></div></div><button class="btn wk-cta wait" id="wkgo" data-act="ob2piles" disabled>Scratch the card</button>`,
     out: () => `${kick()}<h2 class="wk-h">Then go do it</h2><p class="wk-p">Matches turn into plans: Plan a day builds a day from what you both like, with time to get between stops. The day after, tap what you loved. Places you both loved come back.</p>
       <div class="wk-stage" style="display:block"><div class="wk-step"><span class="grow"><b>Saturday</b><small>Museum, a snack break, then tacos</small></span></div><div class="wk-step" style="display:block"><b>How was it?</b><span class="rcv">${RCV.map(([, l], j) => `<span class="pill ${j ? '' : 'hot'}">${l}</span>`).join('')}</span></div></div>${sp}<button class="btn wk-cta" data-act="ob2out">Next</button>`,
     invite: () => `${kick()}<h2 class="wk-h">Bring your person in</h2><p class="wk-p">Nothing can match until you’re both here. The link fills in the code for them.</p>
@@ -5391,9 +5394,27 @@ const emojiFor = c => c.data?.emoji || (c.deck === 'dinner' ? KINDS[c.kind]?.[1]
 const VERD = c => c?.deck === 'art' ? ['Not for me', 'I like it', 'Love it'] : ['Nah', 'Maybe', 'Hell yeah'];
 // The down swipe means "I already know this one", worded for the deck; on a dated event it means the date does not work
 const DWN = c => !c ? null : c.deck === 'movie' ? (S.rewatch ? null : 'Never again') : c.deck === 'dinner' ? (c.kind === 'cook' ? null : 'Never again') : c.deck === 'event' ? (c.data?.place ? 'Never again' : 'Can’t make it') : c.deck === 'trip' ? 'Never again' : c.deck === 'art' ? 'Seen in person' : null;
+const openedWhen = c => { const o = c.data.opened, d = new Date((o.length === 7 ? o + '-15' : o) + 'T12:00:00'); return d > new Date() ? 'Opens ' + d.toLocaleDateString('en-US', { month: 'long', day: 'numeric' }) : 'Opened in ' + d.toLocaleDateString('en-US', { month: 'long' }); };
+const justOpened = c => { const o = c?.data?.opened; if (!o || !/^\d{4}-\d{2}/.test(o)) return false; const d = Date.parse(o.length === 7 ? o + '-01' : o); return d > Date.now() - 122 * 864e5 && d < Date.now() + 15 * 864e5; };
+// Finder preview (Dave, 19 Nov, beta only, ?finds=1): the trial finder's cards for four areas, drawn with the real card
+// front, scratch cover and back. Read-only: nothing here is swiped, saved or dealt.
+async function findsPreview() { S.fp = await rpc('finds_preview', {}).catch(() => []) || []; if (!S.fp.some(c => c.grp === S.fpA)) S.fpA = S.fp.some(c => c.grp === 'Detroit') ? 'Detroit' : S.fp[0]?.grp; S.view = 'finds'; fpDraw(); }
+function fpDraw() {
+  const areas = [...new Set(S.fp.map(c => c.grp))], A = S.fpA, list = S.fp.filter(c => c.grp === A);
+  const SEC = { 1: 'Hidden gems from guides', 2: 'Just opened', 3: 'Events, next two weeks' };
+  $app.innerHTML = `<div class="fpv"><div class="topbar"><button class="back" data-act="home" aria-label="Back">‹</button><div class="grow"><h2>Finder preview</h2><small>Scratch the covered ones, tap any card to flip it</small></div></div>
+    <div class="fpa">${areas.map(a => `<button class="pill ${a === A ? 'hot' : ''}" data-fpa="${esc(a)}">${esc(a)}</button>`).join('')}</div>
+    ${[1, 2, 3].map(k => { const cs = list.filter(c => +c.sec === k); return cs.length ? `<h3 class="fph">${SEC[k]} <span>${cs.length}</span></h3><div class="fpr">${cs.map(c => `<div class="fpw">${cardHTML(c)}</div>`).join('')}</div>` : ''; }).join('')}</div>`;
+  $app.querySelectorAll('[data-fpa]').forEach(b => { b.onclick = () => { S.fpA = b.dataset.fpa; fpDraw(); }; });
+  requestAnimationFrame(() => $app.querySelectorAll('.fpw .card').forEach(el => { const c = list.find(x => x.id === el.dataset.id); if (!c) return;
+    if (c.data.gem) gemCover(el, c); else if (c.data.unique) uniqueCover(el, c);
+    else if (c.deck === 'event' && /^(Food|Drink)$/.test(c.kind || '')) { const dr = c.kind === 'Drink' || DRINKW.test(c.title); gemCover(el, c, { k: dr ? 'Drinks event' : 'Food event', h: 'Scratch to see what’s on', small: dr ? 'Drinks event' : 'Food event', line: c.title, sub: c.subtitle || '' }); }
+    el.addEventListener('click', e => { if (e.target.closest('a,button,.gcov')) return; flipCard(el, c, '<span></span>'); }); }));
+}
 function cardHTML(c, cls = '') {
   const tags = [];
   if (c.deck === 'movie') { if (c.data.type === 'series') tags.push('<span class="tag">Series</span>'); (c.data.services || []).slice(0, 2).forEach(s => tags.push(svcTag(s))); (c.data.genres || []).slice(0, 2).forEach(g => tags.push(`<span class="tag">${esc(g)}</span>`)); if (c.data.user_rating) tags.push(`<span class="tag">★ ${c.data.user_rating}</span>`); }
+  if (justOpened(c)) tags.push('<span class="tag jo">Just opened</span>');
   if (c.deck === 'dinner') { tags.push(`<span class="tag">${KINDS[c.kind]?.[0] || 'Dinner'}</span>`); if (c.data.rating) tags.push(`<span class="tag">★ ${c.data.rating}</span>`); if (c.data.price) tags.push(`<span class="tag">${esc(c.data.price)}</span>`); if (c.data.delivery) tags.push('<span class="tag">Delivers</span>'); if (c.data.miles != null) tags.push(`<span class="tag">${c.data.away ? c.data.miles + ' mi' : c.data.miles > 3 ? (c.data.miles >= 10 ? Math.round(c.data.miles) : c.data.miles) + ' mi from home' : 'Local'}</span>`); const oh = onHand(c); if (oh) tags.push(`<span class="tag">${oh.have === oh.total ? 'You have everything' : `${oh.have} of ${oh.total} on hand`}</span>`); }
   if (c.deck === 'art' && c.data.gem) { if (c.data.city) tags.push(`<span class="tag">${esc(c.data.city)}</span>`); }
   else if (c.deck === 'art') { if (c.kind) tags.push(`<span class="tag">${esc(c.kind)}</span>`); if (c.data.on_view) tags.push('<span class="tag">On view now</span>'); }
@@ -6105,7 +6126,10 @@ function bookBlock(c, day, time) {
   return '';
 }
 function closeSheet() { $layer.innerHTML = ''; S.plSent = null; document.querySelector('.a2arrow')?.remove(); tiltWatch(); }
-const gemBlock = d => d?.gem ? `<div class="gemk in">${ic('gem')}<span>Hidden gem</span></div>${d.fact ? `<p class="gemfact">${esc(d.fact)}</p>` : ''}${d.src ? `<a class="btn ghost" style="display:block;text-align:center;text-decoration:none;margin-top:10px" href="${esc(d.src)}" target="_blank" rel="noopener">Read more on Wikipedia</a>` : ''}<p class="muted" style="font-size:11.5px;text-align:center">Facts from Wikipedia. Photo and hours from Google. Description written by Let’s Together.</p>` : '';
+// where a gem's facts came from: Wikipedia for the gems job, a magazine or guide's own site for the finder
+const srcName = u => { try { const h = new URL(u).hostname.replace(/^www\./, ''); return /wikipedia\.org$/.test(h) ? 'Wikipedia' : h; } catch { return ''; } };
+const gemBlock = d => { if (!d?.gem) return ''; const sn = srcName(d.src);
+  return `<div class="gemk in">${ic('gem')}<span>Hidden gem</span></div>${d.fact ? `<p class="gemfact">${esc(d.fact)}</p>` : ''}${d.src ? `<a class="btn ghost" style="display:block;text-align:center;text-decoration:none;margin-top:10px" href="${esc(d.src)}" target="_blank" rel="noopener">${sn === 'Wikipedia' ? 'Read more on Wikipedia' : `Read where we found it (${esc(sn)})`}</a>` : ''}<p class="muted" style="font-size:11.5px;text-align:center">${sn && sn !== 'Wikipedia' ? `Found in ${esc(sn)}` : 'Facts from Wikipedia'}. Photo and hours from Google. Description written by Let’s Together.</p>`; };
 function showDetail(c, back = false) {
   if (!c) return ''; S.detailCard = c;
   if (!back && isRest(c) && !c.data.book_at) bookFetch([c]).then(ok => { if (ok && S.detailCard === c && $layer.querySelector('.sheet')) showDetail(c); }); const d = c.data || {}; let b = '';
@@ -6118,7 +6142,7 @@ function showDetail(c, back = false) {
       <p class="muted" style="font-size:11.5px;text-align:center">Streaming data powered by Watchmode.com</p>`;
   } else if (c.deck === 'dinner') {
     const oh = onHand(c);
-    b = `<div class="tags"><span class="tag">${KINDS[c.kind]?.[0] || 'Dinner'}</span>${d.rating ? `<span class="tag">★ ${d.rating}${d.ratings ? ` (${Number(d.ratings).toLocaleString()})` : ''}</span>` : ''}${d.price ? `<span class="tag">${esc(d.price)}</span>` : ''}</div>${d.notes ? `<p>${esc(d.notes)}</p>` : ''}${d.address ? `<p class="muted" style="font-size:14px">${esc(d.address)}</p>` : ''}
+    b = `<div class="tags">${justOpened(c) ? `<span class="tag jo">${esc(openedWhen(c))}</span>` : ''}<span class="tag">${KINDS[c.kind]?.[0] || 'Dinner'}</span>${d.rating ? `<span class="tag">★ ${d.rating}${d.ratings ? ` (${Number(d.ratings).toLocaleString()})` : ''}</span>` : ''}${d.price ? `<span class="tag">${esc(d.price)}</span>` : ''}</div>${d.notes ? `<p>${esc(d.notes)}</p>` : ''}${d.address ? `<p class="muted" style="font-size:14px">${esc(d.address)}</p>` : ''}
       ${d.ingredients?.length ? `<div class="kv">Ingredients</div><p style="margin-top:0">${d.ingredients.map(i => { const miss = oh && oh.missing.includes(i); return `<span style="${miss ? 'color:var(--muted)' : ''}">${oh ? (miss ? '○ ' : '● ') : ''}${esc(i)}</span>`; }).join('<br>')}</p>${oh ? `<p class="muted" style="font-size:13px">${oh.have} of ${oh.total} in your pantry</p>` : ''}` : ''}
       ${bookBlock(c)}
       ${d.reserve?.url ? `<div style="height:18px"></div><a class="btn" style="display:block;text-align:center;text-decoration:none" href="${esc(d.reserve.url)}" target="_blank" rel="noopener">Reserve on ${esc(d.reserve.name || 'the booking page')}</a>` : ''}
@@ -6762,7 +6786,8 @@ async function boot() {
   const idq = new URLSearchParams(location.search).get('idea'); if (idq) history.replaceState(null, '', location.pathname);
   const snq = new URLSearchParams(location.search).get('spin'); if (snq) history.replaceState(null, '', location.pathname);
   const pzq = new URLSearchParams(location.search).get('prize'); if (pzq) history.replaceState(null, '', location.pathname);
-  render(); if (sbA && ls.get('fpend')) return frOpen(); if (idq) return inboxGo('./?idea=' + encodeURIComponent(idq)); if (pzq) return inboxGo('./?prize=' + encodeURIComponent(pzq)); if (rc) return openRec(rc, rk); if (tpq) return openTripPlan(tpq); if (tp) return openGetaway(tp, partner()); if (SHW[shq]) return openShareTab(shq);
+  const fpq = BETA && new URLSearchParams(location.search).get('finds'); if (fpq) history.replaceState(null, '', location.pathname);
+  render(); if (fpq) return findsPreview(); if (sbA && ls.get('fpend')) return frOpen(); if (idq) return inboxGo('./?idea=' + encodeURIComponent(idq)); if (pzq) return inboxGo('./?prize=' + encodeURIComponent(pzq)); if (rc) return openRec(rc, rk); if (tpq) return openTripPlan(tpq); if (tp) return openGetaway(tp, partner()); if (SHW[shq]) return openShareTab(shq);
   if (invq && !partner()) { carrySignIn(); return inviteSheet(); }
   if (gmq) gemOpen();
   if (tlq) tellSheet();

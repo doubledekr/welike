@@ -1,4 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { logAi } from "./ai_log.ts";
+logAi("eventcheck");
 
 // eventcheck: confirms an event is real before it goes on anyone's deck (Dave, 19 Nov).
 // For events from listing sites and web finds (not ticketing feeds), Claude searches the web — the venue's own site and

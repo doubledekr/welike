@@ -1,0 +1,10 @@
+-- Finder (live 20 Nov): migrations finder_live and spots_deal_opened on gbzximehndzlsbojoqgj.
+-- Tables find_areas (one per home area within 10 mi and per booked trip city; sources/gems/openings/events timestamps, sites)
+-- and find_runs (one row per run). spots.opened added; _spots_deal passes 'opened' to the card.
+-- _finds_apply(area, mode, items): sources -> find_areas.sites; gems -> gems (negative pageid from the place id, cat 'eat' for
+-- food places, else _gem_cat); new shops -> spots; new restaurants, cafes, bars -> each couple within 30 mi gets a dinner
+-- card ext_id 'g:<place_id>' with data.opened (or opened is added to the card they have); events -> each couple within
+-- 30 mi gets an event card ext_id 'fd:<md5>', created_by 'finds', held by the event guard until eventcheck confirms it.
+-- _finds_tick() (cron welike-finds, every 30 min): adds areas, names one new area per tick (finds mode name), then starts
+-- at most two runs: sources every 30 days, events every 84 h, openings every 7 days, gems every 14 days (trips: sources, gems).
+-- The definitions are in the live database; see the migration text in the sync log entry of 20 Nov.

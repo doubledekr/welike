@@ -1,4 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { logAi } from "./ai_log.ts";
+logAi("spots");
 
 // Unique spots (Discover package, 19 Nov 2026): independent, interesting places near where couples live, or in a city
 // they've booked a trip to. Magic shops, oddities, bookshops, confectioners, record stores, vintage, makers' shops.
