@@ -1504,7 +1504,7 @@ const S = { code: ls.get('code'), me: ls.get('name'), state: null, pantry: [], t
 S.homeDeck = ({ drinks: 'dinner', art: 'all' })[ls.get('deck')] || ls.get('deck') || 'all'; S.revEntry = true; try { S.doneHtml = JSON.parse(ls.get('donehtml') || '{}'); } catch { S.doneHtml = {}; } S.tripCity = ls.get('tripcity') || '';
 const $app = document.getElementById('app'), $layer = document.getElementById('layer');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const rpcStamp = (d, t0) => { if (d && typeof d === 'object' && !Array.isArray(d) && typeof d.now === 'string') try { Object.defineProperty(d, '_off', { value: Date.parse(d.now) - (t0 + Date.now()) / 2, enumerable: false, configurable: true }); } catch {} };
+const rpcStamp = (d, t0) => { if (d && typeof d === 'object' && !Array.isArray(d) && typeof d.now === 'string') try { const t1 = Date.now(); Object.defineProperty(d, '_off', { value: Date.parse(d.now) - (t0 + t1) / 2, enumerable: false, configurable: true }); Object.defineProperty(d, '_rtt', { value: t1 - t0, enumerable: false, configurable: true }); } catch {} };
 // answers that carry the server's clock get stamped the moment they arrive, so a countdown never uses a time that was already old when it was drawn
 const rpc = async (fn, args) => { const t0 = Date.now(); const { data, error } = await sb.rpc(fn, args); if (error) throw error; rpcStamp(data, t0); if (data && typeof data === 'object') rpcStamp(data.state, t0); return data; };
 const partner = () => (S.state?.members || []).find(m => m !== S.me) || null;
@@ -2308,7 +2308,7 @@ const trivBanner = () => { const t = S.triv; if (!t || (t.phase === 'after' && !
   if (t.mode === 'clock') return `<button class="tripbar kc k-match" data-act="triv" style="width:100%;text-align:left"><span class="tic">${ic('spark')}</span><span class="grow"><b>${live ? `${esc(t.title)} is on` : t.phase === 'before' ? esc(t.title) : `${esc(t.title)}: results`}</b><small>${t.phase === 'before' ? trivDay(t.starts) + (t.prize ? ' · $25 Amazon gift card' : '') : live ? `${t.done} of ${t.questions} done · ${tvPts(t.score)}` : `Final scores · you scored ${t.score}`}</small></span><span class="go">${live ? 'Play' : 'Open'}</span></button>`;
   const sub = t.phase === 'before' ? `${trivDay(t.starts)}${t.movie?.title ? ' · ' + t.movie.title : ''}` : live ? (t.next ? `Question ${t.next.n} of ${t.questions} is waiting` : t.done >= t.questions ? `All ${t.questions} answered · ${tvPts(t.score)}` : `Next round opens at ${trivT(t.next_round_at)}`) : `Final scores are in · your team scored ${t.score}`;
   return `<button class="tripbar kc k-match" data-act="triv" style="width:100%;text-align:left"><span class="tic">${ic('spark')}</span><span class="grow"><b>${live ? 'Trivia night is on' : t.phase === 'before' ? 'Trivia night' : 'Trivia night: results'}</b><small>${esc(sub)}</small></span><span class="go">${live && t.next ? 'Play' : 'Open'}</span></button>`; };
-async function openTrivia(id) { if (id) S.trivId = id; S.tq = null; const t = await trivLoad(); if (!t) { S.trivId = null; return toast('Trivia night isn’t open right now.'); } closeSheet(); if (t.mode === 'clock' && t.phase !== 'after' && Date.parse(t.starts) - Date.parse(t.now) < 30 * 60000) { ls.set('tvIn_' + t.id, '1'); ls.del('tvOff_' + t.id); } step('triv_open'); S.view = 'trivia'; render(); }
+async function openTrivia(id) { if (id) S.trivId = id; S.tq = null; const t = await trivLoad(); if (!t) { S.trivId = null; return toast('Trivia night isn’t open right now.'); } closeSheet(); if (t.mode === 'clock' && t.phase !== 'after' && Date.parse(t.starts) - Date.parse(t.now) < 30 * 60000) { ls.set('tvIn_' + t.id, '1'); ls.del('tvOff_' + t.id); } step('triv_open'); S.view = 'trivia'; render(); if (t.mode === 'clock') tcClockCheck('open'); }
 function trivFrame(body) { unshift(); const t = S.triv, q = S.tq;
   const sub = t.phase === 'before' ? (t.team ? esc(t.team) : 'Every couple a team') : t.phase === 'after' ? 'Final scores' : q ? `Question ${q.n} of ${t.questions}` : t.team ? esc(t.team) : `Round ${Math.min(t.unlocked, t.rounds)} of ${t.rounds}`;
   $app.innerHTML = `<div class="view game triv"><div class="topbar"><button class="back" data-act="home" aria-label="Back">‹</button><div class="grow"><h2>${esc(t.title)}</h2><small>${sub}</small></div>${t.phase !== 'before' ? `<span class="tvscore"><b>${t.score}</b> pt${t.score === 1 ? '' : 's'}</span>` : ''}</div><div id="gstage" class="gstage">${body}</div></div>`; }
@@ -2420,7 +2420,26 @@ const tcNow = () => Date.now() + (S.tcOff || 0);
 const tcMs = d => Date.parse(d);
 const tcMMSS = ms => { const s = Math.max(0, Math.ceil(ms / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
 const tcClock = ms => { const s = Math.max(0, Math.ceil(ms / 1000)); return s >= 60 ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` : String(s); };
-function tcSync(t) { if (t?.now && t !== S.tcSt && t._off != null) { S.tcSt = t; S.tcOff = t._off; } }   // offset measured when the answer arrived (see rpcStamp), never when it is drawn
+function tcSync(t) { if (!t?.now || t === S.tcSt || t._off == null) return; S.tcSt = t;   // offset measured when the answer arrived (see rpcStamp), never when it is drawn
+  if (t._rtt > 1500) return;   // a slow answer can't be trusted for the clock
+  if (S.tcSyncAt && Date.now() - S.tcSyncAt < 20000 && (S.tcRtt || 9e9) <= t._rtt) return;   // a fresher, quicker clock check already holds
+  S.tcOff = t._off; S.tcRtt = t._rtt; S.tcSyncAt = Date.now(); }
+// the clock check: three quick pings to the server, keep the fastest. Runs on open, on coming back, on reconnect, every 30 s in a live night and before each question.
+async function tcClockCheck(why) { const t = S.triv; if (!t || t.mode !== 'clock' || S.tcChecking) return; S.tcChecking = true; let best = null;
+  try { for (let i = 0; i < 3; i++) { const t0 = Date.now(); let r = null; try { r = await sb.rpc('trivia_now', {}); } catch {} const t1 = Date.now();
+      if (r?.data?.now) { const smp = { off: Date.parse(r.data.now) - (t0 + t1) / 2, rtt: t1 - t0 }; if (!best || smp.rtt < best.rtt) best = smp; if (smp.rtt < 120) break; } }
+    if (best && best.rtt < 2500) { const was = S.tcOff; S.tcOff = best.off; S.tcRtt = best.rtt; S.tcSyncAt = Date.now();
+      sb.rpc('trivia_now', { p_code: S.code, p_member: S.me, p_event: t.id, p_off: Math.round(best.off), p_rtt: best.rtt, p_why: why || '' }).then(() => {}, () => {});
+      if (was != null && Math.abs(was - best.off) > 400 && S.view === 'trivia') tcRender(); } }
+  finally { S.tcChecking = false; } }
+const tcLive = t => t && t.mode === 'clock' && t.phase !== 'after' && Date.now() > Date.parse(t.starts) - 20 * 60000 && Date.now() < Date.parse(t.ends) + 5 * 60000;
+const tcStale = () => !S.tcSyncAt || Date.now() - S.tcSyncAt > 45000;
+// coming back to the app or the internet: check the clock and reload where the night is
+async function tcResume(why) { const t = S.triv; if (!tcLive(t)) return; S.tcSyncAt = 0; await tcClockCheck(why); try { await trivLoad(); } catch {} if (S.view === 'trivia') { S.tcK = null; tcRender(); } }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') tcResume('back'); });
+addEventListener('online', () => tcResume('online'));
+addEventListener('pageshow', e => { if (e.persisted) tcResume('pageshow'); });
+setInterval(() => { const t = S.triv; if (tcLive(t) && document.visibilityState === 'visible' && Date.now() - (S.tcSyncAt || 0) > 30000) tcClockCheck('every30'); }, 5000);
 // where the night is right now, from the schedule alone
 function tcWhere(t) { const T = tcNow(), sc = t.sched || [], st = tcMs(t.starts);
   if (T < st) return { k: 'before', next: sc[0] };
@@ -2471,7 +2490,9 @@ async function tcFetch(q) { S.tcQ = S.tcQ || {}; if (S.tcQ[q.qid] || S.tcF === q
   catch { setTimeout(() => { if (S.tcF === q.qid) S.tcF = null; }, 600); return; } S.tcF = null; if (S.view === 'trivia') tcRender(); }
 async function tcPick(q, i) { const T = tcNow(); if (T > tcMs(q.c) + 400) return; S.tcPick = S.tcPick || {}; S.tcPick[q.qid] = i;
   document.querySelectorAll('#gstage .gopt').forEach((b, k) => b.classList.toggle('on', k === i)); const n = document.getElementById('tvnote'); if (n) n.textContent = tcNote(i, S.tcThey?.[q.qid], S.tcQ?.[q.qid], S.triv);
-  try { const r = await rpc('trivia_answer', { p_code: S.code, p_member: S.me, p_event: S.triv.id, p_qid: q.qid, p_choice: i }); if (r?.ok === false) toast('That one came in after the buzzer.'); } catch { toast('That didn’t reach us. Tap again.'); return; }
+  let sent = false; for (let k = 0; !sent; k++) { if (S.tcPick[q.qid] !== i) return;   // a newer pick took over
+    try { const r = await rpc('trivia_answer', { p_code: S.code, p_member: S.me, p_event: S.triv.id, p_qid: q.qid, p_choice: i }); sent = true; if (r?.ok === false) toast('That one came in after the buzzer.'); }
+    catch { if (tcNow() > tcMs(q.c) + 1300) { toast('That didn’t reach us in time.'); return; } await new Promise(res => setTimeout(res, 250)); } }
   ls.set('tvIn_' + S.triv.id, '1'); send({ type: 'triv', k: 'ans', event: S.triv.id, qid: q.qid }); }
 async function tcReveal(q, n) { S.tcRev = S.tcRev || {}; if (S.tcRev[q.qid] || S.tcRB === q.qid) return; S.tcRB = q.qid; let r = null;
   try { r = await rpc('trivia_reveal', { p_code: S.code, p_member: S.me, p_event: S.triv.id, p_qid: q.qid }); } catch {}
@@ -2491,11 +2512,15 @@ function tcTutorial() { if (S.view !== 'trivia' || !S.triv) return;
   sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('spark')}</span><h2>How trivia night works</h2></div></div>${tcHow()}<button class="btn" data-act="closesheet" style="margin-top:14px">Got it</button>`); }
 // the pinned bar on every other screen, and the takeover for the last 10 seconds
 function tcTick() { const t = S.triv; if (!t || t.mode !== 'clock' || !S.me) { document.getElementById('tcbar')?.remove(); return; } tcSync(t);
+  if (tcLive(t) && document.visibilityState === 'visible') { const w0 = tcWhere(t);
+    if (w0.k === 'soon' && w0.next && S.tcSoonChk !== w0.next.qid) { S.tcSoonChk = w0.next.qid; tcClockCheck('soon'); }
+    if (w0.next && tcMs(w0.next.s) - tcNow() < 1200) tcFetch(w0.next);
+    if (tcStale()) tcClockCheck('stale'); }
   const T = tcNow(), live = T > tcMs(t.starts) - 15 * 60000 && T < tcMs(t.ends);
   if (S.view === 'trivia') { document.getElementById('tcbar')?.remove(); const w = tcWhere(t), k = w.k + (w.q?.n || w.next?.n || '');
     if (k !== S.tcK) { if (document.querySelector('.scrim')) { if (/^(soon|read|answer)/.test(k)) closeSheet(); else return; } if (w.k === 'board' || w.k === 'final') { S.tcK = k; trivLoad().then(() => { if (S.view === 'trivia') tcRender(); }); } else tcRender(); return; }
     const n = document.getElementById('tcn'), n2 = document.getElementById('tcn2'), ref = w.k === 'answer' ? tcMs(w.q.c) : w.next ? tcMs(w.next.s) : 0, gap = w.k === 'answer' ? 4000 : w.k === 'soon' ? 10000 : w.k === 'welcome' ? 180000 : w.k === 'board' ? 210000 : 44000;
-    if (ref && (n || n2)) { const v = tcClock(ref - T); if (n && n.textContent !== v) n.textContent = v; if (n2 && n2.textContent !== v) n2.textContent = v;
+    if (ref && (n || n2)) { const v = tcStale() && w.k !== 'answer' && w.k !== 'read' ? 'Syncing…' : tcClock(ref - T); if (n && n.textContent !== v) n.textContent = v; if (n2 && n2.textContent !== v) n2.textContent = v;
       const fl = document.querySelector('.tcring .fl'); if (fl) { const L = 2 * Math.PI * 48; fl.style.strokeDashoffset = (L * (1 - Math.max(0, Math.min(1, (ref - T) / gap)))).toFixed(1); } }
     return; }
   const w = live ? tcWhere(t) : null, off = ls.get('tvOff_' + t.id);
