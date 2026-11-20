@@ -1203,11 +1203,6 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .whyl{display:flex;align-items:flex-end;text-align:left;font-size:12.5px;line-height:16px;font-weight:600;color:#ffe2b0;margin:10px 20px -4px;height:32px;overflow:hidden}.whyl.tap{cursor:pointer;text-decoration:underline;text-decoration-color:rgba(255,226,176,.45);text-underline-offset:3px}
 .lgrid .sect{margin:18px 2px 8px}.lgw{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.lgt{position:relative;aspect-ratio:3/4;border-radius:14px;overflow:hidden;background:rgba(255,255,255,.05);text-align:left}.lgt img,.lgt .pimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:grid;place-items:center;font-size:30px}.lgt b{position:absolute;left:0;right:0;bottom:0;padding:18px 8px 7px;font-size:12px;line-height:1.2;font-weight:600;background:linear-gradient(transparent,rgba(0,0,0,.78));color:#fff}
 .tag.uqt{background:rgba(120,190,230,.2);color:#cfeaff}
-.card .pcov,.wk-gem .pcov{position:absolute;inset:0;z-index:7;touch-action:none;border-radius:inherit;overflow:hidden}
-.pcov .pc-sheet{position:absolute;inset:0;background:radial-gradient(120% 80% at 30% 20%,#f6ecd6,#e6d3ad 70%,#d9c294);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#4a3420}
-.pcov .pc-sheet::before{content:"";position:absolute;inset:14px;border:2px dashed rgba(74,52,32,.28);border-radius:14px}
-.pcov .pc-k{font-family:var(--serif);font-size:40px;line-height:1}.pcov .pc-h{font-size:14.5px;opacity:.85}.pcov.sm .pc-k{font-size:24px}.pcov.sm .pc-h{font-size:12px}.pcov.go .pc-h{opacity:0;transition:opacity .25s}
-.pcov .pc-fw{position:absolute;inset:0;filter:drop-shadow(-5px -5px 9px rgba(40,25,10,.45))}.pcov .pc-flap{position:absolute;inset:0}
 .card .ucov .gcov-k{color:#1f2d3a}.card .ucov .gcov-h{color:#2a3a48}
 .card .usign{position:absolute;left:50%;top:0;z-index:8;width:132px;margin-left:-66px;padding-top:44px;transform-origin:50% 0;animation:uswing 1.5s cubic-bezier(.3,.7,.3,1) both;pointer-events:none;transition:opacity .4s}.card .usign.out{opacity:0}
 .card .usign::before,.card .usign::after{content:"";position:absolute;top:0;width:2px;height:52px;background:#3b2a1c}.card .usign::before{left:30px;transform:rotate(18deg);transform-origin:0 0}.card .usign::after{right:30px;transform:rotate(-18deg);transform-origin:100% 0}
@@ -1953,7 +1948,7 @@ function ob2Draw() {
     flip: () => `${kick()}<h2 class="wk-h">Tap a card to flip it</h2><p class="wk-p">Swipe whenever you have a minute, no homework. When a card catches your eye, tap it for the details.</p>${flipStage()}<button class="btn wk-cta wait" id="wkgo" data-act="ob2flip" disabled>Tap the card</button>`,
     try: () => `${kick()}<h2 class="wk-h">Now, how the cards work</h2><p class="wk-p">Flick this card each way. ${solo ? 'Your swipes stay private.' : `${esc(p || 'Your person')} never sees your swipes unless you both say yes.`}</p>${ob2SwipeStage()}<button class="btn wk-cta wait" id="wkgo" data-act="ob2try" disabled>Flick the card</button>`,
     someday: () => `${kick()}<h2 class="wk-h">Places you’d love to go</h2><p class="wk-p">Tap a few, someday or soon. ${solo ? 'They show up in Trips.' : `${esc(p || 'Your person')} only sees a place once you both pick it.`}</p><div class="frpicks ob2sd">${OB2SD.map(c => `<button class="frpick ${(S.sd?.mine || []).includes(c) ? 'on' : ''}" data-act="sdtog" data-c="${esc(c)}">${esc(c)}</button>`).join('')}</div>${sp}<button class="btn wk-cta" data-act="ob2sd">Next</button>`,
-    piles: () => `${kick()}<h2 class="wk-h">${NEWUI ? 'Four piles' : 'Five piles'}, and a few surprises</h2><p class="wk-p">Discover is a bit of everything near you. Watch is movies, Eat & Drink is restaurants and bars, ${NEWUI ? 'and Go Out is things to do. Trips have their own place behind the Trip button.' : 'Go Out is things to do, and Trips is places you might go.'} Some cards come covered: scratch a hidden gem or a food or drink event, peel back a one-of-a-kind shop.</p>
+    piles: () => `${kick()}<h2 class="wk-h">${NEWUI ? 'Four piles' : 'Five piles'}, and a few surprises</h2><p class="wk-p">Discover is a bit of everything near you. Watch is movies, Eat & Drink is restaurants and bars, ${NEWUI ? 'and Go Out is things to do. Trips have their own place behind the Trip button.' : 'Go Out is things to do, and Trips is places you might go.'} Some cards come covered as scratch cards: hidden gems, one-of-a-kind shops, and food or drink events. Scratch to see.</p>
       <div class="wk-stage"><div class="wk-gem" id="obpg" style="background:radial-gradient(90% 60% at 50% 30%,#3d8f86,#16454a 55%,#0c2226)"><span class="wk-gcap"><span class="gemk"><span>Unique spot</span></span><b>A magic shop with a back-room stage</b></span><canvas id="obpv"></canvas></div></div><button class="btn wk-cta wait" id="wkgo" data-act="ob2piles" disabled>Wipe the window</button>`,
     out: () => `${kick()}<h2 class="wk-h">Then go do it</h2><p class="wk-p">Matches turn into plans: Plan a day builds a day from what you both like, with time to get between stops. The day after, tap what you loved. Places you both loved come back.</p>
       <div class="wk-stage" style="display:block"><div class="wk-step"><span class="grow"><b>Saturday</b><small>Museum, a snack break, then tacos</small></span></div><div class="wk-step" style="display:block"><b>How was it?</b><span class="rcv">${RCV.map(([, l], j) => `<span class="pill ${j ? '' : 'hot'}">${l}</span>`).join('')}</span></div></div>${sp}<button class="btn wk-cta" data-act="ob2out">Next</button>`,
@@ -1983,35 +1978,9 @@ function ob2Draw() {
   el.innerHTML = `<div class="wn-in wk-in"><div class="wn-top"><span class="wk-dots">${o.steps.map((_, j) => `<i class="${j <= o.i ? 'on' : ''}"></i>`).join('')}</span><button data-act="ob2skip" aria-label="Later">${k === 'invite' && Number(ls.get('invN') || 0) === 0 && standalone() ? 'Already sent' : 'Later'}</button></div>${body}</div>`;
   if (k === 'try') wkSwipeWire(el, 'Never again');
   if (k === 'flip') flipWire(el);
-  if (k === 'piles') { document.getElementById('obpv')?.remove(); peelWire(document.getElementById('obpg'), { small: 1, h: 'Peel me', done: walkOk }); }
+  if (k === 'piles') wipeWire(document.getElementById('obpv'), 'Scratch me', true);
 }
-// a frosted window to wipe clean (the onboarding demo of a covered card); enables the step's button when it's mostly clear
-// Unique spots peel open like a sticker (Dave, 19 Nov: a different feel from the scratch cards). The corner is already
-// lifted; drag it up and to the left and the paper folds back along a line, showing the place underneath. Let go past
-// about halfway and it peels the rest of the way off; earlier and it settles back to the lifted corner.
-function peelWire(host, o = {}) {
-  if (!host || host.querySelector('.pcov')) return; const w = document.createElement('div'); w.className = 'pcov' + (o.small ? ' sm' : '');
-  w.innerHTML = `<div class="pc-sheet"><span class="pc-k">${esc(o.k || 'Unique spot')}</span><span class="pc-h">${esc(o.h || 'Peel back the corner')}</span></div><div class="pc-fw"><div class="pc-flap"></div></div>`; host.appendChild(w);
-  const sh = w.querySelector('.pc-sheet'), fl = w.querySelector('.pc-flap'), r0 = host.getBoundingClientRect(), W = r0.width, H = r0.height, A0 = Math.min(W, H) * .16;
-  let a = A0, down = false, sx = 0, sy = 0, base = A0, done = false;
-  // the part of the card on this side of the fold line x + y = c, and the folded corner reflected across it
-  const clip = (pts, keep) => { const out = []; for (let i = 0; i < pts.length; i++) { const P = pts[i], Q = pts[(i + 1) % pts.length], fp = keep(P), fq = keep(Q);
-      if (fp >= 0) out.push(P); if ((fp >= 0) !== (fq >= 0)) { const t = fp / (fp - fq); out.push([P[0] + (Q[0] - P[0]) * t, P[1] + (Q[1] - P[1]) * t]); } } return out; };
-  const poly = ps => ps.length ? `polygon(${ps.map(([x, y]) => `${x.toFixed(1)}px ${y.toFixed(1)}px`).join(',')})` : 'polygon(0 0,0 0,0 0)';
-  const draw = () => { const c = W + H - a, R = [[0, 0], [W, 0], [W, H], [0, H]];
-    sh.style.clipPath = poly(clip(R, ([x, y]) => c - x - y));
-    const cut = clip(R, ([x, y]) => x + y - c).map(([x, y]) => [c - y, c - x]); fl.style.clipPath = poly(cut);
-    const q = Math.SQRT1_2; fl.style.background = `linear-gradient(135deg, #fffdf7 ${((c - a) * q).toFixed(1)}px, #f1e3c4 ${((c - a * .35) * q).toFixed(1)}px, #b09468 ${(c * q).toFixed(1)}px)`; };
-  draw();
-  const fin = () => { if (done) return; done = true; const t0 = performance.now(), a1 = a, end = W + H + 40;
-    const step = t => { const k = Math.min(1, (t - t0) / 380); a = a1 + (end - a1) * (1 - (1 - k) ** 3); draw(); if (k < 1) requestAnimationFrame(step); else { w.remove(); } };
-    requestAnimationFrame(step); try { navigator.vibrate?.([10, 40, 18]); } catch {} o.done?.(); };
-  const settle = () => { const t0 = performance.now(), a1 = a; const step = t => { const k = Math.min(1, (t - t0) / 260); a = a1 + (A0 - a1) * k; draw(); if (k < 1 && !down) requestAnimationFrame(step); }; requestAnimationFrame(step); };
-  w.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); if (done) return; down = true; sx = e.clientX; sy = e.clientY; base = a; w.classList.add('go'); try { w.setPointerCapture(e.pointerId); } catch {} });
-  w.addEventListener('pointermove', e => { if (!down || done) return; e.preventDefault(); a = Math.max(A0 * .6, base + ((sx - e.clientX) + (sy - e.clientY)) * 1.15); draw(); if (a > (W + H) * .72) fin(); });
-  const up = e => { e.stopPropagation(); if (!down) return; down = false; if (done) return; if (a > (W + H) * .45) fin(); else settle(); };
-  w.addEventListener('pointerup', up); w.addEventListener('pointercancel', up);
-}
+// a covered card to scratch (the onboarding demo); enables the step's button when it's mostly clear
 function wipeWire(cv, label, scratch) {
   if (!cv) return; const box = cv.parentElement.getBoundingClientRect(), W = cv.width = Math.round(box.width), H = cv.height = Math.round(box.height), x = cv.getContext('2d');
   cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;touch-action:none;border-radius:inherit';
@@ -2268,14 +2237,23 @@ function cbHTML() { const { from, list, pick } = S.cb || {}; const lab = w => w 
     ${(list || []).map(x => `<button class="pollo ${pick === x.id ? 'on' : ''}" data-act="cbpick" data-id="${x.id}"><span>${esc(x.title)}<small>${x.walk} min walk · ${lab(x.why)}</small></span></button>`).join('')}
     ${pick ? `<div style="height:10px"></div><button class="btn" data-act="cbplan">Plan these two</button>` : ''}<button class="jlink" data-act="closesheet">Done</button></div>`; }
 function cbPlan() { const { from, list, pick } = S.cb || {}, b = (list || []).find(x => x.id === pick); if (!from || !b) return; closeSheet(); S.pair = { a: from, b, kind: b.why }; step('closeby_plan'); pairPlan(); }
-// A unique spot arrives behind a frosted shop window: wipe it clean and an Open sign swings in.
-// A unique spot arrives under a paper sticker: peel it back and an Open sign swings in.
-function uniqueCover(el, c) { if (!el || el.querySelector('.pcov')) return; let done = false;
-  const reveal = () => { if (done) return; done = true; const a = gemSeen(); a.push(c.id); ls.set('gemsc', JSON.stringify(a.slice(-80))); step('unique_peel'); 
+// A unique spot arrives as a scratch card, like every covered card (Dave, 19 Nov): scratch it off and an Open sign swings in.
+// A unique spot arrives as a scratch card, like every covered card (Dave, 19 Nov): scratch it off and an Open sign swings in.
+function uniqueCover(el, c) { if (!el || el.querySelector('.gcov')) return; const w = document.createElement('div'); w.className = 'gcov'; w.innerHTML = '<canvas></canvas><span class="gcov-k">Unique spot</span><span class="gcov-h">Scratch to see what’s inside</span>'; el.appendChild(w);
+  const cv = w.querySelector('canvas'), box = el.getBoundingClientRect(), W = cv.width = Math.round(box.width), H = cv.height = Math.round(box.height), g = cv.getContext('2d');
+  const gr = g.createLinearGradient(0, 0, W, H); gr.addColorStop(0, '#2a1840'); gr.addColorStop(.45, '#7a3df0'); gr.addColorStop(.75, '#ff4d7e'); gr.addColorStop(1, '#ffb547'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+  g.fillStyle = 'rgba(255,255,255,.10)'; for (let i = -H; i < W; i += 30) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i + 9, 0); g.lineTo(i + 9 + H, H); g.lineTo(i + H, H); g.fill(); }
+  g.fillStyle = 'rgba(255,255,255,.8)'; for (let i = 0; i < 46; i++) { const x = (i * 97 % W), y = (i * 211 % H), r = 1 + (i % 3); g.globalAlpha = .25 + (i % 5) * .12; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); } g.globalAlpha = 1;
+  g.globalCompositeOperation = 'destination-out'; g.lineCap = 'round'; g.lineJoin = 'round'; g.lineWidth = Math.max(54, W / 4.5);
+  let down = false, lx = 0, ly = 0, moves = 0, done = false; const pt = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; };
+  const reveal = () => { if (done) return; done = true; const a = gemSeen(); a.push(c.id); ls.set('gemsc', JSON.stringify(a.slice(-80))); step('unique_scratch'); w.classList.add('off'); setTimeout(() => w.remove(), 560);
     const sg = document.createElement('div'); sg.className = 'usign'; sg.innerHTML = '<b>Open</b>'; el.appendChild(sg); setTimeout(() => sg.classList.add('out'), 1700); setTimeout(() => sg.remove(), 2200);
     try { navigator.vibrate?.([12, 70, 12]); } catch {}
     setTimeout(() => { if (!el.isConnected) return; const n = document.createElement('div'); n.className = 'gfact ufact'; n.innerHTML = `<small>${esc(c.kind || 'Unique spot')}</small><b>${esc(c.data?.notes || 'One of a kind, and close by.')}</b><span>${partner() ? esc(them()) + ' gets this one too.' : 'The kind of place you only find by wandering.'}</span>`; el.appendChild(n); setTimeout(() => n.classList.add('out'), 3400); setTimeout(() => n.remove(), 4000); n.addEventListener('pointerdown', e => { e.stopPropagation(); n.remove(); }); }, 1500); };
-  peelWire(el, { k: 'Unique spot', h: 'Peel back the corner to look inside', done: reveal }); }
+  const check = () => { const d = g.getImageData(0, 0, W, H).data; let clear = 0, tot = 0; for (let i = 3; i < d.length; i += 4 * 41) { tot++; if (d[i] < 40) clear++; } if (clear / tot > .4) reveal(); };
+  w.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); if (done) return; down = true; [lx, ly] = pt(e); g.beginPath(); g.arc(lx, ly, g.lineWidth / 2, 0, 7); g.fill(); w.classList.add('go'); try { w.setPointerCapture(e.pointerId); } catch {} });
+  w.addEventListener('pointermove', e => { if (!down || done) return; e.preventDefault(); const [x, y] = pt(e); g.beginPath(); g.moveTo(lx, ly); g.lineTo(x, y); g.stroke(); lx = x; ly = y; if (++moves % 5 === 0) check(); });
+  const up = e => { e.stopPropagation(); if (down) { down = false; if (!done) check(); } }; w.addEventListener('pointerup', up); w.addEventListener('pointercancel', up); }
 // Invite another couple: the link opens the app itself, where they start a couple and add it to their Home Screen.
 async function shareApp() {
   const n = String(S.me || '').trim().split(/\s+/)[0] || '', url = 'https://letstogether.app/';
@@ -3884,7 +3862,7 @@ function howTo() {
   const p = esc(partner() || 'your person'), H = [
     ['Swiping', 'Right is maybe, up is hell yeah, left is nah, down is never again. Tap a card to flip it for the details. ' + p.charAt(0).toUpperCase() + p.slice(1) + ' only sees what you both said yes to.'],
     ['The five piles', 'Discover is a bit of everything near you. Watch is movies. Eat & Drink is restaurants and bars, Go Out is things to do (escape rooms, comedy, bowling, museums, what’s on), and Trips is places you might go. A pile is a short handful a day; when it runs out you get a grid of everything you’ve liked.'],
-    ['Covered cards', 'Hidden gems you scratch, unique spots (independent shops) you peel open like a sticker, and food or drink events you scratch in Eat & Drink. Both of you get the same one.'],
+    ['Covered cards', 'Hidden gems, unique spots (independent shops) and food or drink events arrive as scratch cards. Scratch to see what’s inside. Both of you get the same one.'],
     ['Matches', 'When you both say yes it’s a match. Matches live behind the heart at the top: pick one, shuffle, or play a quick game for it.'],
     ['Close by', 'Open a place and tap “What else you like close by” to see your other likes a short walk away, then put two in a plan with the times worked out.'],
     ['Plans', 'Plan a day builds a day from what you both like, with travel time between stops. Weekend plans arrive on their own; say yes, swap a stop, or keep one secret as a surprise.'],
@@ -3907,7 +3885,7 @@ function newsShow(force) {
 /* ---------- what's new, as a walkthrough you play with: one tap or swipe per screen ---------- */
 const WALK = [
   { k: 'tabs', a: '#ffb547', b: '#ff7a4d', kick: 'New: five piles', h: 'Discover, Watch, Eat & Drink, Go Out, Trips', p: 'Discover is a bit of everything, with finds near you mixed in. Movies are now Watch. Restaurants and bars share Eat & Drink, and Go Out is things to do. Art is retired.', open: true },
-  { k: 'uq', a: '#9fb8cc', b: '#ffb547', kick: 'New: unique spots', h: 'Peel it open', p: 'Independent shops near you, like record stores, bookshops, candy and magic shops, arrive under a sticker in Discover. Peel back the corner to see what’s inside. You can put them in a plan.', wait: 'Peel the corner' },
+  { k: 'uq', a: '#9fb8cc', b: '#ffb547', kick: 'New: unique spots', h: 'Scratch it open', p: 'Independent shops near you, like record stores, bookshops, candy and magic shops, arrive as scratch cards in Discover. Scratch to see what’s inside. You can put them in a plan.', wait: 'Scratch the card' },
   { k: 'food', a: '#ff7a4d', b: '#ff4d7e', kick: 'New in Eat & Drink', h: 'Food and drink finds', p: 'Hidden-gem restaurants and bars, and things like a chili cook-off or a wine tasting, show up as scratch cards in Eat & Drink.', wait: 'Scratch the card' },
   { k: 'close', a: '#2dd4bf', b: '#ffb547', kick: 'New: close by', h: 'What else you like nearby', p: 'Open a place and tap “What else you like close by” to see your other likes a short walk away, then put two in a plan. When a pile runs out, you get a grid of everything you’ve liked.', open: true },
   { k: 'plans', a: '#4d9bff', b: '#2dd4bf', kick: 'New in plans', h: 'Fill the gaps', p: 'A long gap after a museum or show now offers a snack break nearby, or moves the next stop up. “Suggest something else” opens a gallery of places you both like, your likes and hidden gems close by.', open: true, n8: 1 },
@@ -3950,7 +3928,7 @@ function walkDraw() {
     <small class="wk-k">${st.kick}</small><h2 class="wk-h">${st.h}</h2><p class="wk-p">${st.p}</p><div class="wk-stage wk-s-${st.k}">${stage}</div>
     ${pushOff ? `<button class="btn wk-cta" data-act="walkpush">Turn on nudges</button><div style="height:8px"></div><button class="btn ghost" data-act="newsdone">Start swiping</button>` : last ? `<button class="btn wk-cta" data-act="newsdone">Start swiping</button>` : st.open ? `<button class="btn wk-cta" data-act="walknext">Next</button>` : `<button class="btn wk-cta wait" id="wkgo" data-act="walknext" disabled>${st.wait}</button>`}</div>`;
   if (st.k === 'flip') flipWire(el);
-  if (st.k === 'uq') { const cvw = document.getElementById('wkw'), hw = cvw?.parentElement; cvw?.remove(); peelWire(hw, { small: 1, h: 'Peel me', done: walkOk }); }
+  if (st.k === 'uq') wipeWire(document.getElementById('wkw'), 'Scratch me', true);
   if (st.k === 'food') wipeWire(document.getElementById('wkw'), 'Scratch me', true);
   if (st.k === 'swipe') { wkSwipeWire(el);
   } else if (st.k === 'gem') {
@@ -5709,7 +5687,7 @@ function pilePose(id, i) {
 }
 function drawStack() {
   const st = document.getElementById('stack'); if (!st) return; updateBar(); if (S.deck[0]?.data?.gem) tip1('gem', 'A hidden gem: somewhere most people walk past.');
-  else if (S.deck[0]?.data?.unique) tip1('uq', 'A unique spot: an independent shop near you. Wipe the window to look inside.');
+  else if (S.deck[0]?.data?.unique) tip1('uq', 'A unique spot: an independent shop near you. Scratch to see inside.');
   else if (evFind(S.deck[0])) tip1('evfind', 'A food or drink event, on for a day or two. Scratch to see what’s on.');
   else if (S.homeDeck === 'dinner') tip1('eatdrink', 'Eat & Drink is restaurants and bars together, with a food or drink find covered now and then.');
   else if (S.homeDeck === 'event') tip1('goout', 'Go Out is things to do: escape rooms, comedy, bowling, museums and what’s on.');
