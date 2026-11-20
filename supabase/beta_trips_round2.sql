@@ -32,3 +32,11 @@
 -- Round 5 (20 Nov, 5:30pm): trip day screen. Migration trip_day_details on production:
 --   fr_trip_set(p_id, 'flight'|'stay', value)  (group: data.flights[uid] = {code, day, land, from}; also sets arrive_at/arrive_how)
 --   plan_trip_set(code, member, city, 'flight'|'stay', value)  (couple: plan_meta[city].flights_by[member], plan_meta[city].stay)
+
+-- 20 Nov 5:45pm (Dave: "populate a locked in trip"): test data only, on the beta test world.
+--   "Lisbon with the crew" (55e8b939…, Apr 9–11): 13 stops on (Fri 5, Sat 6 incl. Jam Club picked by chance over Agave and
+--   The Wake, Sun 2), booked Boat Cruise Sat 11:00 and Sintra day trip Sun 08:30 (TEST-3, by Ava, no cost line),
+--   flights for all four (Dave+Ava TP236 from ORD 07:10, Maya TP202 EWR 08:25, Jordan UA66 EWR 09:40; arrive_at set),
+--   stay Bairro Alto Rooftop Apartment, Rua da Rosa 123, check-in 15:00, check-out 08:00. Deck now 18 cards.
+--   BETADAVE couple Lisbon (Mar 12–18): 18 stops across Mar 12–17, flights for Dave and Ava (TP236 07:10),
+--   stay Casa do Largo, Alfama (14:00 / 11:00), bike tour booked Mar 15 10:00.
