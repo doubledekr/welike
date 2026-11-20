@@ -2377,6 +2377,7 @@ async function teamDo(action, text) { let r; try { r = await rpc('team_act', { p
 
 /* ---------- trivia sign-up funnel: a couple counts once BOTH partners say they're in ---------- */
 const tfKey = () => { const f = S.tf; return f ? [f.poll, f.choice, f.teams, (f.in || []).join(','), f.open, !!f.event, standalone()].join('|') : ''; };
+const tfMore = f => { const n = Math.max(1, (f?.need || 3) - (f?.teams || 0)); return n === 1 ? 'one more couple' : `${['', '', 'two', 'three', 'four', 'five'][n] || n} more couples`; };
 const tfMeter = f => { const n = Math.min(f.teams, f.need); return `<div class="tfm">${Array.from({ length: f.need }, (_, i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('')}</div><small class="tfml"><b>${f.teams} of ${f.need} couples in</b> · ${f.teams >= f.need ? 'the gift card night is on' : `${f.need - f.teams} more for the $25 Amazon gift card`}</small>`; };
 function tfNext(f) { const p = partner(), meIn = (f.in || []).includes(S.me), pIn = p && (f.in || []).includes(p);
   if (!f.open) return f.fri ? ['Wednesday we’ll ask about Friday. Invite a couple before then', 'tftell', 'Invite'] : null;
@@ -2386,7 +2387,7 @@ function tfNext(f) { const p = partner(), meIn = (f.in || []).includes(S.me), pI
   if (!p) return ['You’re playing solo. Get your partner in', 'tfinv', 'Invite'];
   if (!pIn) return [`Waiting on ${esc(p)} to say they’re in`, 'tf', 'Nudge'];
   if (!standalone() && !f.installed) return ['One thing left: put it on your Home Screen', 'tfhome', 'Show me'];
-  if (f.teams < f.need) return ['You two are in. Bring one more couple', 'tftell', 'Invite'];
+  if (f.teams < f.need) return [`You two are in. Bring ${tfMore(f)}`, 'tftell', 'Invite'];
   return ['You two are in', 'tf', 'Open']; }
 const tfBanner = () => { const f = S.tf; if (!f || f.event) return ''; const nx = tfNext(f); if (!nx) return '';
   const title = !f.open && f.fri ? 'Trivia moves to Friday' : f.teams >= f.need ? 'Trivia night is on!' : f.fri ? 'Friday trivia night' : 'Trivia night';
@@ -2400,9 +2401,9 @@ async function tfSheet() { let f = S.tf; try { f = await rpc('trivia_funnel', { 
     p ? tfRow(pIn, pIn ? `${esc(p)} is in` : `Waiting on ${esc(p)}`, pIn ? 'You count as a team' : 'You only count once you both say you’re in', 'tfnudge', 'Nudge')
       : tfRow(false, 'Get your partner in', 'The gift card is for couples. Joining takes them a minute', 'tfinv', 'Invite'),
     standalone() || f.installed ? '' : tfRow(false, 'Put it on your Home Screen', 'So trivia can buzz you on the night. iPhone needs this', 'tfhome', 'Show me'),
-    f.teams < f.need ? tfRow(false, 'Bring one more couple', `We need ${f.need - f.teams} more for the gift card night`, 'tftell', 'Invite') : ''].join('');
+    f.teams < f.need ? tfRow(false, f.need - f.teams === 1 ? 'Bring one more couple' : 'Bring a couple', `We need ${tfMore(f)} for the gift card night`, 'tftell', 'Invite') : ''].join('');
   sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><span class="badge" style="margin:6px auto 4px">${ic('spark')}</span><h2>${f.teams >= f.need ? 'Trivia night is on!' : 'You’re in. A few things before the night'}</h2></div></div>${tfMeter(f)}<div class="tfl">${rows}</div>${f.host ? '<p class="muted" style="font-size:13px;text-align:center">You two play hidden: you never count toward the 3 and can’t win.</p>' : ''}<button class="jlink" data-act="closesheet">Done</button>`, 'tf'); }
-const TELLT = 'We’re doing a couples trivia night on Let’s Together, every couple a team, and the top couple wins a $25 Amazon gift card. They need one more couple. You each swipe on movies, places and things to do, and it only shows what you both said yes to. One of you starts it and sends the other your couple code.';
+const TELLT = () => `We’re doing a couples trivia night on Let’s Together, every couple a team, and the top couple wins a $25 Amazon gift card. They need ${tfMore(S.tf)}. You each swipe on movies, places and things to do, and it only shows what you both said yes to. One of you starts it and sends the other your couple code.`;
 async function tfAct(a, t) { const f = S.tf, p = partner();
   if (a === 'tf') return tfSheet();
   if (a === 'tfin' || a === 'tfout') { t.disabled = true; try { S.tf = await rpc('trivia_rsvp_set', { p_code: S.code, p_member: S.me, p_in: a === 'tfin' }); } catch { t.disabled = false; return toast('That didn’t save. Try again.'); }
@@ -6086,7 +6087,7 @@ document.addEventListener('click', async e => {
       case 'inbox': return inboxSheet();
       case 'shareapp': return shareApp();
       case 'tellsend': { const url = 'https://letstogether.app/'; step('tell_' + ds.how);
-        const TX = S.tellT ? TELLT : TELL;
+        const TX = S.tellT ? TELLT() : TELL;
         if (ds.how === 'text') { const body = encodeURIComponent(`${TX}\n${url}`); location.href = /iphone|ipad|ipod|macintosh/i.test(navigator.userAgent) ? `sms:&body=${body}` : `sms:?body=${body}`; return; }
         if (navigator.share) { try { await navigator.share({ text: TX + '\n' + url }); } catch {} return; }
         try { await navigator.clipboard.writeText(TX + '\n' + url); toast('Copied. Paste it into a message.'); } catch {} return; }
