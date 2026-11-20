@@ -4,3 +4,12 @@
 --   a suggestion goes on the day once half the group is in. Stored in fr_plans.data.days. Nothing is pushed.
 -- _viator_apply now keeps the product code on each booked item, so a missing start time can be picked from the tour's times.
 -- start_trips skips Eat sessions (filters ? 'eat').
+
+-- Round 3 (applied as migration beta_trips_round3, 20 Nov afternoon):
+-- start_trip_explore(code, member, city): Explore pile (day trips first, then tours on your dates, then gems/spots).
+-- trips_tag_explore(codes, tag) (service only); trips edge function action 'explore' (source supabase/trips_index.ts).
+-- trip_points(ids): lat/lng for the trip map.
+-- fr_day(p_id, p_card|null, p_day, p_vote add|suggest|up|down|lock|off, p_opt {title,time,url}): majority on, half out drops;
+--   planner adds directly or puts to a vote; planner can lock in. fr_day_rand(p_id, p_cards): planner lets chance pick.
+-- plan_stop(code, member, city, card|null, day, vote, opt) and plan_stop_rand(...): the same for couple trips
+--   (two people: on once the other is in; a card you both liked goes straight on).

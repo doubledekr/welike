@@ -994,6 +994,12 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .mcard img,.mcard .pimg{width:100%;height:100%;object-fit:cover;display:flex;align-items:center;justify-content:center;font-size:42px}.mcard b{position:absolute;left:0;right:0;bottom:0;padding:26px 11px 10px;font-family:var(--serif);font-weight:400;font-size:18px;line-height:1.08;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.75))}
 .mstk .mcard:nth-child(1){z-index:3}.mstk .mcard:nth-child(2){z-index:2;transform:rotate(3deg) translate(4px,2px)}.mstk .mcard:nth-child(3){z-index:1;transform:rotate(-4deg) translate(-4px,4px)}.mstk .mcard:nth-child(n+4){opacity:0;pointer-events:none}
 .mstk .mcard.outl{transform:translateX(-115%) rotate(-12deg);opacity:0}.mstk .mcard.outr{transform:translateX(115%) rotate(12deg);opacity:0}.mhint{text-align:center;font-size:12px;margin-top:12px}
+.tside .btn>.ic,.trp .btn>.ic{width:17px;height:17px;margin-right:8px;vertical-align:-3px}.ttop{display:flex;flex-direction:column;gap:8px;margin:2px 0 12px}.tmrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.05);color:#fff;border:0}.tmrow .ic{width:20px;height:20px;color:#3ee0c5;flex:none}.tmrow b{display:block;font-size:15px}.tmrow small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}.tmrow i{font-style:normal;font-weight:600;font-size:13.5px;color:#3ee0c5}.tmrow.hot{background:rgba(62,224,197,.1)}
+.tdst.tent{opacity:.92}.tdst.tent b{color:rgba(255,255,255,.82)}.tdst.tent .tdt{color:rgba(62,224,197,.6);border:1px dashed rgba(62,224,197,.45)}.tdst .ttwo{display:flex;gap:8px;margin-top:8px}.tdst .tb{flex:1;padding:7px 0;font-size:13.5px}.tclw{display:block;color:#ffb38a !important;font-size:12px;margin-top:3px}.tlink{font-size:12.5px;color:#3ee0c5;margin-top:3px;display:inline-block}.tgone{display:block;margin:10px 4px 0;font-size:12.5px}.trand{margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px}.trand .ic{width:17px;height:17px}
+.tdays button.wait:after{content:'';position:absolute;top:6px;right:8px;width:6px;height:6px;border-radius:6px;background:#ff9a7a}.tdays button{position:relative}
+.stdays{display:flex;flex-wrap:wrap;gap:8px}.stdays .tpill,.vtgrid .tpill.on,.stdays .tpill.on{}.rsel{width:100%;text-align:left;background:none;border:0;color:#fff;opacity:.45}.rsel.on{opacity:1}.rsel:not(.on) .rck{visibility:hidden}.rsel .rck .ic{width:18px;height:18px;color:#3ee0c5}
+.tmv .tmapc{height:calc(100vh - 230px);min-height:320px;border-radius:18px;overflow:hidden;background:#15161b;margin-top:10px}.tmd{margin-top:6px}.tleg{display:flex;gap:14px;flex-wrap:wrap;margin:10px 4px 0;font-size:12.5px;color:var(--muted)}.tleg i{display:inline-block;width:10px;height:10px;border-radius:10px;margin-right:6px;vertical-align:-1px}.tleg .b{background:#ff8a65}.tleg .o{background:#3ee0c5}.tleg .t{border:2px dashed #3ee0c5;width:7px;height:7px}.tleg .l{background:#8a8f98}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#1d1e24;color:#fff}.leaflet-popup-content a{color:#3ee0c5}.leaflet-container{font:500 14px Inter,system-ui,sans-serif}
 .vtgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.vtgrid .tpill{width:100%;padding:11px 0;justify-content:center}.tclash{margin:2px 4px 10px;font-size:12.5px}.gsug .ttwo{display:flex;gap:8px}.gsug .tb{flex:1;padding:7px 0}.frmine{display:flex;align-items:center;gap:5px;color:#ffd2a8 !important}.frmine .ic{width:13px;height:13px}.d2 .pg button.peek.need{opacity:.9;position:relative}.d2 .pg button.peek.need:after{content:'';position:absolute;top:10px;right:6px;width:7px;height:7px;border-radius:9px;background:#ff9a7a}
 .tsw{padding-top:12px;padding-bottom:2px}.tsw button{display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:7px 13px;line-height:1.15}.tsw button small{font-size:10.5px;font-weight:600;opacity:.7}
 .tsw button.need{position:relative}.tsw button.need:after{content:'';position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:9px;background:#ff9a7a}
@@ -1844,6 +1850,7 @@ function render() {
   if (S.view === 'favs') return renderFavs();
   if (S.view === 'tday') return renderTripDay();
   if (S.view === 'gday') return renderGTripDay();
+  if (S.view === 'tmap') return renderTripMap();
   if (S.view === 'swipe') return renderSwipe();
   if (S.view === 'matches') return renderMatches();
   if (S.view === 'game') return renderGame();
@@ -2109,10 +2116,10 @@ const tripOn = () => (S.settings?.plans || []).find(c => { const m = planMeta(c)
 // the top of the Trips side switches between "Someday" (exploring) and each trip; a trip that needs you carries a dot.
 function tripList() {
   const today = isoDay(Date.now()), st = (a, b) => !a ? 'planning' : a <= today && (b || a) >= today ? 'now' : 'soon';
-  const out = (S.settings?.plans || []).map(c => { const m = planMeta(c); return { key: 'c:' + c, kind: 'c', city: c, title: c, from: m.from || '', to: m.to || m.from || '', state: st(m.from, m.to), needs: !!(m.from && !planOk(c) && m.dates_by && m.dates_by !== S.me) }; })
+  const out = (S.settings?.plans || []).map(c => { const m = planMeta(c); return { key: 'c:' + c, kind: 'c', city: c, title: c, from: m.from || '', to: m.to || m.from || '', state: st(m.from, m.to), needs: !!(m.from && !planOk(c) && m.dates_by && m.dates_by !== S.me) || (DOCK2 && tripWaits('c:' + c)) }; })
     .filter(t => !t.to || t.to >= today);
   for (const g of (FR.d?.plans || [])) { if (g.kind !== 'trip' || g.status === 'out') continue; const to = g.day ? isoDay(new Date(new Date(g.day + 'T12:00').getTime() + 2 * 864e5)) : '';
-    if (to && to < today) continue; out.push({ key: 'g:' + g.id, kind: 'g', id: g.id, city: g.city || '', title: g.title || g.city || 'Group trip', from: g.day || '', to, state: st(g.day, to), needs: !!g.todo, owner: g.owner }); }
+    if (to && to < today) continue; out.push({ key: 'g:' + g.id, kind: 'g', id: g.id, city: g.city || '', title: g.title || g.city || 'Group trip', from: g.day || '', to, state: st(g.day, to), needs: !!g.todo || (DOCK2 && !!gtOf(g.id) && tripWaits('g:' + g.id)), owner: g.owner }); }
   const rank = t => t.state === 'now' ? 0 : t.needs ? 1 : t.state === 'soon' ? 2 : 3;
   return out.sort((a, b) => rank(a) - rank(b) || (a.from || '9').localeCompare(b.from || '9'));
 }
@@ -2169,23 +2176,7 @@ if (DOCK2) { let m0 = null;
     top.classList.add(dx < 0 ? 'outl' : 'outr'); setTimeout(() => { top.classList.remove('outl', 'outr'); k.appendChild(top); }, 190); }, { passive: true });
   document.addEventListener('click', e => { if (S.mstkAt && Date.now() - S.mstkAt < 400 && e.target.closest?.('.mstk')) { e.stopPropagation(); e.preventDefault(); } }, true); }
 function tripCityPick(c) { S.tPick = S.tripCity === c ? '' : c; S.tripCity = S.tPick; if (S.dc) delete S.dc.trip; render(); }
-const tripDayHas = (c, k) => (planMeta(c).booked || []).some(b => b.day === k) || Object.values(planMeta(c).days || {}).some(x => x.day === k);
-// One day of a trip (beta): what's booked that day with times, picks put on that day, and ideas for the rest.
-function renderTripDay() {
-  const c = S.tdCity, k = S.tdDay, M = planMeta(c), days = tripDays(c); if (!c || !k || !days.length) { S.view = 'home'; return render(); }
-  const P = planParts(c), all = [...P.todo, ...(P.gems || [])], on = M.days || {}, idx = days.findIndex(d => d.k === k);
-  const booked = (M.booked || []).filter(b => b.day === k).sort((a, b) => (a.time || '99').localeCompare(b.time || '99'));
-  const mine = all.filter(x => on[x.id]?.day === k), free = all.filter(x => !on[x.id] && !(M.booked || []).some(b => b.card === x.id)).slice(0, 6);
-  const img = x => x.image ? `<img src="${esc(x.image)}" alt="">` : `<span class="pimg">${ic('ticket')}</span>`;
-  const dname = new Date(k + 'T12:00').toLocaleDateString('en-US', { weekday: 'long' });
-  $app.innerHTML = `<div class="view tdv tside"><div class="topbar"><button class="back" data-act="home" aria-label="Back to the trip">‹</button><div class="grow"><h2>${esc(dname)}</h2><small>${esc(c)} · day ${idx + 1} of ${days.length}</small></div></div>
-    <div class="tdays">${days.slice(0, 7).map(d => `<button data-act="tday" data-day="${d.k}" class="${d.k === k ? 'on' : ''} ${tripDayHas(c, d.k) ? 'dot' : ''}">${d.wd}<b>${d.d}</b></button>`).join('')}</div>
-    ${booked.length || mine.length ? '' : `<p class="muted" style="margin:18px 4px 4px;font-size:14px">Nothing on ${esc(dname)} yet. Put a few of your picks on it below.</p>`}
-    ${booked.map(b => `<div class="prow tdst"><span class="tdt">${b.time ? esc(tm12(b.time)) : '—'}</span><span class="grow"><b>${esc(b.title)}</b><small>Booked by ${b.by === S.me ? 'you' : esc(b.by)}</small></span>${!b.time && b.by === S.me && b.ref ? `<button class="tpill go" data-act="vtime" data-ref="${esc(b.ref)}" data-prod="${esc(b.product || '')}">Set time</button>` : '<span class="tbk">Booked</span>'}</div>`).join('')}
-    ${mine.map(x => `<div class="prow tdst"><span class="tdt">${ic('check')}</span><span class="grow"><b>${esc(x.title)}</b><small>${on[x.id]?.by === S.me ? 'You' : esc(on[x.id]?.by || '')} put this on ${esc(dname)}</small></span><button class="btn ghost sm" data-act="tdoff" data-card="${x.id}">Take off</button></div>`).join('')}
-    ${free.length ? `<div class="sect" style="margin-top:18px">Ideas for ${esc(dname)}</div><div class="tdideas">${free.map(x => `<button class="tdi" data-act="tdput" data-card="${x.id}">${img(x)}<span><b>${esc(x.title)}</b><small>${x.who === 'both' ? 'You both like' : x._gem ? 'Hidden gem' : 'Your pick'} · tap to add</small></span></button>`).join('')}</div>` : ''}
-    <div style="height:30px"></div></div>`;
-}
+const tripDayHas = (c, k) => (planMeta(c).booked || []).some(b => b.day === k) || Object.values(planMeta(c).days || {}).some(x => x.day === k && stopOn(x));
 // Group trips on the Trips side (beta, Dave 20 Nov): a group trip opens its own trip home and day view here, like a
 // couple trip, instead of jumping to the group page. The group page is still one tap away for votes, money and chat.
 const tripGid = () => { const k = tripSel(); return k.startsWith('g:') ? k.slice(2) : ''; };
@@ -2195,7 +2186,7 @@ async function gtLoad(id, re) { if ((S.gtBusy ||= {})[id]) return; S.gtBusy[id] 
   if (re !== false && (document.querySelector('.tov') || S.view === 'gday')) render(); }
 function gtDays(p) { const a = String(p?.day || '').slice(0, 10); if (!a) return []; const [y, m, d] = a.split('-').map(Number), out = [];
   for (let i = 0; i < 3; i++) { const x = new Date(y, m - 1, d + i); out.push({ k: isoDay(x), wd: x.toLocaleDateString('en-US', { weekday: 'short' }), d: x.getDate() }); } return out; }
-const gtDayHas = (p, k) => (p.data?.booked || []).some(b => b.day === k) || Object.values(p.data?.days || {}).some(x => x.day === k && x.on);
+const gtDayHas = (p, k) => (p.data?.booked || []).some(b => b.day === k) || Object.values(p.data?.days || {}).some(x => x.day === k && stopOn(x));
 const gtHost = p => { const me = p.members.find(m => m.me); return !!(me?.host || /host/i.test(me?.role || '')); };
 const tripLabel = () => { const f = tripFocus(); if (f) return f; const g = tripGid(); return g ? (tripList().find(x => x.key === 'g:' + g)?.title || 'Trip') : ''; };
 const tripCityOf = () => tripFocus() || (tripList().find(x => x.key === 'g:' + tripGid())?.city || '');
@@ -2213,36 +2204,16 @@ function gTripHome(id) {
   const debts = frDebts(p).filter(r => r.paid < r.cents && (r.to === me?.id || r.from.includes(me?.id))), byP = Object.fromEntries(p.members.map(m => [m.id, m]));
   const byId = Object.fromEntries((p.cards || []).map(c => [c.id, c])), allin = (p.allin || []).map(i => byId[i]).filter(Boolean);
   const names = frNames(going.map(m => m.me ? 'You' : m.name));
-  return `<div class="trp kc k-book">${clashNote('g:' + id)}
+  return `<div class="trp kc k-book">${clashNote('g:' + id)}${tripTop('g:' + id)}
     ${need ? step('users', 'Your turn', need, '<button class="tpill go" data-act="gfull">Open</button>', 'hot') : ''}
     ${step('users', 'Who’s going', esc(names) + (p.members.some(m => m.status === 'invited') ? ` · ${p.members.filter(m => m.status === 'invited').length} still deciding` : ''))}
     ${step('target', 'The weekend', p.day ? esc(frWk(p.day)) + ' · picked' : wq ? 'The group is still voting' : 'Not picked yet', p.day ? '' : '<button class="tpill" data-act="gfull">Vote</button>')}
     ${step('pin', 'A place to stay', p.data?.stay?.name ? esc(p.data.stay.name) : 'Not picked yet', p.data?.stay?.name ? '' : '<button class="tpill" data-act="gfull">Pick</button>')}
-    ${toVote ? step('check', 'Stops to vote on', `${toVote} waiting on you`, `<button class="tpill go" data-act="gday" data-day="${esc(Object.values(D).find(x => !x.on && !(x.yes || []).includes(me?.id) && !(x.no || []).includes(me?.id))?.day || '')}">See</button>`, 'hot') : ''}
     ${(p.data?.booked || []).length ? `<div class="sect">Booked</div>${p.data.booked.slice().sort((a, b) => (a.day + (a.time || '')).localeCompare(b.day + (b.time || ''))).map(b => bkRow(b, id)).join('')}` : ''}
     ${debts.length ? `<div class="sect">Money</div>${debts.map(r => `<div class="prow"><span class="pimg">${ic('users')}</span><span class="grow"><b>${r.to === me.id ? `${esc(frNames(r.from.map(f => byP[f]?.name || 'Someone')))} ${r.from.length > 1 ? 'owe' : 'owes'} you ${frUsd(r.cents - r.paid)}` : `You owe ${esc(byP[r.to]?.name || 'someone')} ${frUsd(r.cents - r.paid)}`}</b><small>Settle up on the group page</small></span></div>`).join('')}` : ''}
     <div class="sect">Everyone likes</div>
     ${allin.length ? allin.slice(0, 8).map(c => `<div class="prow">${c.img ? `<img src="${esc(c.img)}" alt="">` : `<span class="pimg">${ic('ticket')}</span>`}<span class="grow"><b>${esc(c.title)}</b><small>${D[c.id] ? (D[c.id].on ? 'On ' + esc(dpFmt(D[c.id].day)) : 'Suggested for ' + esc(dpFmt(D[c.id].day))) : 'Not on a day yet'}</small></span></div>`).join('') : `<p class="muted" style="font-size:14px">Nothing everyone likes yet. Swipe ${esc(p.city || 'the trip')} in To do.</p>`}
     <div style="height:14px"></div><button class="btn ghost" data-act="gfull">Open the group page</button><div style="height:10px"></div></div>`;
-}
-function renderGTripDay() {
-  const id = S.gdId, p = gtOf(id), k = S.gdDay; if (!p || p.gone) { S.view = 'home'; return render(); }
-  const days = gtDays(p), idx = days.findIndex(d => d.k === k), n = p.members.filter(m => m.status === 'in').length, me = p.members.find(m => m.me), host = gtHost(p), need = Math.ceil(n / 2);
-  const D = p.data?.days || {}, here = Object.entries(D).filter(([, x]) => x.day === k).map(([c, x]) => ({ c, ...x })), on = here.filter(x => x.on), sug = here.filter(x => !x.on);
-  const byId = Object.fromEntries((p.cards || []).map(c => [c.id, c])), bk = p.data?.booked || [], booked = bk.filter(b => b.day === k).sort((a, b) => (a.time || '99').localeCompare(b.time || '99'));
-  const nm = u => { const m = p.members.find(x => x.id === u); return m?.me ? 'You' : m?.name || 'Someone'; }, ttl = x => esc(byId[x.c]?.title || x.title || 'A stop');
-  const ideas = [...new Set([...(p.allin || []), ...(p.cards || []).filter(c => c.mine === true).map(c => c.id)])].map(i => byId[i]).filter(c => c && !D[c.id] && !bk.some(b => b.card === c.id)).slice(0, 6);
-  const dname = new Date(k + 'T12:00').toLocaleDateString('en-US', { weekday: 'long' });
-  const img = c => c?.img ? `<img src="${esc(c.img)}" alt="">` : `<span class="pimg">${ic('ticket')}</span>`;
-  $app.innerHTML = `<div class="view tdv tside"><div class="topbar"><button class="back" data-act="gback" aria-label="Back to the trip">‹</button><div class="grow"><h2>${esc(dname)}</h2><small>${esc(p.title)} · day ${idx + 1} of ${days.length}</small></div></div>
-    <div class="tdays">${days.map(d => `<button data-act="gday" data-day="${d.k}" class="${d.k === k ? 'on' : ''} ${gtDayHas(p, d.k) ? 'dot' : ''}">${d.wd}<b>${d.d}</b></button>`).join('')}</div>
-    ${booked.length || on.length || sug.length ? '' : `<p class="muted" style="margin:18px 4px 4px;font-size:14px">Nothing on ${esc(dname)} yet. ${host ? 'Add a stop below.' : 'Suggest a stop below. It goes on the day once half the group is in.'}</p>`}
-    ${booked.map(b => `<div class="prow tdst"><span class="tdt">${b.time ? esc(tm12(b.time)) : '—'}</span><span class="grow"><b>${esc(b.title)}</b><small>Booked by ${b.by === S.me ? 'you' : esc(b.by)}</small></span>${!b.time && b.by === S.me && b.ref ? `<button class="tpill go" data-act="vtime" data-ref="${esc(b.ref)}" data-prod="${esc(b.product || '')}" data-g="${esc(id)}">Set time</button>` : '<span class="tbk">Booked</span>'}</div>`).join('')}
-    ${on.map(x => `<div class="prow tdst"><span class="tdt">${ic('check')}</span><span class="grow"><b>${ttl(x)}</b><small>${x.host && (x.yes || []).length < 2 ? `${nm(x.by)} added this` : `${(x.yes || []).length} of ${n} are in`}</small></span>${host || x.by === me?.id ? `<button class="btn ghost sm" data-act="gdvote" data-card="${x.c}" data-v="off">Take off</button>` : ''}</div>`).join('')}
-    ${sug.length ? `<div class="sect" style="margin-top:18px">Suggested</div>${sug.map(x => { const y = (x.yes || []).includes(me?.id), no = (x.no || []).includes(me?.id);
-      return `<div class="prow tdst gsug">${img(byId[x.c])}<span class="grow"><b>${ttl(x)}</b><small>${nm(x.by)} suggested this · ${(x.yes || []).length} of ${n} in, needs ${need}</small><span class="ttwo" style="margin-top:8px"><button class="tb ${y ? 'on' : ''}" data-act="gdvote" data-card="${x.c}" data-v="up">I’m in</button><button class="tb ${no ? 'on' : ''}" data-act="gdvote" data-card="${x.c}" data-v="down">Not for me</button></span></span></div>`; }).join('')}` : ''}
-    ${ideas.length ? `<div class="sect" style="margin-top:18px">Ideas for ${esc(dname)}</div><div class="tdideas">${ideas.map(c => `<button class="tdi" data-act="gdvote" data-card="${c.id}" data-v="add">${img(c)}<span><b>${esc(c.title)}</b><small>${(p.allin || []).includes(c.id) ? 'Everyone likes' : 'You like it'} · tap to ${host ? 'add' : 'suggest'}</small></span></button>`).join('')}</div>` : ''}
-    <div style="height:30px"></div></div>`;
 }
 // Clash heads-up (beta): once a group vote lands on a weekend you already have a trip, you alone get one quiet sheet.
 // Nothing is sent to anyone unless you tap "Tell the group I can't make it".
@@ -2264,6 +2235,151 @@ async function vtimeSheet(ref, prod, g) {
   const all = times.length ? times : ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'];
   const el = document.getElementById('vtg'); if (!el) return;
   el.innerHTML = `<small class="muted" style="display:block;margin:14px 2px 8px;font-size:12.5px">${times.length ? 'The times this tour runs' : 'Pick the closest'}</small><div class="vtgrid">${all.map(t => `<button class="tpill" data-act="vtset" data-ref="${esc(ref)}" data-t="${t}"${g ? ` data-g="${esc(g)}"` : ''}>${esc(tm12(t))}</button>`).join('')}</div>`; }
+// One day of a trip, couple or group (beta, Dave 20 Nov): booked stops and stops that made it, in time order, with
+// tentative ones in among them, dimmed, to vote on right there. A stop goes on with a majority in and drops with half
+// out; the group's planner can lock one in, or let chance pick between tentative ones. Couple trips work the same way
+// with two people: one suggests, it's on once the other is in (a card you both liked goes straight on).
+function dayCtx() {
+  if (S.view === 'gday') { const p = gtOf(S.gdId); if (!p || p.gone) return null; const me = p.members.find(m => m.me), byId = Object.fromEntries((p.cards || []).map(c => [c.id, c]));
+    return { g: S.gdId, k: S.gdDay, days: gtDays(p), D: p.data?.days || {}, booked: p.data?.booked || [], n: p.members.filter(m => m.status === 'in').length, me: me?.id, planner: gtHost(p), title: p.title,
+      nm: u => { const m = p.members.find(x => x.id === u); return m?.me ? 'You' : m?.name || 'Someone'; }, card: id => byId[id], img: c => c?.img,
+      ideas: [...new Set([...(p.allin || []), ...(p.cards || []).filter(c => c.mine === true).map(c => c.id)])].map(i => byId[i]).filter(Boolean).map(c => ({ ...c, tag: (p.allin || []).includes(c.id) ? 'Everyone likes' : 'You like it' })) }; }
+  const c = S.tdCity, M = planMeta(c); if (!c) return null; const P = planParts(c), all = [...P.todo, ...(P.gems || []), ...(P.maybe || [])], byId = Object.fromEntries(all.map(x => [x.id, x]));
+  return { c, k: S.tdDay, days: tripDays(c), D: M.days || {}, booked: M.booked || [], n: partner() ? 2 : 1, me: S.me, planner: false, title: c,
+    nm: u => u === S.me ? 'You' : u || 'Someone', card: id => byId[id], img: x => x?.image,
+    ideas: all.map(x => ({ ...x, tag: x.who === 'both' ? 'You both like' : x._gem ? 'Hidden gem' : x.who === 'them' ? `${them()} likes` : 'You like it' })) };
+}
+const stopOn = x => x.on !== false && !x.lost;   // older stops (just {day, by}) count as on
+const stopTent = x => x.on === false && !x.out && !x.lost;
+const stopMine = (x, me) => (x.yes || [x.by]).includes(me) ? 'up' : (x.no || []).includes(me) ? 'down' : '';
+const tmin = t => { const [h, m] = String(t).split(':').map(Number); return h * 60 + (m || 0); };
+function stopClash(x, k, ctx) { if (!x.time) return null; const a = tmin(x.time);
+  for (const b of ctx.booked.filter(b => b.day === k && b.time)) { const s = tmin(b.time), e = s + (b.minutes || 90); if (a >= s && a < e) return b.title; }
+  for (const [id, y] of Object.entries(ctx.D)) { if (id === x.id || y.day !== k || !y.time || !stopOn(y)) continue; const s = tmin(y.time); if (Math.abs(a - s) < 60) return y.title || ctx.card(id)?.title; }
+  return null; }
+function renderTripDay() {
+  const ctx = dayCtx(); if (!ctx || !ctx.k || !ctx.days.length) { S.view = 'home'; return render(); }
+  const { k, D, n } = ctx, idx = ctx.days.findIndex(d => d.k === k), need = Math.floor(n / 2) + 1, dname = new Date(k + 'T12:00').toLocaleDateString('en-US', { weekday: 'long' });
+  const here = Object.entries(D).filter(([, x]) => x.day === k).map(([id, x]) => ({ id, ...x, title: ctx.card(id)?.title || x.title || 'A stop' }));
+  const rows = [...ctx.booked.filter(b => b.day === k).map(b => ({ b, time: b.time })), ...here.filter(x => stopOn(x) || stopTent(x)).map(x => ({ x, time: x.time }))].sort((a, b) => (a.time || '99').localeCompare(b.time || '99'));
+  const gone = here.filter(x => !stopOn(x) && !stopTent(x)), tent = here.filter(stopTent);
+  const pic = id => { const c = ctx.card(id), u = ctx.img(c); return u ? `<img src="${esc(u)}" alt="">` : `<span class="pimg">${ic('ticket')}</span>`; };
+  const cnt = x => `${(x.yes || [x.by]).length} of ${n} in`;
+  const row = r => { if (r.b) { const b = r.b; return `<div class="prow tdst"><span class="tdt">${b.time ? esc(tm12(b.time)) : '—'}</span><span class="grow"><b>${esc(b.title)}</b><small>Booked by ${b.by === S.me ? 'you' : esc(b.by)}</small></span>${!b.time && b.by === S.me && b.ref ? `<button class="tpill go" data-act="vtime" data-ref="${esc(b.ref)}" data-prod="${esc(b.product || '')}"${ctx.g ? ` data-g="${esc(ctx.g)}"` : ''}>Set time</button>` : '<span class="tbk">Booked</span>'}</div>`; }
+    const x = r.x, mine = stopMine(x, ctx.me), cl = stopClash(x, k, ctx), canOff = ctx.planner || x.by === ctx.me;
+    if (stopOn(x)) return `<div class="prow tdst"><span class="tdt">${x.time ? esc(tm12(x.time)) : ic('check')}</span><span class="grow"><b>${esc(x.title)}</b><small>${x.rand ? `Chance picked this over ${(x.vs || []).length - 1} other${(x.vs || []).length > 2 ? 's' : ''}` : x.locked ? 'The planner’s call' : x.direct ? `${ctx.nm(x.by)} added this` : x.yes ? `${cnt(x)} · made it` : `${ctx.nm(x.by)} put this on ${esc(dname)}`}</small>${cl ? `<small class="tclw">Same time as ${esc(cl)}</small>` : ''}</span>${canOff ? `<button class="btn ghost sm" data-act="stopv" data-k="${esc(x.id)}" data-v="off">Take off</button>` : ''}</div>`;
+    return `<div class="prow tdst tent"><span class="tdt">${x.time ? esc(tm12(x.time)) : '?'}</span><span class="grow"><b>${esc(x.title)}</b><small>Tentative · ${x.by === ctx.me ? 'You suggested it' : `${ctx.nm(x.by)} suggested it`} · ${cnt(x)}, needs ${need}</small>${cl ? `<small class="tclw">Same time as ${esc(cl)}</small>` : ''}${x.url ? `<a class="tlink" href="${esc(x.url)}" target="_blank" rel="noopener">Link</a>` : ''}
+      <span class="ttwo">${x.by === ctx.me ? `<button class="tb" data-act="stopv" data-k="${esc(x.id)}" data-v="off">Take it back</button>` : `<button class="tb ${mine === 'up' ? 'on' : ''}" data-act="stopv" data-k="${esc(x.id)}" data-v="up">I’m in</button><button class="tb ${mine === 'down' ? 'on' : ''}" data-act="stopv" data-k="${esc(x.id)}" data-v="down">Not for me</button>`}${ctx.planner ? `<button class="tb" data-act="stopv" data-k="${esc(x.id)}" data-v="lock">Lock it in</button>` : ''}</span></span></div>`; };
+  const ideas = ctx.ideas.filter(c => !D[c.id] && !ctx.booked.some(b => b.card === c.id)).slice(0, 6);
+  const canRand = tent.length >= 2 && (ctx.g ? ctx.planner : true);
+  $app.innerHTML = `<div class="view tdv tside"><div class="topbar"><button class="back" data-act="${ctx.g ? 'gback' : 'home'}" aria-label="Back to the trip">‹</button><div class="grow"><h2>${esc(dname)}</h2><small>${esc(ctx.title)} · day ${idx + 1} of ${ctx.days.length}</small></div><button class="ib" data-act="tmap" data-day="${k}" aria-label="This day on a map">${ic('pin')}</button></div>
+    <div class="tdays">${ctx.days.map(d => `<button data-act="${ctx.g ? 'gday' : 'tday'}" data-day="${d.k}" class="${d.k === k ? 'on' : ''} ${dayHasCtx(ctx, d.k) ? 'dot' : ''} ${dayWaits(ctx, d.k) ? 'wait' : ''}">${d.wd}<b>${d.d}</b></button>`).join('')}</div>
+    ${rows.length ? rows.map(row).join('') : `<p class="muted" style="margin:18px 4px 4px;font-size:14px">Nothing on ${esc(dname)} yet. ${ctx.g && !ctx.planner ? 'Suggest a stop below. It goes on the day once most of the group is in.' : ctx.g ? 'Add a stop below, or put one to a vote.' : `Suggest a stop below. It goes on once ${esc(them())} is in too.`}</p>`}
+    ${canRand ? `<button class="btn ghost trand" data-act="randsheet">${ic('shuffle')}Can’t decide? Let chance pick</button>` : ''}
+    ${gone.length ? `<small class="muted tgone">Didn’t make it: ${gone.map(x => esc(x.title)).join(', ')}</small>` : ''}
+    ${ideas.length ? `<div class="sect" style="margin-top:18px">Ideas for ${esc(dname)}</div><div class="tdideas">${ideas.map(c => `<button class="tdi" data-act="stopsheet" data-card="${c.id}">${pic(c.id)}<span><b>${esc(c.title)}</b><small>${esc(c.tag)} · tap to ${ctx.g && ctx.planner ? 'add' : 'suggest'}</small></span></button>`).join('')}</div>` : ''}
+    <button class="btn ghost" style="margin-top:14px" data-act="stopsheet">${ic('plus')}Suggest something else</button>
+    <div style="height:30px"></div></div>`;
+}
+const renderGTripDay = renderTripDay;
+const dayHasCtx = (ctx, k) => ctx.booked.some(b => b.day === k) || Object.values(ctx.D).some(x => x.day === k && stopOn(x));
+const dayWaits = (ctx, k) => Object.values(ctx.D).some(x => x.day === k && stopTent(x) && !stopMine(x, ctx.me));
+// Suggesting (or, for the planner, adding) a stop: pick the day and, if you like, a time. A typed idea needs a name.
+function stopSheet(card, day) {
+  const ctx = S.view === 'tday' || S.view === 'gday' ? dayCtx() : tripGid() ? dayCtxFor({ g: tripGid(), day: gtDays(gtOf(tripGid()))[0]?.k }) : tripFocus() ? dayCtxFor({ c: tripFocus(), day: tripDays(tripFocus())[0]?.k }) : null;
+  if (!ctx || !ctx.days.length) return toast('Pick the trip’s dates first.');
+  const c = card ? ctx.card(card) || (S.detailCard?.id === card ? S.detailCard : null) : null;
+  S.stopf = { card: card || '', title: c?.title || '', day: day || ctx.k || ctx.days[0].k, time: S.stopf?.card === (card || '') ? S.stopf.time : '', g: ctx.g || '', c: ctx.c || '' };
+  stopSheetDraw(ctx);
+}
+function stopSheetDraw(ctx) {
+  const f = S.stopf, liked2 = !ctx.g && f.card && ctx.ideas.find(x => x.id === f.card)?.who === 'both';
+  const times = ['', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00'];
+  const cl = f.time ? stopClash({ time: f.time }, f.day, ctx) : null;
+  sheet(`<div class="grab"></div><div class="trp kc k-book"><small class="tkick">${ctx.g && ctx.planner ? 'Add a stop' : 'Suggest a stop'}</small><h2>${f.card ? esc(f.title) : 'Something else'}</h2>
+    ${f.card ? '' : `<input id="stt" class="acin" placeholder="What is it? A bar, a view, a market" maxlength="80" value="${esc(f.title)}"><div style="height:8px"></div><input id="stu" class="acin" placeholder="Link (optional)" maxlength="300">`}
+    <div class="sect" style="margin-top:14px">Which day</div><div class="stdays">${ctx.days.map(d => `<button class="tpill ${d.k === f.day ? 'on' : ''}" data-act="stday" data-day="${d.k}">${d.wd} ${d.d}</button>`).join('')}</div>
+    <div class="sect">What time</div><div class="vtgrid">${times.map(t => `<button class="tpill ${t === f.time ? 'on' : ''}" data-act="sttime" data-t="${t}">${t ? esc(tm12(t)) : 'Any time'}</button>`).join('')}</div>
+    ${cl ? `<small class="tclw" style="display:block;margin-top:10px">Same time as ${esc(cl)}</small>` : ''}
+    <div style="height:16px"></div>${ctx.g && ctx.planner ? `<button class="btn" data-act="stsave" data-v="add">Add to the day</button><div style="height:10px"></div><button class="btn ghost" data-act="stsave" data-v="suggest">Put it to a vote</button>`
+      : liked2 ? `<button class="btn" data-act="stsave" data-v="add">Add to the day</button><small class="muted" style="display:block;text-align:center;margin-top:8px">You both liked this, so it goes straight on.</small>`
+      : `<button class="btn" data-act="stsave" data-v="add">${ctx.g ? 'Suggest it to the group' : `Suggest it to ${esc(them())}`}</button><small class="muted" style="display:block;text-align:center;margin-top:8px">${ctx.g ? 'It shows on the day as tentative until most of the group is in. Nobody gets a notification.' : `It shows as tentative until ${esc(them())} is in.`}</small>`}</div>`);
+}
+async function stopSave(v) {
+  const f = S.stopf; if (!f) return; if (!f.card) { f.title = (document.getElementById('stt')?.value || '').trim(); f.url = (document.getElementById('stu')?.value || '').trim(); if (!f.title) return toast('Give it a name.'); }
+  const opt = { time: f.time || null, title: f.card ? null : f.title, url: f.url || null };
+  let r = null;
+  if (f.g) { r = await frRpc('fr_day', { p_id: f.g, p_card: f.card || null, p_day: f.day, p_vote: v, p_opt: opt }).catch(() => null); if (r?.ok) { const p = gtOf(f.g); if (p) p.data = { ...(p.data || {}), days: r.days || {} }; } }
+  else { r = await rpc('plan_stop', { p_code: S.code, p_member: S.me, p_city: f.c, p_card: f.card || null, p_day: f.day, p_vote: v, p_opt: opt }).catch(() => null); if (r?.ok) S.settings = r.settings || S.settings; }
+  if (!r?.ok) return toast(r?.why === 'outside' ? 'That day isn’t part of the trip.' : 'That didn’t save. Try again.');
+  closeSheet(); const x = f.g ? r.days?.[r.k] : r.settings?.plan_meta?.[f.c]?.days?.[r.k];
+  toast(stopOn(x || {}) ? `On ${new Date(f.day + 'T12:00').toLocaleDateString('en-US', { weekday: 'long' })}.` : 'Suggested. It shows as tentative.', 2600);
+  S.stopf = null; if (f.g) { S.gdId = f.g; S.gdDay = f.day; S.view = 'gday'; } else { S.tdCity = f.c; S.tdDay = f.day; S.view = 'tday'; } return render();
+}
+async function stopVote(key, v) {
+  const ctx = dayCtx(); if (!ctx) return; let r = null;
+  if (ctx.g) { r = await frRpc('fr_day', { p_id: ctx.g, p_card: key, p_day: ctx.k, p_vote: v, p_opt: {} }).catch(() => null); if (r?.ok) { const p = gtOf(ctx.g); p.data = { ...(p.data || {}), days: r.days || {} }; } }
+  else { r = await rpc('plan_stop', { p_code: S.code, p_member: S.me, p_city: ctx.c, p_card: key, p_day: ctx.k, p_vote: v, p_opt: {} }).catch(() => null); if (r?.ok) S.settings = r.settings || S.settings; }
+  if (!r?.ok) return toast(r?.why === 'not_yours' ? 'Only the planner or whoever added it can take it off.' : 'That didn’t save. Try again.');
+  const x = (ctx.g ? r.days : r.settings?.plan_meta?.[ctx.c]?.days)?.[key];
+  if (v === 'up' && x && stopOn(x)) toast('That made it. It’s on the day.', 2600); else if (v === 'down' && x?.out) toast('Most said no, so it’s off.', 2600); else if (v === 'lock') toast('Locked in.', 2000);
+  return renderTripDay();
+}
+function randSheet() { const ctx = dayCtx(); if (!ctx) return; const tent = Object.entries(ctx.D).filter(([, x]) => x.day === ctx.k && stopTent(x));
+  const byT = {}; tent.forEach(([id, x]) => (byT[x.time || ''] ||= []).push(id)); const same = Object.entries(byT).find(([t, l]) => t && l.length >= 2)?.[1];
+  S.randSel = new Set(same || tent.map(([id]) => id));
+  sheet(`<div class="grab"></div><div class="trp kc k-book"><small class="tkick">Let chance pick</small><h2>Which ones are in the running?</h2><p class="muted">One gets picked at random and goes on the day. ${ctx.g ? 'Everyone sees it was chance, not you.' : 'You’ll both see it was chance.'}</p>
+    <div class="ycard" style="margin-top:12px">${tent.map(([id, x]) => `<button class="fropt rsel ${S.randSel.has(id) ? 'on' : ''}" data-act="randtog" data-k="${esc(id)}"><span class="grow"><b>${esc(ctx.card(id)?.title || x.title)}</b><small>${x.time ? esc(tm12(x.time)) + ' · ' : ''}${(x.yes || []).length} of ${ctx.n} in</small></span><span class="rck">${ic('check')}</span></button>`).join('')}</div>
+    <div style="height:16px"></div><button class="btn" data-act="randgo">${ic('shuffle')}Pick one</button></div>`); }
+async function randGo() { const ctx = dayCtx(), ids = [...(S.randSel || [])]; if (!ctx) return; if (ids.length < 2) return toast('Leave at least two in.');
+  let r = null;
+  if (ctx.g) { r = await frRpc('fr_day_rand', { p_id: ctx.g, p_cards: ids }).catch(() => null); if (r?.ok) { const p = gtOf(ctx.g); p.data = { ...(p.data || {}), days: r.days || {} }; } }
+  else { r = await rpc('plan_stop_rand', { p_code: S.code, p_member: S.me, p_city: ctx.c, p_cards: ids }).catch(() => null); if (r?.ok) S.settings = r.settings || S.settings; }
+  if (!r?.ok) return toast('That didn’t go through. Try again.');
+  const w = (ctx.g ? r.days : r.settings?.plan_meta?.[ctx.c]?.days)?.[r.won]; closeSheet(); toast(`Chance picked ${ctx.card(r.won)?.title || w?.title || 'one'}.`, 3200); return renderTripDay(); }
+function dayCtxFor(f) { const keep = [S.view, S.gdId, S.gdDay, S.tdCity, S.tdDay];
+  if (f.g) { S.view = 'gday'; S.gdId = f.g; S.gdDay = f.day; } else { S.view = 'tday'; S.tdCity = f.c; S.tdDay = f.day; }
+  const r = dayCtx(); [S.view, S.gdId, S.gdDay, S.tdCity, S.tdDay] = keep; return r; }
+// The trip on a map (beta): booked stops, stops that made it, tentative ones and things you like, by day.
+// Leaflet and CARTO's dark tiles load only when the map is opened.
+let LF = null;
+function lfLoad() { if (LF) return LF; LF = new Promise((ok, no) => { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'; document.head.appendChild(l);
+  const sc = document.createElement('script'); sc.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'; sc.onload = () => ok(window.L); sc.onerror = () => { LF = null; no(); }; document.head.appendChild(sc); }); return LF; }
+async function tripMap(day) {
+  const g = S.view === 'gday' ? S.gdId : tripGid(), f = S.view === 'tday' ? S.tdCity : tripFocus(); if (!g && !f) return;
+  const ctx = g ? dayCtxFor({ g, day: day || gtDays(gtOf(g))[0]?.k }) : dayCtxFor({ c: f, day: day || tripDays(f)[0]?.k }); if (!ctx) return;
+  S.tmap = { g, c: f, day: day || '', back: S.view }; S.view = 'tmap'; render();
+  const pts = [];   // {id, title, kind: booked|on|tent|like, day, time}
+  for (const b of ctx.booked) if (b.card) pts.push({ id: b.card, title: b.title, kind: 'booked', day: b.day, time: b.time });
+  for (const [id, x] of Object.entries(ctx.D)) if (stopOn(x) || stopTent(x)) pts.push({ id, title: ctx.card(id)?.title || x.title, kind: stopOn(x) ? 'on' : 'tent', day: x.day, time: x.time });
+  for (const c of ctx.ideas) if (!pts.some(p => p.id === c.id)) pts.push({ id: c.id, title: c.title, kind: 'like' });
+  const need = pts.map(p => p.id).filter(id => /^[0-9a-f-]{36}$/.test(id) && !(S.tpts ||= {})[id]);
+  if (need.length) { try { const r = await rpc('trip_points', { p_ids: need }); for (const q of r || []) S.tpts[q.id] = q; need.forEach(id => { if (!S.tpts[id]) S.tpts[id] = { none: true }; }); } catch {} }
+  S.tmap.pts = pts.filter(p => S.tpts?.[p.id]?.lat != null).map(p => ({ ...p, ...S.tpts[p.id], title: p.title })); S.tmap.missing = pts.length - S.tmap.pts.length; S.tmap.days = ctx.days;
+  if (S.view === 'tmap') renderTripMap();
+}
+function renderTripMap() {
+  const m = S.tmap; if (!m) { S.view = 'home'; return render(); }
+  const days = m.days || [], show = (m.pts || []).filter(p => !m.day || p.day === m.day), title = m.g ? (tripList().find(x => x.key === 'g:' + m.g)?.title || 'Trip') : m.c;
+  $app.innerHTML = `<div class="view tmv tside"><div class="topbar"><button class="back" data-act="tmback" aria-label="Back">‹</button><div class="grow"><h2>Map</h2><small>${esc(title)}${m.pts ? ` · ${show.length} place${show.length === 1 ? '' : 's'}` : ''}</small></div></div>
+    <div class="tpills tmd"><button data-act="tmday" data-day="" class="${!m.day ? 'on' : ''}">Everything</button>${days.map(d => `<button data-act="tmday" data-day="${d.k}" class="${m.day === d.k ? 'on' : ''}">${d.wd} ${d.d}</button>`).join('')}</div>
+    <div id="tmapc" class="tmapc">${m.pts ? '' : '<p class="muted" style="padding:20px">Loading the map…</p>'}</div>
+    <div class="tleg"><span><i class="b"></i>Booked</span><span><i class="o"></i>On the plan</span><span><i class="t"></i>Tentative</span>${m.day ? '' : '<span><i class="l"></i>Liked</span>'}</div>
+    ${m.missing ? `<small class="muted" style="display:block;margin:6px 4px 0;font-size:12px">${m.missing} without a location yet (tours that start from a meeting point).</small>` : ''}</div>`;
+  if (!m.pts) return;
+  lfLoad().then(L => { const el = document.getElementById('tmapc'); if (!el || !L) return; el.innerHTML = '';
+    const map = L.map(el, { zoomControl: false, attributionControl: true }); L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '© OpenStreetMap contributors © CARTO', subdomains: 'abcd', maxZoom: 19 }).addTo(map);
+    const col = { booked: '#ff8a65', on: '#3ee0c5', tent: '#3ee0c5', like: '#8a8f98' }, ll = [];
+    show.forEach(p => { const mk = L.circleMarker([p.lat, p.lng], { radius: p.kind === 'like' ? 6 : 9, color: col[p.kind], weight: p.kind === 'tent' ? 2.5 : 1.5, fillColor: col[p.kind], fillOpacity: p.kind === 'tent' ? 0.15 : p.kind === 'like' ? 0.55 : 0.9, dashArray: p.kind === 'tent' ? '3 3' : null }).addTo(map);
+      const sub = [p.day ? dpFmt(p.day) : '', p.time ? tm12(p.time) : '', p.kind === 'tent' ? 'tentative' : p.kind === 'booked' ? 'booked' : ''].filter(Boolean).join(' · ');
+      mk.bindPopup(`<b>${esc(p.title)}</b>${sub ? `<br><small>${esc(sub)}</small>` : ''}<br><a href="${esc(p.maps || `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`)}" target="_blank" rel="noopener">Directions</a>`); ll.push([p.lat, p.lng]); });
+    if (ll.length > 1) map.fitBounds(ll, { padding: [36, 36], maxZoom: 15 }); else if (ll.length) map.setView(ll[0], 14); else map.setView([20, 0], 2);
+    S.tmapObj = map; }).catch(() => { const el = document.getElementById('tmapc'); if (el) el.innerHTML = '<p class="muted" style="padding:20px">The map couldn’t load. Check your connection.</p>'; });
+}
+function tripTop(key) { const g = key.startsWith('g:') ? key.slice(2) : '', D = (g ? gtOf(g)?.data?.days : planMeta(key.slice(2)).days) || {}, me = g ? gtOf(g)?.members?.find(m => m.me)?.id : S.me;
+  const wait = Object.values(D).filter(x => stopTent(x) && !stopMine(x, me)).sort((a, b) => String(a.day).localeCompare(String(b.day)));
+  return `<div class="ttop">${wait.length ? `<button class="tmrow hot" data-act="${g ? 'gday' : 'tday'}" data-day="${esc(String(wait[0].day))}">${ic('check')}<span class="grow"><b>${wait.length} stop${wait.length > 1 ? 's' : ''} to vote on</b><small>Tentative until ${g ? 'most of the group is' : `${esc(them())} is`} in</small></span><i>See</i></button>` : ''}<button class="tmrow" data-act="tmap">${ic('pin')}<span class="grow"><b>See it on a map</b><small>Booked, planned and liked, by day</small></span><i>Map</i></button></div>`; }
+const tripWaits = key => { const g = key.startsWith('g:') ? key.slice(2) : '', D = (g ? gtOf(g)?.data?.days : planMeta(key.slice(2)).days) || {}, me = g ? gtOf(g)?.members?.find(m => m.me)?.id : S.me; return Object.values(D).some(x => stopTent(x) && !stopMine(x, me)); };
 function tripPills() {
   const l = tripList(), sel = tripSel(), lbl = t => t.from ? new Date(t.from + 'T12:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : t.needs ? 'vote' : 'planning';
   return `<div class="tpills tsw"><button data-act="tsel" data-k="someday" class="${sel === 'someday' ? 'on' : ''}">Someday</button>${l.map(t => `<button data-act="tsel" data-k="${esc(t.key)}" class="${sel === t.key ? 'on' : ''} ${t.needs ? 'need' : ''}">${esc(t.title)}<small>${t.state === 'now' ? 'now' : esc(lbl(t))}</small></button>`).join('')}</div>`;
@@ -2287,7 +2403,7 @@ function dock2HTML() {
   const b = (act, icn, l, x = '') => `<button class="kc ${t ? 'k-book' : x}" data-act="${act}">${ic(icn)}<span>${l}</span></button>`;
   const local = b('planday', 'sun', 'Plan a day', 'k-sat') + b('likes', 'heart', 'Likes', 'k-match') + b('favs', 'star', 'Favorites', 'k-sat') + `<button class="peek kc k-book ${tripList().some(x => x.needs) ? 'need' : ''}" data-act="side" data-to="trips" aria-label="Trips">${ic('plane')}</button>`;
   const trips = `<button class="peek back" data-act="side" data-to="local" aria-label="Back to Tonight">${ic('spark')}</button>` + (f
-    ? `<button class="kc k-book ${pile && !S.tripEat ? 'on2' : ''}" data-act="ttodo">${ic('ticket')}<span>To do</span></button>` + (city ? `<button class="kc k-book ${pile && S.tripEat ? 'on2' : ''}" data-act="teat">${ic('dine')}<span>Eat</span></button>` : '') + b('tsome', 'pin', 'Someday') + (city ? '' : b('plantrip', 'plane', 'New trip'))
+    ? `<button class="kc k-book ${pile && !S.tripEat && !S.tripExplore ? 'on2' : ''}" data-act="ttodo">${ic('ticket')}<span>To do</span></button>` + (city ? `<button class="kc k-book ${pile && S.tripEat ? 'on2' : ''}" data-act="teat">${ic('dine')}<span>Eat</span></button>` : '') + (city ? `<button class="kc k-book ${pile && S.tripExplore ? 'on2' : ''}" data-act="texplore">${ic('gem')}<span>Explore</span></button>` : b('tsome', 'pin', 'Someday') + b('plantrip', 'plane', 'New trip'))
     : `<button class="kc k-book on2" data-act="ttodo">${ic('ticket')}<span>To do</span></button>` + b('sdpick', 'pin', 'Someday') + b('plantrip', 'plane', 'Plan a trip'));
   return `<div class="dock d2 ${t ? 'tr2' : ''}"><button class="on pin" data-act="${t ? 'tpin' : 'tonight'}">${ic(t ? 'plane' : 'spark')}<span>${t ? esc((lab || 'Trips').length > 9 ? (lab || 'Trips').slice(0, 8) + '…' : lab || 'Trips') : 'Tonight'}</span></button>
     <div class="vp"><div class="trk" style="transform:translateX(${t ? -50 : 0}%)"><div class="pg">${local}</div><div class="pg">${trips}</div></div></div></div>`;
@@ -2300,6 +2416,7 @@ function homeHTML() {
   else if (!HDECKS.some(d => d[0] === S.homeDeck)) S.homeDeck = 'all';
   const tov = TRIPSIDE() && tripFocus() && S.tView !== 'pile' ? tripFocus() : '', gov = TRIPSIDE() && tripGid() && S.tView !== 'pile' ? tripGid() : '';
   if (DOCK2 && S.acct && !FR.d && !S.frTry) { S.frTry = 1; frLoad().then(() => { if (S.view === 'home' && TRIPSIDE()) render(); else setTimeout(clashCheck, 300); }).catch(() => {}); }   // group trips show on the Trips side without opening Crew first
+  if (TRIPSIDE()) for (const t of tripList()) if (t.kind === 'g' && !gtOf(t.id)) gtLoad(t.id, false).then(() => { if (TRIPSIDE() && S.view === 'home' && tripWaits('g:' + t.id)) render(); });
   if (DOCK2) setTimeout(clashCheck, 900);
   if (tov && !S.lib && !S.libLoading) { S.libLoading = true; loadLib().then(() => { S.libLoading = false; if (document.querySelector('.tov')) render(); }).catch(() => { S.libLoading = false; }); }
   return `<div class="home ${TRIPSIDE() ? 'tside' : ''}">
@@ -2308,7 +2425,7 @@ function homeHTML() {
       ${DOCK2 ? '' : `<button class="ib shr ${ls.get('shared') ? 'shd' : ''}" data-act="sharefriends" aria-label="Share Let’s Together with friends">${ic('share')}</button>`}
       ${bellHTML()}<button class="ib" data-tab="you" aria-label="You and settings">${ic('gear')}</button></div>${TRIPSIDE() ? '' : slotHTML(incoming)}
     <div id="hbot" style="display:contents">${TRIPSIDE() ? `<div id="tphd">${tripHead()}</div>` : `<div class="seg" style="margin:8px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="kc k-${CK[k]} ${S.homeDeck === k ? 'on' : ''}">${l}${heartTag(k)}</button>`).join('')}</div>`}${!TRIPSIDE() && scratchShow() && !S.awayOffer ? `<button class="scratch-pill" data-act="scratch">${ic('spark')}<span><b>A scratch card is waiting</b><small>One thing ${esc(p)} is in on</small></span><i>Scratch</i></button>` : ''}${S.awayOffer ? `<div class="trav"><span class="tic">${ic('pin')}</span><span class="grow"><b>Looks like you’re in ${esc(S.awayOffer.city)}</b><small>Show places to eat and things to do here?</small></span><button class="go" data-act="awayyes">Show</button><button class="x" data-act="awayno" aria-label="Not now">×</button></div>` : ''}${S.away && (S.homeDeck === 'dinner' || S.homeDeck === 'event') ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><small class="muted" style="font-size:12.5px">${ic('pin')} ${S.away.trip ? `Your ${esc(S.away.city)} trip` : `Showing ${esc(S.away.city)} on this phone`}</small><button class="chip" data-act="awayoff" style="padding:5px 12px;font-size:13px">Back to home</button></div>` : ''}${S.homeDeck === 'movie' && !NEWUI ? `<div class="row" style="margin:14px 2px 0"><button class="chip" data-act="movielib" style="padding:5px 12px;font-size:13px">${ic('film')} Movie library</button></div>` : ''}${shareChip()}${S.homeDeck === 'art' ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="gallery" style="padding:5px 12px;font-size:13px">${ic('frame')} Our gallery</button><small class="muted" style="font-size:12.5px">No nudges, just likes</small></div>` : ''}${S.homeDeck === 'trip' && !TRIPSIDE() ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="trips" style="padding:5px 12px;font-size:13px">${ic('heart')} Saved trips</button><button class="chip ${S.tripCity ? 'on' : ''}" data-act="tripcity" style="padding:5px 12px;font-size:13px">${esc(S.tripCity || 'Anywhere')} ▾</button></div>` : ''}
-    ${tov ? `<div class="tov">${clashNote('c:' + tov)}${planSheet(tov, 'home')}</div>` : gov ? `<div class="tov">${gTripHome(gov)}</div>` : ''}
+    ${tov ? `<div class="tov">${clashNote('c:' + tov)}${tripTop('c:' + tov)}${planSheet(tov, 'home')}</div>` : gov ? `<div class="tov">${gTripHome(gov)}</div>` : ''}
     <div class="stack" id="stack" style="margin:4px 0 6px${tov || gov ? ';display:none' : ''}">${S.doneHtml?.[S.homeDeck]?.day === new Date().toDateString() ? (setTimeout(() => libGrid(S.homeDeck), 0), S.doneHtml[S.homeDeck].html) : ''}</div>
     <div class="actions" id="acts" style="visibility:hidden${tov || gov ? ';display:none' : ''}"><button class="act sm" data-sw="undo" aria-label="Undo">${ic('undo')}</button><button class="act no" data-sw="no" aria-label="No">${ic('x')}</button>
       <button class="act sm" data-sw="seen" id="seenb" aria-label="Never again" style="display:none">${ic('never')}</button>
@@ -2337,6 +2454,7 @@ async function deckStart(deck, extra, away) {
   return deck === 'all' ? rpc('start_all', SHOWS ? { p_code: S.code, p_member: S.me, p_opts: { series: true } } : { p_code: S.code, p_member: S.me })
     : deck === 'art' ? rpc('start_art', { p_code: S.code, p_member: S.me, p_extra: extra })
     : deck === 'trip' && S.tripEat && S.tripCity ? rpc('start_trip_eat', { p_code: S.code, p_member: S.me, p_city: S.tripCity })
+    : deck === 'trip' && S.tripExplore && S.tripCity ? rpc('start_trip_explore', { p_code: S.code, p_member: S.me, p_city: S.tripCity })
     : deck === 'trip' ? rpc('start_trips', { p_code: S.code, p_member: S.me, p_city: S.tripCity || '', p_extra: extra })
     : away ? rpc('start_bite_at', { p_code: S.code, p_member: S.me, p_deck: deck === 'drinks' ? 'event' : deck, p_extra: extra, p_away: away })
     : rpc('start_bite', SHOWS && deck === 'movie' ? { p_code: S.code, p_member: S.me, p_deck: deck, p_extra: extra, p_opts: { series: true } } : { p_code: S.code, p_member: S.me, p_deck: deck, p_extra: extra });
@@ -6428,6 +6546,7 @@ function showDetail(c, back = false) {
       ${d.address && d.locals ? `<p class="muted" style="font-size:14px">${esc(d.address)}</p>` : ''}${d.notes ? `<p>${esc(d.notes)}</p>` : ''}${gemBlock(d)}${d.place ? `${d.url ? `<div style="height:18px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.url)}" target="_blank" rel="noopener">Visit website</a>` : ''}${d.maps ? `<div style="height:10px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.maps)}" target="_blank" rel="noopener">See it on Google Maps</a>` : ''}${d.photo_credit ? `<p class="muted" style="font-size:11.5px;text-align:center">Photo: ${esc(d.photo_credit)} on Google</p>` : ''}`
       : `${d.url ? `<div style="height:18px"></div><a class="btn ghost" style="display:block;text-align:center;text-decoration:none" href="${esc(d.url)}" target="_blank" rel="noopener">View on Viator</a>` : ''}
       <p class="muted" style="font-size:11.5px;text-align:center">Experiences from Viator. Let’s Together may earn a commission if you book.</p>`}`;
+    if (DOCK2 && TRIPSIDE() && tripCityOf() && c.kind === tripCityOf()) b = `<button class="btn" data-act="sugpick" data-card="${c.id}">${ic('cal')}Suggest for a day</button><div style="height:6px"></div>` + b;
   } else if (c.deck === 'event' && d.place) {
     b = `<div class="tags">${d.unique ? '<span class="tag uqt">Unique spot</span>' : ''}${c.kind ? `<span class="tag">${esc(c.kind)}</span>` : ''}${d.unique && d.minutes ? `<span class="tag">About ${d.minutes} min</span>` : ''}${d.rating ? `<span class="tag">★ ${d.rating}${d.ratings ? ' (' + d.ratings + ')' : ''}</span>` : ''}${milesTag(d)}</div>
       ${d.address ? `<div class="kv">Where</div><p style="margin-top:0">${esc(d.address)}</p>` : ''}${d.notes ? `<p>${esc(d.notes)}</p>` : ''}${gemBlock(d)}
@@ -6688,22 +6807,32 @@ document.addEventListener('click', async e => {
       case 'favs': S.view = 'favs'; return render();
       case 'tcity': return tripCityPick(t.dataset.city);
       case 'tsel': { const k = t.dataset.k, g = k.startsWith('g:') ? k.slice(2) : '';
-        S.tSel = k; S.tView = 'home'; S.tripEat = false; S.tripCity = k === 'someday' ? S.tPick || '' : g ? (tripList().find(x => x.key === k)?.city || '') : k.slice(2); if (S.dc) delete S.dc.trip;
+        S.tSel = k; S.tView = 'home'; S.tripEat = false; S.tripExplore = false; S.tripCity = k === 'someday' ? S.tPick || '' : g ? (tripList().find(x => x.key === k)?.city || '') : k.slice(2); if (S.dc) delete S.dc.trip;
         if (g) { step('trip_group_home'); gtLoad(g, false).then(() => { if (tripGid() === g && S.view === 'home') render(); }); } return render(); }
       case 'tsome': S.tSel = 'someday'; S.tripEat = false; S.tripCity = S.tPick || ''; if (S.dc) delete S.dc.trip; return render();
-      case 'ttodo': { S.tView = 'pile'; S.tripEat = false; S.tripCity = tripCityOf() || S.tPick || ''; if (S.dc) delete S.dc.trip; return render(); }
-      case 'teat': { const c = tripCityOf(); if (!c) return; S.tView = 'pile'; S.tripEat = true; S.tripCity = c; if (S.dc) delete S.dc.trip; step('trip_eat'); return render(); }
+      case 'ttodo': { S.tView = 'pile'; S.tripEat = false; S.tripExplore = false; S.tripCity = tripCityOf() || S.tPick || ''; if (S.dc) delete S.dc.trip; return render(); }
+      case 'teat': { const c = tripCityOf(); if (!c) return; S.tView = 'pile'; S.tripEat = true; S.tripExplore = false; S.tripCity = c; if (S.dc) delete S.dc.trip; step('trip_eat'); return render(); }
       case 'gfull': { const g = tripGid() || S.gdId; if (g) return frOpenPlan(g); return; }
       case 'gretry': { const g = tripGid(); if (S.gt) delete S.gt[g]; return render(); }
       case 'gday': { const g = S.view === 'gday' ? S.gdId : tripGid(), p = gtOf(g); if (!p || p.gone) return; S.gdId = g; S.gdDay = t.dataset.day || gtDays(p)[0]?.k; if (!S.gdDay) return; S.view = 'gday'; return render(); }
       case 'gback': S.view = 'home'; S.tView = 'home'; return render();
-      case 'gdvote': { const p = gtOf(S.gdId); if (!p) return; t.disabled = true;
-        const r = await frRpc('fr_day', { p_id: S.gdId, p_card: t.dataset.card, p_day: S.gdDay, p_vote: t.dataset.v }).catch(() => null);
-        if (!r?.ok) { t.disabled = false; return toast(r?.why === 'not_yours' ? 'Only the host or whoever added it can take it off.' : 'That didn’t save. Try again.'); }
-        p.data = { ...(p.data || {}), days: r.days || {} }; const x = r.days?.[t.dataset.card];
-        if (t.dataset.v === 'add') toast(x?.on ? 'It’s on the day.' : `Suggested. It goes on the day once ${Math.ceil((r.n || 2) / 2)} are in.`, 3000);
-        else if (t.dataset.v === 'up' && x?.on) toast('That made it. It’s on the day.', 3000);
-        return renderGTripDay(); }
+      case 'stopsheet': return stopSheet(t.dataset.card || '', S.view === 'tday' || S.view === 'gday' ? (dayCtx()?.k || '') : '');
+      case 'stday': if (S.stopf) { S.stopf.day = t.dataset.day; if (!S.stopf.card) S.stopf.title = document.getElementById('stt')?.value || S.stopf.title; stopSheetDraw(dayCtxFor(S.stopf)); } return;
+      case 'sttime': if (S.stopf) { S.stopf.time = t.dataset.t; if (!S.stopf.card) S.stopf.title = document.getElementById('stt')?.value || S.stopf.title; stopSheetDraw(dayCtxFor(S.stopf)); } return;
+      case 'stsave': t.disabled = true; await stopSave(t.dataset.v); t.disabled = false; return;
+      case 'stopv': t.disabled = true; return stopVote(t.dataset.k, t.dataset.v);
+      case 'randsheet': return randSheet();
+      case 'randtog': { const k = t.dataset.k; S.randSel.has(k) ? S.randSel.delete(k) : S.randSel.add(k); t.classList.toggle('on', S.randSel.has(k)); return; }
+      case 'randgo': t.disabled = true; await randGo(); t.disabled = false; return;
+      case 'sugpick': closeSheet(); return stopSheet(t.dataset.card, '');
+      case 'texplore': { const c = tripCityOf(); if (!c) return; S.tView = 'pile'; S.tripEat = false; S.tripExplore = true; S.tripCity = c; if (S.dc) delete S.dc.trip; step('trip_explore');
+        if (!(S.exDone ||= {})[c]) { S.exDone[c] = 1; const g = tripGid(), m = tripFocus() ? planMeta(c) : null, from = m?.from || (g ? String(gtOf(g)?.day || tripList().find(x => x.key === 'g:' + g)?.from || '').slice(0, 10) : ''), to = m?.to || (from ? isoDay(new Date(new Date(from + 'T12:00').getTime() + 2 * 864e5)) : '');
+          toast('Looking for day trips and things on during your dates…', 2500);
+          await Promise.race([sb.functions.invoke('trips', { body: { action: 'explore', code: S.code, city: c, from, to } }).catch(() => null), new Promise(r => setTimeout(r, 9000))]); }
+        return render(); }
+      case 'tmap': return tripMap(t.dataset.day || '');
+      case 'tmday': if (S.tmap) { S.tmap.day = t.dataset.day; renderTripMap(); } return;
+      case 'tmback': { const b = S.tmap?.back; S.tmap = null; S.view = b === 'tday' || b === 'gday' ? b : 'home'; return render(); }
       case 'vtime': return vtimeSheet(t.dataset.ref, t.dataset.prod, t.dataset.g);
       case 'vtset': { t.disabled = true; const r = await rpc('viator_time', { p_code: S.code, p_member: S.me, p_ref: t.dataset.ref, p_time: t.dataset.t }).catch(() => null);
         if (!r?.ok) { t.disabled = false; return toast('That didn’t save. Try again.'); } closeSheet(); toast(`Start time set to ${tm12(t.dataset.t)}.`, 2500);
@@ -6712,8 +6841,6 @@ document.addEventListener('click', async e => {
       case 'clashgo': closeSheet(); S.tSel = t.dataset.k; S.tView = 'home'; if (!TRIPSIDE()) return setSide('trips'); return render();
       case 'clashout': { t.disabled = true; const r = await frRpc('fr_plan_act', { p_id: t.dataset.id, p_kind: 'respond', p_data: { in: false } }).catch(() => null);
         if (!r?.ok) { t.disabled = false; return toast('That didn’t go through. You can say so on the group page.'); } closeSheet(); toast('Done. The group knows you can’t make it.', 3000); await frLoad().catch(() => {}); return render(); }
-      case 'tdput': case 'tdoff': { const r = await rpc('plan_day', { p_code: S.code, p_member: S.me, p_city: S.tdCity, p_card: t.dataset.card, p_day: ds.act === 'tdput' ? S.tdDay : null }).catch(() => null);
-        if (!r?.ok) return toast('That didn’t save. Try again.'); S.settings = r.settings || S.settings; return renderTripDay(); }
       case 'tpin': { const f = tripFocus() || tripGid(); if (f) { S.tView = 'home'; S.tripEat = false; S.view = 'home'; return render(); }
         if (!partner()) { toast('Invite your other half first.'); return inviteSheet(); } try { await loadLib(); } catch {} return planTripSheet(); }
       case 'tdays': case 'tday': { const f = S.view === 'tday' ? S.tdCity : tripFocus(); if (!f) return; if (!S.lib) { try { await loadLib(); } catch {} }
