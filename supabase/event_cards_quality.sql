@@ -1,6 +1,7 @@
--- NOT APPLIED YET (waiting on Dave's go). Event cards: verified details, a real link, no listing-site pictures, gone 30 min after start.
+-- APPLIED LIVE 19 Nov 2026 (migrations event_cards_quality, event_cards_quality_venue_site, event_cards_guard_venue_image). Event cards: verified details, a real link, no listing-site pictures, gone 30 min after start.
 -- 1. _event_over: one start time -> over 30 min after start (was 2 h); a time range -> over at its end (past midnight allowed).
 -- 2. _event_card_ok + trigger event_card_guard: an event with no page of its own (only a listing site's home page) and no ticket
 --    or sign-up link is set inactive; a listing site's own preview image is removed from an event card.
 -- 3. touch active event cards so the guard runs on today's 22 events-feed cards (all have eventsinthed.com's home page and its screenshot).
 -- 4. welike-events-sweep every 10 min (was hourly).
+-- A venue's own home page counts as a real link when a 4+ letter word of the venue is in the web address.
