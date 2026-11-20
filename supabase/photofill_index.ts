@@ -4,7 +4,9 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 //   1. The Google photo we already hold a reference to (most cards: it was never turned into an image).
 //   2. Google's photo list for the place, if we hold no reference.
 //   3. The image the venue's own website shares as its preview (og:image / twitter:image), only if it is a real,
-//      reasonably large picture and not a logo or icon.
+//      reasonably large picture and not a logo or icon. Never a listing site's home page image (a site that lists many
+//      events, not the venue's own): those are screenshots or banners that look sloppy on a card (Dave, 19 Nov).
+// Events without a place are located by their venue first, so they get a Google photo of where they happen.
 // A card with none of these is marked photo_tried so it isn't asked again for a month; the emoji cover stays.
 // Body: { ids?: uuid[], limit?: number, geo?: true } (geo: also find where it is, for finds from the web). With no ids it takes the next cards from _photo_queue. Auth: x-sync-key.
 const json = (o: unknown, status = 200) => new Response(JSON.stringify(o), { status, headers: { "Content-Type": "application/json" } });
@@ -32,6 +34,15 @@ async function locate(key: string, q: string): Promise<{ id: string; lat: number
     const d = await r.json(); const p = d?.places?.[0];
     return r.ok && p?.location ? { id: p.id, lat: p.location.latitude, lng: p.location.longitude, photo: p.photos?.[0]?.name ?? null, credit: p.photos?.[0]?.authorAttributions?.[0]?.displayName ?? null } : null;
   } catch (_) { return null; }
+}
+const STOP = new Set(["theater", "theatre", "cafe", "club", "park", "hall", "center", "centre", "house", "room", "detroit", "music", "live", "downtown", "lounge"]);
+// may this web address's preview image be used? a page of its own, or the venue's own site
+function siteOk(d: any): boolean {
+  const u = String(d?.url ?? ""); let host = "", path = "";
+  try { const x = new URL(u); host = x.hostname.replace(/^www\./, "").toLowerCase(); path = x.pathname; } catch (_) { return false; }
+  if (path && path !== "/") return true;
+  const words = String(d?.venue || d?.title || "").toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length >= 4 && !STOP.has(w));
+  return words.some((w) => host.includes(w));
 }
 async function siteImage(url: string): Promise<string | null> {
   const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 9000);
@@ -66,10 +77,11 @@ Deno.serve(async (req: Request) => {
     let ids: string[] = Array.isArray(a.ids) ? a.ids.map(String).slice(0, 60) : [];
     if (!ids.length) { const { data } = await sb.rpc("_photo_queue", { p_n: Math.min(Math.max(Number(a.limit) || 30, 1), 60) }); ids = ((data ?? []) as any[]).map((x) => String(x.id ?? x)); }
     if (!ids.length) return json({ ok: true, done: 0 });
-    const { data: cards } = await sb.from("cards").select("id,title,image,data").in("id", ids);
-    if (a.geo) for (const c of (cards ?? []) as any[]) {
+    const { data: cards } = await sb.from("cards").select("id,deck,title,image,data").in("id", ids);
+    for (const c of (cards ?? []) as any[]) {
+      if (!(a.geo || (c.deck === "event" && !c.data?.place && !c.image))) continue;
       if (c.data?.lat || !(c.data?.address || c.title)) continue;
-      const g = await locate(key, [c.data?.venue || c.title, c.data?.address, c.data?.near].filter(Boolean).join(", "));
+      const g = await locate(key, [c.data?.venue || c.title, c.data?.address, c.data?.near, c.data?.address ? null : c.data?.area, c.data?.city].filter(Boolean).join(", "));
       if (!g) continue;
       c.data = { ...c.data, lat: g.lat, lng: g.lng, place_id: c.data?.place_id ?? g.id, ...(g.photo && !c.data?.photo ? { photo: g.photo } : {}), ...(g.credit ? { photo_credit: g.credit } : {}) };
       await sb.from("cards").update({ data: c.data }).eq("id", c.id);
@@ -81,7 +93,7 @@ Deno.serve(async (req: Request) => {
       let img: string | null = null, src = "";
       if (d.photo) { img = await photoUrl(key, d.photo); if (img) src = "google"; }
       if (!img && d.place_id) { const p = await placePhoto(key, d.place_id); if (p) { img = await photoUrl(key, p.name); if (img) { src = "google"; if (p.credit) d.photo_credit = p.credit; } } }
-      if (!img && typeof d.url === "string" && /^https?:/.test(d.url)) { img = await siteImage(d.url); if (img) src = "site"; }
+      if (!img && typeof d.url === "string" && /^https?:/.test(d.url) && siteOk(d)) { img = await siteImage(d.url); if (img) src = "site"; }
       if (img) { d.image_src = src; delete d.photo_tried; await sb.from("cards").update({ image: img, data: d }).eq("id", c.id); out[src as "google" | "site"]++; }
       else { d.photo_tried = today; await sb.from("cards").update({ data: d }).eq("id", c.id); out.none++; }
     }));
