@@ -1,0 +1,12 @@
+-- APPLIED LIVE 19 Nov 2026 (migrations event_cards_quality, event_cards_quality_venue_site, event_cards_guard_venue_image). Event cards: verified details, a real link, no listing-site pictures, gone 30 min after start.
+-- 1. _event_over: one start time -> over 30 min after start (was 2 h); a time range -> over at its end (past midnight allowed).
+-- 2. _event_card_ok + trigger event_card_guard: an event with no page of its own (only a listing site's home page) and no ticket
+--    or sign-up link is set inactive; a listing site's own preview image is removed from an event card.
+-- 3. touch active event cards so the guard runs on today's 22 events-feed cards (all have eventsinthed.com's home page and its screenshot).
+-- 4. welike-events-sweep every 10 min (was hourly).
+-- A venue's own home page counts as a real link when a 4+ letter word of the venue is in the web address.
+-- REVISED 19 Nov 9:50pm (Dave: no link, booking or picture is required; correct details and a clean card are):
+--   _event_card_ok = a date, a readable start time, and a venue or address. _event_site_is_venue decides whether a home page is the venue's.
+--   The guard removes a listing site's own preview image (home page not the venue's). Migration event_cards_details_not_links.
+--   photofill v4 (supabase/photofill_index.ts): events are located by venue first (Google photo of the place); site preview images
+--   only from a page of its own or the venue's own site. Tonight's 8 events still on were given venue photos.
