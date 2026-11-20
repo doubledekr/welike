@@ -2046,6 +2046,7 @@ function paintHearts() {   // header total plus the small per-category counts
 const NEWUI = !!(window.LT_BETA || window.LT_SIM);
 const HDECKS = [['all', 'Discover'], ['movie', 'Watch'], ['dinner', 'Eat & Drink'], ['event', 'Go Out'], ['trip', 'Trips']].filter(d => !(NEWUI && d[0] === 'trip'));   // Dave, 19 Nov: Eat and Drinks merged; Go Out is things to do
 function homeHTML() {
+  hintLoad();
   const st = S.state, p = partner(), incoming = (st.sessions || []).filter(s => s.from !== S.me && s.my_left > 0 && !(s.filters?.evshare && s.created_at && Date.now() - new Date(s.created_at) > 8 * 864e5)).sort((a, b) => (a.filters?.share || a.filters?.evshare ? 1 : 0) - (b.filters?.share || b.filters?.evshare ? 1 : 0));   // a nudge for right now takes the one slot ahead of a some-time-soon list
   if (!ls.get('allv1')) { ls.set('allv1', '1'); S.homeDeck = 'all'; ls.set('deck', 'all'); }   // the Everything deck is the new front door, once
   if (!HDECKS.some(d => d[0] === S.homeDeck)) S.homeDeck = 'all';
@@ -2810,6 +2811,21 @@ function gSpinDraw(anim) { const x = S.gspin; if (!x) return; const c = x.cur, d
     <div class="spcard ${anim ? 'hid' : ''}" id="spcard">${c.image ? `<img src="${esc(c.image)}" alt="">` : ''}<h2>${esc(c.title)}</h2>${meta ? `<p class="sgm">${esc(meta)}</p>` : ''}</div>
     <div class="spacts ${anim ? 'hid' : ''}" id="spacts"><button class="btn" data-act="gsend">Send it to ${esc(x.name)}</button><div style="height:10px"></div><div class="spouts"><button class="btn ghost" data-act="gagain">Spin again</button><button class="btn ghost" data-act="tonight">Back</button></div></div></div>`, 'spin');
   if (anim) spinReel({ reel: x.cards.slice(0, 14) }); }
+// Sparing hints (Dave, 19 Nov): once in a while, something your partner (or a friend) liked that ties into your own
+// likes, for you only, so you can plan it as a surprise. The person who liked it never sees you were shown it.
+function hintLoad() { if (!NEWUI || S.hintTried || !S.code || ls.get('hintday') === new Date().toDateString()) return; S.hintTried = 1;
+  rpc('hint_get', { p_code: S.code, p_member: S.me }).then(async h => { if (!h && S.acct) h = await frRpc('fr_hint').catch(() => null); ls.set('hintday', new Date().toDateString()); if (h?.id) { S.hint = h; if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) render(); } }).catch(() => {}); }
+const hintBanner = () => !S.hint ? '' : `<button class="tripbar kc k-match" data-act="hint" style="width:100%;text-align:left"><span class="tic">${ic('gem')}</span><span class="grow"><b>A little hint about ${esc(S.hint.about)}</b><small>Just for you. ${esc(S.hint.about)} won’t know</small></span><span class="go">Look</span></button>`;
+function hintSheet() { const h = S.hint; if (!h) return; const c = h.card || {}; step('hint_open');
+  sheet(`<div class="grab"></div><div class="body spin"><small class="spk">Just for you</small>${c.image ? `<div class="spcard"><img src="${esc(c.image)}" alt=""></div>` : ''}<h2 style="margin-top:14px">${esc(c.title || '')}</h2><p class="spst" style="line-height:1.45">${esc(h.text)}</p><p class="muted" style="font-size:13px;margin-top:6px">${esc(h.about)} won’t see that you were shown this.</p>
+    <div style="height:16px"></div>${h.friend ? `<button class="btn" data-act="hintgo">Plan something with ${esc(h.about)}</button>` : `<button class="btn" data-act="hintgo">Plan it as a surprise</button>`}<button class="jlink" data-act="hintkeep">Keep it in mind</button></div>`, 'hint'); }
+async function hintAct(a) { const h = S.hint; if (!h) return; S.hint = null; step('hint_' + a);
+  (h.friend ? frRpc('fr_hint_act', { p_id: h.id, p_act: a }) : rpc('hint_act', { p_code: S.code, p_member: S.me, p_id: h.id, p_act: a })).catch(() => {});
+  closeSheet(); if (a !== 'plan') { toast('Kept for you.'); return render(); }
+  if (h.friend) { const f = FR.d?.friends.find(x => x.name === h.about); return frNew(null, { kind: 'night', title: String(h.card.title || '').split(/[,(]/)[0].slice(0, 60), invite: f ? [f.id] : [] }); }
+  try { await dayPool(); } catch {} if (!S.pool.some(x => x.id === h.card.id)) S.pool.push(h.card);
+  dayDraft({ anchor: h.card }); const sl = Object.keys(S.pl?.items || {}).find(k => S.pl.items[k].card?.id === h.card.id); if (sl) { S.pl.items[sl].hidden = S.me; dayEdit(); }
+  toast(`It’s in as a surprise. ${them()} sees it an hour before.`, 4000); }
 function whoGroup(id, kind) { const g = FR.d?.groups.find(x => x.id === id); if (!g) return;
   if (kind === 'trip') return gTripSheet(id);
   if (kind === 'tonight') return gSpinPick(id);
@@ -3559,6 +3575,7 @@ function slotHTML(incoming) {
     ['triv:' + (S.triv ? S.triv.id + S.triv.phase : ''), trivBanner()],
     ['tf:' + tfKey(), tfBanner()],
     ['poll:' + (S.poll?.id || ''), tfBanner() && /^trivia-/.test(S.poll?.id || '') ? '' : pollBanner()],
+    ['hint:' + (S.hint?.id || ''), hintBanner()],
     ['hs', hsBanner()],
   ].filter(x => x && x[1] && !gone[x[0]]);
   setTimeout(surpGreet, 600);
@@ -4215,7 +4232,7 @@ async function openLibrary(mode) {   // 'all' = everything we like (the heart), 
   if (!S.libF || S.libF === 'trip' || fresh || (S.libMode === 'movie' ? S.libF === 'all' : S.libF === 'seen')) S.libF = libBase().some(c => c.who === 'both') ? 'both' : S.libMode === 'movie' ? 'me' : 'all';
   S.libSel = null; S.view = 'library'; render();
 }
-const libBase = () => (S.lib || []).filter(c => S.libMode === 'movie' ? c.deck === 'movie' : true);
+const libBase = () => (S.lib || []).filter(c => (S.libMode === 'movie' ? c.deck === 'movie' : true) && !(NEWUI && c.who === 'them'));   // beta and sim: a partner's one-sided like only ever shows as a sparing hint
 const libItems = () => S.libF === 'friends' ? (S.frLib || []).filter(c => S.libMode === 'movie' ? c.deck === 'movie' : !S.libC || c.deck === S.libC) : S.libMode === 'movie' && S.libF === 'seen' ? (S.libSeen || []) : libBase().filter(c => (S.libMode === 'movie' || !S.libC || c.deck === S.libC) && (S.libF === 'all' || c.who === S.libF));
 const milesTag = d => d.miles == null ? '' : `<span class="tag">${d.away ? d.miles + ' mi' : d.miles > 3 ? (d.miles >= 10 ? Math.round(d.miles) : d.miles) + ' mi from home' : 'Local'}</span>`;
 const FEEL = { love: 'Loved it', ok: 'It was fine', no: 'Not for me' };
@@ -6295,6 +6312,9 @@ document.addEventListener('click', async e => {
       case 'whogroup': return whoGroup(ds.id, ds.k);
       case 'gtrip': return gTrip(ds.id, ds.c || '');
       case 'gspin': return gSpin(ds.id, ds.k);
+      case 'hint': return hintSheet();
+      case 'hintgo': return hintAct('plan');
+      case 'hintkeep': return hintAct('keep');
       case 'frreq': { t.disabled = true; const r = await frRpc('fr_request_answer', { p_from: ds.id, p_yes: !!ds.y }).catch(() => null); if (r?.friends) toast('You’re friends now.'); S.frReqAt = 0; S.frReq = null; await frLoad().catch(() => {}); return render(); }
       case 'gagain': { const x = S.gspin; if (!x) return; const rest = x.cards.filter(c => c.id !== x.cur.id); x.cur = rest[Math.floor(Math.random() * rest.length)] || x.cur; return gSpinDraw(true); }
       case 'gplan': { const g = FR.d?.groups.find(x => x.id === ds.id); if (!g) return; closeSheet(); return frNew(null, { kind: 'night', title: `${g.name} night`, invite: g.members }); }
