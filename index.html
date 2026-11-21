@@ -735,9 +735,13 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .atap{background:none;border:0;padding:0;color:inherit;font:inherit;text-align:left;display:flex;flex-direction:column;gap:3px;min-width:0}.atap b{font-size:14.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.asub{display:flex;align-items:center;gap:6px;font-size:11.5px;color:#9fb9b6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .afaces{display:inline-flex;flex:none}.afaces i{width:17px;height:17px;border-radius:50%;color:#0d0c12;font:700 9.5px/17px Inter,system-ui,sans-serif;text-align:center;font-style:normal;margin-right:-4px;box-shadow:0 0 0 2px #15161b}.afaces i:last-child{margin-right:2px}
 .apin{width:14px;height:14px;color:#5ce8d0;flex:none}.alock{width:15px;height:15px;color:#ffd36e;flex:none}.adh{display:flex;flex-direction:column;gap:3px;padding:12px 14px 12px 8px;cursor:grab;touch-action:none;flex:none}.adh i{width:4px;height:4px;border-radius:50%;background:#6b7f7c;box-shadow:6px 0 0 #6b7f7c}
+.ar.aswp{transition:none;background:#1b1d23;z-index:2}.aswbg{position:absolute;left:0;right:0;border-radius:16px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;font-size:13px;font-weight:700;color:#0b0c10;pointer-events:none;background:#2a2c34}.aswbg span{display:flex;align-items:center;gap:6px;opacity:0;transition:opacity .12s}.aswbg span svg{width:16px;height:16px}.aswbg.go-r{background:rgba(92,232,208,.55)}.aswbg.go-r .r{opacity:1}.aswbg.go-l{background:rgba(255,120,110,.55)}.aswbg.go-l .l{opacity:1;margin-left:auto}.aswbg.far.go-r{background:#5ce8d0}.aswbg.far.go-l{background:#ff786e}.aswbg .l{order:2}
+.adh.off{width:26px;padding:0;cursor:default}.alink{background:none;border:0;padding:0;color:#5ce8d0;font:inherit;font-weight:700;text-decoration:underline;cursor:pointer}
+.apinopts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.apinopt{display:flex;flex-direction:column;gap:3px;align-items:flex-start;text-align:left;padding:10px 12px;border-radius:14px;border:0;background:rgba(255,255,255,.06);color:inherit;font:inherit;cursor:pointer}.apinopt small{font-size:11.5px;opacity:.65;line-height:1.25}.apinopt.on{background:rgba(92,232,208,.16);box-shadow:inset 0 0 0 1.5px rgba(92,232,208,.7)}
 .ar.cur{background:rgba(62,224,197,.07);box-shadow:inset 0 0 0 1px rgba(62,224,197,.25)}.ar.past{opacity:.5}
 .atrip{padding:14px;border-radius:18px;background:linear-gradient(135deg,rgba(45,212,191,.2),rgba(77,155,255,.14));box-shadow:inset 0 0 0 1px rgba(62,224,197,.35);margin-bottom:10px}.atrip b{display:block;font-size:15px}.atrip small{display:block;font-size:12.5px;color:#cfeee8;margin-top:4px;line-height:1.4}.atrip .btn{margin-top:12px}
 .tdays button small{display:block;font-size:9.5px;font-weight:600;color:#7fa09b;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tdays button.on small{color:#bfeee5}
+.tdays{overflow-x:auto;scrollbar-width:none;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;margin-left:-2px;margin-right:-2px;padding:0 2px}.tdays::-webkit-scrollbar{display:none}.tdays button{flex:1 0 62px;scroll-snap-align:start}.tdays:has(button:nth-child(6)) button{flex:0 0 66px}.tdays button small{font-size:9.5px}.tdays button b:after{content:'';display:block;width:5px;height:5px;border-radius:9px;background:transparent;margin:4px auto 0}.tdays button.dot b:after{background:#2dd4bf}
 .sheet.still{animation:none}.swapin{animation:fade .16s ease-out}
 .ttw{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}.tto{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:8px;border-radius:14px;background:rgba(255,255,255,.05);text-align:left;color:var(--text);transition:transform .12s}.tto:active{transform:scale(.97)}.tto img,.tto .pimg{width:100%;height:76px;object-fit:cover;border-radius:10px;display:grid;place-items:center}.tto b{font-size:14px;line-height:1.25}.tto small{color:var(--muted);font-size:12px}.tto.their{box-shadow:0 0 22px -6px rgba(255,140,120,.85)}.prow.ptt{align-items:flex-start}
 .pstep{margin:14px 0 0;font-size:13px;font-weight:700;letter-spacing:.3px;color:var(--muted)}.pdays.big{margin-top:2px}.pdays.big .chip{padding:12px 18px;font-size:16px;font-weight:700;border-radius:16px}
@@ -1879,6 +1883,9 @@ function render() {
   if (!DOCK2) return renderCore();
   const k0 = scrKey(), v0 = scrEl(); if (k0 && v0) SCR[k0] = v0.scrollTop;
   const r = renderCore();
+  const td = document.querySelector('.tdays'), tdx = S.tdaysX; if (td) { if (tdx != null) td.scrollLeft = tdx; const on = td.querySelector('button.on');
+    if (on && (on.offsetLeft < td.scrollLeft || on.offsetLeft + on.offsetWidth > td.scrollLeft + td.clientWidth)) td.scrollLeft = on.offsetLeft - td.clientWidth / 2 + on.offsetWidth / 2;
+    td.onscroll = () => { S.tdaysX = td.scrollLeft; }; }
   const k1 = scrKey(), v1 = scrEl(); if (k1 && v1 && SCR[k1] != null && v1 !== v0) { const y = SCR[k1]; v1.scrollTop = y; requestAnimationFrame(() => { if (v1.isConnected && v1.scrollTop < y) v1.scrollTop = y; }); }
   return r;
 }
@@ -2294,15 +2301,21 @@ function fillDay(dayK, shape, pool, opt) {
   return slots.filter(x => x.id).map(x => ({ id: x.id, t: x.t, n: x.n }));
 }
 // Plan the whole trip. Liked stops that found no slot go onto the least busy day at an open time, so none are dropped.
-function planTrip(pool, days, booked, shapes, seed, keepByDay = {}) {
-  const rnd = rngOf(seed), used = new Set(booked.map(b => b.card).filter(Boolean)), liked = pool.filter(x => x.likers.length && x._ty !== 'tour');
-  const out = {};
-  for (const d of days) out[d.k] = fillDay(d.k, shapes[d.k] || 'full', pool, { liked, used, booked, rnd, keep: (keepByDay[d.k] || []).map(i => pool.find(x => x.id === i)).filter(Boolean) });
-  // a second pass without the walking limit, then extras for anything still left
-  for (const it of liked.filter(x => !used.has(x.id))) {
+// fixedByDay: stops pinned to a time; they keep their time and block the slots around it, like a booking
+function planTrip(pool, days, booked, shapes, seed, keepByDay = {}, fixedByDay = {}) {
+  const fixedIds = Object.values(fixedByDay).flat().map(x => x.id);
+  const keepIds = days.flatMap(d => keepByDay[d.k] || []);
+  const rnd = rngOf(seed), used = new Set([...booked.map(b => b.card).filter(Boolean), ...fixedIds, ...keepIds]), liked = pool.filter(x => x.likers.length && x._ty !== 'tour');
+  const out = {}, bkOf = k => [...booked, ...(fixedByDay[k] || []).map(f => ({ day: k, time: f.t, minutes: 90 }))];
+  for (const d of days) out[d.k] = fillDay(d.k, shapes[d.k] || 'full', pool, { liked, used, booked: bkOf(d.k), rnd, keep: (keepByDay[d.k] || []).map(i => pool.find(x => x.id === i)).filter(Boolean) });
+  for (const d of days) for (const id of keepByDay[d.k] || []) {   // a stop pinned to a day is always on that day
+    const it = pool.find(x => x.id === id); if (it && !out[d.k].some(x => x.id === id)) out[d.k] = addExtra(out[d.k], it, bkOf(d.k)); }
+  for (const it of liked.filter(x => !used.has(x.id))) {   // anything liked still left goes onto the least busy day
     const d = days.slice().sort((a, b) => out[a.k].length - out[b.k].length)[0]; if (!d) break;
-    out[d.k] = addExtra(out[d.k], it, booked.filter(b => b.day === d.k)); used.add(it.id);
+    out[d.k] = addExtra(out[d.k], it, bkOf(d.k)); used.add(it.id);
   }
+  for (const d of days) { const keepP = Object.fromEntries((keepByDay.__p?.[d.k] || []).map(x => [x.id, x.p]));
+    out[d.k] = [...out[d.k].map(x => keepP[x.id] ? { ...x, p: keepP[x.id] } : x), ...(fixedByDay[d.k] || [])].sort((p, q) => hm(p.t) - hm(q.t)); }
   return { v: 1, seed, shapes, days: out };
 }
 function addExtra(list, it, bk) {   // first open time that isn't taken
@@ -2328,68 +2341,98 @@ async function autoSave(key, auto) {
 }
 function tripBooked(key) { return (key.startsWith('g:') ? gtOf(key.slice(2))?.data?.booked : planMeta(key.slice(2)).booked) || []; }
 // the plan must cover today's days; a missing or stale one is made (or extended) by whoever opens the trip first
+const poolOf = (key, a) => { const P = S.tpool[key], off = new Set(a?.off || []); return (P?.list || []).filter(x => !off.has(x.id)); };
 function autoReady(key) {
   const days = tripDaysOf(key), P = S.tpool[key]; if (!days.length || !P?.list) return null;
   let a = autoOf(key);
   const stale = !a || days.some(d => !a.days?.[d.k]);
   if (stale && !S.amaking?.[key]) {
-    const shapes = { ...defaultShapes(days), ...(a?.shapes || {}) }, keep = {};
-    if (a) for (const d of days) if (a.days?.[d.k]) keep[d.k] = a.days[d.k].filter(x => !x.n).map(x => x.id);
-    a = planTrip(P.list, days, tripBooked(key), shapes, a?.seed || (Date.now() % 100000), keep);
+    const shapes = { ...defaultShapes(days), ...(a?.shapes || {}) }, keep = {}, fixed = {};
+    if (a) for (const d of days) if (a.days?.[d.k]) { keep[d.k] = a.days[d.k].filter(x => (!x.n || x.p) && x.p !== 'time').map(x => x.id); fixed[d.k] = a.days[d.k].filter(x => x.p === 'time'); }
+    const off = a?.off || []; a = { ...planTrip(poolOf(key, a), days, tripBooked(key), shapes, a?.seed || (Date.now() % 100000), keep, fixed), off };
     S.amaking = { ...(S.amaking || {}), [key]: true }; autoSave(key, a).finally(() => { S.amaking[key] = false; });
   }
   return a;
 }
 // --- actions
-function autoLiked(P, a) { return P.list.filter(x => x.likers.length && x._ty !== 'tour'); }
-async function autoReshuffle(key, k) {   // one day: same shape, liked stay on the day, new finds change
-  const P = S.tpool[key], a = autoOf(key); if (!P?.list || !a) return; const days = tripDaysOf(key), seed = (a.seed || 1) + 7919 + Math.floor(Math.random() * 1000);
-  const cur = a.days[k] || [], keep = cur.filter(x => !x.n).map(x => x.id), used = new Set(Object.entries(a.days).filter(([d]) => d !== k).flatMap(([, l]) => l.map(x => x.id)));
-  const list = fillDay(k, a.shapes[k] || 'full', P.list, { liked: [], used, booked: tripBooked(key), rnd: rngOf(seed), keep: keep.map(i => P.byId[i]).filter(Boolean), avoid: new Set(cur.filter(x => x.n).map(x => x.id)) });
-  let fin = list; for (const id of keep.filter(i => !list.some(x => x.id === i))) fin = addExtra(fin, P.byId[id] || { _ty: 'sight' }, tripBooked(key).filter(b => b.day === k)).map(x => x.id === id ? { ...x, id } : x);
-  const nNew = fin.filter(x => x.n).length;
-  S.anote[key + k] = `Reshuffled. Kept all ${keep.length} liked stop${keep.length === 1 ? '' : 's'}${nNew ? ', swapped in something new' : ''}.`;
-  await autoSave(key, { ...a, seed, days: { ...a.days, [k]: fin } }); render();
+function autoLiked(P) { return P.list.filter(x => x.likers.length && x._ty !== 'tour'); }
+const dayName = k => new Date(k + 'T12:00').toLocaleDateString('en-US', { weekday: 'long' });
+const isKeep = (x, P) => x.p || x.a || !x.n || (P.byId[x.id]?.likers || []).length;   // liked, added or pinned: never dropped by the planner
+const timeFixed = (k, list) => list.filter(x => x.p === 'time').map(x => ({ day: k, time: x.t, minutes: 90 }));
+// one day again: liked, added and pinned stops stay on the day (time pins keep their time); the new finds change
+function rebuildDay(key, a, k, shape, seed, avoid = []) {
+  const P = S.tpool[key], pool = poolOf(key, a), cur = a.days[k] || [], bk = [...tripBooked(key), ...timeFixed(k, cur)];
+  const keep = cur.filter(x => isKeep(x, P) && x.p !== 'time'), fixed = cur.filter(x => x.p === 'time');
+  const used = new Set([...Object.entries(a.days).filter(([d]) => d !== k).flatMap(([, l]) => l.map(x => x.id)), ...fixed.map(x => x.id)]);
+  let list = fillDay(k, shape, pool, { liked: [], used, booked: bk, rnd: rngOf(seed), keep: keep.map(x => P.byId[x.id]).filter(Boolean), avoid: new Set(avoid) });
+  const keepMeta = Object.fromEntries(keep.map(x => [x.id, x])); list = list.map(x => keepMeta[x.id] ? { ...x, n: keepMeta[x.id].n && !keepMeta[x.id].p, p: keepMeta[x.id].p, a: keepMeta[x.id].a } : x);
+  return { list: [...list, ...fixed].sort((p, q) => hm(p.t) - hm(q.t)), left: keep.filter(x => !list.some(y => y.id === x.id)) };
 }
-async function autoShape(key, k, shape) {   // a new shape for one day: liked stops that don't fit move to another day
-  const P = S.tpool[key], a = autoOf(key); if (!P?.list || !a || !SHAPES[shape]) return;
-  const seed = (a.seed || 1) + 104729, cur = a.days[k] || [], keep = cur.filter(x => !x.n).map(x => x.id);
-  const used = new Set(Object.entries(a.days).filter(([d]) => d !== k).flatMap(([, l]) => l.map(x => x.id)));
-  const list = fillDay(k, shape, P.list, { liked: [], used, booked: tripBooked(key), rnd: rngOf(seed), keep: keep.map(i => P.byId[i]).filter(Boolean) });
-  const days = { ...a.days, [k]: list }, moved = [];
-  for (const id of keep.filter(i => !list.some(x => x.id === i))) {   // no room today: least busy other day
-    const it = P.byId[id]; if (!it) continue; const other = tripDaysOf(key).filter(d => d.k !== k).sort((x, y) => (days[x.k] || []).length - (days[y.k] || []).length)[0];
-    if (!other) { days[k] = addExtra(days[k], it, tripBooked(key).filter(b => b.day === k)); continue; }
-    days[other.k] = addExtra(days[other.k] || [], it, tripBooked(key).filter(b => b.day === other.k)); moved.push(`${it.title} to ${new Date(other.k + 'T12:00').toLocaleDateString('en-US', { weekday: 'long' })}`);
-  }
+async function autoReshuffle(key, k) {
+  const P = S.tpool[key], a = autoOf(key); if (!P?.list || !a) return; const seed = (a.seed || 1) + 7919 + Math.floor(Math.random() * 1000);
+  const cur = a.days[k] || [], r = rebuildDay(key, a, k, a.shapes[k] || 'full', seed, cur.filter(x => x.n && !x.p).map(x => x.id));
+  let list = r.list; for (const x of r.left) list = addExtra(list, P.byId[x.id] || { _ty: 'sight' }, [...tripBooked(key), ...timeFixed(k, list)].filter(b => b.day === k)).map(y => y.id === x.id ? { ...y, p: x.p, a: x.a } : y);
+  const kept = list.filter(x => !x.n || x.p).length;
+  S.anote[key + k] = `Reshuffled. Kept ${kept} stop${kept === 1 ? '' : 's'} you liked or pinned, swapped in something new.`;
+  await autoSave(key, { ...a, seed, days: { ...a.days, [k]: list } }); render();
+}
+async function autoShape(key, k, shape) {   // liked stops that don't fit the new shape move to another day; pinned ones stay
+  const P = S.tpool[key], a = autoOf(key); if (!P?.list || !a || !SHAPES[shape]) return; const seed = (a.seed || 1) + 104729;
+  const r = rebuildDay(key, a, k, shape, seed), days = { ...a.days, [k]: r.list }, moved = [];
+  for (const x of r.left) { const it = P.byId[x.id]; if (!it) continue;
+    const other = x.p ? null : tripDaysOf(key).filter(d => d.k !== k).sort((p, q) => (days[p.k] || []).length - (days[q.k] || []).length)[0];
+    const to = other ? other.k : k; days[to] = addExtra(days[to] || [], it, [...tripBooked(key), ...timeFixed(to, days[to] || [])].filter(b => b.day === to)).map(y => y.id === x.id ? { ...y, p: x.p, a: x.a } : y);
+    if (other) moved.push(`${it.title} to ${dayName(other.k)}`); }
   S.anote[key + k] = `Now a ${SHAPES[shape].name.toLowerCase()}.${moved.length ? ' Moved ' + moved.join(', ') + '.' : ''}`;
   await autoSave(key, { ...a, seed, shapes: { ...a.shapes, [k]: shape }, days }); render();
 }
-async function autoTrip(key) {   // the whole trip again; every liked stop stays somewhere in it
-  const P = S.tpool[key], a = autoOf(key); if (!P?.list) return; const days = tripDaysOf(key), seed = Math.floor(Math.random() * 100000) + 1;
-  const b = planTrip(P.list, days, tripBooked(key), a?.shapes || defaultShapes(days), seed);
-  const n = autoLiked(P).length; S.anote[key + 'trip'] = `Reshuffled the trip. All ${n} liked stops are on a day.`; await autoSave(key, b); render();
+async function autoTrip(key) {   // the whole trip again: pinned stops keep their day (and time), every liked stop stays in the trip
+  const P = S.tpool[key], a = autoOf(key); if (!P?.list) return; const days = tripDaysOf(key), seed = Math.floor(Math.random() * 100000) + 1, keep = { __p: {} }, fixed = {};
+  for (const d of days) { const l = a?.days?.[d.k] || []; keep[d.k] = l.filter(x => x.p === 'day').map(x => x.id); keep.__p[d.k] = l.filter(x => x.p === 'day'); fixed[d.k] = l.filter(x => x.p === 'time'); }
+  const b = { ...planTrip(poolOf(key, a), days, tripBooked(key), a?.shapes || defaultShapes(days), seed, keep, fixed), off: a?.off || [] };
+  const n = autoLiked(P).filter(x => !(a?.off || []).includes(x.id)).length; S.anote[key + 'trip'] = `Reshuffled the trip. All ${n} liked stops are on a day.`; await autoSave(key, b); render();
 }
-async function autoMove(key, k, id, to) {   // move a stop to another day (liked ones can't leave the trip)
+async function autoMove(key, k, id, to) {   // to another day (a pin to a time becomes a pin to the day)
   const a = autoOf(key), P = S.tpool[key]; if (!a || !P?.byId[id]) return; const it = a.days[k]?.find(x => x.id === id); if (!it) return;
+  if (!to) return autoRemove(key, k, id);
   const days = { ...a.days, [k]: a.days[k].filter(x => x.id !== id) };
-  if (to) days[to] = addExtra(days[to] || [], P.byId[id], tripBooked(key).filter(b => b.day === to)).map(x => x.id === id ? { ...x, n: it.n } : x);
-  await autoSave(key, { ...a, days }); closeSheet(); render();
+  days[to] = addExtra(days[to] || [], P.byId[id], [...tripBooked(key), ...timeFixed(to, days[to] || [])].filter(b => b.day === to)).map(x => x.id === id ? { ...x, n: it.n, a: it.a, p: it.p ? 'day' : undefined } : x);
+  await autoSave(key, { ...a, days }); closeSheet(); toast(`Moved to ${dayName(to)}.`); render();
 }
-async function autoSwap(key, k, id) {   // a new find swapped for another one in the same slot
+async function autoRemove(key, k, id) {   // off the trip for good (the planner won't bring it back); Undo puts it back
+  const a = autoOf(key), P = S.tpool[key]; if (!a || !P?.byId[id]) return; const it = (a.days[k] || []).find(x => x.id === id); if (!it) return;
+  S.aundo = { key, k, it }; S.anote[key + k] = `Took off ${P.byId[id].title}.`;
+  await autoSave(key, { ...a, off: [...new Set([...(a.off || []), id])], days: { ...a.days, [k]: a.days[k].filter(x => x.id !== id) } }); closeSheet(); render();
+}
+async function autoUndo() {
+  const u = S.aundo; if (!u) return; const a = autoOf(u.key); if (!a) return; S.aundo = null; S.anote[u.key + u.k] = 'Put back.';
+  await autoSave(u.key, { ...a, off: (a.off || []).filter(i => i !== u.it.id), days: { ...a.days, [u.k]: [...(a.days[u.k] || []), u.it].sort((p, q) => hm(p.t) - hm(q.t)) } }); render();
+}
+async function autoSwap(key, k, id) {   // something new in this spot; a liked stop that gets swapped out moves to another day
   const a = autoOf(key), P = S.tpool[key]; if (!a || !P?.list) return; const list = a.days[k] || [], it = list.find(x => x.id === id), cur = P.byId[id]; if (!it || !cur) return;
-  const used = new Set(Object.values(a.days).flatMap(l => l.map(x => x.id))), others = list.filter(x => x.id !== id).map(x => P.byId[x.id]).filter(Boolean);
-  const pick = P.list.filter(x => !used.has(x.id) && !x.likers.length && x._ty === cur._ty && x.lat != null).sort((x, y) => Math.min(...others.map(o => kmBetween(o, x)), 9) - Math.min(...others.map(o => kmBetween(o, y)), 9) + (Math.random() - .5))[0];
+  const used = new Set(Object.values(a.days).flatMap(l => l.map(x => x.id))), others = list.filter(x => x.id !== id).map(x => P.byId[x.id]).filter(Boolean), off = new Set(a.off || []);
+  const ty = cur._ty === 'tour' ? 'sight' : cur._ty;
+  const pick = P.list.filter(x => !used.has(x.id) && !off.has(x.id) && x._ty === ty && x.lat != null).map(x => ({ x, d: Math.min(...others.map(o => kmBetween(o, x)), 9) - (x.likers.length ? 2 : 0) + Math.random() })).sort((p, q) => p.d - q.d)[0]?.x;
   if (!pick) return toast('Nothing else like it nearby yet.');
-  await autoSave(key, { ...a, days: { ...a.days, [k]: list.map(x => x.id === id ? { ...x, id: pick.id } : x) } }); closeSheet(); render();
+  const days = { ...a.days, [k]: list.map(x => x.id === id ? { id: pick.id, t: x.t, n: !pick.likers.length, p: x.p === 'time' ? 'time' : undefined } : x) };
+  let note = `Swapped in ${pick.title}.`;
+  if (cur.likers.length && !off.has(id)) { const other = tripDaysOf(key).filter(d => d.k !== k).sort((p, q) => (days[p.k] || []).length - (days[q.k] || []).length)[0];
+    if (other) { days[other.k] = addExtra(days[other.k] || [], cur, [...tripBooked(key), ...timeFixed(other.k, days[other.k] || [])].filter(b => b.day === other.k)); note += ` ${cur.title} moved to ${dayName(other.k)}.`; } }
+  S.anote[key + k] = note; await autoSave(key, { ...a, days }); closeSheet(); render();
 }
-async function autoAdd(key, k, id) {   // add something to the day; it stays like a liked stop
+async function autoPin(key, k, id, p) {
+  const a = autoOf(key); if (!a) return; const list = (a.days[k] || []).map(x => x.id === id ? { ...x, p: p || undefined } : x);
+  await autoSave(key, { ...a, days: { ...a.days, [k]: list } }); const x = list.find(y => y.id === id);
+  toast(p === 'time' ? `Pinned to ${tm12(x.t)}. It stays at that time.` : p === 'day' ? `Pinned to ${dayName(k)}.` : 'Unpinned.'); autoEvSheet(id); render();
+}
+async function autoAdd(key, k, id) {   // something added by hand stays like a liked stop
   const a = autoOf(key), P = S.tpool[key]; if (!a || !P?.byId[id]) return; if (Object.values(a.days).some(l => l.some(x => x.id === id))) return toast('That’s already on the trip.');
-  await autoSave(key, { ...a, days: { ...a.days, [k]: addExtra(a.days[k] || [], P.byId[id], tripBooked(key).filter(b => b.day === k)).map(x => x.id === id ? { ...x, a: 1 } : x) } }); toast('Added to the day.'); render();
+  await autoSave(key, { ...a, off: (a.off || []).filter(i => i !== id), days: { ...a.days, [k]: addExtra(a.days[k] || [], P.byId[id], [...tripBooked(key), ...timeFixed(k, a.days[k] || [])].filter(b => b.day === k)).map(x => x.id === id ? { ...x, a: 1 } : x) } }); toast('Added to the day.'); render();
 }
-async function autoOrder(key, k, ids) {   // after a drag: the times stay where they were, the stops move into them
-  const a = autoOf(key); if (!a) return; const list = a.days[k] || [], times = list.map(x => x.t).sort((x, y) => hm(x) - hm(y)), byId = Object.fromEntries(list.map(x => [x.id, x]));
-  const next = ids.map((id, i) => ({ ...byId[id], t: times[i] })); S.anote[key + k] = 'Moved. Times stay put; the stops shifted into them.';
+async function autoOrder(key, k, ids) {   // after a drag: the times stay where they were and the stops move into them; time pins don't move
+  const a = autoOf(key); if (!a) return; const list = a.days[k] || [], fixed = list.filter(x => x.p === 'time'), free = list.filter(x => x.p !== 'time');
+  const times = free.map(x => x.t).sort((x, y) => hm(x) - hm(y)), byId = Object.fromEntries(free.map(x => [x.id, x]));
+  const next = [...ids.filter(i => byId[i]).map((id, i) => ({ ...byId[id], t: times[i] })), ...fixed].sort((p, q) => hm(p.t) - hm(q.t)); S.anote[key + k] = 'Moved. Times stay put; the stops shifted into them.';
   await autoSave(key, { ...a, days: { ...a.days, [k]: next } }); render();
 }
 // The trip screen (beta, Dave 20 Nov): once a trip has its days, tapping its pill shows the days, one at a time, as a
@@ -2439,35 +2482,38 @@ function autoDayBody(key, k, ctx, a, P) {
     if (r.b) return `<div class="${cls} afix"><span class="tdt">${T(r.b.time)}</span><span class="abar bk"></span><button class="grow atap" data-act="evsheet" data-kind="b" data-k="${esc(r.b.ref || r.b.title)}"><b>${esc(r.b.title)}</b><span class="asub">Booked by ${r.b.by === S.me ? 'you' : esc(r.b.by)}</span></button><svg class="alock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" role="img" aria-label="Booked, keeps its time"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>`;
     if (r.s) return `<div class="${cls} afix"><span class="tdt">${T(r.s.time)}</span><span class="abar st"></span><button class="grow atap" data-act="staysheet"><b>${r.s.s === 'in' ? 'Check in' : 'Check out'}</b><span class="asub">${esc(r.s.title)}</span></button></div>`;
     const x = r.x, it = x.it, liked = it.likers.length > 0, prev = list[list.indexOf(x) - 1]?.it;
-    const sub = liked ? `${faces(it.likers)}${esc(who(it.likers))}` : x.a ? 'Added' : `New for you${prev ? ' · near ' + esc(prev.title) : ''}`;
-    return `<div class="${cls} ${liked || x.a ? '' : 'anew'}" data-id="${esc(x.id)}"><span class="tdt">${T(x.t)}</span><span class="abar"></span><button class="grow atap" data-act="aev" data-id="${esc(x.id)}"><b>${esc(it.title)}</b><span class="asub">${sub}</span></button>${liked || x.a ? `<svg class="apin" viewBox="0 0 24 24" fill="currentColor" role="img" aria-label="Stays on the trip"><path d="M16 3l5 5-4 1-4 4 1 5-2 2-4-4-5 5-1-1 5-5-4-4 2-2 5 1 4-4z"/></svg>` : ''}<span class="adh" role="button" tabindex="0" aria-label="Drag to move ${esc(it.title)}"><i></i><i></i><i></i></span></div>`;
+    const pinT = x.p === 'time' ? ' · stays at this time' : x.p === 'day' ? ' · pinned to the day' : '';
+    const sub = (liked ? `${faces(it.likers)}${esc(who(it.likers))}` : x.a ? 'Added' : `New for you${prev ? ' · near ' + esc(prev.title) : ''}`) + pinT;
+    return `<div class="${cls} ${liked || x.a || x.p ? '' : 'anew'} ${x.p === 'time' ? 'atime' : ''}" data-id="${esc(x.id)}"><span class="tdt">${T(x.t)}</span><span class="abar"></span><button class="grow atap" data-act="aev" data-id="${esc(x.id)}"><b>${esc(it.title)}</b><span class="asub">${sub}</span></button>${x.p === 'time' ? `<svg class="alock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" role="img" aria-label="Pinned to this time"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>` : x.p === 'day' ? `<svg class="apin" viewBox="0 0 24 24" fill="currentColor" role="img" aria-label="Pinned to this day"><path d="M16 3l5 5-4 1-4 4 1 5-2 2-4-4-5 5-1-1 5-5-4-4 2-2 5 1 4-4z"/></svg>` : ''}${x.p === 'time' ? '<span class="adh off"></span>' : `<span class="adh" role="button" tabindex="0" aria-label="Drag to move ${esc(it.title)}"><i></i><i></i><i></i></span>`}</div>`;
   };
   const nLiked = list.filter(x => x.it.likers.length).length;
   const placed = new Set(Object.values(a.days).flat().map(x => x.id)), last = list[list.length - 1]?.it || list[0]?.it;
-  const add = P.list.filter(x => !placed.has(x.id) && x._ty !== 'tour' && x.lat != null).map(x => ({ x, d: kmBetween(last, x) - (x.likers.length ? 5 : 0) })).sort((p, q) => p.d - q.d).slice(0, 6).map(o => o.x);
+  const offS = new Set(a.off || []), add = P.list.filter(x => !placed.has(x.id) && !offS.has(x.id) && x._ty !== 'tour' && x.lat != null).map(x => ({ x, d: kmBetween(last, x) - (x.likers.length ? 5 : 0) })).sort((p, q) => p.d - q.d).slice(0, 6).map(o => o.x);
   const TY = { coffee: 'Coffee', food: 'Food', drink: 'Drinks', indoor: 'Inside', sight: 'Out and about' };
   return `<div class="ashapes">${SHAPE_KEYS.map(sk => `<button class="${sk === shape ? 'on' : ''}" data-act="ashape" data-s="${sk}">${SHAPES[sk].name}</button>`).join('')}</div>
     <button class="btn ashuf" data-act="ashuf">${ic('shuffle')}Reshuffle ${esc(new Date(k + 'T12:00').toLocaleDateString('en-US', { weekday: 'long' }))}</button>
-    <small class="anote">${esc(S.anote[key + k] || `${SHAPES[shape].name} · ${nLiked} of ${list.length} stops ${g ? 'someone' : partner() ? 'one of you' : 'you'} liked. Liked stops stay on the trip; drag to move.`)}</small>
+    <small class="anote">${esc(S.anote[key + k] || `${SHAPES[shape].name} · ${nLiked} of ${list.length} stops ${g ? 'someone' : partner() ? 'one of you' : 'you'} liked. Swipe left to take one off, right for something new.`)}${S.aundo && S.aundo.key === key && S.aundo.k === k ? ' <button class="alink" data-act="aundo">Undo</button>' : ''}</small>
     <div class="aline" data-k="${esc(k)}">${all.length ? all.map((r, i) => (i === nowI ? `<div class="tdnow"><i></i><span>${hm(r.t) <= nowM ? 'Now' : 'Up next'}</span></div>` : '') + row(r, i)).join('') : `<p class="muted" style="font-size:14px;margin:14px 4px">Nothing fits this day yet. Swipe the piles below, or try another shape.</p>`}</div>
     ${add.length ? `<div class="sect" style="margin-top:18px">Add to the day</div><div class="tdideas">${add.map(x => `<button class="tdi" data-act="aadd" data-id="${esc(x.id)}">${x.img ? `<img src="${esc(x.img)}" alt="">` : `<span class="pimg">${ic('ticket')}</span>`}<span><b>${esc(x.title)}</b><small>${x.likers.length ? esc(who(x.likers)) : TY[x._ty] || ''} · tap to add</small></span></button>`).join('')}</div>` : ''}`;
 }
 function autoEvSheet(id) {
   const key = S.tKey, k = S.dctx?.k, a = autoOf(key), P = S.tpool[key]; if (!a || !P?.byId[id]) return;
   const it = P.byId[id], e = (a.days[k] || []).find(x => x.id === id); if (!e) return; const ppl = autoPeople(key), liked = it.likers.length > 0;
-  const others = tripDaysOf(key).filter(d => d.k !== k);
+  const others = tripDaysOf(key).filter(d => d.k !== k), pin = e.p || '';
+  const pinBtn = (p, label, sub) => `<button class="apinopt ${pin === p ? 'on' : ''}" data-act="apin" data-id="${esc(id)}" data-p="${p}"><b>${label}</b><small>${sub}</small></button>`;
   sheet(`<div class="grab"></div><div class="trp kc k-book">${it.img ? `<img class="mzhero" src="${esc(it.img)}" alt="">` : ''}<small class="tkick">${esc(dShort(k))} · ${esc(tm12(e.t))}</small><h2>${esc(it.title)}</h2>
     <p class="muted">${liked ? 'Liked by ' + esc(it.likers.map(u => ppl[u]?.nm).filter(Boolean).join(', ')) + '. It stays on the trip.' : e.a ? 'Added to the day.' : 'A new find near the rest of the day.'}</p>
     <div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap"><a class="tpill" href="${esc(mapsUrl(it.title + ' ' + (S.dctx?.c || gtOf(S.dctx?.g)?.city || '')))}" target="_blank" rel="noopener">${ic('pin')}Directions</a>${it.url ? `<a class="tpill" href="${esc(it.url)}" target="_blank" rel="noopener">Open the link</a>` : ''}</div>
+    <div class="sect" style="margin-top:16px">Pin it</div><div class="apinopts">${pinBtn('', 'No pin', 'Reshuffles can move it')}${pinBtn('day', 'This day', 'Stays on ' + esc(dayName(k)))}${pinBtn('time', 'This time', 'Stays at ' + esc(tm12(e.t)))}</div>
     ${others.length ? `<div class="sect" style="margin-top:16px">Move to another day</div><div class="stdays">${others.map(d => `<button class="tpill" data-act="amove" data-id="${esc(id)}" data-to="${d.k}">${esc(dShort(d.k))}</button>`).join('')}</div>` : ''}
-    ${liked ? '' : `<div style="height:14px"></div>${e.a ? '' : `<button class="btn" data-act="aswap" data-id="${esc(id)}">Swap for something else</button><div style="height:8px"></div>`}<button class="btn ghost" data-act="amove" data-id="${esc(id)}" data-to="">Take it off the day</button>`}</div>`);
+    <div style="height:14px"></div><button class="btn" data-act="aswap" data-id="${esc(id)}">Swap for something new</button><div style="height:8px"></div><button class="btn ghost" data-act="aoff" data-id="${esc(id)}">Take it off the trip</button></div>`);
 }
 // Drag a stop by its handle; the other stops slide out of the way; on release the times stay and the stops shift into them.
 function adragInit() {
   if (window.__adrag) return; window.__adrag = 1;
   document.addEventListener('pointerdown', e => {
-    const h = e.target.closest('.adh'); if (!h) return; const row = h.closest('.ar'), line = row?.closest('.aline'); if (!row || !line) return;
-    e.preventDefault(); const rows = [...line.querySelectorAll('.ar[data-id]')], start = rows.indexOf(row), y0 = e.clientY, H = row.getBoundingClientRect().height + 2;
+    const h = e.target.closest('.adh'); if (!h || h.classList.contains('off')) return; const row = h.closest('.ar'), line = row?.closest('.aline'); if (!row || !line) return;
+    e.preventDefault(); const rows = [...line.querySelectorAll('.ar[data-id]:not(.atime)')], start = rows.indexOf(row), y0 = e.clientY, H = row.getBoundingClientRect().height + 2;
     row.classList.add('drag'); h.setPointerCapture?.(e.pointerId); let to = start;
     const mv = ev => { const dy = ev.clientY - y0; row.style.transform = `translateY(${dy}px) scale(1.02)`; to = Math.max(0, Math.min(rows.length - 1, start + Math.round(dy / H)));
       rows.forEach((r, i) => { if (r === row) return; r.style.transform = i > start && i <= to ? `translateY(-${H}px)` : i < start && i >= to ? `translateY(${H}px)` : ''; }); };
@@ -2476,6 +2522,31 @@ function adragInit() {
       if (to !== start) { const ids = rows.map(r => r.dataset.id); ids.splice(to, 0, ids.splice(start, 1)[0]); autoOrder(S.tKey, line.dataset.k, ids); } };
     document.addEventListener('pointermove', mv); document.addEventListener('pointerup', up); document.addEventListener('pointercancel', up);
   }, { passive: false });
+  // Swipe a stop sideways: left takes it off the trip (Undo on the note line), right shuffles in something new in its place.
+  let sw = null;
+  document.addEventListener('pointerdown', e => {
+    if (e.target.closest('.adh')) return; const row = e.target.closest('.aline .ar[data-id]'); if (!row) return;
+    sw = { row, x0: e.clientX, y0: e.clientY, on: false, dx: 0, id: e.pointerId };
+  });
+  document.addEventListener('pointermove', e => {
+    if (!sw || e.pointerId !== sw.id) return; const dx = e.clientX - sw.x0, dy = e.clientY - sw.y0;
+    if (!sw.on) { if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) { sw = null; return; } if (Math.abs(dx) < 12) return;
+      sw.on = true; const r = sw.row, bg = document.createElement('div'); bg.className = 'aswbg';
+      bg.style.top = r.offsetTop + 'px'; bg.style.height = r.offsetHeight + 'px';
+      bg.innerHTML = `<span class="r">${ic('shuffle')}Something new</span><span class="l">Take it off</span>`; r.parentNode.insertBefore(bg, r); sw.bg = bg; r.classList.add('aswp'); }
+    sw.dx = dx; sw.row.style.transform = `translateX(${dx}px)`; const far = Math.abs(dx) > 90;
+    sw.bg.className = `aswbg ${dx > 0 ? 'go-r' : 'go-l'} ${far ? 'far' : ''}`;
+  });
+  const end = e => {
+    if (!sw || e.pointerId !== sw.id) return; const s0 = sw; sw = null; if (!s0.on) return;
+    window.__aswClick = Date.now(); const { row, bg, dx } = s0, id = row.dataset.id, k = row.closest('.aline')?.dataset.k;
+    if (Math.abs(dx) > 90 && e.type === 'pointerup') { row.style.transform = `translateX(${dx > 0 ? 110 : -110}%)`; row.style.opacity = '0';
+      setTimeout(() => { dx > 0 ? autoSwap(S.tKey, k, id) : autoRemove(S.tKey, k, id); }, 160); return; }
+    row.style.transform = ''; row.classList.remove('aswp'); setTimeout(() => bg?.remove(), 200);
+  };
+  document.addEventListener('pointerup', end); document.addEventListener('pointercancel', end);
+  // the tap that ends a swipe doesn't open the stop
+  document.addEventListener('click', e => { if (window.__aswClick && Date.now() - window.__aswClick < 350 && e.target.closest('.aline')) { e.stopPropagation(); e.preventDefault(); } }, true);
 }
 adragInit();
 // Sheets behind a tap on the day: a flight (everyone's, plus yours to add), the stay (address, link, check-in and out),
@@ -7380,6 +7451,9 @@ document.addEventListener('click', async e => {
       case 'aev': return autoEvSheet(t.dataset.id);
       case 'amove': return autoMove(S.tKey, S.dctx?.k, t.dataset.id, t.dataset.to);
       case 'aswap': return autoSwap(S.tKey, S.dctx?.k, t.dataset.id);
+      case 'aoff': return autoRemove(S.tKey, S.dctx?.k, t.dataset.id);
+      case 'aundo': return autoUndo();
+      case 'apin': return autoPin(S.tKey, S.dctx?.k, t.dataset.id, t.dataset.p);
       case 'aadd': return autoAdd(S.tKey, S.dctx?.k, t.dataset.id);
       case 'apool': delete S.tpool[S.tKey]; return render();
       case 'flsave': return flSave(t);
