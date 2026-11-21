@@ -737,6 +737,8 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .apin{width:14px;height:14px;color:#5ce8d0;flex:none}.alock{width:15px;height:15px;color:#ffd36e;flex:none}.adh{display:flex;flex-direction:column;gap:3px;padding:12px 14px 12px 8px;cursor:grab;touch-action:none;flex:none}.adh i{width:4px;height:4px;border-radius:50%;background:#6b7f7c;box-shadow:6px 0 0 #6b7f7c}
 .ar.aswp{transition:none;background:#1b1d23;z-index:2}.aswbg{position:absolute;left:0;right:0;border-radius:16px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;font-size:13px;font-weight:700;color:#0b0c10;pointer-events:none;background:#2a2c34}.aswbg span{display:flex;align-items:center;gap:6px;opacity:0;transition:opacity .12s}.aswbg span svg{width:16px;height:16px}.aswbg.go-r{background:rgba(92,232,208,.55)}.aswbg.go-r .r{opacity:1}.aswbg.go-l{background:rgba(255,120,110,.55)}.aswbg.go-l .l{opacity:1;margin-left:auto}.aswbg.far.go-r{background:#5ce8d0}.aswbg.far.go-l{background:#ff786e}.aswbg .l{order:2}
 .adh.off{width:26px;padding:0;cursor:default}.alink{background:none;border:0;padding:0;color:#5ce8d0;font:inherit;font-weight:700;text-decoration:underline;cursor:pointer}
+.hrow{margin:14px 0 6px}.hchips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.hchips::-webkit-scrollbar{display:none}.hchip{flex:0 0 auto;border:0;border-radius:999px;padding:9px 15px;background:rgba(255,255,255,.07);color:inherit;font:inherit;font-size:14px;font-weight:600;cursor:pointer}.hchip.on{background:#eef6f4;color:#0d0c12}
+.hgr{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)}.hgr img,.hgr .hgi{width:52px;height:52px;border-radius:14px;object-fit:cover;flex:0 0 auto;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center}.hgr b{display:block;font-size:15px}.hgr small{display:block;font-size:12.5px;opacity:.7;margin-top:3px;line-height:1.35}.hgr .hgo{flex:0 0 auto;padding:8px 14px;border-radius:12px;background:rgba(92,232,208,.14);color:#5ce8d0;font-weight:700;font-size:13.5px;text-decoration:none}.hgr.hnew b{color:#ffb38a}
 .apinopts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.apinopt{display:flex;flex-direction:column;gap:3px;align-items:flex-start;text-align:left;padding:10px 12px;border-radius:14px;border:0;background:rgba(255,255,255,.06);color:inherit;font:inherit;cursor:pointer}.apinopt small{font-size:11.5px;opacity:.65;line-height:1.25}.apinopt.on{background:rgba(92,232,208,.16);box-shadow:inset 0 0 0 1.5px rgba(92,232,208,.7)}
 .ar.cur{background:rgba(62,224,197,.07);box-shadow:inset 0 0 0 1px rgba(62,224,197,.25)}.ar.past{opacity:.5}
 .atrip{padding:14px;border-radius:18px;background:linear-gradient(135deg,rgba(45,212,191,.2),rgba(77,155,255,.14));box-shadow:inset 0 0 0 1px rgba(62,224,197,.35);margin-bottom:10px}.atrip b{display:block;font-size:15px}.atrip small{display:block;font-size:12.5px;color:#cfeee8;margin-top:4px;line-height:1.4}.atrip .btn{margin-top:12px}
@@ -4138,7 +4140,7 @@ async function dayStart() {
   S.listCards = [...anch, ...mine];
   const pk = p => p.mode === 'in' || pKind(p) === 'fri' ? 'fri' : 'sat';
   const tile = (c, both) => `<button class="tcard pa kc k-${CK[c.deck] || 'ask'} ${both ? 'both' : ''}" data-pl="around|${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy" draggable="false">` : `<span class="pimg">${emojiFor(c)}</span>`}<span class="tt"><b>${esc(c.title)}</b><small>${both ? 'You both like · ' : ''}${isDated(c) ? esc(dfmt(c.event_date) + (c.data?.time ? ' · ' + c.data.time : '')) : esc((c.subtitle || '').split(' · ')[0])}</small></span></button>`;
-  sheet(`<div class="grab"></div><div class="tn pday"><div class="tn-head"><div class="brand">${BRAND}</div><h2>Plan a day</h2><p class="muted" style="margin-top:8px;font-size:14px">Two or three things in one day, sent to ${esc(them())} to say yes or swap.</p></div>${NEWUI ? whoRow('day') + `<button class="jlink" data-sp="start" style="margin:4px auto 0;display:block">Make it a surprise for ${esc(them())} instead</button>` : ''}
+  sheet(`<div class="grab"></div><div class="tn pday"><div class="tn-head"><div class="brand">${BRAND}</div><h2>Plan a day</h2><p class="muted" style="margin-top:8px;font-size:14px">Two or three things in one day, sent to ${esc(them())} to say yes or swap.</p></div>${hungryRow((S.plans || []).find(x => x.day === pToday() && hungryNext(x)) || null)}${NEWUI ? whoRow('day') + `<button class="jlink" data-sp="start" style="margin:4px auto 0;display:block">Make it a surprise for ${esc(them())} instead</button>` : ''}
     ${live.map(p => `<button class="tripbar kc k-${pk(p)}" data-pl="view|${p.id}" style="width:100%;text-align:left"><span class="tic">${ic(pk(p) === 'fri' ? 'moon' : 'sun')}</span><span class="grow"><b>${pDayName(p.day)}${p.mode === 'in' ? ' · night in' : ''}</b><small>${pSum(p)}<br>${pStatus(p)}</small></span><span class="go ${p.ok?.[S.me] ? '' : 'blink'}">Open</span></button>`).join('')}
     ${DOCK2 ? `<div class="sect" style="margin-top:16px">What kind of day?</div><div class="lshapes">${SHAPE_KEYS.map(k => `<button class="stile kc k-${k === 'night' ? 'fri' : 'sat'}" data-pl="new|out|${k}"><span><b>${SHAPES[k].name}</b><small>${LSHAPE[k].sub}</small></span></button>`).join('')}</div>` : ''}
     <div class="stiles" style="margin-top:14px">${DOCK2 ? '' : `<button class="stile kc k-sat" data-pl="new|out"><span class="tic">${ic('sun')}</span><span><b>A whole day</b><small>Daytime, dinner, something after</small></span></button>`}
@@ -4450,6 +4452,45 @@ function plansForm() {
     <div style="height:12px"></div><button class="btn" data-act="saveplans">Save weekend plans</button>`}
     ${favs.length ? `<div class="kv" style="margin-top:16px">Your favorites</div>${favs.map(f => `<div class="prow">${f.card.image ? `<img src="${esc(f.card.image)}" alt="" loading="lazy">` : `<span class="pimg">${emojiFor(f.card)}</span>`}<span class="grow"><b>${esc(f.card.title)}</b><small>Comes back now and then, next to something new</small></span><button class="x fav on" data-pl="fav|${f.card.id}" aria-label="Remove from favorites">★</button></div>`).join('')}` : `<p class="muted" style="font-size:13px;margin-top:12px">Tap ☆ on a place in a plan to make it a favorite. Favorites come back in future plans, next to something new.</p>`}`;
 }
+// "I'm hungry" (beta, Dave 21 Nov): one tap for brunch, coffee, lunch and so on, open when you'd get there,
+// near the next stop of today's plan (or where you are), from your likes first, then good places new to you.
+const HK = [['brunch', 'Brunch'], ['coffee', 'Coffee'], ['lunch', 'Lunch'], ['dinner', 'Dinner'], ['drinks', 'Drinks'], ['sweet', 'Something sweet']];
+function hungryKinds() { const h = +pNow().slice(0, 2); return h < 11 ? ['brunch', 'coffee', 'lunch', 'sweet'] : h < 15 ? ['brunch', 'lunch', 'coffee', 'sweet', 'drinks'] : h < 21 ? ['dinner', 'drinks', 'sweet', 'coffee'] : ['drinks', 'sweet', 'dinner']; }
+function hungryRow(plan) {
+  if (!BETA) return '';
+  const nx = plan ? hungryNext(plan) : null, ks = hungryKinds();
+  return `<div class="hrow"><div class="sect" style="margin:0 0 8px">${nx ? `Hungry before ${esc(nx.card.title)}?` : 'Hungry?'}</div><div class="hchips">${ks.map(k => `<button class="hchip" data-act="hungry" data-hk="${k}" data-hp="${plan ? plan.id : ''}">${HK.find(x => x[0] === k)[1]}</button>`).join('')}</div></div>`;
+}
+function hungryNext(p) { if (!p || p.day !== pToday()) return null; const now = pNow(); return p.items.filter(i => i.card?.data?.lat != null && (i.time || '99:99') > now).sort((a, b) => (a.time || '').localeCompare(b.time || ''))[0] || null; }
+const hgPos = () => new Promise(res => { if (!navigator.geolocation) return res(null); let done = false; const t = setTimeout(() => { if (!done) { done = true; res(null); } }, 5000);
+  navigator.geolocation.getCurrentPosition(p => { if (!done) { done = true; clearTimeout(t); res({ lat: p.coords.latitude, lng: p.coords.longitude }); } }, () => { if (!done) { done = true; clearTimeout(t); res(null); } }, { maximumAge: 300000, timeout: 4500 }); });
+async function hungry(kind, planId) {
+  const p = planId ? (S.plans || []).find(x => x.id === planId) : (S.plans || []).find(x => x.day === pToday() && hungryNext(x));
+  const nx = p ? hungryNext(p) : null, lbl = HK.find(x => x[0] === kind)?.[1] || 'Food';
+  S.hg = { kind, planId: p?.id || '', list: null, where: nx ? `Near ${nx.card.title}` : 'Near you' };
+  sheet(ltLoad(lbl, nx ? `Looking near ${esc(nx.card.title)}` : 'Looking near you', ['Your likes', 'Open when you get there', 'Close by']));
+  let at = { lat: 42.3314, lng: -83.0458 }, when = new Date(), far = false;
+  if (nx) { at = { lat: +nx.card.data.lat, lng: +nx.card.data.lng }; const [h, m] = nx.time.split(':').map(Number), d = new Date(); d.setHours(h, m - 75, 0, 0); if (d > when) when = d; }
+  else { const g = await hgPos(); if (g) at = g; else { far = true; S.hg.where = 'Downtown Detroit'; } }
+  try { S.hg.list = await rpc('hungry_spots', { p_code: S.code, p_member: S.me, p_lat: at.lat, p_lng: at.lng, p_kind: kind, p_at: when.toISOString() }); } catch { S.hg.list = []; }
+  S.hg.when = when.getTime(); S.hg.nx = nx ? { title: nx.card.title, time: nx.time } : null; S.hg.far = far; hungrySheet();
+}
+function hungrySheet() {
+  const g = S.hg; if (!g) return; const lbl = HK.find(x => x[0] === g.kind)?.[1] || 'Food', P = partner();
+  const who = l => l.length >= 2 ? 'You both like it' : l[0] === S.me ? 'You liked it' : l.length ? esc(l[0]) + ' liked it' : 'New for you';
+  const close = m => { const d = new Date((g.when || Date.now()) + m * 60000); return 'Open till ' + tm12(`${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`); };
+  const row = c => { const mi = Math.round(c.km * 0.621 * 10) / 10, walk = Math.round(c.km / 4.8 * 60);
+    return `<div class="hgr ${c.likers.length ? '' : 'hnew'}">${c.img ? `<img src="${esc(c.img)}" alt="" loading="lazy">` : `<span class="hgi">${ic('pin')}</span>`}<span class="grow"><b>${esc(c.title)}</b><small>${who(c.likers)} · ${mi < 0.1 ? 'right there' : walk <= 20 ? walk + ' min walk' : mi + ' mi'} · ${close(c.closes_in)}${c.rating ? ' · ' + esc(c.rating) + '★' : ''}</small></span>
+      <a class="hgo" href="${esc(c.place_id ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.title)}&query_place_id=${encodeURIComponent(c.place_id)}` : mapsUrl(c.title + ' ' + (c.address || 'Detroit')))}" target="_blank" rel="noopener">Go</a></div>`; };
+  const l = g.list || [], liked = l.filter(c => c.likers.length), fresh = l.filter(c => !c.likers.length);
+  sheet(`<div class="grab"></div><div class="body"><small class="tkick">${esc(g.where)}${g.nx ? ' · before ' + esc(tm12(g.nx.time)) : ''}</small><h2>${esc(lbl)}</h2>
+    <div class="hchips" style="margin:10px 0 4px">${HK.map(([k, n]) => `<button class="hchip ${k === g.kind ? 'on' : ''}" data-act="hungry" data-hk="${k}" data-hp="${g.planId}">${n}</button>`).join('')}</div>
+    ${!l.length ? `<p class="muted" style="margin-top:14px">Nothing ${g.nx ? 'open before then' : 'open right now'} close by from what you two have liked. Try another kind, or swipe Eat & Drink to add more.</p>` : ''}
+    ${liked.length ? `<div class="sect" style="margin-top:14px">From your likes</div>${liked.map(row).join('')}` : ''}
+    ${fresh.length ? `<div class="sect" style="margin-top:14px">New for you${P ? ' two' : ''}</div>${fresh.map(row).join('')}` : ''}
+    ${g.far ? `<p class="muted" style="font-size:12.5px;margin-top:12px">Showing downtown. Allow location to see what's near you.</p>` : ''}
+    <p class="muted" style="font-size:12px;margin-top:12px">Hours are from Google. Busy spots may have a wait.</p></div>`);
+}
 function daySheet(id) {
   const p = (S.plans || []).find(x => x.id === id); if (!p) return toast('That plan is not around any more.');
   const mine = !!p.ok?.[S.me], t = pToday(), past = p.day < t, bars = p.items.map(i => i.card).filter(c => c && isBar(c));
@@ -4482,6 +4523,7 @@ function daySheet(id) {
   sheet(`<div class="grab"></div><div class="body"><h2>${auto ? pAutoName(p) + (pDayName(p.day) !== dfmt(p.day) ? ' · ' + pDayName(p.day) : '') : pDayName(p.day) + (p.mode === 'in' ? ': a night in' : '')}</h2><p class="muted" style="margin-top:6px;font-size:14px">${auto ? (solo ? 'Put together from what you like.' : `Put together from things you like${p.by !== 'auto' ? `, then changed by ${p.by === S.me ? 'you' : esc(p.by)}` : ''}. Swap anything you like.`) : `${p.by === S.me ? 'You' : esc(p.by)} put this together${pDayName(p.day) !== dfmt(p.day) ? ' for ' + esc(dfmt(p.day)) : ''}.`}</p>
     <div id="pwx" class="pwx" hidden></div>
     ${land}${p.where ? `<p class="muted" style="font-size:13px;margin-top:4px">${ic('pin')} Around ${esc(p.where.name)}</p>` : ''}<div style="margin-top:8px">${p.items.map((i, k) => (pHid(i.card) ? row(i) : canRm ? plSw(i.slot, row(i)) : row(i)) + pSug(p, i, past) + ((g => g ? g + pLeg(p, i) : pLeg(p, i) + pQuestLink(p, k, past))(pGap(p, k, past)))).join('')}</div>${canRm && !ls.get('plswiped') && p.items.length > 2 ? '<p class="inhint" style="margin-top:6px">Swipe a stop left to take it out.</p>' : ''}${shapes}
+    ${!past && p.day === t ? hungryRow(p) : ''}
     ${BETA && !past && p.items.some(i => i.card) ? `<a class="pcal" href="${CFG.url}/functions/v1/ics?plan=${p.id}" target="_blank" rel="noopener">${ic('cal')}Add ${p.items.filter(i => i.card).length > 1 ? 'every stop' : 'it'} to my calendar</a>` : ''}
     ${near.length ? `<p class="muted" style="margin-top:12px;font-size:13px">Also a short walk away, and you both like them: ${near.map(x => `${esc(x.c.title)} (${x.mi} mi)`).join(', ')}.</p>` : ''}${acts}</div>`, 'plan', 'view');
   { const sc = $layer.querySelector('.scrim'), el = (Date.now() - S.kgAt) / 1000, on = el < 1.9;   // a redraw while it is still arriving carries on from where it was
@@ -7453,6 +7495,7 @@ document.addEventListener('click', async e => {
       case 'aswap': return autoSwap(S.tKey, S.dctx?.k, t.dataset.id);
       case 'aoff': return autoRemove(S.tKey, S.dctx?.k, t.dataset.id);
       case 'aundo': return autoUndo();
+      case 'hungry': return hungry(t.dataset.hk, t.dataset.hp);
       case 'apin': return autoPin(S.tKey, S.dctx?.k, t.dataset.id, t.dataset.p);
       case 'aadd': return autoAdd(S.tKey, S.dctx?.k, t.dataset.id);
       case 'apool': delete S.tpool[S.tKey]; return render();
