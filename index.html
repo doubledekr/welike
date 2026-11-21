@@ -8108,8 +8108,11 @@ async function checkVersion(soon) {
   try {
     const r = await fetch('./?vc=' + Date.now(), { cache: 'no-store' }); if (!r.ok) return;
     const t = await r.text(); if (t.length < 5000 || !t.includes('<script type="module">')) return;
-    const h = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t))).slice(0, 12)).map(b => b.toString(16).padStart(2, '0')).join('');
-    if (!buildTag) { buildTag = h; return; }
+    const fp = async x => Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(x))).slice(0, 12)).map(b => b.toString(16).padStart(2, '0')).join('');
+    const h = await fp(t);
+    // The first fingerprint must be of the page that is actually running. A Home Screen app can start from the phone's own
+    // cached copy, so compare that copy with the server's: if they differ, this phone is already a version behind.
+    if (!buildTag) { buildTag = h; try { const rc = await fetch(location.href.split('#')[0], { cache: 'force-cache' }); const tc = rc.ok ? await rc.text() : ''; if (tc.length > 5000 && tc.includes('<script type="module">')) buildTag = await fp(tc); } catch {} if (buildTag === h) return; }
     if (h !== buildTag) { updReady = true; tryUpdate(Date.now() - returnAt < 6000 && lastTouch < returnAt); }
   } catch {}
 }
