@@ -737,6 +737,10 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .apin{width:14px;height:14px;color:#5ce8d0;flex:none}.alock{width:15px;height:15px;color:#ffd36e;flex:none}.adh{display:flex;flex-direction:column;gap:3px;padding:12px 14px 12px 8px;cursor:grab;touch-action:none;flex:none}.adh i{width:4px;height:4px;border-radius:50%;background:#6b7f7c;box-shadow:6px 0 0 #6b7f7c}
 .ar.aswp{transition:none;background:#1b1d23;z-index:2}.aswbg{position:absolute;left:0;right:0;border-radius:16px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;font-size:13px;font-weight:700;color:#0b0c10;pointer-events:none;background:#2a2c34}.aswbg span{display:flex;align-items:center;gap:6px;opacity:0;transition:opacity .12s}.aswbg span svg{width:16px;height:16px}.aswbg.go-r{background:rgba(92,232,208,.55)}.aswbg.go-r .r{opacity:1}.aswbg.go-l{background:rgba(255,120,110,.55)}.aswbg.go-l .l{opacity:1;margin-left:auto}.aswbg.far.go-r{background:#5ce8d0}.aswbg.far.go-l{background:#ff786e}.aswbg .l{order:2}
 .adh.off{width:26px;padding:0;cursor:default}.alink{background:none;border:0;padding:0;color:#5ce8d0;font:inherit;font-weight:700;text-decoration:underline;cursor:pointer}
+.wcban{width:100%;display:flex;align-items:center;gap:12px;margin:12px 0 4px;padding:12px 14px;border:0;border-radius:18px;background:linear-gradient(135deg,rgba(45,212,191,.16),rgba(77,155,255,.12));box-shadow:inset 0 0 0 1px rgba(62,224,197,.35);color:inherit;font:inherit;text-align:left;cursor:pointer}.wcban.off{background:rgba(255,255,255,.05);box-shadow:none}.wcban b{display:block;font-size:14.5px}.wcban small{display:block;font-size:12.5px;opacity:.7;margin-top:2px}.wcban .go{font-size:13px;font-weight:700;color:#5ce8d0}.wcmini{width:34px;height:42px;border-radius:8px;flex:0 0 auto;background:linear-gradient(135deg,#c9ccd3,#8e939d 45%,#d6d9df);box-shadow:inset 0 0 0 3px #33406e}
+.wcwho{margin-top:12px;padding:10px 12px;border-radius:14px;background:rgba(92,232,208,.08);color:#bfeee5;font-size:13px}.wcopts{display:flex;flex-direction:column;gap:8px}
+.wcard{position:relative;margin-top:14px;border-radius:24px;overflow:hidden;background:#16171d;min-height:280px;box-shadow:0 24px 60px rgba(0,0,0,.45)}.wcard .wcrev img,.wcard .wcph{display:block;width:100%;height:170px;object-fit:cover;background:linear-gradient(160deg,#2a6f68,#33406e 55%,#6b3b6e)}.wcrb{padding:12px 16px 16px}.wcrb h3{font-family:'Instrument Serif',serif;font-weight:400;font-size:27px;line-height:1.1;margin:0}.wcrb p{font-size:13px;opacity:.75;margin:6px 0 0;line-height:1.4}.wcrb .wcwhy{color:#bfeee5;opacity:1}
+.wcfoil{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab}.wcic{display:flex;gap:8px}.wcic span{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0;border-radius:14px;background:rgba(255,255,255,.06);color:#bfeee5}.wcic svg{width:18px;height:18px}.wcic b{color:#eef6f4;font-size:13px}.wcic small{font-size:11px;opacity:.7}
 .hrow{margin:14px 0 6px}.hchips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.hchips::-webkit-scrollbar{display:none}.hchip{flex:0 0 auto;border:0;border-radius:999px;padding:9px 15px;background:rgba(255,255,255,.07);color:inherit;font:inherit;font-size:14px;font-weight:600;cursor:pointer}.hchip.on{background:#eef6f4;color:#0d0c12}
 .hgr{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)}.hgr img,.hgr .hgi{width:52px;height:52px;border-radius:14px;object-fit:cover;flex:0 0 auto;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center}.hgr b{display:block;font-size:15px}.hgr small{display:block;font-size:12.5px;opacity:.7;margin-top:3px;line-height:1.35}.hgr .hgo{flex:0 0 auto;padding:8px 14px;border-radius:12px;background:rgba(92,232,208,.14);color:#5ce8d0;font-weight:700;font-size:13.5px;text-decoration:none}.hgr.hnew b{color:#ffb38a}.hgr .hadd{border:0;font:inherit;font-weight:700;font-size:13.5px;background:linear-gradient(135deg,#ff9a4d,#ff4f8b);color:#fff;cursor:pointer}
 .apinopts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.apinopt{display:flex;flex-direction:column;gap:3px;align-items:flex-start;text-align:left;padding:10px 12px;border-radius:14px;border:0;background:rgba(255,255,255,.06);color:inherit;font:inherit;cursor:pointer}.apinopt small{font-size:11.5px;opacity:.65;line-height:1.25}.apinopt.on{background:rgba(92,232,208,.16);box-shadow:inset 0 0 0 1.5px rgba(92,232,208,.7)}
@@ -4131,6 +4135,7 @@ const ltLoad = (title, line, steps) => { const id = 'ltl' + Math.random().toStri
   return `<div class="grab"></div><div class="ltload"><div class="ltmk">${MARK}</div><small class="tkick">${esc(title)}</small><b class="in" id="${id}">${esc(line)}</b>
     <div class="ltsk">${[0, 1, 2].map(i => `<div class="ltrow" style="animation-delay:${i * 140}ms"><i></i><span><em></em><em></em></span></div>`).join('')}</div></div>`; };
 async function dayStart() {
+  if (BETA && partner()) wcLoad().then(() => { const el = document.getElementById('wcslot'); if (el) el.innerHTML = wcBanner(); });
   if (!partner() && twoOnly()) return; if (!partner()) { toast('Plans are made from what you both like. Invite your other half first.', 4000); return inviteSheet(); }
   sheet(DOCK2 ? ltLoad('Plan a day', 'Pulling what you both like', ['Matching your likes', 'Checking what’s open', 'Finding time between stops']) : '<div class="grab"></div><div class="body"><p class="muted">Looking at what you both like…</p></div>');
   await dayPool(); try { S.plans = await rpc('plan_list', { p_code: S.code, p_member: S.me }); } catch {}
@@ -4140,7 +4145,7 @@ async function dayStart() {
   S.listCards = [...anch, ...mine];
   const pk = p => p.mode === 'in' || pKind(p) === 'fri' ? 'fri' : 'sat';
   const tile = (c, both) => `<button class="tcard pa kc k-${CK[c.deck] || 'ask'} ${both ? 'both' : ''}" data-pl="around|${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy" draggable="false">` : `<span class="pimg">${emojiFor(c)}</span>`}<span class="tt"><b>${esc(c.title)}</b><small>${both ? 'You both like · ' : ''}${isDated(c) ? esc(dfmt(c.event_date) + (c.data?.time ? ' · ' + c.data.time : '')) : esc((c.subtitle || '').split(' · ')[0])}</small></span></button>`;
-  sheet(`<div class="grab"></div><div class="tn pday"><div class="tn-head"><div class="brand">${BRAND}</div><h2>Plan a day</h2><p class="muted" style="margin-top:8px;font-size:14px">Two or three things in one day, sent to ${esc(them())} to say yes or swap.</p></div>${hungryRow((S.plans || []).find(x => x.day === pToday() && hungryNext(x)) || null)}${NEWUI ? whoRow('day') + `<button class="jlink" data-sp="start" style="margin:4px auto 0;display:block">Make it a surprise for ${esc(them())} instead</button>` : ''}
+  sheet(`<div class="grab"></div><div class="tn pday"><div class="tn-head"><div class="brand">${BRAND}</div><h2>Plan a day</h2><p class="muted" style="margin-top:8px;font-size:14px">Two or three things in one day, sent to ${esc(them())} to say yes or swap.</p></div>${hungryRow((S.plans || []).find(x => x.day === pToday() && hungryNext(x)) || null)}${BETA ? `<div id="wcslot">${wcBanner()}</div>` : ''}${NEWUI ? whoRow('day') + `<button class="jlink" data-sp="start" style="margin:4px auto 0;display:block">Make it a surprise for ${esc(them())} instead</button>` : ''}
     ${live.map(p => `<button class="tripbar kc k-${pk(p)}" data-pl="view|${p.id}" style="width:100%;text-align:left"><span class="tic">${ic(pk(p) === 'fri' ? 'moon' : 'sun')}</span><span class="grow"><b>${pDayName(p.day)}${p.mode === 'in' ? ' · night in' : ''}</b><small>${pSum(p)}<br>${pStatus(p)}</small></span><span class="go ${p.ok?.[S.me] ? '' : 'blink'}">Open</span></button>`).join('')}
     ${DOCK2 ? `<div class="sect" style="margin-top:16px">What kind of day?</div><div class="lshapes">${SHAPE_KEYS.map(k => `<button class="stile kc k-${k === 'night' ? 'fri' : 'sat'}" data-pl="new|out|${k}"><span><b>${SHAPES[k].name}</b><small>${LSHAPE[k].sub}</small></span></button>`).join('')}</div>` : ''}
     <div class="stiles" style="margin-top:14px">${DOCK2 ? '' : `<button class="stile kc k-sat" data-pl="new|out"><span class="tic">${ic('sun')}</span><span><b>A whole day</b><small>Daytime, dinner, something after</small></span></button>`}
@@ -4451,6 +4456,89 @@ function plansForm() {
     <label class="field"><span>Foods to leave out of plans</span><input id="p_avoid" maxlength="200" value="${esc((st.plan_avoid || []).join(', '))}" placeholder="Like sushi, seafood"></label>
     <div style="height:12px"></div><button class="btn" data-act="saveplans">Save weekend plans</button>`}
     ${favs.length ? `<div class="kv" style="margin-top:16px">Your favorites</div>${favs.map(f => `<div class="prow">${f.card.image ? `<img src="${esc(f.card.image)}" alt="" loading="lazy">` : `<span class="pimg">${emojiFor(f.card)}</span>`}<span class="grow"><b>${esc(f.card.title)}</b><small>Comes back now and then, next to something new</small></span><button class="x fav on" data-pl="fav|${f.card.id}" aria-label="Remove from favorites">★</button></div>`).join('')}` : `<p class="muted" style="font-size:13px;margin-top:12px">Tap ☆ on a place in a plan to make it a favorite. Favorites come back in future plans, next to something new.</p>`}`;
+}
+// Weekend card (beta, Dave 21 Nov): opt-in only. No card is made until both say they're in and pick the time they keep free.
+const WC_WHEN = { sat: ['Saturday afternoon', 'Noon to about 6pm', 'Saturday'], sun: ['Sunday daytime', 'Late morning to late afternoon', 'Sunday'], whole: ['A whole day', 'Up to 90 minutes out of town', 'Saturday'] };
+const WC_EVERY = { every: 'Every weekend', other: 'Every other', month: 'Once a month' }, WC_BUD = [[0, 'Free'], [50, '$50'], [100, '$100'], [null, 'Any']];
+async function wcLoad() { try { S.wc = await rpc('wcard_get', { p_code: S.code, p_member: S.me }); } catch { S.wc = null; } return S.wc; }
+const wcBoth = w => !!w && (w.members || []).length >= 2 && (w.members || []).every(m => w.set?.in?.[m]);
+function wcBanner() {
+  const w = S.wc; if (!BETA || !w || !partner()) return '';
+  const c = w.cur, day = c ? new Date(c.day + 'T12:00').toLocaleDateString('en-US', { weekday: 'long' }) : '';
+  if (c && c.status === 'sealed') return `<button class="wcban" data-act="wcopen"><span class="wcmini"></span><span class="grow"><b>Your ${day} card ${c.seen?.[S.me] ? 'is open' : 'is ready'}</b><small>${c.seen?.[S.me] ? esc(c.card.title) : 'Sealed until you scratch it'}</small></span><span class="go">Open</span></button>`;
+  if (c && c.status === 'taken') return '';
+  if (wcBoth(w)) return w.set?.paused ? `<button class="wcban off" data-act="wcset"><span class="wcmini"></span><span class="grow"><b>Weekend card is paused</b><small>Two weekends skipped. Turn it back on any time.</small></span><span class="go">Open</span></button>` : '';
+  const them1 = (w.members || []).find(m => m !== S.me);
+  return `<button class="wcban" data-act="wcset"><span class="wcmini"></span><span class="grow"><b>A weekend card, sealed until you scratch it</b><small>${w.set?.in?.[them1] ? esc(them1) + ' is in. It starts when you say yes too.' : w.set?.in?.[S.me] ? 'You’re in. Waiting on ' + esc(them1) + '.' : 'One adventure for you two. Only if you both commit.'}</small></span><span class="go">See</span></button>`;
+}
+function wcSet() {
+  const w = S.wc || {}, st = w.set || {}, them1 = (w.members || []).find(m => m !== S.me) || them();
+  const f = S.wcf ||= { every: st.every || 'other', when: st.when || 'sat', budget: 'budget' in st ? st.budget : 50 };
+  const mine = !!st.in?.[S.me], theirs = !!st.in?.[them1];
+  const chip = (k, v, l) => `<button class="hchip ${f[k] === v ? 'on' : ''}" data-act="wcf" data-k="${k}" data-v="${v === null ? 'null' : v}">${l}</button>`;
+  sheet(`<div class="grab"></div><div class="body"><small class="tkick">Plan a day</small><h2>A weekend card, sealed until you scratch it</h2>
+    <p class="muted" style="margin-top:6px;font-size:14px">One adventure picked for you two, somewhere you haven’t been. It only comes if you both say you’re in, and keep the time free.</p>
+    ${theirs ? `<div class="wcwho">${esc(them1)} is in.${mine ? ' You are too.' : ' It starts when you say yes too.'}</div>` : mine ? `<div class="wcwho">You’re in. Waiting on ${esc(them1)}.</div>` : ''}
+    <div class="sect" style="margin-top:16px">How often</div><div class="hchips">${Object.entries(WC_EVERY).map(([k, l]) => chip('every', k, l)).join('')}</div>
+    <div class="sect" style="margin-top:16px">The time we’ll keep free</div><div class="wcopts">${Object.entries(WC_WHEN).map(([k, [t, sub]]) => `<button class="apinopt ${f.when === k ? 'on' : ''}" data-act="wcf" data-k="when" data-v="${k}"><b>${t}</b><small>${sub}</small></button>`).join('')}</div>
+    <div class="sect" style="margin-top:16px">Up to</div><div class="hchips">${WC_BUD.map(([v, l]) => chip('budget', v, l)).join('')}</div>
+    <div style="height:18px"></div><button class="btn" data-act="wcin">${mine ? 'Save' : `We’re in, ${f.every === 'every' ? 'every' : f.every === 'other' ? 'every other' : 'once a month on a'} ${WC_WHEN[f.when][2]}`}</button>
+    <p class="muted" style="font-size:12.5px;text-align:center;margin-top:8px">Skip any weekend in one tap. Two skips in a row and it pauses itself.</p>
+    ${mine ? `<button class="jlink" data-act="wcout" style="display:block;margin:10px auto 0">Stop the weekend card</button>` : ''}</div>`);
+}
+async function wcSave(on) {
+  const f = S.wcf || {}; try { S.wc = await rpc('wcard_set', { p_code: S.code, p_member: S.me, p_in: on, p_every: f.every || 'other', p_when: f.when || 'sat', p_budget: f.budget ?? null }); } catch { return toast('Could not save that. Try again in a moment.'); }
+  S.wcf = null; if (!on) { closeSheet(); return toast('Weekend card stopped.'); }
+  if (S.wc?.cur && S.wc.cur.status === 'sealed') { toast('You’re both in. Your first card is ready.', 3500); return wcOpen(); }
+  closeSheet(); toast(wcBoth(S.wc) ? 'You’re both in. Your card comes Thursday evening.' : `You’re in. It starts when ${them()} says yes too.`, 3500);
+}
+const WCI = { set: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/><circle cx="12" cy="12" r="3.5"/></svg>', time: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>', cost: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v18M16.5 7.5c0-1.7-2-3-4.5-3s-4.5 1.3-4.5 3 2 2.6 4.5 3 4.5 1.3 4.5 3-2 3-4.5 3-4.5-1.3-4.5-3"/></svg>', drive: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 16l1.5-5h11L19 16M5 16h14v3H5zM8 19v1M16 19v1"/></svg>' };
+function wcIcons(c, when) {
+  const hrs = when === 'whole' ? 'Most of the day' : c.minutes ? `~${Math.max(1, Math.round(c.minutes / 60))} hr${c.minutes >= 90 ? 's' : ''}` : c.deck === 'event' && c.event_date ? '~3 hrs' : '~2 hrs';
+  const it = [['set', c.outdoor ? 'Outdoors' : 'Indoors', 'Setting'], ['time', hrs, 'Time'], ['cost', c.cost ? '~$' + c.cost : 'Free', 'For two'], ['drive', c.drive >= 60 ? Math.round(c.drive / 60 * 10) / 10 + ' hr' : c.drive + ' min', 'Drive']];
+  return `<div class="wcic">${it.map(([k, v, l]) => `<span>${WCI[k]}<b>${esc(v)}</b><small>${l}</small></span>`).join('')}</div>`;
+}
+async function wcOpen() {
+  if (!S.wc) await wcLoad(); const w = S.wc, c = w?.cur; if (!c) return wcSet();
+  const k = c.card, when = w.set?.when || 'sat', [, win, dname] = WC_WHEN[when], day = new Date(c.day + 'T12:00'), dl = day.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }), dn = day.toLocaleDateString('en-US', { weekday: 'long' });
+  const seen = !!c.seen?.[S.me], them1 = (w.members || []).find(m => m !== S.me), why = k.likers.length >= 2 ? 'You both swiped yes on this.' : k.likers.length ? `${k.likers[0] === S.me ? 'You' : esc(k.likers[0])} swiped yes on this.` : 'Somewhere new that fits what you both like.';
+  const reveal = `<div class="wcrev">${k.img ? `<img src="${esc(k.img)}" alt="">` : '<div class="wcph"></div>'}<div class="wcrb"><h3>${esc(k.title)}</h3><p>${esc(k.notes || (k.ptype || '').replace(/_/g, ' '))}</p><p class="wcwhy">${why}</p></div></div>`;
+  sheet(`<div class="grab"></div><div class="body"><small class="tkick">${esc(dl)} · ${esc(win.toLowerCase())}</small><h2>This weekend’s card</h2>
+    ${!seen && c.seen?.[them1] ? `<p class="muted" style="font-size:13px;margin-top:4px">${esc(them1)} already scratched theirs.</p>` : !seen ? `<p class="muted" style="font-size:13px;margin-top:4px">Better together. Scratch it with ${esc(them1)}.</p>` : ''}
+    <div class="wcard ${seen ? 'open' : ''}" id="wcard">${reveal}${seen ? '' : '<canvas class="wcfoil" id="wcfoil"></canvas>'}</div>
+    ${seen ? '' : '<button class="jlink" data-act="wcshow" style="display:block;margin:8px auto 0">Just show me</button>'}
+    <div style="margin-top:12px">${wcIcons(k, when)}</div>
+    <div id="wcacts" ${seen ? '' : 'hidden'}><div style="height:14px"></div><button class="btn" data-act="wctake">Make it our ${dn}</button>
+      <div class="row" style="gap:8px;margin-top:8px"><button class="btn ghost" data-act="wcredraw" style="flex:1" ${c.redraws ? 'disabled' : ''}>${c.redraws ? 'Redraw used' : 'Not this one (1 redraw)'}</button><button class="btn ghost" data-act="wcskip" style="flex:1">Skip this weekend</button></div>
+      <p class="muted" style="font-size:12px;text-align:center;margin-top:10px">“Make it our ${dn}” builds the day around it, then you send it to ${esc(them1)}.</p></div></div>`);
+  if (!seen) setTimeout(wcFoil, 30);
+}
+function wcFoil() {
+  const cv = document.getElementById('wcfoil'); if (!cv) return; const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  cv.width = r.width * dpr; cv.height = r.height * dpr; const x = cv.getContext('2d'); x.scale(dpr, dpr);
+  const g = x.createLinearGradient(0, 0, r.width, r.height); g.addColorStop(0, '#c9ccd3'); g.addColorStop(.4, '#8e939d'); g.addColorStop(.6, '#d6d9df'); g.addColorStop(1, '#9a9fa8');
+  x.fillStyle = g; x.fillRect(0, 0, r.width, r.height); x.fillStyle = 'rgba(43,45,51,.85)'; x.textAlign = 'center';
+  x.font = "italic 30px 'Instrument Serif', Georgia, serif"; x.fillText('Scratch to reveal', r.width / 2, r.height / 2); x.font = '13px Inter, system-ui, sans-serif'; x.fillText('Drag your finger across', r.width / 2, r.height / 2 + 26);
+  x.globalCompositeOperation = 'destination-out'; let down = false, last = null, n = 0;
+  const pt = e => { const b = cv.getBoundingClientRect(); return [e.clientX - b.left, e.clientY - b.top]; };
+  const draw = e => { if (!down) return; e.preventDefault(); const [a, b] = pt(e); x.lineWidth = 46; x.lineCap = 'round'; x.beginPath(); x.moveTo(...(last || [a, b])); x.lineTo(a, b); x.stroke(); last = [a, b];
+    if (++n % 12 === 0) { const d = x.getImageData(0, 0, cv.width, cv.height).data; let clear = 0; for (let i = 3; i < d.length; i += 64) if (d[i] === 0) clear++; if (clear / (d.length / 64) > .45) wcReveal(); } };
+  cv.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); down = true; last = null; try { cv.setPointerCapture(e.pointerId); } catch {} draw(e); });
+  cv.addEventListener('click', e => { e.stopPropagation(); e.preventDefault(); }); cv.addEventListener('touchstart', e => e.stopPropagation(), { passive: true });
+  cv.addEventListener('pointermove', draw); cv.addEventListener('pointerup', () => { down = false; }); cv.addEventListener('pointercancel', () => { down = false; });
+}
+async function wcReveal() {
+  const cv = document.getElementById('wcfoil'); if (!cv || cv.dataset.done) return; cv.dataset.done = 1; cv.style.transition = 'opacity .45s'; cv.style.opacity = '0'; setTimeout(() => cv.remove(), 480);
+  document.querySelector('[data-act=wcshow]')?.remove(); document.getElementById('wcacts')?.removeAttribute('hidden'); document.getElementById('wcard')?.classList.add('open');
+  const c = S.wc?.cur; if (c) { c.seen = { ...(c.seen || {}), [S.me]: new Date().toISOString() }; rpc('wcard_act', { p_code: S.code, p_member: S.me, p_id: c.id, p_act: 'seen' }).then(r => { S.wc = r; }).catch(() => {}); }
+}
+async function wcAct(act) {
+  const c = S.wc?.cur; if (!c) return;
+  try { S.wc = await rpc('wcard_act', { p_code: S.code, p_member: S.me, p_id: c.id, p_act: act === 'take' ? 'take' : act }); } catch { return toast('Could not do that. Try again in a moment.'); }
+  if (act === 'redraw') { if (S.wc?.cur?.card?.id === c.card.id) return toast('Nothing else fits that weekend. This one stays.'); toast('Here’s a fresh one. That was your redraw.'); return wcOpen(); }
+  if (act === 'skip') { closeSheet(); return toast(S.wc?.set?.paused ? 'Skipped. That’s two in a row, so the weekend card is paused.' : 'Skipped this weekend. See you next time.', 3500); }
+  if (act === 'take') { if (!S.pool) { try { await dayPool(); } catch {} } let k = (S.pool || []).find(x => x.id === c.card.id); if (!k) { try { k = await rpc('get_card', { p_code: S.code, p_id: c.card.id }); } catch {} }
+    if (!k) return toast('Could not open the plan. Try again in a moment.'); if (S.pool && !S.pool.some(x => x.id === k.id)) S.pool.push(k); closeSheet(); return dayDraft({ anchor: k, day: c.day }); }
 }
 // Ordered, not timed (beta, Dave 21 Nov): a stop only shows a clock time when the time is real (a show or event with
 // a start time, a tour). Everything else reads First, Then, Later, so adding brunch or running late changes nothing.
@@ -7522,6 +7610,15 @@ document.addEventListener('click', async e => {
       case 'aundo': return autoUndo();
       case 'hungry': return hungry(t.dataset.hk, t.dataset.hp);
       case 'hadd': return hungryAdd(t.dataset.id);
+      case 'wcopen': return wcOpen();
+      case 'wcset': return (S.wcf = null, S.wc ? wcSet() : wcLoad().then(wcSet));
+      case 'wcf': { const v = t.dataset.v; S.wcf = { ...(S.wcf || {}), [t.dataset.k]: v === 'null' ? null : /^\d+$/.test(v) ? +v : v }; return wcSet(); }
+      case 'wcin': return wcSave(true);
+      case 'wcout': return wcSave(false);
+      case 'wcshow': return wcReveal();
+      case 'wctake': return wcAct('take');
+      case 'wcredraw': return wcAct('redraw');
+      case 'wcskip': return wcAct('skip');
       case 'apin': return autoPin(S.tKey, S.dctx?.k, t.dataset.id, t.dataset.p);
       case 'aadd': return autoAdd(S.tKey, S.dctx?.k, t.dataset.id);
       case 'apool': delete S.tpool[S.tKey]; return render();
@@ -7847,7 +7944,7 @@ setInterval(() => { if (UPD.ready) { if (updQuiet()) updGo(); } else if (documen
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); navigator.serviceWorker.addEventListener('message', e => { if (e.data?.pushed) return inboxPoll(); const u = e.data?.open; if (u) { const q = new URL(u).searchParams, s = q.get('s'), r = q.get('rec'), g = q.get('tb'); if (q.get('idea') && S.me) inboxGo(u); else if (s && S.me) openSession(s); else if (r && S.me) openRec(r, q.get('keen')); else if (g && S.me) openGame(g); else if (q.get('night') && S.me) nightOpen(q.get('night')); else if (q.get('trivia') && S.me) openTrivia(q.get('trivia')); else if (q.get('reveal') && S.me) { prepRevealTest(); render(); }
     else if (q.get('surprise') && S.me) surpOpen(q.get('surprise'));
     else if (q.get('recap') && S.me) recapOpen(q.get('recap'));
-    else if (q.get('plan') && S.me) { S.favAsk = q.get('fav') ? q.get('plan') : null; dayAct('view', q.get('plan')).catch(() => {}); } else if (q.get('planfor') && S.me) dayAct('around', q.get('planfor')).catch(() => {}); else if (q.get('invite') && S.me) { if (!partner()) inviteSheet(); } else if (q.get('tripplan') && S.me) openTripPlan(q.get('tripplan')); else if (q.get('trip') && S.me) openGetaway(q.get('trip'), partner()); else if (SHW[q.get('share')] && S.me) openShareTab(q.get('share')); } }); }
+    else if (q.get('wcard') && S.me && BETA) { wcOpen(); } else if (q.get('plan') && S.me) { S.favAsk = q.get('fav') ? q.get('plan') : null; dayAct('view', q.get('plan')).catch(() => {}); } else if (q.get('planfor') && S.me) dayAct('around', q.get('planfor')).catch(() => {}); else if (q.get('invite') && S.me) { if (!partner()) inviteSheet(); } else if (q.get('tripplan') && S.me) openTripPlan(q.get('tripplan')); else if (q.get('trip') && S.me) openGetaway(q.get('trip'), partner()); else if (SHW[q.get('share')] && S.me) openShareTab(q.get('share')); } }); }
 
 // iPhone keeps a Home Screen app's storage apart from the browser's, so signing up in Safari and then opening the
 // icon used to mean signing in a second time with the couple code. While someone is signed in in the browser, the
