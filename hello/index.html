@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Let’s Together: the story, how to install it, and the bug board</title>
+<meta name="description" content="A swipe app for couples: stop asking “what do you want to do?” How it works, how to add it to your Home Screen, and where to report bugs or suggest ideas.">
+<meta name="theme-color" content="#100d12">
+<meta property="og:title" content="You’re invited to Let’s Together">
+<meta property="og:description" content="A brand-new swipe app for couples. Stop asking “what do you want to do?”">
+<meta property="og:image" content="https://letstogether.app/mark-512.png"><meta property="og:url" content="https://letstogether.app/hello/"><meta property="og:type" content="website">
+<link rel="icon" href="../mark-192.png"><link rel="apple-touch-icon" href="../mark-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#100d12;--text:#f5eef2;--muted:#b9adb5;--serif:"Instrument Serif","Iowan Old Style",Georgia,serif;--sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;--g:linear-gradient(135deg,#ff7a4d,#ff4d7e)}
+*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.55;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(520px 420px at 10% -5%,rgba(255,90,110,.28),transparent 70%),radial-gradient(600px 520px at 105% 60%,rgba(255,122,77,.16),transparent 70%)}
+a{color:#ffb39c}button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.w{max-width:640px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 18px) 20px calc(env(safe-area-inset-bottom) + 60px)}
+.top{display:flex;align-items:center;gap:10px}.brand{font-family:var(--serif);font-size:27px;flex:1;display:flex;align-items:center;gap:10px}.brand i{color:#ff7a8a}
+.mark{width:34px;height:34px;border-radius:10px;background:var(--g);display:grid;place-items:center}
+.open{padding:9px 16px;border-radius:99px;background:var(--g);color:#fff;font-weight:700;font-size:14.5px;text-decoration:none;white-space:nowrap;box-shadow:0 8px 22px -10px rgba(255,80,110,.9)}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(42px,11vw,60px);line-height:1.02;margin-top:38px;letter-spacing:-.5px}h1 em{color:#ff7a8a}
+.lede{font-size:18px;color:#ddd1d8;margin-top:16px}
+nav{display:flex;gap:8px;overflow-x:auto;margin:24px -20px 0;padding:0 20px 4px;scrollbar-width:none}nav::-webkit-scrollbar{display:none}
+nav a{flex:none;padding:8px 14px;border-radius:99px;font-size:14px;color:#e9dfe4;text-decoration:none;background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+section{margin-top:54px;scroll-margin-top:16px}
+h2{font-family:var(--serif);font-weight:400;font-size:34px;line-height:1.1}
+.k{font-size:12px;letter-spacing:1.6px;text-transform:uppercase;color:#ffb39c;margin-bottom:8px}
+p{margin-top:12px;color:#ddd1d8}p b{color:#fff}
+.card{margin-top:14px;padding:18px 18px 20px;border-radius:22px;background:rgba(255,255,255,.055);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.card.me{box-shadow:inset 0 0 0 1.5px rgba(255,150,130,.7),0 0 28px -10px rgba(255,90,110,.7)}
+.hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.tag{padding:4px 11px;border-radius:99px;background:var(--g);font-size:12.5px;font-weight:800;color:#fff}
+.hd b{font-size:19px}.hd small{margin-left:auto;font-size:12.5px;color:var(--muted)}
+ol{list-style:none;margin-top:12px;display:grid;gap:9px}ol li{display:flex;gap:11px;align-items:flex-start;color:#eee4e9}
+.n{flex:none;width:26px;height:26px;border-radius:50%;box-shadow:inset 0 0 0 1.5px rgba(255,160,140,.6);display:grid;place-items:center;font-size:13px;font-weight:800;color:#ffb39c;margin-top:1px}
+.note{font-size:13.5px;color:var(--muted);margin-top:10px}
+.steps{display:grid;gap:10px;margin-top:14px}.st{display:flex;gap:14px;align-items:flex-start}.st .n{width:34px;height:34px;font-size:16px;background:var(--g);color:#fff;box-shadow:none}.st b{display:block;font-size:17px}.st span{color:#cfc3ca;font-size:15px}
+.feat{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}@media(max-width:460px){.feat{grid-template-columns:1fr}}
+.feat div{padding:15px 16px;border-radius:18px;background:rgba(255,255,255,.055);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}.feat b{display:block;font-size:16px}.feat span{font-size:14px;color:#cfc3ca;line-height:1.45;display:block;margin-top:3px}
+.seg{display:flex;gap:6px;margin-top:14px;padding:4px;border-radius:14px;background:rgba(255,255,255,.06)}.seg button{flex:1;padding:9px 4px;border-radius:11px;font-size:14px;color:var(--muted)}.seg button.on{background:rgba(255,255,255,.14);color:#fff;font-weight:600}
+input,textarea{width:100%;font:inherit;color:#fff;background:rgba(0,0,0,.28);border:0;border-radius:13px;padding:12px 13px;margin-top:8px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);outline:none}textarea{min-height:76px;resize:vertical}input:focus,textarea:focus{box-shadow:inset 0 0 0 1.5px rgba(255,150,130,.8)}
+.btn{display:block;width:100%;margin-top:10px;padding:13px;border-radius:14px;background:var(--g);color:#fff;font-weight:700;font-size:16px}.btn:disabled{opacity:.5}
+.fb{display:flex;gap:12px;align-items:flex-start;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.09)}.fb.hid{opacity:.45}
+.vote{flex:none;width:48px;padding:7px 0 6px;border-radius:13px;text-align:center;background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);font-weight:700;font-size:15px;line-height:1.15}.vote i{display:block;font-style:normal;font-size:11px}.vote.on{background:var(--g);box-shadow:0 0 16px -4px rgba(255,90,110,.8)}
+.fb b{display:block;font-size:16px;line-height:1.3;overflow-wrap:anywhere}.fb p{margin-top:4px;font-size:14.5px;color:#cfc3ca;white-space:pre-wrap;overflow-wrap:anywhere}.fb small{display:block;margin-top:6px;font-size:12.5px;color:var(--muted)}
+.chip{display:inline-block;padding:2px 9px;border-radius:99px;font-size:11.5px;font-weight:700;margin-right:6px;vertical-align:1px}.c-bug{background:rgba(255,120,120,.2);color:#ffb1b1}.c-idea{background:rgba(120,180,255,.2);color:#b6d6ff}.c-planned{background:rgba(255,200,90,.2);color:#ffd98a}.c-fixed{background:rgba(90,220,150,.2);color:#9af0c0}
+.adm{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.adm button{padding:5px 10px;border-radius:99px;font-size:12.5px;background:rgba(255,255,255,.1)}.adm button.on{background:#fff;color:#2a1620;font-weight:700}
+.filt{display:flex;gap:6px;margin-top:16px;flex-wrap:wrap}.filt button{padding:6px 12px;border-radius:99px;font-size:13.5px;color:var(--muted);background:rgba(255,255,255,.06)}.filt button.on{background:rgba(255,255,255,.16);color:#fff;font-weight:600}
+.inv{display:flex;gap:14px;align-items:flex-start;margin-top:26px;padding:18px;border-radius:22px;background:linear-gradient(135deg,rgba(255,122,77,.26),rgba(255,77,126,.2));box-shadow:inset 0 0 0 1.5px rgba(255,150,130,.55),0 0 34px -12px rgba(255,90,110,.8)}.inv[hidden]{display:none}
+.inv .iv{font-size:30px;line-height:1}.inv b{display:block;font-family:var(--serif);font-weight:400;font-size:26px;line-height:1.15}.inv span{display:block;margin-top:6px;font-size:15px;color:#f0e2e6}.inv .open{display:inline-block;margin-top:12px}
+.prev{margin-top:10px;padding:12px 13px;border-radius:13px;font-size:14.5px;line-height:1.45;color:#e9dfe4;background:rgba(0,0,0,.22);white-space:pre-wrap;overflow-wrap:anywhere}
+.btn.alt{background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+.msg{font-size:14px;color:#ffd98a;margin-top:8px;min-height:20px}
+footer{margin-top:56px;font-size:13px;color:var(--muted);text-align:center}
+.appback{position:fixed;left:12px;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:50;display:none;align-items:center;gap:6px;padding:10px 16px 10px 12px;border-radius:99px;background:rgba(20,14,18,.9);color:#fff;font:600 15px -apple-system,Inter,Helvetica,Arial,sans-serif;text-decoration:none;box-shadow:0 6px 20px rgba(0,0,0,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.appback.on{display:flex}body.inapp [id]{scroll-margin-top:calc(env(safe-area-inset-top,0px) + 66px)}body.inapp .w{padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
+</style></head><body><a class="appback" id="appback" href="../">&#8249; Back to the app</a>
+<script>(function(){try{var inApp=/[?&]app=1/.test(location.search)||window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;if(inApp){document.getElementById('appback').classList.add('on');document.body.classList.add('inapp');}}catch(e){}})();</script>
+<div class="w">
+<div class="top"><div class="brand"><span class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M12 20s-7-4.4-7-9.500A4 4 0 0 1 12 8a4 4 0 0 1 7 2.500C19 15.600 12 20 12 20z"/></svg></span>Let’s <i>Together</i></div><a class="open" href="../" id="openapp">Open the app</a></div>
+
+<div class="inv" id="inv" hidden><span class="iv">💌</span><div><b id="invt"></b><span>It’s brand new and still in testing, so you’re among the first to try it. It takes about a minute to set up with your person.</span><a class="open" href="../">Start your couple</a></div></div>
+<h1>Stop asking <em>“what do you want to do?”</em></h1>
+<p class="lede">Let’s Together is a swipe app for two. You each say yes or no to movies, places to eat, things to do and trips. When you both say yes to the same thing, it’s a match, and the decision is made. Swipe whenever you like, with no pressure, and use what you’ve both liked to plan a night or decide in the moment. <b>Let’s do more together.</b></p>
+<nav><a href="#story">The story</a><a href="#how">How it works</a><a href="#install">Add to Home Screen</a><a href="#features">What it can do</a><a href="#share">Invite friends</a><a href="#board">Bugs and ideas</a></nav>
+
+<section id="story"><div class="k">The story</div><h2>Why I built this</h2>
+<p>My partner and I kept having the same conversation. “What do you want to watch?” “I don’t know, what do you want to watch?” Forty minutes later we would still be scrolling, or we would give up and put on something neither of us picked.</p>
+<p>The problem was never a lack of options. It was that neither of us wanted to be the one to choose, and neither of us knew what the other was quietly up for. So I built something that asks us both separately and only speaks up when we agree.</p>
+<p>It started with movies. Then dinner, then things to do around town, then trips we might take one day. Now it can put a few of those together into a whole day out. It is still just me building it, usually at night, and it changes almost daily. <b>You are one of the first people to use it</b>, which is why your bugs and ideas on this page matter so much.</p>
+<p style="color:var(--muted)">Dave</p></section>
+
+<section id="how"><div class="k">How it works</div><h2>Swipe, match, decide</h2>
+<div class="steps">
+<div class="st"><span class="n">1</span><div><b>You both join with one couple code</b><span>One of you starts a couple and texts the invite. The other opens the link and enters the code. Nothing can match until you are both in.</span></div></div>
+<div class="st"><span class="n">2</span><div><b>Swipe a few cards a day</b><span>Movies on your streaming services, restaurants near you, bars and museums, events this week, trips, even art. A small handful each day, so it takes two minutes.</span></div></div>
+<div class="st"><span class="n">3</span><div><b>Matches do the deciding</b><span>You only see what you both liked. Tap “Tonight” whenever you want to decide, and pick from your matches, or “Plan a day” to build an outing from them.</span></div></div>
+</div></section>
+
+<section id="install"><div class="k">One important step</div><h2>Add it to your Home Screen</h2>
+<p>This is what makes it run full screen like a normal app, and it is the <b>only way it can send you a notification</b> when your person picks something. In a browser tab it can’t reach you at all.</p>
+<div id="guides">
+<div class="card" data-g="ios-safari"><div class="hd"><span class="tag">iPhone</span><b>Safari</b><small>iOS 18 and earlier</small></div><ol>
+<li><span class="n">1</span><span>Open <b>letstogether.app</b> and tap the Share button at the bottom (a square with an arrow pointing up).</span></li>
+<li><span class="n">2</span><span>Scroll down and tap <b>Add to Home Screen</b>.</span></li>
+<li><span class="n">3</span><span>Tap <b>Add</b>, then open the app from the new icon.</span></li></ol></div>
+<div class="card" data-g="ios26"><div class="hd"><span class="tag">iPhone</span><b>Safari on iOS 26</b><small>the newest iPhone software</small></div><ol>
+<li><span class="n">1</span><span>Open <b>letstogether.app</b> and tap <b>Share</b> in the middle of the bar at the bottom. No Share button there? Tap <b>•••</b> next to the address bar, then <b>Share</b>.</span></li>
+<li><span class="n">2</span><span>Scroll down and tap <b>Add to Home Screen</b>.</span></li>
+<li><span class="n">3</span><span>Tap <b>Add</b> at the top right, then open the app from the new icon.</span></li></ol></div>
+<div class="card" data-g="ios-chrome"><div class="hd"><span class="tag">iPhone</span><b>Chrome</b><small>needs iOS 16.4 or later</small></div><ol>
+<li><span class="n">1</span><span>Open <b>letstogether.app</b> and tap the Share button at the top right, in the address bar.</span></li>
+<li><span class="n">2</span><span>Scroll down and tap <b>Add to Home Screen</b>.</span></li>
+<li><span class="n">3</span><span>Tap <b>Add</b>, then open the app from the new icon.</span></li></ol>
+<p class="note">No “Add to Home Screen” in the list? Open the link in Safari and use the Safari steps.</p></div>
+<div class="card" data-g="android"><div class="hd"><span class="tag">Android</span><b>Chrome</b></div><ol>
+<li><span class="n">1</span><span>Open <b>letstogether.app</b> and tap the three-dot menu at the top right.</span></li>
+<li><span class="n">2</span><span>Tap <b>Add to Home screen</b> (it may say <b>Install app</b>).</span></li>
+<li><span class="n">3</span><span>Tap <b>Install</b>, then open the app from the new icon.</span></li></ol></div>
+</div>
+<p class="note">Then open it from the icon, not the browser. If it asks you to sign in, enter your couple code and the same name you used before, and say yes when it asks about notifications.</p>
+<h2 style="font-size:26px;margin-top:30px">Why isn’t it in the App Store?</h2>
+<p>Because it is still being tested and I change it almost every day. A Home Screen app updates itself the moment I fix something, with nothing for you to download, and it works the same on iPhone and Android. Once it settles down, a store version may follow.</p></section>
+
+<section id="features"><div class="k">What it can do</div><h2>Things worth trying</h2>
+<div class="feat">
+<div><b>Plan a day</b><span>Builds a day out from places you both liked, checks they are open, and sends it to your person to say yes or swap something. There is a night-in version too.</span></div>
+<div><b>What should we do tonight?</b><span>Deals you both the same cards right now. One match is the answer. Several go to a quick game, and the winner picks.</span></div>
+<div><b>Go out</b><span>Bars, museums, bookstores, arcades and this week’s events near home, with a nudge before an event you liked passes.</span></div>
+<div><b>Send one pick</b><span>Found the one? Send it straight over with the trailer up front. They answer “let’s do it” or “try again”.</span></div>
+<div><b>Trips</b><span>Swipe on things to do in cities around the world. When a city fills up with matches, the app suggests a weekend there.</span></div>
+<div><b>Art</b><span>Swipe on museum pieces. Matches go into a shared gallery and show which museum holds them.</span></div>
+<div><b>Scratch card</b><span>Every so often, a peek at one thing your person liked that you have not matched on yet.</span></div>
+<div><b>Travel mode</b><span>Away from home? It offers places to eat and things to do where you are, on your phone only.</span></div>
+</div></section>
+
+<section id="share"><div class="k">Pass it on</div><h2>Know a couple who’d use this?</h2>
+<p>Every couple who tries it makes it better, and right now the only way in is an invite from someone already using it. Send yours: the link opens this page with <b>your name on the invitation</b>.</p>
+<div class="card"><input id="sn" maxlength="24" placeholder="Your first name" autocomplete="given-name">
+<div class="prev" id="sprev"></div>
+<button class="btn" id="sgo">Share your invite</button><button class="btn alt" id="scopy">Copy the link</button><div class="msg" id="smsg"></div></div></section>
+
+<section id="board"><div class="k">Help make it better</div><h2>Bugs and ideas</h2>
+<p>Found something broken or confusing? Wish it did something? Post it here. Tap the number on anything you agree with, and the most wanted rise to the top. I read every one and mark them as I fix them.</p>
+<div class="card"><div class="seg" id="kind"><button data-k="bug" class="on">Something is broken</button><button data-k="idea">I have an idea</button></div>
+<input id="ft" maxlength="120" placeholder="In a sentence: what happened?" autocomplete="off">
+<textarea id="fbd" maxlength="800" placeholder="Anything that helps: what you tapped, what you expected, iPhone or Android (optional)"></textarea>
+<input id="fn" maxlength="24" placeholder="Your first name" autocomplete="given-name">
+<button class="btn" id="fgo">Post it</button><div class="msg" id="fmsg"></div></div>
+<div class="filt" id="filt"><button data-f="all" class="on">All</button><button data-f="bug">Bugs</button><button data-f="idea">Ideas</button><button data-f="fixed">Fixed</button></div>
+<div id="list"><p class="note">Loading…</p></div></section>
+
+<footer>Let’s Together · <a href="../">letstogether.app</a></footer>
+</div>
+<script>
+const CFG = {
+  url: 'https://gbzximehndzlsbojoqgj.supabase.co',
+  key: 'sb_publishable_2kr1KUhUST6dUy7JdL-5rA_ERVJaCgI',
+  vapid: 'BDclxM1Msm3Z4OLK8q5Zro-Z2PjFemslqgIIWK6sCxk3nSn9eJZrbhZ3R0_b5Gm6yurB6AjOgBvjIwjdek7wG-Q',
+};
+const $ = s => document.querySelector(s), esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const get = k => { try { return localStorage.getItem(k); } catch { return null; } }, set = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
+const rpc = async (fn, args) => { const r = await fetch(`${CFG.url}/rest/v1/rpc/${fn}`, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: CFG.key, Authorization: 'Bearer ' + CFG.key }, body: JSON.stringify(args) }); const d = await r.json().catch(() => null); if (!r.ok) throw new Error(d?.message || 'error'); return d; };
+let dev = get('wl_fbdev'); if (!dev) { dev = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now()); set('wl_fbdev', dev); }
+const code = get('wl_code'), me = get('wl_name'); let kind = 'bug', filt = 'all', items = [], admin = false;
+// someone already signed in on this phone: "open the app" is really "back to the app"
+if (code && me) { $('#openapp').textContent = 'Back to the app'; $('#fn').value = me; }
+// show this phone's install steps first
+(() => { const ua = navigator.userAgent, ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1), v = Math.max(Number((ua.match(/OS (\d+)_/) || [])[1] || 0), Number((ua.match(/Version\/(\d+)/) || [])[1] || 0)), g = /Android/.test(ua) ? 'android' : ios ? (/CriOS/.test(ua) ? 'ios-chrome' : v >= 26 ? 'ios26' : 'ios-safari') : null;
+  if (!g) return; const el = document.querySelector(`[data-g="${g}"]`), box = $('#guides'); el.classList.add('me'); el.querySelector('.hd').insertAdjacentHTML('beforeend', g === 'android' || g === 'ios-safari' ? '<small>your phone</small>' : ''); box.prepend(el); })();
+const ago = t => { const m = Math.round((Date.now() - new Date(t)) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' hr ago' : Math.round(m / 1440) + (Math.round(m / 1440) === 1 ? ' day ago' : ' days ago'); };
+function draw() {
+  const show = items.filter(i => filt === 'all' ? true : filt === 'fixed' ? i.status === 'fixed' : i.kind === filt && i.status !== 'fixed');
+  $('#list').innerHTML = show.length ? show.map(i => `<div class="fb ${i.hidden ? 'hid' : ''}"><button class="vote ${i.voted ? 'on' : ''}" data-v="${i.id}" aria-label="Vote">${i.votes}<i>${i.voted ? 'voted' : 'vote'}</i></button><div style="flex:1;min-width:0"><b>${esc(i.title)}</b>${i.body ? `<p>${esc(i.body)}</p>` : ''}<small><span class="chip c-${i.kind}">${i.kind === 'bug' ? 'Bug' : 'Idea'}</span>${i.status !== 'open' ? `<span class="chip c-${i.status}">${i.status === 'fixed' ? 'Fixed' : 'Planned'}</span>` : ''}${esc(i.name || 'Someone')} · ${ago(i.at)}${i.hidden ? ' · hidden' : ''}</small>${admin ? `<div class="adm">${['open', 'planned', 'fixed'].map(s => `<button data-a="${i.id}|${s}" class="${i.status === s ? 'on' : ''}">${s[0].toUpperCase() + s.slice(1)}</button>`).join('')}<button data-a="${i.id}|${i.hidden ? 'show' : 'hide'}">${i.hidden ? 'Unhide' : 'Hide'}</button></div>` : ''}</div></div>`).join('')
+    : `<p class="note" style="padding:16px 0">${filt === 'all' ? 'Nothing here yet. Be the first.' : 'Nothing in this list yet.'}</p>`;
+}
+async function load() { try { const r = await rpc('fb_list', { p_device: dev, p_code: code || null }); items = r.items || []; admin = !!r.admin; draw(); } catch { $('#list').innerHTML = '<p class="note">Could not load the board. Pull down to try again.</p>'; } }
+$('#kind').addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (!b) return; kind = b.dataset.k; [...$('#kind').children].forEach(x => x.classList.toggle('on', x === b)); $('#ft').placeholder = kind === 'bug' ? 'In a sentence: what happened?' : 'In a sentence: what would you like it to do?'; });
+$('#filt').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (!b) return; filt = b.dataset.f; [...$('#filt').children].forEach(x => x.classList.toggle('on', x === b)); draw(); });
+$('#fgo').addEventListener('click', async () => {
+  const t = $('#ft').value.trim(), m = $('#fmsg'); if (t.length < 4) { m.textContent = 'Add a sentence about it first.'; return; }
+  $('#fgo').disabled = true; m.textContent = '';
+  try { await rpc('fb_post', { p_kind: kind, p_title: t, p_body: $('#fbd').value, p_name: $('#fn').value, p_device: dev }); $('#ft').value = ''; $('#fbd').value = ''; m.textContent = 'Posted. Thank you.'; filt = 'all'; [...$('#filt').children].forEach((x, i) => x.classList.toggle('on', !i)); await load(); }
+  catch (e) { m.textContent = /slow_down|board_full/.test(e.message) ? 'That is a lot of posts for one day. Try again tomorrow.' : 'Could not post that. Try again in a moment.'; }
+  $('#fgo').disabled = false;
+});
+$('#list').addEventListener('click', async e => {
+  const v = e.target.closest('[data-v]'), a = e.target.closest('[data-a]');
+  if (v) { const i = items.find(x => x.id === v.dataset.v); try { const r = await rpc('fb_vote', { p_id: i.id, p_device: dev }); i.voted = r.voted; i.votes = r.votes; draw(); } catch {} }
+  if (a) { const [id, act] = a.dataset.a.split('|'); try { await rpc('fb_admin', { p_code: code, p_id: id, p_action: act }); await load(); } catch {} }
+});
+// invitations: ?from=Name puts that name on the top of the page; the share box makes such a link
+const clean = n => String(n || '').replace(/[^\p{L}\p{M}' .-]/gu, '').trim().split(/\s+/)[0]?.slice(0, 24) || '';
+const from = clean(new URLSearchParams(location.search).get('from'));
+if (from && !(code && me)) { $('#invt').textContent = `${from} invited you to Let’s Together`; $('#inv').hidden = false; document.title = `${from} invited you to Let’s Together`; }
+$('#sn').value = me || '';
+const sLink = () => 'https://letstogether.app/';
+const sText = () => `You’re invited to a brand-new app I’ve been using: Let’s Together. You and your person each swipe on movies, places to eat and things to do, and it only shows what you both said yes to. No more “what do you want to do?” It’s still in testing, so you’d be one of the first.`;
+const sDraw = () => { $('#sprev').textContent = sText() + '\n' + sLink(); };
+$('#sn').addEventListener('input', sDraw); sDraw();
+$('#sgo').addEventListener('click', async () => { if (navigator.share) { try { await navigator.share({ text: sText() + '\n' + sLink() }); } catch {} } else $('#scopy').click(); });
+$('#scopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText(sText() + '\n' + sLink()); $('#smsg').textContent = 'Copied. Paste it into a text.'; } catch { $('#smsg').textContent = 'Press and hold the message above to copy it.'; } });
+load();
+</script></body></html>
