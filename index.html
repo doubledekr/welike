@@ -425,6 +425,7 @@ html.ios-app .match,html.ios-app .lfront,html.ios-app .scrim,html.ios-app .lbar{
 .stack>.done{z-index:1}
 .dbg{position:absolute;top:-8px;bottom:-64px;left:-18px;right:-18px;overflow:hidden;pointer-events:none;z-index:0;opacity:0;transition:opacity .8s ease}
 .dbg.on{opacity:1}
+.hb2 .dbg{bottom:-6px}.hb2 .dbg .mos img.in{opacity:.32}.hb2 .dbg::after{background:linear-gradient(#100d12,rgba(16,13,18,0) 12%,rgba(16,13,18,0) 84%,#100d12),radial-gradient(ellipse 82% 54% at 50% 52%,rgba(16,13,18,.97) 42%,rgba(16,13,18,.7) 76%,rgba(16,13,18,.25))}
 .dbg::after{content:'';position:absolute;inset:0;background:linear-gradient(#100d12,rgba(16,13,18,0) 14%,rgba(16,13,18,0) 80%,#100d12),radial-gradient(ellipse 66% 46% at 50% 47%,rgba(16,13,18,.95) 34%,rgba(16,13,18,.6) 72%,rgba(16,13,18,.18))}
 .dbg .mos{position:absolute;inset:0 -4%;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;align-items:start}
 /* Each column holds its pictures twice and slides up (or down) by exactly one copy, so the loop has no seam. */
@@ -3297,7 +3298,7 @@ async function loadBite() {
 const biteDay = () => { let o = null; try { o = JSON.parse(ls.get('bl') || 'null'); } catch {} const d = new Date().toDateString(); return o && o.d === d ? o : { d, n: {}, more: {} }; };
 const biteSave = o => { try { ls.set('bl', JSON.stringify(o)); } catch {} };
 const biteLike = (deck, by) => { const o = biteDay(); o.n[deck] = Math.max(0, (o.n[deck] || 0) + by); biteSave(o); };
-const biteGoal = () => { if (!S.bite || !S.sess || !S.deck.length) return false; const o = biteDay(); return (o.n[S.sess.deck] || 0) >= 2 && !o.more[S.sess.deck]; };
+const biteGoal = () => { if (!S.bite || !S.sess || !S.deck.length || S.sess.deck === 'trip' || TRIPSIDE()) return false; const o = biteDay(); return (o.n[S.sess.deck] || 0) >= 2 && !o.more[S.sess.deck]; };
 function biteGoalHTML() { const p = partner(), names = { movie: 'movies', dinner: 'places', event: 'things to do', trip: 'trips', art: 'artworks', mix: 'of everything' };
   return `<div class="done goal"><div class="badge">${ic('heart')}</div><h3>Two saved for your next night</h3><p class="muted">${p ? `If ${esc(p)} likes either of them too, it’s a match.` : 'They’re saved for when your person joins.'} No need to do more. There are more ${names[S.sess.deck] || 'cards'} whenever you feel like it.</p><button class="btn ghost" data-act="bitemore">Keep browsing</button>${S.hist.length ? '<button class="jlink" data-sw="undo">Undo last swipe</button>' : ''}</div>`; }
 // Movies run deep, so keep browsing keeps going: another handful each time, with a steering card now and then to give it a direction.
@@ -5102,12 +5103,13 @@ let mosBusy = false;
 function mosSync(L) { const el = (performance.now() - (L._t0 || 0)) / 1000; L.querySelectorAll('.mos > div').forEach(c => c.style.setProperty('--d', (Number(c.dataset.d0 || 0) - el).toFixed(2) + 's')); }
 async function mosaicFill() {
   const st = document.querySelector('.stack'); if (!st || !st.querySelector(':scope > .done') || st.querySelector(':scope > .dbg') || mosBusy || !S.code) return;
-  if (S.mosNode && S.mosNode._key === S.code + new Date().toDateString()) { mosSync(S.mosNode); st.prepend(S.mosNode); return; }
+  const mkey = S.code + new Date().toDateString() + (TRIPSIDE() ? ':trips' : '');
+  if (S.mosNode && S.mosNode._key === mkey) { mosSync(S.mosNode); st.prepend(S.mosNode); return; }
   mosBusy = true; const raw = await mosaicList(); mosBusy = false;
   if (!st.isConnected || !st.querySelector(':scope > .done') || st.querySelector(':scope > .dbg')) return;
   // Every picture appears in exactly one column. Categories are dealt in turn so neighbors differ.
   const seen = new Set(), byDeck = {};
-  raw.forEach(t => { if (t?.i && !seen.has(t.i)) { seen.add(t.i); (byDeck[t.d] ||= []).push(t); } });
+  raw.forEach(t => { if (TRIPSIDE() && t?.d !== 'trip' && t?.d !== 'art') return; if (t?.i && !seen.has(t.i)) { seen.add(t.i); (byDeck[t.d] ||= []).push(t); } });
   const list = []; for (let k = 0; Object.values(byDeck).some(a => a.length > k); k++) Object.values(byDeck).forEach(a => { if (a[k]) list.push(a[k]); });
   if (list.length < 6) return; list.length = Math.min(list.length, 28);
   const tile = t => `<span style="aspect-ratio:${MOS_RATIO[t.d] || '3/4'}"><img alt="" decoding="async" referrerpolicy="no-referrer" src="${esc(mosThumb(t.i))}" data-f="${/tripadvisor/.test(t.f || '') && t.f !== t.i ? esc(t.f) : ''}"></span>`;
@@ -5131,7 +5133,7 @@ async function mosaicFill() {
   // same calm pace for every column (about 8 px a second, a little different each), whatever its height
   const PACE = [7, 8.5, 7.5, 9];
   L.querySelectorAll('.mos > div').forEach((c, i) => { const h = c.querySelector('.half').offsetHeight || 600; c.style.setProperty('--t', Math.round(h / PACE[i]) + 's'); c.dataset.d0 = -Math.round((h / PACE[i]) * (i + 1) / 5); });
-  L._t0 = performance.now(); L._key = S.code + new Date().toDateString(); S.mosNode = L; mosSync(L);
+  L._t0 = performance.now(); L._key = mkey; S.mosNode = L; mosSync(L);
   L.style.visibility = ''; requestAnimationFrame(() => L.classList.add('on'));
 }
 let mosT = 0; new MutationObserver(() => { clearTimeout(mosT); mosT = setTimeout(() => { if (document.querySelector('.stack > .done') && !document.querySelector('.stack > .dbg')) mosaicFill(); }, 650); }).observe(document.getElementById('app'), { childList: true, subtree: true });
