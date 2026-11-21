@@ -1833,7 +1833,7 @@ async function checkTravel(ask = false) {
       return;
     }
     // near one of your saved places (the cottage)? offer to plan around it, unless days there are already set
-    if (BETA) { if (S.places === undefined) { try { S.places = await rpc('place_list', { p_code: S.code }); } catch { S.places = []; } }
+    if (B2) { if (S.places === undefined) { try { S.places = await rpc('place_list', { p_code: S.code }); } catch { S.places = []; } }
       const near = (S.places || []).find(p => p.data?.lat != null && milesApart(+p.data.lat, +p.data.lng, lat, lng) < 20);
       if (near && !planMeta(near.title.slice(0, 40))?.base && !(S.away?.label) && !(!ask && ls.get('awayno') === near.title + new Date().toDateString())) { S.awayOffer = { city: near.title, lat, lng, place: near }; if (S.view === 'home' && !$layer.innerHTML) { S.tab = 'home'; render(); } return; } }
     let city = '';
@@ -2200,7 +2200,8 @@ const HDECKS = [['all', 'Discover'], ['movie', 'Watch'], ['dinner', 'Eat & Drink
 // faded plane) and the same bar becomes Trips: the pinned button turns into Trips, and the rest are the trip stacks. Once a
 // trip has dates, the Trips side is about that trip (its days, things to do there) until it ends; Explore goes back to all trips.
 // The logo never changes colour. No Local/Trips label anywhere: the pinned button and the teal accents say where you are.
-const DOCK2 = !!(window.LT_BETA || window.LT_SIM);
+const REL = true;
+const DOCK2 = !!(window.LT_BETA || window.LT_SIM || REL);
 if (DOCK2) document.documentElement.classList.add('d2a');
 S.side = DOCK2 && ls.get('side') === 'trips' ? 'trips' : 'local';
 const TRIPSIDE = () => DOCK2 && S.side === 'trips';
@@ -3076,13 +3077,13 @@ function homeHTML() {
   if (TRIPSIDE()) for (const t of tripList()) if (t.kind === 'g' && !gtOf(t.id)) gtLoad(t.id, false).then(() => { if (TRIPSIDE() && S.view === 'home' && tripWaits('g:' + t.id)) render(); });
   if (DOCK2) setTimeout(clashCheck, 900);
   if (tov && !S.lib && !S.libLoading) { S.libLoading = true; loadLib().then(() => { S.libLoading = false; if (document.querySelector('.tov')) render(); }).catch(() => { S.libLoading = false; }); }
-  if (BETA && partner() && !S.ftTry) { S.ftTry = 1; setTimeout(() => firstTen(false), 1500); }
-  return `<div class="home ${TRIPSIDE() ? 'tside' : ''}${BETA ? ' hb2' : ''}">
+  if (B2 && partner() && !S.ftTry) { S.ftTry = 1; setTimeout(() => firstTen(false), 1500); }
+  return `<div class="home ${TRIPSIDE() ? 'tside' : ''}${B2 ? ' hb2' : ''}">
     <div class="row hdr ${sbA || NEWUI ? 'h5' : ''}"><div class="brand grow hb">${MARK}<span>${BRAND}</span></div>
       <button class="ib" data-act="search" aria-label="Search movies">${ic('search')}</button>${DOCK2 ? (sbA ? `<button class="ib" data-act="people" aria-label="Crew: your partner, friends and groups">${ic('users')}</button>` : '') : NEWUI ? `<button class="ib hlib" data-act="hlib" aria-label="What you liked">${ic('heart')}</button>` : sbA ? `<button class="ib" data-fr="open" aria-label="Friends and group plans">${ic('users')}</button>` : ''}
       ${DOCK2 ? '' : `<button class="ib shr ${ls.get('shared') ? 'shd' : ''}" data-act="sharefriends" aria-label="Share Let’s Together with friends">${ic('share')}</button>`}
       ${bellHTML()}<button class="ib" data-tab="you" aria-label="You and settings">${ic('gear')}</button></div>${TRIPSIDE() ? '' : slotHTML(incoming)}
-    <div id="hbot" style="display:contents">${TRIPSIDE() ? `<div id="tphd">${tripHead()}</div>` : `<div class="seg" style="margin:8px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="kc k-${CK[k]} ${S.homeDeck === k ? 'on' : ''}">${l}${heartTag(k)}</button>`).join('')}</div>`}${BETA && !TRIPSIDE() ? `<div id="herep">${hereHTML()}</div>` : ''}${LBON() ? lbToggle() : ''}${!TRIPSIDE() && scratchShow() && !S.awayOffer ? `<button class="scratch-pill" data-act="scratch">${ic('spark')}<span><b>A scratch card is waiting</b><small>One thing ${esc(p)} is in on</small></span><i>Scratch</i></button>` : ''}${S.awayOffer ? `<div class="trav"><span class="tic">${ic('pin')}</span><span class="grow"><b>Looks like you’re ${S.awayOffer.place ? 'at ' + esc(S.awayOffer.city) : 'in ' + esc(S.awayOffer.city)}</b><small>${S.awayOffer.place ? 'Plan around it for the next few days?' : 'Show places to eat and things to do here?'}</small></span><button class="go" data-act="awayyes">${S.awayOffer.place ? 'Plan' : 'Show'}</button><button class="x" data-act="awayno" aria-label="Not now">×</button></div>` : ''}${S.away && (S.homeDeck === 'dinner' || S.homeDeck === 'event') ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><small class="muted" style="font-size:12.5px">${ic('pin')} ${S.away.trip ? `Your ${esc(S.away.city)} trip` : `Showing ${esc(S.away.city)} on this phone`}</small><button class="chip" data-act="awayoff" style="padding:5px 12px;font-size:13px">Back to home</button></div>` : ''}${S.homeDeck === 'movie' && !NEWUI ? `<div class="row" style="margin:14px 2px 0"><button class="chip" data-act="movielib" style="padding:5px 12px;font-size:13px">${ic('film')} Movie library</button></div>` : ''}${shareChip()}${S.homeDeck === 'art' ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="gallery" style="padding:5px 12px;font-size:13px">${ic('frame')} Our gallery</button><small class="muted" style="font-size:12.5px">No nudges, just likes</small></div>` : ''}${S.homeDeck === 'trip' && !TRIPSIDE() ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="trips" style="padding:5px 12px;font-size:13px">${ic('heart')} Saved trips</button><button class="chip ${S.tripCity ? 'on' : ''}" data-act="tripcity" style="padding:5px 12px;font-size:13px">${esc(S.tripCity || 'Anywhere')} ▾</button></div>` : ''}
+    <div id="hbot" style="display:contents">${TRIPSIDE() ? `<div id="tphd">${tripHead()}</div>` : `<div class="seg" style="margin:8px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="kc k-${CK[k]} ${S.homeDeck === k ? 'on' : ''}">${l}${heartTag(k)}</button>`).join('')}</div>`}${B2 && !TRIPSIDE() ? `<div id="herep">${hereHTML()}</div>` : ''}${LBON() ? lbToggle() : ''}${!TRIPSIDE() && scratchShow() && !S.awayOffer ? `<button class="scratch-pill" data-act="scratch">${ic('spark')}<span><b>A scratch card is waiting</b><small>One thing ${esc(p)} is in on</small></span><i>Scratch</i></button>` : ''}${S.awayOffer ? `<div class="trav"><span class="tic">${ic('pin')}</span><span class="grow"><b>Looks like you’re ${S.awayOffer.place ? 'at ' + esc(S.awayOffer.city) : 'in ' + esc(S.awayOffer.city)}</b><small>${S.awayOffer.place ? 'Plan around it for the next few days?' : 'Show places to eat and things to do here?'}</small></span><button class="go" data-act="awayyes">${S.awayOffer.place ? 'Plan' : 'Show'}</button><button class="x" data-act="awayno" aria-label="Not now">×</button></div>` : ''}${S.away && (S.homeDeck === 'dinner' || S.homeDeck === 'event') ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><small class="muted" style="font-size:12.5px">${ic('pin')} ${S.away.trip ? `Your ${esc(S.away.city)} trip` : `Showing ${esc(S.away.city)} on this phone`}</small><button class="chip" data-act="awayoff" style="padding:5px 12px;font-size:13px">Back to home</button></div>` : ''}${S.homeDeck === 'movie' && !NEWUI ? `<div class="row" style="margin:14px 2px 0"><button class="chip" data-act="movielib" style="padding:5px 12px;font-size:13px">${ic('film')} Movie library</button></div>` : ''}${shareChip()}${S.homeDeck === 'art' ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="gallery" style="padding:5px 12px;font-size:13px">${ic('frame')} Our gallery</button><small class="muted" style="font-size:12.5px">No nudges, just likes</small></div>` : ''}${S.homeDeck === 'trip' && !TRIPSIDE() ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="trips" style="padding:5px 12px;font-size:13px">${ic('heart')} Saved trips</button><button class="chip ${S.tripCity ? 'on' : ''}" data-act="tripcity" style="padding:5px 12px;font-size:13px">${esc(S.tripCity || 'Anywhere')} ▾</button></div>` : ''}
     ${tov ? `<div class="tov">${tripScreen('c:' + tov)}</div>` : gov ? `<div class="tov">${tripScreen('g:' + gov)}</div>` : ''}
     ${LB() && !tov && !gov ? `<div id="lbrows">${lbHTML()}</div>` : ''}<div class="stack" id="stack" style="margin:4px 0 6px${tov || gov || LB() ? ';display:none' : ''}">${S.doneHtml?.[S.homeDeck]?.day === new Date().toDateString() ? (setTimeout(() => libGrid(S.homeDeck), 0), S.doneHtml[S.homeDeck].html) : ''}</div>
     <div class="actions" id="acts" style="visibility:hidden${tov || gov || LB() ? ';display:none' : ''}"><button class="act sm" data-sw="undo" aria-label="Undo">${ic('undo')}</button><button class="act no" data-sw="no" aria-label="No">${ic('x')}</button>
@@ -3094,7 +3095,7 @@ function homeHTML() {
 // Local, explored like a trip (beta, Dave 21 Nov): each category can be browsed in rows as well as swiped.
 // Rows: Your spots (places you both said yes to and went to in a plan), This weekend, New near you, Hidden gems;
 // Watch has Tonight's movie night. Discover leads with Picked for you two this week (opt-in, both must turn it on).
-const LBON = () => BETA && !TRIPSIDE() && S.homeDeck !== 'trip';
+const LBON = () => B2 && !TRIPSIDE() && S.homeDeck !== 'trip';
 const LB = () => LBON() && S.lbMode === 'browse';
 function lbToggle() { return `<div class="lbt"><button data-act="lbmode" data-k="browse" class="${S.lbMode === 'browse' ? 'on' : ''}">Browse</button><button data-act="lbmode" data-k="swipe" class="${S.lbMode !== 'browse' ? 'on' : ''}">Swipe</button></div>`; }
 function lbTile(c, big) { (S.lbIdx ||= {})[c.id] = c; const img = c.image || '';
@@ -3138,7 +3139,7 @@ async function lbSay(id, yes, t) {
 }
 // Both in the app at once (beta): offer the same ten cards, right now. A beta test couple's partner counts as here so it can be tried.
 function hereHTML() {
-  if (!BETA || !partner() || S.hereOff || S.awayOffer) return '';
+  if (!B2 || !partner() || S.hereOff || S.awayOffer) return '';
   if (!partnerHere() && !/^BETA/i.test(S.code || '')) return '';
   return `<div class="trav herep"><i class="hdot"></i><span class="grow"><b>${esc(them())}’s here too</b><small>Swipe ten together?</small></span><button class="go" data-act="liveten">Start</button><button class="x" data-act="hereoff" aria-label="Not now">×</button></div>`;
 }
@@ -3156,7 +3157,7 @@ function pdPrev() {
 }
 // The invited partner's first minute (beta): ten cards, some of which their partner already said yes to.
 async function firstTen(force) {
-  if (!BETA || !partner() || (!force && ls.get('first10'))) return;
+  if (!B2 || !partner() || (!force && ls.get('first10'))) return;
   let r = null; try { r = await rpc('first_ten', { p_code: S.code, p_member: S.me, p_force: !!force }); } catch { return; }
   if (!r?.id) { ls.set('first10', '1'); return; } if ($layer.innerHTML) return; ls.set('first10', '1');
   sheet(`<div class="grab"></div><div class="body ft"><h2>${esc(r.from)} saved some things for you two</h2><p class="muted" style="margin:10px 0 18px;font-size:15px;line-height:1.5">Ten cards. ${esc(r.from)} already said yes to some of them. Swipe to find out which.</p><button class="btn" data-open="${r.id}">Start</button><div style="height:10px"></div><button class="btn ghost" data-act="closesheet">Not now</button></div>`);
@@ -3817,6 +3818,8 @@ function ideaDays(i) { const t = pToday(), dated = i.cards.filter(isDated);
   return out; }
 /* ---------- flowers: Florist One, test mode, only in the beta copy at /t. Browse, pick a day, see the total. Never orders. ---------- */
 const BETA = !!window.LT_BETA;
+// 21 Nov release (Dave's go): everything built in the beta up to today is on for everyone. BETA alone still gates sign-in, friends, flowers, the timing probe, the deck cache and the finds preview.
+const B2 = BETA || REL;
 const FLC = [['an', 'Anniversary'], ['bd', 'Birthday'], ['lr', 'Love & romance'], ['ao', 'Just because'], ['ty', 'Thank you']];
 const flBanner = () => !BETA ? '' : `<button class="tripbar kc k-match" data-act="flowers" style="width:100%;text-align:left"><span class="tic">${ic('heart')}</span><span class="grow"><b>Send flowers</b><small>Test mode: browse, pick a day, see the total</small></span><span class="go">Try</span></button>`;
 async function flCall(body) { const r = await sb.functions.invoke('flowers', { body: { code: S.code, ...body } }); if (r.error) throw r.error; return r.data; }
@@ -4108,7 +4111,7 @@ function tonightSheet() {
   const TD = p ? ['movie', 'gold', 'dinner', 'activity', 'event', 'mix'] : ['movie', 'dinner', 'activity', 'event', 'mix'];
   const goldLeft = S.surp?.left !== false, goldNext = S.surp?.next ? new Date(S.surp.next + 'T12:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'next month';
   let h = `<div class="grab"></div><div class="tn"><div class="tn-head"><div class="brand">${BRAND}</div><h2>What should we<br>do together?</h2>${NEWUI && p ? '' : `<p class="muted" style="margin-top:8px;font-size:14px">Swipe to flip through. Tap one to start${p ? `, and ${esc(p)} gets the same cards` : ''}.</p>`}</div>
-    ${BETA && p ? hungryRow((S.plans || []).find(x => x.day === pToday() && hungryNext(x)) || null) : ''}${NEWUI && p ? whoRow('tonight') + `<div class="sect" style="margin-top:14px">Spin from what you both like</div><div class="spinrow">${Object.entries(SPINK).map(([k, v]) => `<button class="spinb" data-act="spin" data-k="${k}">${ic(v[1])}<span>${v[0]}</span></button>`).join('')}</div><div class="sect" style="margin-top:18px">Or swipe a round together</div><p class="muted" style="font-size:13px;margin-top:4px">Flip through, then tap one. ${esc(p)} gets the same cards.</p>` : ''}
+    ${B2 && p ? hungryRow((S.plans || []).find(x => x.day === pToday() && hungryNext(x)) || null) : ''}${NEWUI && p ? whoRow('tonight') + `<div class="sect" style="margin-top:14px">Spin from what you both like</div><div class="spinrow">${Object.entries(SPINK).map(([k, v]) => `<button class="spinb" data-act="spin" data-k="${k}">${ic(v[1])}<span>${v[0]}</span></button>`).join('')}</div><div class="sect" style="margin-top:18px">Or swipe a round together</div><p class="muted" style="font-size:13px;margin-top:4px">Flip through, then tap one. ${esc(p)} gets the same cards.</p>` : ''}
     <div class="tdeck" id="tdeck">` + TD.map((d, i) => d === 'gold' ? `<div class="tpc goldc" data-k="gold"><span class="gls gold"></span><span class="gband"></span><svg class="gbow" viewBox="0 0 262 350" aria-hidden="true"><defs><linearGradient id="gbv" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c9566e"/><stop offset=".55" stop-color="#8e1f3a"/><stop offset="1" stop-color="#560f22"/></linearGradient></defs><g transform="translate(131,142) scale(1.5)"><path d="M-4 6C-14 22-24 40-30 52L-16 48-10 60C-6 44-2 26 4 8Z" fill="#8e1f3a"/><path d="M4 6C14 22 24 40 30 52L16 48 10 60C6 44 2 26-4 8Z" fill="#560f22"/><path d="M0 0C-18-30-52-30-56-6-58 14-30 18 0 2Z" fill="url(#gbv)"/><path d="M0 0C18-30 52-30 56-6 58 14 30 18 0 2Z" fill="url(#gbv)"/><path d="M-8-3C-24-18-42-16-44-4-44 4-28 6-8 3Z" fill="#560f22" opacity=".55"/><path d="M8-3C24-18 42-16 44-4 44 4 28 6 8 3Z" fill="#560f22" opacity=".55"/><rect x="-10" y="-10" width="20" height="20" rx="6" fill="#8e1f3a"/><rect x="-10" y="-10" width="20" height="9" rx="5" fill="#c9566e" opacity=".6"/></g></svg><span class="cnum">${surpItems().some(x => x.mine && x.status !== 'revealed' && x.day >= pToday()) ? 'Yours is set' : goldLeft ? '1 left in ' + new Date().toLocaleDateString(undefined, { month: 'short' }) : 'Next one ' + goldNext}</span><span class="ctx"><b>Plan a<br>surprise</b><small>${esc(p)} won’t know what until you reveal it</small></span></div>` : `<div class="tpc ${CK[d] ? 'kc k-' + CK[d] : 'mixc'}" data-k="${d}">${CK[d] ? '' : '<span class="wbx"><span class="whl"></span></span><span class="veil"></span>'}<span class="cbg">${ic(DIC[d])}</span><span class="cic">${ic(DIC[d])}</span><span class="ctx"><b>${DECKS[d].label}</b><small>${DECKS[d].hint}</small></span></div>`).join('') + `</div>
     <div class="tdots">${TD.map(() => '<i></i>').join('')}</div>`;
   // Only the newest round can be "in progress": it has to be from the last 18 hours, not decided yet, and still have cards waiting. An older unfinished round never comes back once a newer one exists.
@@ -4275,7 +4278,7 @@ const ltLoad = (title, line, steps) => { const id = 'ltl' + Math.random().toStri
   return `<div class="grab"></div><div class="ltload"><div class="ltmk">${MARK}</div><small class="tkick">${esc(title)}</small><b class="in" id="${id}">${esc(line)}</b>
     <div class="ltsk">${[0, 1, 2].map(i => `<div class="ltrow" style="animation-delay:${i * 140}ms"><i></i><span><em></em><em></em></span></div>`).join('')}</div></div>`; };
 async function dayStart() {
-  if (BETA && partner()) wcLoad().then(() => { const el = document.getElementById('wcslot'); if (el) el.innerHTML = wcBanner(); });
+  if (B2 && partner()) wcLoad().then(() => { const el = document.getElementById('wcslot'); if (el) el.innerHTML = wcBanner(); });
   if (!partner() && twoOnly()) return; if (!partner()) { toast('Plans are made from what you both like. Invite your other half first.', 4000); return inviteSheet(); }
   sheet(DOCK2 ? ltLoad('Plan a day', 'Pulling what you both like', ['Matching your likes', 'Checking what’s open', 'Finding time between stops']) : '<div class="grab"></div><div class="body"><p class="muted">Looking at what you both like…</p></div>');
   await dayPool(); try { S.plans = await rpc('plan_list', { p_code: S.code, p_member: S.me }); } catch {}
@@ -4285,7 +4288,7 @@ async function dayStart() {
   S.listCards = [...anch, ...mine];
   const pk = p => p.mode === 'in' || pKind(p) === 'fri' ? 'fri' : 'sat';
   const tile = (c, both) => `<button class="tcard pa kc k-${CK[c.deck] || 'ask'} ${both ? 'both' : ''}" data-pl="around|${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy" draggable="false">` : `<span class="pimg">${emojiFor(c)}</span>`}<span class="tt"><b>${esc(c.title)}</b><small>${both ? 'You both like · ' : ''}${isDated(c) ? esc(dfmt(c.event_date) + (c.data?.time ? ' · ' + c.data.time : '')) : esc((c.subtitle || '').split(' · ')[0])}</small></span></button>`;
-  if (BETA && DOCK2) { S.pdShape = null; const t0 = pToday(), dw = new Date(t0 + 'T12:00').getDay(), dsl = [...new Set([t0, pAdd(t0, 1), pAdd(t0, (6 - dw + 7) % 7 || 7), pAdd(t0, (7 - dw) % 7 || 7)])].sort().slice(0, 4);
+  if (B2 && DOCK2) { S.pdShape = null; const t0 = pToday(), dw = new Date(t0 + 'T12:00').getDay(), dsl = [...new Set([t0, pAdd(t0, 1), pAdd(t0, (6 - dw + 7) % 7 || 7), pAdd(t0, (7 - dw) % 7 || 7)])].sort().slice(0, 4);
     if (!dsl.includes(S.pdDay)) S.pdDay = t0;
     const dl = d => d === t0 ? 'Today' : d === pAdd(t0, 1) ? 'Tomorrow' : new Date(d + 'T12:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
     return sheet(`<div class="grab"></div><div class="tn pday pd2"><div class="tn-head"><h2>Plan a day</h2></div>
@@ -4297,7 +4300,7 @@ async function dayStart() {
       ${S.listCards.length ? `<div class="sect" style="margin-top:16px">Or plan around one thing</div><div class="trow parow">${anch.map(c => tile(c, true)).join('')}${mine.map(c => tile(c, false)).join('')}</div>` : ''}
       <div class="pdq"><div id="wcslot">${wcBanner()}</div>${whoRow('day')}<div id="stslot">${baseRow()}</div><button class="jlink" data-sp="start" style="margin:10px auto 0;display:block">Make it a surprise for ${esc(them())} instead</button></div>
     </div>`); }
-  sheet(`<div class="grab"></div><div class="tn pday"><div class="tn-head"><div class="brand">${BRAND}</div><h2>Plan a day</h2><p class="muted" style="margin-top:8px;font-size:14px">Two or three things in one day, sent to ${esc(them())} to say yes or swap.</p></div>${hungryRow((S.plans || []).find(x => x.day === pToday() && hungryNext(x)) || null)}${BETA ? `<div id="wcslot">${wcBanner()}</div><div id="stslot">${baseRow()}</div>` : ''}${NEWUI ? whoRow('day') + `<button class="jlink" data-sp="start" style="margin:4px auto 0;display:block">Make it a surprise for ${esc(them())} instead</button>` : ''}
+  sheet(`<div class="grab"></div><div class="tn pday"><div class="tn-head"><div class="brand">${BRAND}</div><h2>Plan a day</h2><p class="muted" style="margin-top:8px;font-size:14px">Two or three things in one day, sent to ${esc(them())} to say yes or swap.</p></div>${hungryRow((S.plans || []).find(x => x.day === pToday() && hungryNext(x)) || null)}${B2 ? `<div id="wcslot">${wcBanner()}</div><div id="stslot">${baseRow()}</div>` : ''}${NEWUI ? whoRow('day') + `<button class="jlink" data-sp="start" style="margin:4px auto 0;display:block">Make it a surprise for ${esc(them())} instead</button>` : ''}
     ${live.map(p => `<button class="tripbar kc k-${pk(p)}" data-pl="view|${p.id}" style="width:100%;text-align:left"><span class="tic">${ic(pk(p) === 'fri' ? 'moon' : 'sun')}</span><span class="grow"><b>${pDayName(p.day)}${p.mode === 'in' ? ' · night in' : ''}</b><small>${pSum(p)}<br>${pStatus(p)}</small></span><span class="go ${p.ok?.[S.me] ? '' : 'blink'}">Open</span></button>`).join('')}
     ${DOCK2 ? `<div class="sect" style="margin-top:16px">What kind of day?</div><div class="lshapes">${SHAPE_KEYS.map(k => `<button class="stile kc k-${k === 'night' ? 'fri' : 'sat'}" data-pl="new|out|${k}"><span><b>${SHAPES[k].name}</b><small>${LSHAPE[k].sub}</small></span></button>`).join('')}</div>` : ''}
     <div class="stiles" style="margin-top:14px">${DOCK2 ? '' : `<button class="stile kc k-sat" data-pl="new|out"><span class="tic">${ic('sun')}</span><span><b>A whole day</b><small>Daytime, dinner, something after</small></span></button>`}
@@ -4403,7 +4406,7 @@ function pGap(p, k, past) { const a = p.items[k], b = p.items[k + 1]; if (past |
   if (gap < 90) return null;
   const dur = end - st, nt = Math.floor((leave - 20 - dur) / 15) * 15, ntS = pAddMin('00:00', nt), later = !snack && !a.slot.startsWith('quest') && !pFix(a) && !isDated(c) && nt - st >= 30 && openAt(c, p.day, ntS, dur) !== false ? ntS : null;
   const quests = p.items.filter(i => i.slot.startsWith('quest')).length, h = Math.floor(gap / 60), m = gap % 60 >= 45 ? 1 : gap % 60 >= 15 ? .5 : 0, len = `${h + (m === 1 ? 1 : 0)}${m === .5 ? '½' : ''} hour${h + m > 1 ? 's' : ''}`;
-  return `<div class="pgap"><b>Free from about ${pT(pAddMin('00:00', end))} until ${pT(pAddMin('00:00', leave))}</b><small>That’s ${len} between ${esc(pName(a))} and ${esc(pName(b))}.</small><span class="psb">${quests < 2 && !snack ? `<button class="pill hot" data-pl="snack|${k}">${BETA ? 'Fill the time nearby' : 'Snack break nearby'}</button>` : ''}${later ? `<button class="pill" data-pl="later|${a.slot}|${later}">Move ${esc(pName(a))} to ${pT(later)}</button>` : ''}</span></div>`; }
+  return `<div class="pgap"><b>Free from about ${pT(pAddMin('00:00', end))} until ${pT(pAddMin('00:00', leave))}</b><small>That’s ${len} between ${esc(pName(a))} and ${esc(pName(b))}.</small><span class="psb">${quests < 2 && !snack ? `<button class="pill hot" data-pl="snack|${k}">${B2 ? 'Fill the time nearby' : 'Snack break nearby'}</button>` : ''}${later ? `<button class="pill" data-pl="later|${a.slot}|${later}">Move ${esc(pName(a))} to ${pT(later)}</button>` : ''}</span></div>`; }
 // a gap in the day (beta, Dave 21 Nov): a snack, a drink, a bite, or something fun to walk around (an alley, a plaza, a hidden gem)
 const GAPK = [['snack', 'A snack', 'A snack break'], ['drinks', 'A drink', 'A drink nearby'], ['food', 'A bite', 'A bite to eat'], ['fun', 'Walk around', 'Something fun to walk to']];
 async function snackSheet(k, kind = 'snack') { const p = (S.plans || []).find(x => x.id === S.plView); if (!p) return; const a = p.items[k]; if (!a?.card) return;
@@ -4412,7 +4415,7 @@ async function snackSheet(k, kind = 'snack') { const p = (S.plans || []).find(x 
   let d = null; try { ({ data: d } = await sb.functions.invoke('whereis', { body: { code: S.code, action: 'quest', ...(kind === 'snack' ? { snack: true } : { kind }), lat: a.card.data.lat, lng: a.card.data.lng, lat2: a.card.data.lat, lng2: a.card.data.lng, day: p.day, time: at } })); } catch {}
   S.quests = { list: (d?.quests || []).map(q => ({ ...q, title: q.name, mi: q.dist })), time: at, snack: true, kind, k, day: p.day, near: nm }; step('snack_open'); snackGallery(); }
 function snackGallery() { const q = S.quests; if (!q) return; const hd = GAPK.find(x => x[0] === (q.kind || 'snack'))?.[2] || 'A snack break';
-  sheet(`<div class="grab"></div><div class="body"><h2>${hd}</h2>${BETA && q.k != null ? `<div class="hchips" style="margin:10px 0 2px">${GAPK.map(([kk, l]) => `<button class="hchip ${kk === (q.kind || 'snack') ? 'on' : ''}" data-act="gapk" data-hk="${kk}">${l}</button>`).join('')}</div>` : ''}<p class="muted" style="margin-top:6px">Around ${pT(q.time)}, ${q.kind === 'fun' ? 'a short walk from' : 'close to'} ${esc(q.near)}. ${q.kind === 'fun' ? 'Your hidden gems first, then fun spots to wander.' : 'Well rated and open then.'} Tap one to see it.</p>
+  sheet(`<div class="grab"></div><div class="body"><h2>${hd}</h2>${B2 && q.k != null ? `<div class="hchips" style="margin:10px 0 2px">${GAPK.map(([kk, l]) => `<button class="hchip ${kk === (q.kind || 'snack') ? 'on' : ''}" data-act="gapk" data-hk="${kk}">${l}</button>`).join('')}</div>` : ''}<p class="muted" style="margin-top:6px">Around ${pT(q.time)}, ${q.kind === 'fun' ? 'a short walk from' : 'close to'} ${esc(q.near)}. ${q.kind === 'fun' ? 'Your hidden gems first, then fun spots to wander.' : 'Well rated and open then.'} Tap one to see it.</p>
     ${q.list.length ? sgRows([[q.kind === 'fun' ? 'A short walk' : 'Close by', q.list.map((x, j) => sgTile(x, `snsee|${j}`))]]) : '<p class="muted" style="margin-top:14px">Nothing great close by at that time. Try another kind above.</p>'}
     <div style="height:8px"></div><button class="jlink" data-pl="sugback">Back</button></div>`, 'plan', 'quest'); }
 function snackSee(j) { const q = S.quests, x = q?.list?.[j]; if (!x) return; sheet(sgDetail(x, q.day, q.time, `<button class="btn" data-pl="qadd|${j}">Add it at ${pT(q.time)}</button>`, 'sngal'), 'plan', 'quest'); }
@@ -4615,7 +4618,7 @@ function plansForm() {
 // so the days plan themselves with base shapes, and the phone switches to it for those days (trip_now).
 const BSTY = { home: ['Mostly at the place', 'One outing a day, dinners in'], out: ['Out and about', 'Towns, beaches, a dinner out each night'] };
 function baseRow() {
-  if (!BETA || !partner()) return '';
+  if (!B2 || !partner()) return '';
   const ps = (S.places || []).filter(p => p.data?.lat != null), base = (S.settings?.plans || []).find(c => planMeta(c).base && (planMeta(c).to || '') >= pToday());
   if (S.places === undefined) { S.places = null; rpc('place_list', { p_code: S.code }).then(x => { S.places = x || []; const el = document.getElementById('stslot'); if (el) el.innerHTML = baseRow(); }).catch(() => { S.places = []; }); }
   if (base) { const m = planMeta(base); return `<button class="wcban off" data-act="stgo" data-c="${esc(base)}"><span class="tic">${ic('pin')}</span><span class="grow"><b>${esc(base)}: ${esc(dShort(m.from))} to ${esc(dShort(m.to))}</b><small>Your days there are planned. Tap to see them.</small></span><span class="go">Open</span></button>`; }
@@ -4655,7 +4658,7 @@ const WC_EVERY = { every: 'Every weekend', other: 'Every other', month: 'Once a 
 async function wcLoad() { try { S.wc = await rpc('wcard_get', { p_code: S.code, p_member: S.me }); } catch { S.wc = null; } return S.wc; }
 const wcBoth = w => !!w && (w.members || []).length >= 2 && (w.members || []).every(m => w.set?.in?.[m]);
 function wcBanner() {
-  const w = S.wc; if (!BETA || !w || !partner()) return '';
+  const w = S.wc; if (!B2 || !w || !partner()) return '';
   const c = w.cur, day = c ? new Date(c.day + 'T12:00').toLocaleDateString('en-US', { weekday: 'long' }) : '';
   if (c && c.status === 'sealed') return `<button class="wcban" data-act="wcopen"><span class="wcmini"></span><span class="grow"><b>Your ${day} card ${c.seen?.[S.me] ? 'is open' : 'is ready'}</b><small>${c.seen?.[S.me] ? esc(c.card.title) : 'Sealed until you scratch it'}</small></span><span class="go">Open</span></button>`;
   if (c && c.status === 'taken') return '';
@@ -4736,7 +4739,7 @@ async function wcAct(act) {
 // a start time, a tour). Everything else reads First, Then, Later, so adding brunch or running late changes nothing.
 const pHard = c => !!c && (!!(isDated(c) && evStart(c)) || /tour|viator/i.test(`${c.data?.src || ''} ${c.data?.ptype || ''} ${c.kind || ''}`) || !!c.data?.reserved);
 function pOrd(p, i) {
-  if (!BETA || pHard(i.card)) return pT(i.time);
+  if (!B2 || pHard(i.card)) return pT(i.time);
   const xs = p.items.filter(x => x.card || x.find || x.pair).slice().sort((a, b) => (a.time || '').localeCompare(b.time || '')), k = xs.indexOf(i);
   return k <= 0 ? 'First' : k === xs.length - 1 && xs.length > 2 ? 'Last' : k === 1 ? 'Then' : 'After that';
 }
@@ -4761,7 +4764,7 @@ async function hungryAdd(cardId) {
 const HK = [['brunch', 'Brunch'], ['coffee', 'Coffee'], ['lunch', 'Lunch'], ['dinner', 'Dinner'], ['drinks', 'Drinks'], ['sweet', 'Something sweet']];
 function hungryKinds() { const h = +pNow().slice(0, 2); return h < 11 ? ['brunch', 'coffee', 'lunch', 'sweet'] : h < 15 ? ['brunch', 'lunch', 'coffee', 'sweet', 'drinks'] : h < 21 ? ['dinner', 'drinks', 'sweet', 'coffee'] : ['drinks', 'sweet', 'dinner']; }
 function hungryRow(plan) {
-  if (!BETA) return '';
+  if (!B2) return '';
   const nx = plan ? hungryNext(plan) : null, ks = hungryKinds();
   return `<div class="hrow"><div class="sect" style="margin:0 0 8px">${nx ? `Hungry before ${esc(nx.card.title)}?` : 'Hungry?'}</div><div class="hchips">${ks.map(k => `<button class="hchip" data-act="hungry" data-hk="${k}" data-hp="${plan ? plan.id : ''}">${HK.find(x => x[0] === k)[1]}</button>`).join('')}</div></div>`;
 }
@@ -4803,7 +4806,7 @@ function daySheet(id) {
   S.listCards = p.items.flatMap(i => [i.card, ...(i.pair || [])]).filter(Boolean);
   const pTL = (pp, i) => pOrd(pp, i);
   const row = i => {
-    const c = i.card, lab = BETA && /^(quest|event)/.test(i.slot) && c && c.deck === 'dinner' && isRest(c) && (i.time || '') < '16:00' ? ([0, 6].includes(new Date(p.day + 'T12:00').getDay()) && (i.time || '') < '15:00' ? 'Brunch' : 'Lunch') : i.slot.startsWith('quest') && c && SNACKT.test(`${c.data?.ptype || ''} ${c.kind || ''}`) ? 'Snack break' : PSLOT[i.slot]?.[0] || '';
+    const c = i.card, lab = B2 && /^(quest|event)/.test(i.slot) && c && c.deck === 'dinner' && isRest(c) && (i.time || '') < '16:00' ? ([0, 6].includes(new Date(p.day + 'T12:00').getDay()) && (i.time || '') < '15:00' ? 'Brunch' : 'Lunch') : i.slot.startsWith('quest') && c && SNACKT.test(`${c.data?.ptype || ''} ${c.kind || ''}`) ? 'Snack break' : PSLOT[i.slot]?.[0] || '';
     if (!c) { const s = (S.state?.sessions || []).find(x => x.filters?.plan === p.id && x.filters?.slot === i.slot); const pk = p.picks?.[i.slot] || {}, mineP = pk[S.me], theirP = Object.entries(pk).find(([k, v]) => k !== S.me && k !== 'tb' && v)?.[1];
       if (i.pair?.length === 2 && !mineP && !pk.tb && (!theirP || i.pair.some(x => x.id === theirP.id))) return `<div class="prow ptt"><span class="grow"><small>${pTL(p, i)} · ${lab} · This or that</small><b>${theirP ? `${esc(them())} picked one. Same pick and it’s in.` : 'Pick one. If you both pick the same, it goes in.'}</b><span class="ttw">${i.pair.map(o => `<button class="tto ${theirP?.id === o.id ? 'their' : ''}" data-pl="sidepick|${o.id}" data-slot="${i.slot}">${o.image ? `<img src="${esc(o.image)}" alt="" loading="lazy">` : `<span class="pimg">${emojiFor(o)}</span>`}<b>${esc(o.title.split(/[,(]/)[0].trim())}</b><small>${esc([(o.subtitle || '').split(' · ')[0], o.data?.rating ? '★ ' + o.data.rating : ''].filter(Boolean).join(' · '))}</small></button>`).join('')}</span></span></div>`;
       if (pk.tb) return `<div class="prow pe"><span class="pimg">+</span><span class="grow"><small>${pTL(p, i)} · ${lab}</small><b>Two picks, one spot</b><small>${esc(mineP?.title || '')} or ${esc(theirP?.title || '')}. A quick game decides.</small></span><button class="pill hot" data-pl="sidegame|${pk.tb}">Play</button></div>`;
@@ -4851,7 +4854,7 @@ async function dayAct(v, a, t) {
   if (v === 'quest') return questSheet(Number(a));
   if (v === 'qadd') { if (t) t.disabled = true; return questAdd(Number(a)); }
   if (v === 'sidegame') { closeSheet(); return openGame(a); }
-  if (v === 'new') { const sh = (t?.dataset?.pl || '').split('|')[2]; return dayDraft({ mode: a, shape: LSHAPE[sh] ? sh : null, ...(BETA && DOCK2 && S.pdDay && t?.closest?.('.pd2') ? { day: S.pdDay } : {}) }); }
+  if (v === 'new') { const sh = (t?.dataset?.pl || '').split('|')[2]; return dayDraft({ mode: a, shape: LSHAPE[sh] ? sh : null, ...(B2 && DOCK2 && S.pdDay && t?.closest?.('.pd2') ? { day: S.pdDay } : {}) }); }
   if (v === 'around') { if (!partner() && twoOnly()) return; if (!partner()) return toast('Invite your other half first.'); if (!S.pool) await dayPool(); let c = S.pool.find(x => x.id === a) || (S.listCards || []).find(x => x.id === a) || (S.detailCard?.id === a ? S.detailCard : null); if (!c) { try { c = await rpc('get_card', { p_code: S.code, p_id: a }); } catch {} } if (!c) return dayStart(); if (!S.pool.some(x => x.id === c.id)) S.pool.push(c); document.querySelector('.cele')?.remove(); return dayDraft({ anchor: c }); }
   if (v === 'view') { if (!(S.plans || []).some(p => p.id === a)) S.plans = await rpc('plan_list', { p_code: S.code, p_member: S.me }); return daySheet(a); }
   if (v === 'edit') { const p = S.plans.find(x => x.id === S.plView); if (!p) return; if (!S.pool) await dayPool(); for (const i of p.items) if (i.card && !S.pool.some(x => x.id === i.card.id)) S.pool.push(i.card); return dayDraft({ plan: p }); }
@@ -8163,7 +8166,7 @@ setInterval(() => { if (UPD.ready) { if (updQuiet()) updGo(); } else if (documen
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); navigator.serviceWorker.addEventListener('message', e => { if (e.data?.pushed) return inboxPoll(); const u = e.data?.open; if (u) { const q = new URL(u).searchParams, s = q.get('s'), r = q.get('rec'), g = q.get('tb'); if (q.get('idea') && S.me) inboxGo(u); else if (s && S.me) openSession(s); else if (r && S.me) openRec(r, q.get('keen')); else if (g && S.me) openGame(g); else if (q.get('night') && S.me) nightOpen(q.get('night')); else if (q.get('trivia') && S.me) openTrivia(q.get('trivia')); else if (q.get('reveal') && S.me) { prepRevealTest(); render(); }
     else if (q.get('surprise') && S.me) surpOpen(q.get('surprise'));
     else if (q.get('recap') && S.me) recapOpen(q.get('recap'));
-    else if (q.get('wcard') && S.me && BETA) { wcOpen(); } else if (q.get('first10') && S.me && BETA) { firstTen(true); } else if (q.get('picks') && S.me && BETA) { S.lbMode = 'browse'; ls.set('lbmode', 'browse'); S.homeDeck = 'all'; render(); } else if (q.get('plan') && S.me) { S.favAsk = q.get('fav') ? q.get('plan') : null; dayAct('view', q.get('plan')).catch(() => {}); } else if (q.get('planfor') && S.me) dayAct('around', q.get('planfor')).catch(() => {}); else if (q.get('invite') && S.me) { if (!partner()) inviteSheet(); } else if (q.get('tripplan') && S.me) openTripPlan(q.get('tripplan')); else if (q.get('trip') && S.me) openGetaway(q.get('trip'), partner()); else if (SHW[q.get('share')] && S.me) openShareTab(q.get('share')); } }); }
+    else if (q.get('wcard') && S.me && B2) { wcOpen(); } else if (q.get('first10') && S.me && B2) { firstTen(true); } else if (q.get('picks') && S.me && B2) { S.lbMode = 'browse'; ls.set('lbmode', 'browse'); S.homeDeck = 'all'; render(); } else if (q.get('plan') && S.me) { S.favAsk = q.get('fav') ? q.get('plan') : null; dayAct('view', q.get('plan')).catch(() => {}); } else if (q.get('planfor') && S.me) dayAct('around', q.get('planfor')).catch(() => {}); else if (q.get('invite') && S.me) { if (!partner()) inviteSheet(); } else if (q.get('tripplan') && S.me) openTripPlan(q.get('tripplan')); else if (q.get('trip') && S.me) openGetaway(q.get('trip'), partner()); else if (SHW[q.get('share')] && S.me) openShareTab(q.get('share')); } }); }
 
 // iPhone keeps a Home Screen app's storage apart from the browser's, so signing up in Safari and then opening the
 // icon used to mean signing in a second time with the couple code. While someone is signed in in the browser, the
