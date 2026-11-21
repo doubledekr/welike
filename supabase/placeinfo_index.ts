@@ -54,14 +54,26 @@ Deno.serve(async (req: Request) => {
         const c = ((cards ?? []) as any[]).find((x) => x.id === it.card);
         if (!c?.data?.place_id || !/^\d{2}:\d{2}$/.test(String(it.time ?? ""))) return;
         try {
-          const r = await fetch(`https://places.googleapis.com/v1/places/${encodeURIComponent(c.data.place_id)}`, { headers: { "X-Goog-Api-Key": key, "X-Goog-FieldMask": "currentOpeningHours,businessStatus" } });
+          const r = await fetch(`https://places.googleapis.com/v1/places/${encodeURIComponent(c.data.place_id)}`, { headers: { "X-Goog-Api-Key": key, "X-Goog-FieldMask": "currentOpeningHours,regularOpeningHours,businessStatus" } });
           const p = await r.json();
           if (!r.ok) return;
           checked++;
           if (p.businessStatus && p.businessStatus !== "OPERATIONAL") { closed.push(c.id); names.push(c.title); return; }
           const ps = p.currentOpeningHours?.periods;
-          if (!Array.isArray(ps) || !ps.length) return;   // no hours published: nothing to go on
           const [hh, mm] = String(it.time).split(":").map(Number), from = wall(y, m, d, hh, mm), to = from + (STAY[it.slot] ?? 60);
+          // Google's dated hours only run seven days from today. A plan day outside them (next Saturday, seen this
+          // Saturday) is checked against the regular weekly hours instead; never call it closed for lack of a date.
+          const ds = (Array.isArray(ps) ? ps : []).flatMap((q: any) => [q.open?.date, q.close?.date]).filter(Boolean).map((x: any) => wall(x.year, x.month, x.day));
+          const covered = ds.length > 0 && wall(y, m, d) <= Math.max(...ds) && wall(y, m, d) >= Math.min(...ds);
+          if (!covered) {
+            const rs = p.regularOpeningHours?.periods; if (!Array.isArray(rs) || !rs.length) return;   // nothing to go on
+            if (rs.length === 1 && rs[0].open && !rs[0].close) return;   // open around the clock
+            const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay(), t0 = dow * 1440 + hh * 60 + mm, t1 = t0 + (STAY[it.slot] ?? 60);
+            const okW = rs.some((q: any) => { if (!q.open || !q.close) return false; const a = q.open.day * 1440 + (q.open.hour ?? 0) * 60 + (q.open.minute ?? 0); let b = q.close.day * 1440 + (q.close.hour ?? 0) * 60 + (q.close.minute ?? 0); if (b <= a) b += 10080;
+              return (t0 >= a && t1 <= b) || (t0 + 10080 >= a && t1 + 10080 <= b); });
+            if (!okW) { closed.push(c.id); names.push(c.title); }
+            return;
+          }
           const open = ps.some((q: any) => {
             const o = q.open, cl = q.close; if (!o?.date) return false;
             const a = wall(o.date.year, o.date.month, o.date.day, o.hour ?? 0, o.minute ?? 0);
