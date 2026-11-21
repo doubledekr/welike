@@ -1061,7 +1061,15 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .tpills{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:10px 4px 10px;margin:0 -4px}.tpills::-webkit-scrollbar{display:none}
 .tpills button{flex:0 0 auto;font-size:13px;font-weight:600;padding:8px 13px;border-radius:99px;background:rgba(255,255,255,.06);color:#d7ece9}
 .tpills button.both{color:#bff6ee}.tpills button.on{background:linear-gradient(135deg,rgba(45,212,191,.3),rgba(77,155,255,.18));color:#fff;box-shadow:0 0 12px -4px rgba(45,212,191,.7)}
-.lgstk{width:100%;max-width:420px;padding:8px 0 20px}
+.lgstk{width:100%;max-width:420px;padding:4px 0}
+/* An empty pile never needs a scroll (Dave): with the liked stacks showing, the message shrinks to one line, the buttons share a row and the stacks size themselves to the room that is left. */
+.stack .done:has(.lgstk){flex-direction:row;flex-wrap:wrap;align-content:center;justify-content:center;gap:8px;padding:14px 16px 10px;overflow:hidden}
+.stack .done:has(.lgstk) .badge,.stack .done:has(.lgstk)>p.muted{display:none}
+.stack .done:has(.lgstk) h3{flex:0 0 100%;font-size:17px;line-height:1.25;margin:0}
+.stack .done:has(.lgstk) .lgstk{flex:0 0 100%;order:1}
+.stack .done:has(.lgstk) .btn{order:2;flex:0 1 auto;width:auto;max-width:none;margin:0;padding:9px 14px;font-size:13.5px}
+.lgstk .mstw{margin-top:2px}.lgstk .mstk{max-width:clamp(56px,calc((100cqh - 232px) * .75),170px)}.lgstk .mhint{margin-top:8px}
+@container (max-height:400px){.lgstk .mhint{display:none}.lgstk .mstk{max-width:clamp(56px,calc((100cqh - 188px) * .75),170px)}}
 .mstw{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:10px}.mcol{display:flex;flex-direction:column;align-items:center;gap:10px}.mcol .sect{margin:0;text-align:center}
 .mstk{position:relative;width:100%;max-width:170px;aspect-ratio:3/4}.mcard{position:absolute;inset:0;border:0;padding:0;border-radius:18px;overflow:hidden;background:#2a2028;color:#fff;text-align:left;box-shadow:0 12px 26px -12px rgba(0,0,0,.8);transition:transform .19s ease,opacity .19s ease}
 .mcard img,.mcard .pimg{width:100%;height:100%;object-fit:cover;display:flex;align-items:center;justify-content:center;font-size:42px}.mcard b{position:absolute;left:0;right:0;bottom:0;padding:26px 11px 10px;font-family:var(--serif);font-weight:400;font-size:18px;line-height:1.08;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.75))}
