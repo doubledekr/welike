@@ -479,7 +479,13 @@ html.ios-app .coach{position:absolute}
 .lbbtns{display:flex;gap:8px;margin-top:4px}.lbbtns .btn{flex:1;margin:0;padding:12px 10px;font-size:14px}.lbfoot{font-size:12.5px;margin:12px 4px 8px;line-height:1.45}
 .lbph{display:block;background:linear-gradient(150deg,#3a5f58,#1e2b33)}.tcard .lbph{position:absolute;inset:0}
 .lbload{display:flex;align-items:center;gap:10px;justify-content:center;padding:40px 0}
-.lbpk{margin-top:8px;padding:14px;border-radius:20px;background:linear-gradient(160deg,rgba(45,212,191,.12),rgba(255,255,255,.03))}.lbpk.off{display:flex;align-items:center;gap:10px}.lbpk.off small{display:block;font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.4}.lbpk .go{padding:9px 14px;border-radius:14px;font-weight:700;font-size:13.5px;background:linear-gradient(135deg,#ff9a4d,#ff4f8b);color:#fff}.lbpk .go.ghost{background:rgba(255,255,255,.08)}
+.lbpk.off{margin-top:8px;padding:14px;border-radius:20px;background:linear-gradient(160deg,rgba(45,212,191,.12),rgba(255,255,255,.03));display:flex;align-items:center;gap:10px}.lbpk.off small{display:block;font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.4}.lbpk .go{padding:9px 14px;border-radius:14px;font-weight:700;font-size:13.5px;background:linear-gradient(135deg,#ff9a4d,#ff4f8b);color:#fff}.lbpk .go.ghost{background:rgba(255,255,255,.08)}
+.lbpk{margin-top:6px}.lbph2{display:flex;align-items:baseline;justify-content:space-between;padding:0 2px}.lbph2 b{font-family:'Instrument Serif',serif;font-weight:400;font-size:25px;line-height:1}.lbph2 small{font-size:12px;color:var(--muted)}
+.lbcar{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:8px -18px 0;padding:0 18px;scroll-padding:0 18px;scrollbar-width:none;-webkit-overflow-scrolling:touch}.lbcar::-webkit-scrollbar{display:none}
+.lbcc{position:relative;flex:0 0 78%;aspect-ratio:5/4;border-radius:22px;overflow:hidden;scroll-snap-align:start;text-align:left;background:var(--surface2);box-shadow:0 16px 30px -18px rgba(0,0,0,.95)}.lbcc img,.lbcc .lbph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.lbct{position:absolute;left:0;right:0;bottom:0;padding:44px 14px 12px;background:linear-gradient(transparent,rgba(8,6,10,.94) 55%)}.lbct b{display:block;font-size:17px;line-height:1.2}.lbct small{display:block;font-size:13px;color:#bfeee5;margin-top:4px;line-height:1.35}
+.lbdots{display:flex;gap:5px;justify-content:center;margin-top:8px}.lbdots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.2);transition:width .2s}.lbdots i.on{width:16px;border-radius:3px;background:#5ce8d0}
+.lbbar{display:flex;align-items:center;gap:14px;margin-top:8px}.lbbar .btn{flex:none;margin:0;padding:11px 18px;font-size:14px;width:auto}.lbtx{font-size:14px;font-weight:600;color:var(--text)}.lbtx.dim{margin-left:auto;font-weight:500;font-size:12.5px;color:var(--muted)}
 .lbk{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#5ce8d0;font-weight:700}.lbpt{font-family:'Instrument Serif',serif;font-size:24px;line-height:1.1;margin:2px 0 10px}
 .lbpi{display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:8px;border-radius:16px;background:rgba(0,0,0,.22);margin-bottom:6px}.lbpi img,.lbpi .pimg{width:62px;height:62px;border-radius:12px;object-fit:cover;flex:none}.lbpi b{font-size:14.5px}.lbpi small{display:block;font-size:12.5px;color:#bfeee5;margin-top:3px;line-height:1.35}
 .tcard{position:relative;flex:0 0 min(64vw,250px);aspect-ratio:4/3;border-radius:18px;overflow:hidden;scroll-snap-align:start;background:var(--surface2);text-align:left;box-shadow:0 12px 26px -14px rgba(0,0,0,.9)}
@@ -3092,11 +3098,14 @@ function lbPicks() {
   if (!P.both) return `<div class="lbpk off"><span class="grow"><b>Picked for you two, each week</b><small>${P.mine ? `Waiting on ${esc(them())} to turn it on.` : 'A few new things near you every Thursday evening, each with a reason. Only if you both turn it on.'}</small></span>${P.mine ? `<button class="go ghost" data-act="lbpickset" data-v="0">Turn off</button>` : `<button class="go" data-act="lbpickset" data-v="1">Turn on</button>`}</div>`;
   if (!P.items.length) return '';
   for (const c of P.items) (S.lbIdx ||= {})[c.id] = c;
-  return `<div class="lbpk"><div class="lbk">Picked for you two · this week</div><div class="lbpt">${P.items.length === 4 ? 'Four' : P.items.length === 3 ? 'Three' : 'A few'} new things, each for a reason</div>
-    ${P.items.map(c => `<button class="lbpi" data-act="lbopen" data-id="${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy">` : `<span class="pimg lbph"></span>`}<span class="grow"><b>${esc(c.title)}</b><small>${esc(c.why || '')}</small></span></button>`).join('')}
-    <div class="lbbtns"><button class="btn" data-act="lbround">Swipe these together</button><button class="btn ghost" data-act="planday">Plan a day</button></div>
-    <button class="jlink" data-act="lbpickset" data-v="0" style="display:block;margin:8px auto 0">Stop the weekly picks</button></div>`;
+  const n = P.items.length;
+  return `<div class="lbpk"><div class="lbph2"><b>Picked for you two</b><small>${n} new this week</small></div>
+    <div class="lbcar" id="lbcar">${P.items.map(c => `<button class="lbcc" data-act="lbopen" data-id="${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy" draggable="false">` : `<span class="pimg lbph"></span>`}<span class="lbct"><b>${esc(c.title)}</b><small>${esc(c.why || '')}</small></span></button>`).join('')}</div>
+    <div class="lbdots">${P.items.map((_, i) => `<i class="${i ? '' : 'on'}"></i>`).join('')}</div>
+    <div class="lbbar"><button class="btn" data-act="lbround">Swipe these together</button><button class="lbtx" data-act="planday">Plan a day</button><button class="lbtx dim" data-act="lbpickset" data-v="0">Stop weekly</button></div></div>`;
 }
+function lbCarWire() { const el = document.getElementById('lbcar'); if (!el || el.dataset.w) return; el.dataset.w = 1;
+  el.addEventListener('scroll', () => { const k = el.firstElementChild?.offsetWidth || 1, i = Math.round(el.scrollLeft / (k + 10)); el.parentElement.querySelectorAll('.lbdots i').forEach((d, j) => d.classList.toggle('on', j === i)); }, { passive: true }); }
 async function lbLoad(force) {
   const d = S.homeDeck, seq = S.lbSeq = (S.lbSeq || 0) + 1, have = S.lb?.[d];
   if (have && !force && Date.now() - have.at < 5 * 6e4) return lbDraw();
@@ -3107,7 +3116,7 @@ async function lbLoad(force) {
   } catch { (S.lb ||= {})[d] = { at: 0, rows: [] }; }
   if (seq === S.lbSeq && S.homeDeck === d) lbDraw();
 }
-function lbDraw() { const el = document.getElementById('lbrows'); if (el && LB()) el.innerHTML = lbHTML(); }
+function lbDraw() { const el = document.getElementById('lbrows'); if (el && LB()) { el.innerHTML = lbHTML(); lbCarWire(); } }
 function lbDinnerIn() {
   const go = () => { const L = (S.lib || []).filter(c => c.deck === 'dinner' && c.who === 'both' && (c.data?.delivery || c.data?.takeout));
     sheet(`<div class="grab"></div><div class="body"><h2>Dinner in</h2><p class="muted" style="margin-top:6px;font-size:14px">Places you both said yes to that deliver or do takeout.</p>
