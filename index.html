@@ -1061,6 +1061,7 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .tpills{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:10px 4px 10px;margin:0 -4px}.tpills::-webkit-scrollbar{display:none}
 .tpills button{flex:0 0 auto;font-size:13px;font-weight:600;padding:8px 13px;border-radius:99px;background:rgba(255,255,255,.06);color:#d7ece9}
 .tpills button.both{color:#bff6ee}.tpills button.on{background:linear-gradient(135deg,rgba(45,212,191,.3),rgba(77,155,255,.18));color:#fff;box-shadow:0 0 12px -4px rgba(45,212,191,.7)}
+.lgstk{width:100%;max-width:420px;padding:8px 0 20px}
 .mstw{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:10px}.mcol{display:flex;flex-direction:column;align-items:center;gap:10px}.mcol .sect{margin:0;text-align:center}
 .mstk{position:relative;width:100%;max-width:170px;aspect-ratio:3/4}.mcard{position:absolute;inset:0;border:0;padding:0;border-radius:18px;overflow:hidden;background:#2a2028;color:#fff;text-align:left;box-shadow:0 12px 26px -12px rgba(0,0,0,.8);transition:transform .19s ease,opacity .19s ease}
 .mcard img,.mcard .pimg{width:100%;height:100%;object-fit:cover;display:flex;align-items:center;justify-content:center;font-size:42px}.mcard b{position:absolute;left:0;right:0;bottom:0;padding:26px 11px 10px;font-family:var(--serif);font-weight:400;font-size:18px;line-height:1.08;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.75))}
@@ -3342,6 +3343,7 @@ async function libGrid(deck) { const el = document.getElementById('libgrid'); if
   const both = L.filter(c => c.who === 'both'), mine = L.filter(c => c.who !== 'both');
   if (DOCK2) { const card = c => `<button class="mcard" data-detail="${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy">` : `<span class="pimg">${emojiFor(c)}</span>`}<b>${esc(c.title)}</b></button>`;
     const col = (t, cs) => cs.length ? `<div class="mcol"><div class="sect">${t} · ${cs.length}</div><div class="mstk">${cs.slice(0, 12).map(card).join('')}</div></div>` : '';
+    el.className = 'lgstk';   // the stacks take the full width (the old three-column tile grid squeezed them into one column)
     el.innerHTML = `<div class="mstw">${col(partner() ? 'You both like' : 'Your favorites', both)}${col('You liked', mine)}</div><p class="muted mhint">Swipe a stack to look through it. Tap a card to do something with it.</p>`; return; }
   const tile = c => `<button class="lgt" data-detail="${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy">` : `<span class="pimg">${emojiFor(c)}</span>`}<b>${esc(c.title)}</b></button>`;
   el.innerHTML = `${both.length ? `<div class="sect">${partner() ? 'You both like' : 'Your favorites'}</div><div class="lgw">${both.slice(0, 12).map(tile).join('')}</div>` : ''}${mine.length ? `<div class="sect">You liked</div><div class="lgw">${mine.slice(0, 18).map(tile).join('')}</div>` : ''}<p class="muted" style="font-size:12.5px;text-align:center;margin-top:8px">Tap one to plan it${partner() ? ', send it to ' + esc(them()) : ''} or see what else is close by.</p>`; }
