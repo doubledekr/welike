@@ -481,10 +481,11 @@ html.ios-app .coach{position:absolute}
 #lbrows{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;margin:0 -14px;padding:0 14px 12px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 .lbload{display:flex;align-items:center;gap:10px;justify-content:center;padding:40px 0}
 .lbpk.off{margin-top:8px;padding:14px;border-radius:20px;background:linear-gradient(160deg,rgba(45,212,191,.12),rgba(255,255,255,.03));display:flex;align-items:center;gap:10px}.lbpk.off small{display:block;font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.4}.lbpk .go{padding:9px 14px;border-radius:14px;font-weight:700;font-size:13.5px;background:linear-gradient(135deg,#ff9a4d,#ff4f8b);color:#fff}.lbpk .go.ghost{background:rgba(255,255,255,.08)}
-.lbpk{margin-top:6px}.lbph2{display:flex;align-items:baseline;justify-content:space-between;padding:0 2px}.lbph2 b{font-family:'Instrument Serif',serif;font-weight:400;font-size:25px;line-height:1}.lbph2 small{font-size:12px;color:var(--muted)}
+.lbpk{margin-top:6px}.lbph2{display:flex;align-items:baseline;justify-content:space-between;padding:0 2px}.lbph2 b{white-space:nowrap;font-family:'Instrument Serif',serif;font-weight:400;font-size:25px;line-height:1}.lbph2 small{font-size:12px;color:var(--muted)}
 .lbcar{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:8px -18px 0;padding:0 18px;scroll-padding:0 18px;scrollbar-width:none;-webkit-overflow-scrolling:touch}.lbcar::-webkit-scrollbar{display:none}
 .lbcc{position:relative;flex:0 0 78%;aspect-ratio:5/4;border-radius:22px;overflow:hidden;scroll-snap-align:start;text-align:left;background:var(--surface2);box-shadow:0 16px 30px -18px rgba(0,0,0,.95)}.lbcc img,.lbcc .lbph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .lbct{position:absolute;left:0;right:0;bottom:0;padding:44px 14px 12px;background:linear-gradient(transparent,rgba(8,6,10,.94) 55%)}.lbct b{display:block;font-size:17px;line-height:1.2}.lbct small{display:block;font-size:13px;color:#bfeee5;margin-top:4px;line-height:1.35}
+.lbcc.wct{background:linear-gradient(135deg,#f3d27e,#c98a3c 48%,#6f4318);box-shadow:0 16px 34px -16px rgba(255,198,92,.7)}.lbcc.wct .lbct{background:linear-gradient(transparent,rgba(40,22,6,.82) 60%)}.lbcc.wct .lbct small{color:#ffe9bd}
 .lbdots{display:flex;gap:5px;justify-content:center;margin-top:8px}.lbdots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.2);transition:width .2s}.lbdots i.on{width:16px;border-radius:3px;background:#5ce8d0}
 .lbbar{display:flex;align-items:center;gap:14px;margin-top:8px}.lbbar .btn{flex:none;margin:0;padding:11px 18px;font-size:14px;width:auto}.lbtx{font-size:14px;font-weight:600;color:var(--text)}.lbtx.dim{margin-left:auto;font-weight:500;font-size:12.5px;color:var(--muted)}
 .lbk{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#5ce8d0;font-weight:700}.lbpt{font-family:'Instrument Serif',serif;font-size:24px;line-height:1.1;margin:2px 0 10px}
@@ -3079,7 +3080,7 @@ function homeHTML() {
 // Watch has Tonight's movie night. Discover leads with Picked for you two this week (opt-in, both must turn it on).
 const LBON = () => BETA && !TRIPSIDE() && S.homeDeck !== 'trip';
 const LB = () => LBON() && S.lbMode === 'browse';
-function lbToggle() { return `<div class="lbt"><button data-act="lbmode" data-k="browse" class="${S.lbMode === 'browse' ? 'on' : ''}">Browse</button><button data-act="lbmode" data-k="swipe" class="${S.lbMode !== 'browse' ? 'on' : ''}">Swipe together</button></div>`; }
+function lbToggle() { return `<div class="lbt"><button data-act="lbmode" data-k="browse" class="${S.lbMode === 'browse' ? 'on' : ''}">Browse</button><button data-act="lbmode" data-k="swipe" class="${S.lbMode !== 'browse' ? 'on' : ''}">Swipe</button></div>`; }
 function lbTile(c, big) { (S.lbIdx ||= {})[c.id] = c; const img = c.image || '';
   return `<button class="tcard lbc ${big ? 'big' : ''} ${c.deck === 'movie' ? 'mv' : ''}" data-act="lbopen" data-id="${c.id}">${img ? `<img src="${esc(img)}" alt="" loading="lazy" draggable="false">` : `<span class="pimg lbph"></span>`}<span class="tt"><b>${esc(c.title)}</b><small>${esc([c.tag, c.why].filter(Boolean).join(' · ') || (c.subtitle || '').split(' · ')[0])}</small></span></button>`; }
 function lbHTML() {
@@ -3092,17 +3093,19 @@ function lbHTML() {
     h += `<div class="lbrow"><div class="lbh"><b>${esc(r.title)}</b><small>${esc(r.sub || '')}</small></div><div class="trow">${r.items.map(c => lbTile(c, r.k === 'spots')).join('')}</div></div>`;
   }
   if (!L.rows.length && d !== 'all') h += `<p class="muted" style="margin:22px 4px;font-size:14px">Nothing new to browse here right now. Swipe together to see more.</p>`;
-  return h + `<p class="muted lbfoot">${d === 'movie' ? 'From your movie likes and the services you have. Swipes stay private until you both say yes.' : 'Your spots come from places you both said yes to and went to in a plan. Tap any to see it, like it or plan around it.'}</p>`;
+  return h + `<p class="muted lbfoot">${d === 'movie' ? 'From your movie likes and the services you have. Swipes stay private until you both say yes.' : (L.rows.some(r => r.k === 'spots') ? 'Your spots come from places you both said yes to and went to in a plan. ' : '') + 'Tap any to see it, like it or plan around it.'}</p>`;
 }
 function lbPicks() {
   const P = S.lbPicks; if (!P || !partner()) return '';
   if (!P.both) return `<div class="lbpk off"><span class="grow"><b>Picked for you two, each week</b><small>${P.mine ? `Waiting on ${esc(them())} to turn it on.` : 'A few new things near you every Thursday evening, each with a reason. Only if you both turn it on.'}</small></span>${P.mine ? `<button class="go ghost" data-act="lbpickset" data-v="0">Turn off</button>` : `<button class="go" data-act="lbpickset" data-v="1">Turn on</button>`}</div>`;
-  if (!P.items.length) return '';
+  if (!P.items.length && S.wc?.cur?.status !== 'sealed') return '';
   for (const c of P.items) (S.lbIdx ||= {})[c.id] = c;
-  const n = P.items.length;
-  return `<div class="lbpk"><div class="lbph2"><b>Picked for you two</b><small>${n} new this week</small></div>
-    <div class="lbcar" id="lbcar">${P.items.map(c => `<button class="lbcc" data-act="lbopen" data-id="${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy" draggable="false">` : `<span class="pimg lbph"></span>`}<span class="lbct"><b>${esc(c.title)}</b><small>${esc(c.why || '')}</small></span></button>`).join('')}</div>
-    <div class="lbdots">${P.items.map((_, i) => `<i class="${i ? '' : 'on'}"></i>`).join('')}</div>
+  const n = P.items.length, wc = S.wc?.cur?.status === 'sealed' ? S.wc.cur : null, wday = wc ? new Date(wc.day + 'T12:00').toLocaleDateString('en-US', { weekday: 'long' }) : '';
+  // the weekend card leads the week's picks: one Thursday moment, one push
+  const wt = wc ? `<button class="lbcc wct" data-act="wcopen"><span class="lbct"><b>Your ${wday} card</b><small>${wc.seen?.[S.me] ? esc(wc.card?.title || 'Open it again') : 'Sealed until you scratch it. One thing, for you two.'}</small></span></button>` : '';
+  return `<div class="lbpk"><div class="lbph2"><b>Picked for you two</b><small>${wc ? 'Your card and ' + n + ' new' : n + ' new this week'}</small></div>
+    <div class="lbcar" id="lbcar">${wt}${P.items.map(c => `<button class="lbcc" data-act="lbopen" data-id="${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy" draggable="false">` : `<span class="pimg lbph"></span>`}<span class="lbct"><b>${esc(c.title)}</b><small>${esc(c.why || '')}</small></span></button>`).join('')}</div>
+    <div class="lbdots">${[...(wc ? [0] : []), ...P.items].map((_, i) => `<i class="${i ? '' : 'on'}"></i>`).join('')}</div>
     <div class="lbbar"><button class="btn" data-act="lbround">Swipe these together</button><button class="lbtx" data-act="planday">Plan a day</button><button class="lbtx dim" data-act="lbpickset" data-v="0">Stop weekly</button></div></div>`;
 }
 function lbCarWire() { const el = document.getElementById('lbcar'); if (!el || el.dataset.w) return; el.dataset.w = 1;
@@ -3112,7 +3115,7 @@ async function lbLoad(force) {
   if (have && !force && Date.now() - have.at < 5 * 6e4) return lbDraw();
   const a = S.away && !S.away.trip ? { p_lat: S.away.lat, p_lng: S.away.lng } : {};
   try {
-    const [r, pk] = await Promise.all([rpc('local_browse', { p_code: S.code, p_member: S.me, p_deck: d, ...a }), d === 'all' && partner() ? rpc('local_picks', { p_code: S.code, p_member: S.me }).catch(() => null) : null]);
+    const [r, pk] = await Promise.all([rpc('local_browse', { p_code: S.code, p_member: S.me, p_deck: d, ...a }), d === 'all' && partner() ? rpc('local_picks', { p_code: S.code, p_member: S.me }).catch(() => null) : null, d === 'all' && partner() && !S.wc ? wcLoad() : null]);
     (S.lb ||= {})[d] = { at: Date.now(), rows: r?.rows || [] }; if (pk) S.lbPicks = pk;
   } catch { (S.lb ||= {})[d] = { at: 0, rows: [] }; }
   if (seq === S.lbSeq && S.homeDeck === d) lbDraw();
