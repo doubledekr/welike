@@ -4267,15 +4267,17 @@ function pGap(p, k, past) { const a = p.items[k], b = p.items[k + 1]; if (past |
   if (gap < 90) return null;
   const dur = end - st, nt = Math.floor((leave - 20 - dur) / 15) * 15, ntS = pAddMin('00:00', nt), later = !snack && !a.slot.startsWith('quest') && !pFix(a) && !isDated(c) && nt - st >= 30 && openAt(c, p.day, ntS, dur) !== false ? ntS : null;
   const quests = p.items.filter(i => i.slot.startsWith('quest')).length, h = Math.floor(gap / 60), m = gap % 60 >= 45 ? 1 : gap % 60 >= 15 ? .5 : 0, len = `${h + (m === 1 ? 1 : 0)}${m === .5 ? '½' : ''} hour${h + m > 1 ? 's' : ''}`;
-  return `<div class="pgap"><b>Free from about ${pT(pAddMin('00:00', end))} until ${pT(pAddMin('00:00', leave))}</b><small>That’s ${len} between ${esc(pName(a))} and ${esc(pName(b))}.</small><span class="psb">${quests < 2 && !snack ? `<button class="pill hot" data-pl="snack|${k}">Snack break nearby</button>` : ''}${later ? `<button class="pill" data-pl="later|${a.slot}|${later}">Move ${esc(pName(a))} to ${pT(later)}</button>` : ''}</span></div>`; }
-async function snackSheet(k) { const p = (S.plans || []).find(x => x.id === S.plView); if (!p) return; const a = p.items[k]; if (!a?.card) return;
-  const [, end] = pSpan(a), at = pAddMin('00:00', Math.ceil((end + 10) / 15) * 15), nm = a.card.title.split(/[,(]/)[0];
-  sheet(`<div class="grab"></div><div class="body"><h2>A snack break</h2><p class="muted">Looking near ${esc(nm)}…</p></div>`, 'plan', 'quest');
-  let d = null; try { ({ data: d } = await sb.functions.invoke('whereis', { body: { code: S.code, action: 'quest', snack: true, lat: a.card.data.lat, lng: a.card.data.lng, lat2: a.card.data.lat, lng2: a.card.data.lng, day: p.day, time: at } })); } catch {}
-  S.quests = { list: (d?.quests || []).map(q => ({ ...q, title: q.name, mi: q.dist })), time: at, snack: true, day: p.day, near: nm }; step('snack_open'); snackGallery(); }
-function snackGallery() { const q = S.quests; if (!q) return;
-  sheet(`<div class="grab"></div><div class="body"><h2>A snack break</h2><p class="muted" style="margin-top:6px">Around ${pT(q.time)}, close to ${esc(q.near)}. Rated 4.4 or better and open then. Tap one to see it.</p>
-    ${q.list.length ? sgRows([['Close by', q.list.map((x, j) => sgTile(x, `snsee|${j}`))]]) : '<p class="muted" style="margin-top:14px">Nothing great close by at that time.</p>'}
+  return `<div class="pgap"><b>Free from about ${pT(pAddMin('00:00', end))} until ${pT(pAddMin('00:00', leave))}</b><small>That’s ${len} between ${esc(pName(a))} and ${esc(pName(b))}.</small><span class="psb">${quests < 2 && !snack ? `<button class="pill hot" data-pl="snack|${k}">${BETA ? 'Fill the time nearby' : 'Snack break nearby'}</button>` : ''}${later ? `<button class="pill" data-pl="later|${a.slot}|${later}">Move ${esc(pName(a))} to ${pT(later)}</button>` : ''}</span></div>`; }
+// a gap in the day (beta, Dave 21 Nov): a snack, a drink, a bite, or something fun to walk around (an alley, a plaza, a hidden gem)
+const GAPK = [['snack', 'A snack', 'A snack break'], ['drinks', 'A drink', 'A drink nearby'], ['food', 'A bite', 'A bite to eat'], ['fun', 'Walk around', 'Something fun to walk to']];
+async function snackSheet(k, kind = 'snack') { const p = (S.plans || []).find(x => x.id === S.plView); if (!p) return; const a = p.items[k]; if (!a?.card) return;
+  const [, end] = pSpan(a), at = pAddMin('00:00', Math.ceil((end + 10) / 15) * 15), nm = a.card.title.split(/[,(]/)[0], hd = GAPK.find(x => x[0] === kind)?.[2] || 'A snack break';
+  sheet(`<div class="grab"></div><div class="body"><h2>${hd}</h2><p class="muted">Looking near ${esc(nm)}…</p></div>`, 'plan', 'quest');
+  let d = null; try { ({ data: d } = await sb.functions.invoke('whereis', { body: { code: S.code, action: 'quest', ...(kind === 'snack' ? { snack: true } : { kind }), lat: a.card.data.lat, lng: a.card.data.lng, lat2: a.card.data.lat, lng2: a.card.data.lng, day: p.day, time: at } })); } catch {}
+  S.quests = { list: (d?.quests || []).map(q => ({ ...q, title: q.name, mi: q.dist })), time: at, snack: true, kind, k, day: p.day, near: nm }; step('snack_open'); snackGallery(); }
+function snackGallery() { const q = S.quests; if (!q) return; const hd = GAPK.find(x => x[0] === (q.kind || 'snack'))?.[2] || 'A snack break';
+  sheet(`<div class="grab"></div><div class="body"><h2>${hd}</h2>${BETA && q.k != null ? `<div class="hchips" style="margin:10px 0 2px">${GAPK.map(([kk, l]) => `<button class="hchip ${kk === (q.kind || 'snack') ? 'on' : ''}" data-act="gapk" data-hk="${kk}">${l}</button>`).join('')}</div>` : ''}<p class="muted" style="margin-top:6px">Around ${pT(q.time)}, ${q.kind === 'fun' ? 'a short walk from' : 'close to'} ${esc(q.near)}. ${q.kind === 'fun' ? 'Your hidden gems first, then fun spots to wander.' : 'Well rated and open then.'} Tap one to see it.</p>
+    ${q.list.length ? sgRows([[q.kind === 'fun' ? 'A short walk' : 'Close by', q.list.map((x, j) => sgTile(x, `snsee|${j}`))]]) : '<p class="muted" style="margin-top:14px">Nothing great close by at that time. Try another kind above.</p>'}
     <div style="height:8px"></div><button class="jlink" data-pl="sugback">Back</button></div>`, 'plan', 'quest'); }
 function snackSee(j) { const q = S.quests, x = q?.list?.[j]; if (!x) return; sheet(sgDetail(x, q.day, q.time, `<button class="btn" data-pl="qadd|${j}">Add it at ${pT(q.time)}</button>`, 'sngal'), 'plan', 'quest'); }
 async function sugSheet(slot) { const p = (S.plans || []).find(x => x.id === S.plView); if (!p) return; const i = p.items.find(x => x.slot === slot); if (!i) return;
@@ -4307,7 +4309,7 @@ async function questSheet(k) { const p = (S.plans || []).find(x => x.id === S.pl
 async function questAdd(j) { const p = (S.plans || []).find(x => x.id === S.plView), q = S.quests?.list?.[j]; if (!p || !q) return; let r;
   try { r = await rpc('quest_add', { p_code: S.code, p_member: S.me, p_plan: p.id, p_place: q, p_time: S.quests.time }); } catch (e) { return toast(String(e?.message || '').includes('two_quests') ? 'Two side quests is plenty for one day.' : 'That didn’t save. Try again.'); }
   planPut(r); step('quest_add'); send({ type: 'dayplan', id: p.id, day: p.day, edit: true, minor: true });
-  if (partner()) push(`${S.me} added a ${S.quests.snack ? 'snack break' : 'side quest'}`, `${q.name}${S.quests.snack ? '' : ' on the way'}, ${pDayLow(p.day)} around ${pT(S.quests.time)}.`, `./?plan=${p.id}`, { plan: p.id, hold: 120 });
+  if (partner()) push(`${S.me} added a ${S.quests.kind && S.quests.kind !== 'snack' ? ({ drinks: 'drink', food: 'bite to eat', fun: 'little walk' })[S.quests.kind] : S.quests.snack ? 'snack break' : 'side quest'}`, `${q.name}${S.quests.snack ? '' : ' on the way'}, ${pDayLow(p.day)} around ${pT(S.quests.time)}.`, `./?plan=${p.id}`, { plan: p.id, hold: 120 });
   toast(`${q.name} is in.`); daySheet(p.id); }
 function dayEdit() {
   const pl = S.pl; pFill(); const t = pToday();
@@ -7665,6 +7667,7 @@ document.addEventListener('click', async e => {
       case 'aundo': return autoUndo();
       case 'hungry': return hungry(t.dataset.hk, t.dataset.hp);
       case 'hadd': return hungryAdd(t.dataset.id);
+      case 'gapk': return S.quests?.k != null ? snackSheet(S.quests.k, t.dataset.hk) : null;
       case 'wcopen': return wcOpen();
       case 'stnew': S.stf = { id: t.dataset.id, from: '', to: '', style: 'home' }; return baseSheet();
       case 'stday': { const f = S.stf, d = t.dataset.d; if (!f) return; if (!f.from || f.to || d < f.from) { f.from = d; f.to = ''; } else f.to = d; return baseSheet(); }

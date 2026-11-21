@@ -12,6 +12,12 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type", "Access-Control-Allow-Methods": "POST, OPTIONS" };
 const json = (o: unknown, status = 200) => new Response(JSON.stringify(o), { status, headers: { ...cors, "Content-Type": "application/json" } });
 const SNACK = ["ice_cream_shop", "dessert_shop", "coffee_shop", "bakery", "chocolate_shop", "cafe", "tea_house", "donut_shop", "juice_shop", "confectionery"];
+// gap fillers by kind (Dave, 21 Nov): a snack, a drink, a bite, or something fun to walk around (alleys, murals, a plaza)
+const KINDS: Record<string, string[]> = {
+  drinks: ["bar", "pub", "wine_bar", "brewery", "cocktail_bar"],
+  food: ["restaurant"],
+  fun: ["tourist_attraction", "art_gallery", "plaza", "park", "book_store", "historical_landmark", "market", "gift_shop", "monument"],
+};
 const QUEST = ["ice_cream_shop", "dessert_shop", "coffee_shop", "bakery", "book_store", "park", "art_gallery", "chocolate_shop", "tourist_attraction"];
 const miles = (a: number, b: number, c: number, d: number) => { const r = (x: number) => x * Math.PI / 180, q = Math.sin(r(c - a) / 2) ** 2 + Math.cos(r(a)) * Math.cos(r(c)) * Math.sin(r(d - b) / 2) ** 2; return 3958.8 * 2 * Math.asin(Math.sqrt(q)); };
 // open at hh:mm on that weekday, from Google's regularOpeningHours periods
@@ -46,11 +52,12 @@ Deno.serve(async (req: Request) => {
       const a = [Number(b.lat), Number(b.lng)], z = [Number(b.lat2), Number(b.lng2)];
       if (![...a, ...z].every(isFinite)) return json({ error: "bad_location" }, 400);
       const leg = miles(a[0], a[1], z[0], z[1]), mid = [(a[0] + z[0]) / 2, (a[1] + z[1]) / 2];
-      const snack = b.snack === true, radius = snack ? 1200 : Math.round(Math.min(Math.max(leg * 0.6, 0.35), 3) * 1609.344);
+      const kind = KINDS[String(b.kind ?? "")] ? String(b.kind) : "", snack = b.snack === true || b.kind === "snack", near = snack || !!kind;
+      const radius = near ? 1200 : Math.round(Math.min(Math.max(leg * 0.6, 0.35), 3) * 1609.344);
       const r = await fetch("https://places.googleapis.com/v1/places:searchNearby", { method: "POST",
         headers: { "Content-Type": "application/json", "X-Goog-Api-Key": key, "X-Goog-FieldMask": "places.id,places.displayName,places.primaryTypeDisplayName,places.primaryType,places.location,places.rating,places.userRatingCount,places.regularOpeningHours,places.photos,places.googleMapsUri,places.shortFormattedAddress,places.websiteUri" },
-        body: JSON.stringify({ includedTypes: snack ? SNACK : QUEST, maxResultCount: 20, rankPreference: "POPULARITY", locationRestriction: { circle: { center: { latitude: snack ? a[0] : mid[0], longitude: snack ? a[1] : mid[1] }, radius } } }) });
-      const d = await r.json(); log(snack ? "whereis_snack" : "whereis_quest");
+        body: JSON.stringify({ includedTypes: snack ? SNACK : kind ? KINDS[kind] : QUEST, maxResultCount: 20, rankPreference: "POPULARITY", locationRestriction: { circle: { center: { latitude: near ? a[0] : mid[0], longitude: near ? a[1] : mid[1] }, radius } } }) });
+      const d = await r.json(); log(snack ? "whereis_snack" : kind ? "whereis_" + kind : "whereis_quest");
       if (!r.ok) return json({ error: "google", detail: d?.error?.message ?? r.status }, 502);
       const day = String(b.day ?? ""), time = String(b.time ?? "");
       const out = (d.places ?? []).map((p: any) => {
@@ -61,10 +68,21 @@ Deno.serve(async (req: Request) => {
           maps: p.googleMapsUri ?? null, address: p.shortFormattedAddress ?? null, url: p.websiteUri ?? null, photo: p.photos?.[0]?.name ?? null,
           dist: la == null ? null : Math.round(miles(a[0], a[1], la, lo) * 100) / 100, open: /^\d{4}-\d{2}-\d{2}$/.test(day) && /^\d{2}:\d{2}$/.test(time) ? openAt(p.regularOpeningHours, day, time) : null, detour: Math.round(detour * 100) / 100 };
       // not one of the two stops themselves, and not somewhere that's a whole outing on its own
-      }).filter((p: any) => p.name && p.lat != null && miles(a[0], a[1], p.lat, p.lng) > 0.06 && (snack || miles(z[0], z[1], p.lat, p.lng) > 0.06) && !/museum|stadium|casino|amusement/.test(String(p.ptype ?? "")) && p.open !== false && (p.rating ?? 0) >= 4.4 && (p.ratings ?? 0) >= 40 && (snack ? p.dist <= 0.75 && SNACK.includes(String(p.ptype ?? "")) : p.detour <= Math.max(0.4, leg * 0.35)))
-        .sort((x: any, y: any) => snack ? (x.dist - y.dist) : (x.detour - y.detour) || ((y.rating ?? 0) - (x.rating ?? 0))).slice(0, snack ? 8 : 3);
+      }).filter((p: any) => p.name && p.lat != null && miles(a[0], a[1], p.lat, p.lng) > 0.06 && (near || miles(z[0], z[1], p.lat, p.lng) > 0.06) && !/museum|stadium|casino|amusement|lodging|hotel/.test(String(p.ptype ?? "")) && p.open !== false
+          && (p.rating ?? 0) >= (kind ? 4.3 : 4.4) && (p.ratings ?? 0) >= (kind ? 30 : 40)
+          && (kind !== "drinks" || /bar|pub|brew|wine|cocktail|lounge|tavern|beer|distill/.test(String(p.ptype ?? "")))
+          && (snack ? p.dist <= 0.75 && SNACK.includes(String(p.ptype ?? "")) : kind ? p.dist <= 0.75 : p.detour <= Math.max(0.4, leg * 0.35)))
+        .sort((x: any, y: any) => near ? (x.dist - y.dist) : (x.detour - y.detour) || ((y.rating ?? 0) - (x.rating ?? 0))).slice(0, near ? 8 : 3);
+      // something fun: the couple's own hidden gems and unique spots close by come first (alleys, murals, odd little places)
+      if (kind === "fun") {
+        const { data: own } = await sb.from("cards").select("id,title,image,data").eq("couple_id", couple.id).eq("active", true).or("data->>gem.eq.true,data->>unique.eq.true").limit(300);
+        const mine = ((own ?? []) as any[]).filter((c: any) => c.data?.lat != null && miles(a[0], a[1], Number(c.data.lat), Number(c.data.lng)) <= 0.75)
+          .map((c: any) => ({ id: "card:" + c.id, card: c.id, name: c.title, type: c.data?.gem ? "Hidden gem" : "Unique spot", ptype: c.data?.ptype ?? null, lat: Number(c.data.lat), lng: Number(c.data.lng), rating: c.data?.rating ?? null, image: c.image ?? null,
+            address: c.data?.address ?? null, maps: c.data?.maps ?? null, url: c.data?.url ?? null, dist: Math.round(miles(a[0], a[1], Number(c.data.lat), Number(c.data.lng)) * 100) / 100, open: null, gem: true }));
+        out.unshift(...mine.slice(0, 4)); out.splice(8);
+      }
       // a photo for each, so the suggestion looks like somewhere you'd want to stop
-      await Promise.all(out.map(async (p: any) => { if (!p.photo) return; try { const pr = await fetch(`https://places.googleapis.com/v1/${p.photo}/media?maxWidthPx=600&skipHttpRedirect=true`, { headers: { "X-Goog-Api-Key": key } }); const pd = await pr.json(); p.image = pr.ok ? pd.photoUri ?? null : null; } catch (_) { p.image = null; } }));
+      await Promise.all(out.map(async (p: any) => { if (!p.photo || p.image) return; try { const pr = await fetch(`https://places.googleapis.com/v1/${p.photo}/media?maxWidthPx=600&skipHttpRedirect=true`, { headers: { "X-Goog-Api-Key": key } }); const pd = await pr.json(); p.image = pr.ok ? pd.photoUri ?? null : null; } catch (_) { p.image = null; } }));
       return json({ leg: Math.round(leg * 100) / 100, quests: out });
     }
     if (b.action === "area") {
