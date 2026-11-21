@@ -473,6 +473,15 @@ html.ios-app .coach{position:absolute}
 .tc-h small.hot{color:#ff9db8;font-weight:600}
 .trow{display:flex;gap:12px;overflow-x:auto;margin:12px -18px 0;padding:4px 18px 12px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .trow::-webkit-scrollbar{display:none}
+.lbt{display:flex;gap:6px;margin:2px 2px 6px}.lbt button{padding:7px 14px;border-radius:99px;font-size:13px;background:rgba(255,255,255,.06);color:var(--muted)}.lbt button.on{background:var(--text);color:var(--bg);font-weight:700}
+.lbrow{margin-top:10px}.lbh{display:flex;align-items:baseline;justify-content:space-between;padding:0 2px}.lbh b{font-size:16px}.lbh small{font-size:12px;color:var(--muted)}
+.lbrow .trow{margin-top:4px;scroll-padding:0 18px}.tcard.lbc .tt b,.tcard.lbc .tt small{white-space:normal}.tcard.lbc{flex-basis:min(46vw,180px);aspect-ratio:1}.tcard.lbc.big{flex-basis:min(58vw,220px);aspect-ratio:4/3}.tcard.lbc.mv{flex-basis:min(34vw,132px);aspect-ratio:2/3}.tcard.lbc .tt small{display:block;font-size:11.5px;color:#cfe3e0;margin-top:2px;line-height:1.3}.tcard.lbc .tt b{font-size:13.5px;line-height:1.2}
+.lbbtns{display:flex;gap:8px;margin-top:4px}.lbbtns .btn{flex:1;margin:0;padding:12px 10px;font-size:14px}.lbfoot{font-size:12.5px;margin:12px 4px 8px;line-height:1.45}
+.lbph{display:block;background:linear-gradient(150deg,#3a5f58,#1e2b33)}.tcard .lbph{position:absolute;inset:0}
+.lbload{display:flex;align-items:center;gap:10px;justify-content:center;padding:40px 0}
+.lbpk{margin-top:8px;padding:14px;border-radius:20px;background:linear-gradient(160deg,rgba(45,212,191,.12),rgba(255,255,255,.03))}.lbpk.off{display:flex;align-items:center;gap:10px}.lbpk.off small{display:block;font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.4}.lbpk .go{padding:9px 14px;border-radius:14px;font-weight:700;font-size:13.5px;background:linear-gradient(135deg,#ff9a4d,#ff4f8b);color:#fff}.lbpk .go.ghost{background:rgba(255,255,255,.08)}
+.lbk{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#5ce8d0;font-weight:700}.lbpt{font-family:'Instrument Serif',serif;font-size:24px;line-height:1.1;margin:2px 0 10px}
+.lbpi{display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:8px;border-radius:16px;background:rgba(0,0,0,.22);margin-bottom:6px}.lbpi img,.lbpi .pimg{width:62px;height:62px;border-radius:12px;object-fit:cover;flex:none}.lbpi b{font-size:14.5px}.lbpi small{display:block;font-size:12.5px;color:#bfeee5;margin-top:3px;line-height:1.35}
 .tcard{position:relative;flex:0 0 min(64vw,250px);aspect-ratio:4/3;border-radius:18px;overflow:hidden;scroll-snap-align:start;background:var(--surface2);text-align:left;box-shadow:0 12px 26px -14px rgba(0,0,0,.9)}
 .tcard img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .tcard.both{box-shadow:0 12px 28px -10px rgba(255,90,100,.8)}
@@ -1602,7 +1611,7 @@ const SVC_DOT = { 'Netflix': '#e50914', 'Hulu': '#1ce783', 'Prime Video': '#00a8
 
 const ls = { get: k => { try { return localStorage.getItem('wl_' + k) } catch { return null } }, set: (k, v) => { try { localStorage.setItem('wl_' + k, v) } catch {} }, del: k => { try { localStorage.removeItem('wl_' + k) } catch {} } };
 const S = { code: ls.get('code'), me: ls.get('name'), state: null, pantry: [], tab: 'home', view: 'home', sess: null, deck: [], hist: [], matches: [], listTab: 'activity', chan: null };
-S.homeDeck = ({ drinks: 'dinner', art: 'all' })[ls.get('deck')] || ls.get('deck') || 'all'; S.revEntry = true; try { S.doneHtml = JSON.parse(ls.get('donehtml') || '{}'); } catch { S.doneHtml = {}; } S.tripCity = ls.get('tripcity') || '';
+S.homeDeck = ({ drinks: 'dinner', art: 'all' })[ls.get('deck')] || ls.get('deck') || 'all'; S.lbMode = ls.get('lbmode') || 'swipe'; S.revEntry = true; try { S.doneHtml = JSON.parse(ls.get('donehtml') || '{}'); } catch { S.doneHtml = {}; } S.tripCity = ls.get('tripcity') || '';
 const $app = document.getElementById('app'), $layer = document.getElementById('layer');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const rpcStamp = (d, t0) => { if (d && typeof d === 'object' && !Array.isArray(d) && typeof d.now === 'string') try { const t1 = Date.now(); Object.defineProperty(d, '_off', { value: Date.parse(d.now) - (t0 + t1) / 2, enumerable: false, configurable: true }); Object.defineProperty(d, '_rtt', { value: t1 - t0, enumerable: false, configurable: true }); } catch {} };
@@ -3049,14 +3058,62 @@ function homeHTML() {
       <button class="ib" data-act="search" aria-label="Search movies">${ic('search')}</button>${DOCK2 ? (sbA ? `<button class="ib" data-act="people" aria-label="Crew: your partner, friends and groups">${ic('users')}</button>` : '') : NEWUI ? `<button class="ib hlib" data-act="hlib" aria-label="What you liked">${ic('heart')}</button>` : sbA ? `<button class="ib" data-fr="open" aria-label="Friends and group plans">${ic('users')}</button>` : ''}
       ${DOCK2 ? '' : `<button class="ib shr ${ls.get('shared') ? 'shd' : ''}" data-act="sharefriends" aria-label="Share Let’s Together with friends">${ic('share')}</button>`}
       ${bellHTML()}<button class="ib" data-tab="you" aria-label="You and settings">${ic('gear')}</button></div>${TRIPSIDE() ? '' : slotHTML(incoming)}
-    <div id="hbot" style="display:contents">${TRIPSIDE() ? `<div id="tphd">${tripHead()}</div>` : `<div class="seg" style="margin:8px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="kc k-${CK[k]} ${S.homeDeck === k ? 'on' : ''}">${l}${heartTag(k)}</button>`).join('')}</div>`}${!TRIPSIDE() && scratchShow() && !S.awayOffer ? `<button class="scratch-pill" data-act="scratch">${ic('spark')}<span><b>A scratch card is waiting</b><small>One thing ${esc(p)} is in on</small></span><i>Scratch</i></button>` : ''}${S.awayOffer ? `<div class="trav"><span class="tic">${ic('pin')}</span><span class="grow"><b>Looks like you’re ${S.awayOffer.place ? 'at ' + esc(S.awayOffer.city) : 'in ' + esc(S.awayOffer.city)}</b><small>${S.awayOffer.place ? 'Plan around it for the next few days?' : 'Show places to eat and things to do here?'}</small></span><button class="go" data-act="awayyes">${S.awayOffer.place ? 'Plan' : 'Show'}</button><button class="x" data-act="awayno" aria-label="Not now">×</button></div>` : ''}${S.away && (S.homeDeck === 'dinner' || S.homeDeck === 'event') ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><small class="muted" style="font-size:12.5px">${ic('pin')} ${S.away.trip ? `Your ${esc(S.away.city)} trip` : `Showing ${esc(S.away.city)} on this phone`}</small><button class="chip" data-act="awayoff" style="padding:5px 12px;font-size:13px">Back to home</button></div>` : ''}${S.homeDeck === 'movie' && !NEWUI ? `<div class="row" style="margin:14px 2px 0"><button class="chip" data-act="movielib" style="padding:5px 12px;font-size:13px">${ic('film')} Movie library</button></div>` : ''}${shareChip()}${S.homeDeck === 'art' ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="gallery" style="padding:5px 12px;font-size:13px">${ic('frame')} Our gallery</button><small class="muted" style="font-size:12.5px">No nudges, just likes</small></div>` : ''}${S.homeDeck === 'trip' && !TRIPSIDE() ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="trips" style="padding:5px 12px;font-size:13px">${ic('heart')} Saved trips</button><button class="chip ${S.tripCity ? 'on' : ''}" data-act="tripcity" style="padding:5px 12px;font-size:13px">${esc(S.tripCity || 'Anywhere')} ▾</button></div>` : ''}
+    <div id="hbot" style="display:contents">${TRIPSIDE() ? `<div id="tphd">${tripHead()}</div>` : `<div class="seg" style="margin:8px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="kc k-${CK[k]} ${S.homeDeck === k ? 'on' : ''}">${l}${heartTag(k)}</button>`).join('')}</div>`}${LBON() ? lbToggle() : ''}${!TRIPSIDE() && scratchShow() && !S.awayOffer ? `<button class="scratch-pill" data-act="scratch">${ic('spark')}<span><b>A scratch card is waiting</b><small>One thing ${esc(p)} is in on</small></span><i>Scratch</i></button>` : ''}${S.awayOffer ? `<div class="trav"><span class="tic">${ic('pin')}</span><span class="grow"><b>Looks like you’re ${S.awayOffer.place ? 'at ' + esc(S.awayOffer.city) : 'in ' + esc(S.awayOffer.city)}</b><small>${S.awayOffer.place ? 'Plan around it for the next few days?' : 'Show places to eat and things to do here?'}</small></span><button class="go" data-act="awayyes">${S.awayOffer.place ? 'Plan' : 'Show'}</button><button class="x" data-act="awayno" aria-label="Not now">×</button></div>` : ''}${S.away && (S.homeDeck === 'dinner' || S.homeDeck === 'event') ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><small class="muted" style="font-size:12.5px">${ic('pin')} ${S.away.trip ? `Your ${esc(S.away.city)} trip` : `Showing ${esc(S.away.city)} on this phone`}</small><button class="chip" data-act="awayoff" style="padding:5px 12px;font-size:13px">Back to home</button></div>` : ''}${S.homeDeck === 'movie' && !NEWUI ? `<div class="row" style="margin:14px 2px 0"><button class="chip" data-act="movielib" style="padding:5px 12px;font-size:13px">${ic('film')} Movie library</button></div>` : ''}${shareChip()}${S.homeDeck === 'art' ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="gallery" style="padding:5px 12px;font-size:13px">${ic('frame')} Our gallery</button><small class="muted" style="font-size:12.5px">No nudges, just likes</small></div>` : ''}${S.homeDeck === 'trip' && !TRIPSIDE() ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="trips" style="padding:5px 12px;font-size:13px">${ic('heart')} Saved trips</button><button class="chip ${S.tripCity ? 'on' : ''}" data-act="tripcity" style="padding:5px 12px;font-size:13px">${esc(S.tripCity || 'Anywhere')} ▾</button></div>` : ''}
     ${tov ? `<div class="tov">${tripScreen('c:' + tov)}</div>` : gov ? `<div class="tov">${tripScreen('g:' + gov)}</div>` : ''}
-    <div class="stack" id="stack" style="margin:4px 0 6px${tov || gov ? ';display:none' : ''}">${S.doneHtml?.[S.homeDeck]?.day === new Date().toDateString() ? (setTimeout(() => libGrid(S.homeDeck), 0), S.doneHtml[S.homeDeck].html) : ''}</div>
-    <div class="actions" id="acts" style="visibility:hidden${tov || gov ? ';display:none' : ''}"><button class="act sm" data-sw="undo" aria-label="Undo">${ic('undo')}</button><button class="act no" data-sw="no" aria-label="No">${ic('x')}</button>
+    ${LB() && !tov && !gov ? `<div id="lbrows">${lbHTML()}</div>` : ''}<div class="stack" id="stack" style="margin:4px 0 6px${tov || gov || LB() ? ';display:none' : ''}">${S.doneHtml?.[S.homeDeck]?.day === new Date().toDateString() ? (setTimeout(() => libGrid(S.homeDeck), 0), S.doneHtml[S.homeDeck].html) : ''}</div>
+    <div class="actions" id="acts" style="visibility:hidden${tov || gov || LB() ? ';display:none' : ''}"><button class="act sm" data-sw="undo" aria-label="Undo">${ic('undo')}</button><button class="act no" data-sw="no" aria-label="No">${ic('x')}</button>
       <button class="act sm" data-sw="seen" id="seenb" aria-label="Never again" style="display:none">${ic('never')}</button>
       <button class="act love" data-sw="love" aria-label="Love it">${ic('star')}</button><button class="act yes" data-sw="yes" aria-label="Yes">${ic('heart')}</button></div>
     ${soloMode() ? `<div class="dock"><button class="on" data-fr="open" style="flex-direction:row;justify-content:center;gap:8px;font-size:14px;padding:13px 0">${ic('users')}<span>Plan something with friends</span></button></div></div>` : DOCK2 ? dock2HTML() + '</div>' : `<div class="dock"><button class="on" data-act="tonight">${ic('spark')}<span>Tonight</span></button><button class="kc k-sat" data-act="planday">${ic('sun')}<span>Plan a day</span></button>${sbA ? `<button class="kc k-match" data-act="people">${ic('users')}<span>Crew</span></button>` : `<button class="kc k-match" data-sp="start">${ic('heart')}<span>Surprise</span></button>`}<button class="kc k-book" data-act="plantrip">${ic('plane')}<span>Trip</span></button></div></div>`}
   </div>`;
+}
+// Local, explored like a trip (beta, Dave 21 Nov): each category can be browsed in rows as well as swiped.
+// Rows: Your spots (places you both said yes to and went to in a plan), This weekend, New near you, Hidden gems;
+// Watch has Tonight's movie night. Discover leads with Picked for you two this week (opt-in, both must turn it on).
+const LBON = () => BETA && !TRIPSIDE() && S.homeDeck !== 'trip';
+const LB = () => LBON() && S.lbMode === 'browse';
+function lbToggle() { return `<div class="lbt"><button data-act="lbmode" data-k="browse" class="${S.lbMode === 'browse' ? 'on' : ''}">Browse</button><button data-act="lbmode" data-k="swipe" class="${S.lbMode !== 'browse' ? 'on' : ''}">Swipe together</button></div>`; }
+function lbTile(c, big) { (S.lbIdx ||= {})[c.id] = c; const img = c.image || '';
+  return `<button class="tcard lbc ${big ? 'big' : ''} ${c.deck === 'movie' ? 'mv' : ''}" data-act="lbopen" data-id="${c.id}">${img ? `<img src="${esc(img)}" alt="" loading="lazy" draggable="false">` : `<span class="pimg lbph"></span>`}<span class="tt"><b>${esc(c.title)}</b><small>${esc([c.tag, c.why].filter(Boolean).join(' · ') || (c.subtitle || '').split(' · ')[0])}</small></span></button>`; }
+function lbHTML() {
+  const d = S.homeDeck, L = S.lb?.[d];
+  if (!L) return `<div class="lbload"><span class="spin"></span><small class="muted">Finding things near you</small></div>`;
+  let h = d === 'all' ? lbPicks() : '';
+  for (const r of L.rows) {
+    if (r.k === 'tonight') { h += `<div class="lbrow lbmv"><div class="lbh"><b>${esc(r.title)}</b><small>${esc(r.sub || '')}</small></div><div class="trow mvrow">${r.items.map(c => lbTile(c)).join('')}</div>
+      <div class="lbbtns">${r.items.length >= 2 && partner() ? `<button class="btn" data-act="lbtonight">Pick tonight’s together</button>` : ''}<button class="btn ghost" data-act="lbdinnerin">+ Dinner in</button></div></div>`; continue; }
+    h += `<div class="lbrow"><div class="lbh"><b>${esc(r.title)}</b><small>${esc(r.sub || '')}</small></div><div class="trow">${r.items.map(c => lbTile(c, r.k === 'spots')).join('')}</div></div>`;
+  }
+  if (!L.rows.length && d !== 'all') h += `<p class="muted" style="margin:22px 4px;font-size:14px">Nothing new to browse here right now. Swipe together to see more.</p>`;
+  return h + `<p class="muted lbfoot">${d === 'movie' ? 'From your movie likes and the services you have. Swipes stay private until you both say yes.' : 'Your spots come from places you both said yes to and went to in a plan. Tap any to see it, like it or plan around it.'}</p>`;
+}
+function lbPicks() {
+  const P = S.lbPicks; if (!P || !partner()) return '';
+  if (!P.both) return `<div class="lbpk off"><span class="grow"><b>Picked for you two, each week</b><small>${P.mine ? `Waiting on ${esc(them())} to turn it on.` : 'A few new things near you every Thursday evening, each with a reason. Only if you both turn it on.'}</small></span>${P.mine ? `<button class="go ghost" data-act="lbpickset" data-v="0">Turn off</button>` : `<button class="go" data-act="lbpickset" data-v="1">Turn on</button>`}</div>`;
+  if (!P.items.length) return '';
+  for (const c of P.items) (S.lbIdx ||= {})[c.id] = c;
+  return `<div class="lbpk"><div class="lbk">Picked for you two · this week</div><div class="lbpt">${P.items.length === 4 ? 'Four' : P.items.length === 3 ? 'Three' : 'A few'} new things, each for a reason</div>
+    ${P.items.map(c => `<button class="lbpi" data-act="lbopen" data-id="${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy">` : `<span class="pimg lbph"></span>`}<span class="grow"><b>${esc(c.title)}</b><small>${esc(c.why || '')}</small></span></button>`).join('')}
+    <div class="lbbtns"><button class="btn" data-act="lbround">Swipe these together</button><button class="btn ghost" data-act="planday">Plan a day</button></div>
+    <button class="jlink" data-act="lbpickset" data-v="0" style="display:block;margin:8px auto 0">Stop the weekly picks</button></div>`;
+}
+async function lbLoad(force) {
+  const d = S.homeDeck, seq = S.lbSeq = (S.lbSeq || 0) + 1, have = S.lb?.[d];
+  if (have && !force && Date.now() - have.at < 5 * 6e4) return lbDraw();
+  const a = S.away && !S.away.trip ? { p_lat: S.away.lat, p_lng: S.away.lng } : {};
+  try {
+    const [r, pk] = await Promise.all([rpc('local_browse', { p_code: S.code, p_member: S.me, p_deck: d, ...a }), d === 'all' && partner() ? rpc('local_picks', { p_code: S.code, p_member: S.me }).catch(() => null) : null]);
+    (S.lb ||= {})[d] = { at: Date.now(), rows: r?.rows || [] }; if (pk) S.lbPicks = pk;
+  } catch { (S.lb ||= {})[d] = { at: 0, rows: [] }; }
+  if (seq === S.lbSeq && S.homeDeck === d) lbDraw();
+}
+function lbDraw() { const el = document.getElementById('lbrows'); if (el && LB()) el.innerHTML = lbHTML(); }
+function lbDinnerIn() {
+  const go = () => { const L = (S.lib || []).filter(c => c.deck === 'dinner' && c.who === 'both' && (c.data?.delivery || c.data?.takeout));
+    sheet(`<div class="grab"></div><div class="body"><h2>Dinner in</h2><p class="muted" style="margin-top:6px;font-size:14px">Places you both said yes to that deliver or do takeout.</p>
+      <div style="margin-top:10px">${L.length ? L.slice(0, 10).map(c => `<div class="prow"><button data-act="lbopen" data-id="${c.id}" style="flex:none;padding:0">${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy">` : `<span class="pimg lbph"></span>`}</button><span class="grow"><b>${esc(c.title)}</b><small>${c.data?.delivery ? 'Delivers' : 'Takeout'}</small></span><a class="pill" href="https://www.ubereats.com/search?q=${encodeURIComponent(c.title)}" target="_blank" rel="noopener">Uber Eats</a></div>`).join('') : `<p class="muted" style="font-size:14px;padding:10px 0">None of the places you both like deliver yet. Swipe Eat & Drink to add a few.</p>`}</div></div>`);
+    for (const c of L) (S.lbIdx ||= {})[c.id] = c; };
+  if (S.lib) return go(); loadLib().then(go).catch(() => toast('Could not load your likes. Try again in a moment.'));
 }
 // Changing category redraws only what is below the reminders: the header and banners stay exactly as they are, so
 // nothing up there is rebuilt or restarted. The cards come from the phone's own copy first when it has one.
@@ -3119,6 +3176,7 @@ async function lateFill(deck, sid, look, bg, res) {
 }
 // The main screen deals one small solo stack per deck per day. Likes are saved quietly and feed the next round.
 async function loadBite() {
+  if (LB()) return lbLoad();
   // Only the newest request draws: an older answer arriving late can never overwrite a newer one.
   const seq = S.biteSeq = (S.biteSeq || 0) + 1;
   const deck = S.homeDeck, extra = !!S.unlock || revArmed().includes(deck), dk = deck === 'drinks' ? 'event' : deck; S.unlock = false;
@@ -3991,7 +4049,7 @@ function tonightSheet() {
   const last = rest.find(s => !s.filters?.bite && !s.filters?.solo && !s.filters?.share && !s.filters?.evshare);
   const cur = last && !last.filters?.final && !last.filters?.narrow_child && Date.now() - new Date(last.created_at) < 18 * 36e5 && (last.from === S.me ? (last.my_left > 0 || last.their_left > 0) : last.my_left > 0) ? last : null;
   if (cur) { const status = cur.my_left > 0 ? `${cur.my_left} left for you` : `Waiting on ${esc(them())}`;
-    const name = cur.filters?.matched ? 'From your matches' : cur.filters?.evshare ? (cur.from === S.me ? 'Events you sent' : esc(cur.from) + '’s event picks') : cur.filters?.share ? (cur.from === S.me ? 'Places you sent' : esc(cur.from) + '’s place picks') : cur.filters?.wishlist ? (cur.from === S.me ? 'Your wishlist' : esc(cur.from) + '’s wishlist') : cur.filters?.rewatch ? 'Watch again?' : cur.filters?.second ? 'Second look' : DECKS[cur.deck].label;
+    const name = cur.filters?.picks ? 'This week’s picks' : cur.filters?.matched ? 'From your matches' : cur.filters?.evshare ? (cur.from === S.me ? 'Events you sent' : esc(cur.from) + '’s event picks') : cur.filters?.share ? (cur.from === S.me ? 'Places you sent' : esc(cur.from) + '’s place picks') : cur.filters?.wishlist ? (cur.from === S.me ? 'Your wishlist' : esc(cur.from) + '’s wishlist') : cur.filters?.rewatch ? 'Watch again?' : cur.filters?.second ? 'Second look' : DECKS[cur.deck].label;
     h += `<div class="sect">Round in progress</div><button class="sess" data-open="${cur.id}"><span class="tic">${ic(DIC[cur.deck])}</span><span class="grow"><b>${name}</b><small>Started ${ago(cur.created_at)} · ${status}</small></span>${cur.matches ? `<span class="pill hot">${cur.matches} match${cur.matches > 1 ? 'es' : ''}</span>` : ''}</button>`; }
   sheet(h.replace('<div class="sect">Round in progress</div>', '</div><div class="sect">Round in progress</div>') + (cur ? '' : '</div>'));
   tdeckInit();
@@ -7639,6 +7697,14 @@ document.addEventListener('click', async e => {
       case 'wishlist': return startSession('movie', { wishlist: true }, null);
       case 'tonight': return tonightSheet();
       case 'planday': return dayStart();
+      case 'lbmode': { S.lbMode = ds.k; ls.set('lbmode', ds.k); return switchDeck(S.homeDeck); }
+      case 'lbopen': { const c = S.lbIdx?.[ds.id]; if (!c) return; S.listCards = [c, ...(S.listCards || []).filter(x => x.id !== c.id)]; closeSheet(); return showDetail(c); }
+      case 'lbpickset': { t.disabled = true; try { S.lbPicks = await rpc('local_picks_set', { p_code: S.code, p_member: S.me, p_in: ds.v === '1' }); } catch { toast('Could not save that. Try again in a moment.'); } return lbDraw(); }
+      case 'lbround': { t.disabled = true; try { const r = await rpc('local_picks_round', { p_code: S.code, p_member: S.me }); if (!r?.id) return toast('Nothing to swipe this week.');
+          send({ type: 'nudge', deck: 'mix', session: r.id }); push(`${S.me} started this week’s picks`, 'A few new things near you. Swipe the ones you’d do.', `./?s=${r.id}`); return openSession(r.id); } catch { t.disabled = false; return toast('Could not start that. Try again in a moment.'); } }
+      case 'lbtonight': { const r = S.lb?.movie?.rows.find(x => x.k === 'tonight'); if (!r || r.items.length < 2) return; t.disabled = true;
+        S.tb = await rpc('tiebreak_lib', { p_code: S.code, p_member: S.me, p_cards: r.items.map(c => c.id) }); S.view = 'game'; send({ type: 'game', id: S.tb.id, lib: true }); push(`${S.me} wants to pick tonight’s movie`, 'A quick game. The winner chooses.', `./?tb=${S.tb.id}`); return render(); }
+      case 'lbdinnerin': return lbDinnerIn();
       case 'people': return peopleOpen();
       case 'side': return setSide(t.dataset.to);
       case 'likes': return openLibrary('all');
@@ -8010,7 +8076,7 @@ setInterval(() => { if (UPD.ready) { if (updQuiet()) updGo(); } else if (documen
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); navigator.serviceWorker.addEventListener('message', e => { if (e.data?.pushed) return inboxPoll(); const u = e.data?.open; if (u) { const q = new URL(u).searchParams, s = q.get('s'), r = q.get('rec'), g = q.get('tb'); if (q.get('idea') && S.me) inboxGo(u); else if (s && S.me) openSession(s); else if (r && S.me) openRec(r, q.get('keen')); else if (g && S.me) openGame(g); else if (q.get('night') && S.me) nightOpen(q.get('night')); else if (q.get('trivia') && S.me) openTrivia(q.get('trivia')); else if (q.get('reveal') && S.me) { prepRevealTest(); render(); }
     else if (q.get('surprise') && S.me) surpOpen(q.get('surprise'));
     else if (q.get('recap') && S.me) recapOpen(q.get('recap'));
-    else if (q.get('wcard') && S.me && BETA) { wcOpen(); } else if (q.get('plan') && S.me) { S.favAsk = q.get('fav') ? q.get('plan') : null; dayAct('view', q.get('plan')).catch(() => {}); } else if (q.get('planfor') && S.me) dayAct('around', q.get('planfor')).catch(() => {}); else if (q.get('invite') && S.me) { if (!partner()) inviteSheet(); } else if (q.get('tripplan') && S.me) openTripPlan(q.get('tripplan')); else if (q.get('trip') && S.me) openGetaway(q.get('trip'), partner()); else if (SHW[q.get('share')] && S.me) openShareTab(q.get('share')); } }); }
+    else if (q.get('wcard') && S.me && BETA) { wcOpen(); } else if (q.get('picks') && S.me && BETA) { S.lbMode = 'browse'; ls.set('lbmode', 'browse'); S.homeDeck = 'all'; render(); } else if (q.get('plan') && S.me) { S.favAsk = q.get('fav') ? q.get('plan') : null; dayAct('view', q.get('plan')).catch(() => {}); } else if (q.get('planfor') && S.me) dayAct('around', q.get('planfor')).catch(() => {}); else if (q.get('invite') && S.me) { if (!partner()) inviteSheet(); } else if (q.get('tripplan') && S.me) openTripPlan(q.get('tripplan')); else if (q.get('trip') && S.me) openGetaway(q.get('trip'), partner()); else if (SHW[q.get('share')] && S.me) openShareTab(q.get('share')); } }); }
 
 // iPhone keeps a Home Screen app's storage apart from the browser's, so signing up in Safari and then opening the
 // icon used to mean signing in a second time with the couple code. While someone is signed in in the browser, the
