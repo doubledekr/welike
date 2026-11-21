@@ -492,6 +492,7 @@ html.ios-app .coach{position:absolute}
 .lbsaid{display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:99px;background:rgba(13,12,18,.62);font-size:12.5px;font-weight:600;color:#ffb9a6}
 .lbcc.mt{box-shadow:0 0 44px -8px rgba(255,100,120,.8)}.lbcc.mt .lbct small{color:#ffb9a6;font-weight:600}.lbplan{margin-top:8px;padding:10px 18px;border-radius:14px;background:linear-gradient(135deg,#ff9a4d,#ff4f8b);color:#fff;font-size:14px;font-weight:700;min-height:44px}
 .lbnote{font-size:12.5px;color:var(--muted);line-height:1.4;flex:1}.lbbar .lbtx{padding:12px 0}
+.hsn{color:#ffc65c!important;font-weight:600}
 .hb2 .seg button{min-height:44px}.hb2 .lbt button{min-height:44px;padding:0 16px}.hb2 .hdr .ib{min-width:44px;min-height:44px}
 .pd2 .tn-head{margin-bottom:6px}.pdays{display:flex;gap:8px;margin-top:12px;overflow-x:auto;scrollbar-width:none}.pdays::-webkit-scrollbar{display:none}.pdays button{flex:none;min-height:44px;padding:0 16px;border-radius:99px;font-size:14px;background:rgba(255,255,255,.07);color:var(--text)}.pdays button.on{background:var(--text);color:var(--bg);font-weight:700}
 .trow.pdsh{margin-top:6px;padding-bottom:10px}.pdshape{flex:0 0 152px;min-height:96px;padding:14px;border-radius:18px;text-align:left;background:var(--surface);scroll-snap-align:start}.pdshape b{display:block;font-size:15.5px}.pdshape small{display:block;font-size:12.5px;color:var(--muted);margin-top:5px;line-height:1.35}
@@ -4788,12 +4789,13 @@ function hungrySheet() {
   const who = l => l.length >= 2 ? 'You both like it' : l[0] === S.me ? 'You liked it' : l.length ? esc(l[0]) + ' liked it' : 'New for you';
   const close = m => { const d = new Date((g.when || Date.now()) + m * 60000); return 'Open till ' + tm12(`${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`); };
   const row = c => { const mi = Math.round(c.km * 0.621 * 10) / 10, walk = Math.round(c.km / 4.8 * 60);
-    return `<div class="hgr ${c.likers.length ? '' : 'hnew'}">${c.img ? `<img src="${esc(c.img)}" alt="" loading="lazy">` : `<span class="hgi">${ic('pin')}</span>`}<span class="grow"><b>${esc(c.title)}</b><small>${who(c.likers)} · ${mi < 0.1 ? 'right there' : walk <= 20 ? walk + ' min walk' : mi + ' mi'} · ${close(c.closes_in)}${c.rating ? ' · ' + esc(c.rating) + '★' : ''}</small></span>
+    return `<div class="hgr ${c.likers.length ? '' : 'hnew'}">${c.img ? `<img src="${esc(c.img)}" alt="" loading="lazy">` : `<span class="hgi">${ic('pin')}</span>`}<span class="grow"><b>${esc(c.title)}</b>${c.season?.name ? `<small class="hsn">${esc(c.season.name)}${c.season.to ? ' · through ' + new Date(c.season.to + 'T12:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}</small>` : ''}<small>${who(c.likers)} · ${mi < 0.1 ? 'right there' : walk <= 20 ? walk + ' min walk' : mi + ' mi'} · ${close(c.closes_in)}${c.rating ? ' · ' + esc(c.rating) + '★' : ''}</small></span>
       ${g.planId && g.nx ? `<button class="hgo hadd" data-act="hadd" data-id="${esc(c.id)}">Add first</button>` : ''}<a class="hgo" href="${esc(c.place_id ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.title)}&query_place_id=${encodeURIComponent(c.place_id)}` : mapsUrl(c.title + ' ' + (c.address || 'Detroit')))}" target="_blank" rel="noopener">Go</a></div>`; };
-  const l = g.list || [], liked = l.filter(c => c.likers.length), fresh = l.filter(c => !c.likers.length);
+  const l = g.list || [], seas = l.filter(c => c.season?.name), liked = l.filter(c => c.likers.length && !c.season?.name), fresh = l.filter(c => !c.likers.length && !c.season?.name);
   sheet(`<div class="grab"></div><div class="body"><small class="tkick">${esc(g.where)}${g.nx ? ' · before ' + esc(tm12(g.nx.time)) : ''}</small><h2>${esc(lbl)}</h2>
     <div class="hchips" style="margin:10px 0 4px">${HK.map(([k, n]) => `<button class="hchip ${k === g.kind ? 'on' : ''}" data-act="hungry" data-hk="${k}" data-hp="${g.planId}">${n}</button>`).join('')}</div>
     ${!l.length ? `<p class="muted" style="margin-top:14px">Nothing ${g.nx ? 'open before then' : 'open right now'} close by from what you two have liked. Try another kind, or swipe Eat & Drink to add more.</p>` : ''}
+    ${seas.length ? `<div class="sect" style="margin-top:14px">Only this season</div>${seas.map(row).join('')}` : ''}
     ${liked.length ? `<div class="sect" style="margin-top:14px">From your likes</div>${liked.map(row).join('')}` : ''}
     ${fresh.length ? `<div class="sect" style="margin-top:14px">New for you${P ? ' two' : ''}</div>${fresh.map(row).join('')}` : ''}
     ${g.far ? `<p class="muted" style="font-size:12.5px;margin-top:12px">Showing downtown. Allow location to see what's near you.</p>` : ''}
