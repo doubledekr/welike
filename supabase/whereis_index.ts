@@ -1,8 +1,9 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-// Two small Google lookups for plans (Hamoody's feedback, 19 Nov 2026). Auth: the couple code must match a couple.
+// Google lookups for plans (Hamoody's feedback, 19 Nov 2026). Auth: the couple code must match a couple.
 //   action "geocode": an address or place name typed by the person (their cottage, a friend's house) -> up to 3 matches
 //                     with name, address and coordinates, so it can be saved as one of their places.
+//   action "area":    (21 Nov) once per place away from home: good places within 25 miles saved as this couple's own cards.
 //   action "quest":   a side quest between two stops: a short, well-rated stop (ice cream, coffee, a bookshop, a park,
 //                     a view) close to the walk or drive from A to B, open at that time. Returns up to 3; saves nothing.
 //                     With snack:true it's a snack break near A instead (coffee, a bakery, dessert): up to 8 within
@@ -65,6 +66,43 @@ Deno.serve(async (req: Request) => {
       // a photo for each, so the suggestion looks like somewhere you'd want to stop
       await Promise.all(out.map(async (p: any) => { if (!p.photo) return; try { const pr = await fetch(`https://places.googleapis.com/v1/${p.photo}/media?maxWidthPx=600&skipHttpRedirect=true`, { headers: { "X-Goog-Api-Key": key } }); const pd = await pr.json(); p.image = pr.ok ? pd.photoUri ?? null : null; } catch (_) { p.image = null; } }));
       return json({ leg: Math.round(leg * 100) / 100, quests: out });
+    }
+    if (b.action === "area") {
+      // A place away from home (the cottage): once, pull good places around it into this couple's own cards, tagged
+      // with the town (data.away) so they deal in rounds for that place and never in the usual home decks.
+      const lat = Number(b.lat), lng = Number(b.lng), town = String(b.town ?? "").trim().slice(0, 60);
+      if (!isFinite(lat) || !isFinite(lng) || !town) return json({ error: "bad_location" }, 400);
+      const { count } = await sb.from("cards").select("id", { count: "exact", head: true }).eq("couple_id", couple.id).eq("data->>away", town).eq("created_by", "area");
+      if ((count ?? 0) >= 12 && !b.more) return json({ ok: true, cached: true, n: count });
+      const GROUPS: [string, string[]][] = [
+        ["dinner", ["restaurant", "american_restaurant", "pizza_restaurant", "seafood_restaurant", "bar", "pub", "brewery", "winery"]],
+        ["dinner", ["breakfast_restaurant", "brunch_restaurant", "cafe", "coffee_shop", "bakery", "ice_cream_shop"]],
+        ["event", ["park", "state_park", "national_park", "beach", "hiking_area", "marina", "tourist_attraction", "farm", "garden"]],
+        ["event", ["museum", "art_gallery", "book_store", "gift_shop", "bowling_alley", "movie_theater", "historical_landmark", "visitor_center"]],
+      ];
+      const isFood = (t: string) => /restaurant|cafe|coffee|bakery|ice_cream|bar|pub|brew|winery|food|diner|deli|bagel|sandwich|donut|dessert|pizza/.test(t), SKIP = /lodging|hotel|motel|resort|rv_park|(^|_)inn($|_)|fast_food|hospital|campground|cottage|bed_and_breakfast|grocery|supermarket|sports_complex|athletic|stadium|gas_station|convenience/;
+      const fm = "places.id,places.displayName,places.primaryTypeDisplayName,places.primaryType,places.location,places.rating,places.userRatingCount,places.regularOpeningHours,places.photos,places.googleMapsUri,places.shortFormattedAddress,places.websiteUri,places.editorialSummary";
+      const got: any[] = [];
+      for (const [, types] of GROUPS) {
+        const r = await fetch("https://places.googleapis.com/v1/places:searchNearby", { method: "POST", headers: { "Content-Type": "application/json", "X-Goog-Api-Key": key, "X-Goog-FieldMask": fm },
+          body: JSON.stringify({ includedTypes: types, maxResultCount: 20, rankPreference: "POPULARITY", locationRestriction: { circle: { center: { latitude: lat, longitude: lng }, radius: 40000 } } }) });
+        const d = await r.json(); log("whereis_area"); if (r.ok) got.push(...(d.places ?? []));
+      }
+      const seen = new Set<string>(), hours = (h: any) => { const ps = h?.periods; if (!Array.isArray(ps) || !ps.length) return null; if (ps.length === 1 && ps[0].open && !ps[0].close) return "always";
+        return ps.filter((p: any) => p.open && p.close).map((p: any) => [p.open.day, p.open.hour * 100 + (p.open.minute ?? 0), p.close.day, p.close.hour * 100 + (p.close.minute ?? 0)]); };
+      const keep = got.filter((p: any) => { if (!p.id || seen.has(p.id) || !p.location || !p.displayName?.text) return false; seen.add(p.id); return !SKIP.test(String(p.primaryType ?? "")) && (p.rating ?? 0) >= 4.2 && (p.userRatingCount ?? 0) >= 25; }).slice(0, 48);
+      await Promise.all(keep.map(async (p: any) => { const ph = p.photos?.[0]?.name; if (!ph) return; try { const pr = await fetch(`https://places.googleapis.com/v1/${ph}/media?maxWidthPx=800&skipHttpRedirect=true`, { headers: { "X-Goog-Api-Key": key } }); const pd = await pr.json(); p._img = pr.ok ? pd.photoUri ?? null : null; } catch (_) { p._img = null; } }));
+      const rows = keep.map((p: any) => { const food = isFood(String(p.primaryType ?? "")), mi = Math.round(miles(lat, lng, p.location.latitude, p.location.longitude) * 10) / 10;
+        return { couple_id: couple.id, deck: food ? "dinner" : "event", kind: p.primaryTypeDisplayName?.text ?? (food ? "Restaurant" : "Place"), title: p.displayName.text.slice(0, 80),
+          subtitle: [p.primaryTypeDisplayName?.text, p.shortFormattedAddress].filter(Boolean).join(" · ").slice(0, 90), image: p._img ?? null, active: true, created_by: "area",
+          ext_id: "g:" + p.id, event_date: food ? null : "2099-01-01",
+          data: { place: true, place_id: p.id, lat: p.location.latitude, lng: p.location.longitude, ptype: p.primaryType ?? null, rating: p.rating ?? null, ratings: p.userRatingCount ?? null,
+            hours: hours(p.regularOpeningHours), hours_at: new Date().toISOString().slice(0, 10), maps: p.googleMapsUri ?? null, url: p.websiteUri ?? null, address: p.shortFormattedAddress ?? null,
+            notes: p.editorialSummary?.text ?? null, photo: p.photos?.[0]?.name ?? null, image_src: p._img ? "google" : null, away: town, area: String(b.place ?? ""), miles: mi, source: "area", dinner: food || undefined } }; });
+      const { data: have } = await sb.from("cards").select("deck,ext_id").eq("couple_id", couple.id).in("ext_id", rows.map((r: any) => r.ext_id));
+      const hk = new Set((have ?? []).map((h: any) => h.deck + "|" + h.ext_id)), fresh = rows.filter((r: any) => !hk.has(r.deck + "|" + r.ext_id));
+      let n = 0; if (fresh.length) { const { error, count } = await sb.from("cards").insert(fresh, { count: "exact" }); if (error) return json({ error: "save", detail: error.message }, 500); n = count ?? fresh.length; }
+      return json({ ok: true, found: got.length, kept: keep.length, n });
     }
     return json({ error: "bad_action" }, 400);
   } catch (e) { return json({ error: String(e) }, 400); }

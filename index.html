@@ -738,6 +738,7 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .ar.aswp{transition:none;background:#1b1d23;z-index:2}.aswbg{position:absolute;left:0;right:0;border-radius:16px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;font-size:13px;font-weight:700;color:#0b0c10;pointer-events:none;background:#2a2c34}.aswbg span{display:flex;align-items:center;gap:6px;opacity:0;transition:opacity .12s}.aswbg span svg{width:16px;height:16px}.aswbg.go-r{background:rgba(92,232,208,.55)}.aswbg.go-r .r{opacity:1}.aswbg.go-l{background:rgba(255,120,110,.55)}.aswbg.go-l .l{opacity:1;margin-left:auto}.aswbg.far.go-r{background:#5ce8d0}.aswbg.far.go-l{background:#ff786e}.aswbg .l{order:2}
 .adh.off{width:26px;padding:0;cursor:default}.alink{background:none;border:0;padding:0;color:#5ce8d0;font:inherit;font-weight:700;text-decoration:underline;cursor:pointer}
 .wcban{width:100%;display:flex;align-items:center;gap:12px;margin:12px 0 4px;padding:12px 14px;border:0;border-radius:18px;background:linear-gradient(135deg,rgba(45,212,191,.16),rgba(77,155,255,.12));box-shadow:inset 0 0 0 1px rgba(62,224,197,.35);color:inherit;font:inherit;text-align:left;cursor:pointer}.wcban.off{background:rgba(255,255,255,.05);box-shadow:none}.wcban b{display:block;font-size:14.5px}.wcban small{display:block;font-size:12.5px;opacity:.7;margin-top:2px}.wcban .go{font-size:13px;font-weight:700;color:#5ce8d0}.wcmini{width:34px;height:42px;border-radius:8px;flex:0 0 auto;background:linear-gradient(135deg,#c9ccd3,#8e939d 45%,#d6d9df);box-shadow:inset 0 0 0 3px #33406e}
+.stdays2{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.stdays2 button{border:0;border-radius:12px;padding:7px 0;background:rgba(255,255,255,.05);color:inherit;font:inherit;cursor:pointer}.stdays2 button small{display:block;font-size:10.5px;opacity:.65}.stdays2 button b{font-size:15px}.stdays2 button.on{background:linear-gradient(135deg,rgba(45,212,191,.3),rgba(77,155,255,.22))}.ar.ahome .abar{background:#b79cff}.ar.ahome b{color:#e6dcff}
 .wcwho{margin-top:12px;padding:10px 12px;border-radius:14px;background:rgba(92,232,208,.08);color:#bfeee5;font-size:13px}.wcopts{display:flex;flex-direction:column;gap:8px}
 .wcard{position:relative;margin-top:14px;border-radius:24px;overflow:hidden;background:#16171d;min-height:280px;box-shadow:0 24px 60px rgba(0,0,0,.45)}.wcard .wcrev img,.wcard .wcph{display:block;width:100%;height:170px;object-fit:cover;background:linear-gradient(160deg,#2a6f68,#33406e 55%,#6b3b6e)}.wcrb{padding:12px 16px 16px}.wcrb h3{font-family:'Instrument Serif',serif;font-weight:400;font-size:27px;line-height:1.1;margin:0}.wcrb p{font-size:13px;opacity:.75;margin:6px 0 0;line-height:1.4}.wcrb .wcwhy{color:#bfeee5;opacity:1}
 .wcfoil{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab}.wcic{display:flex;gap:8px}.wcic span{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0;border-radius:14px;background:rgba(255,255,255,.06);color:#bfeee5}.wcic svg{width:18px;height:18px}.wcic b{color:#eef6f4;font-size:13px}.wcic small{font-size:11px;opacity:.7}
@@ -1772,8 +1773,8 @@ async function tripAuto() {
   const key = t ? t.city + '|' + t.from : '';
   if (t && ls.get('tripoff') !== key) {
     if (S.away?.trip === key) return;   // already there; keeps an exact position if they gave one
-    S.away = { city: t.city, lat: t.lat, lng: t.lng, trip: key, to: t.to }; ls.set('away', JSON.stringify(S.away)); S.awayOffer = null; gemAway();
-    if (ls.get('triphello') !== key) { ls.set('triphello', key); toast(`Your ${t.city} trip is on. Showing what’s there until you’re home.`, 4500); }
+    S.away = { city: t.city, lat: t.lat, lng: t.lng, trip: key, to: t.to, label: t.label || null }; ls.set('away', JSON.stringify(S.away)); S.awayOffer = null; gemAway();
+    if (ls.get('triphello') !== key) { ls.set('triphello', key); toast(t.label ? `You’re at ${t.label} through ${new Date(t.to + 'T12:00').toLocaleDateString('en-US', { weekday: 'long' })}. Showing what’s around there.` : `Your ${t.city} trip is on. Showing what’s there until you’re home.`, 4500); }
     if (S.view === 'home') render();
   } else if (S.away?.trip) { S.away = null; ls.del('away'); gemAway(); if (!t) toast('Welcome home. Back to your usual places.', 3500); if (S.view === 'home') render(); }
 }
@@ -1799,6 +1800,10 @@ async function checkTravel(ask = false) {
       else if (ask) { toast('Travel mode is on. You are near home right now.', 3500); if (S.tab === 'you') render(); }
       return;
     }
+    // near one of your saved places (the cottage)? offer to plan around it, unless days there are already set
+    if (BETA) { if (S.places === undefined) { try { S.places = await rpc('place_list', { p_code: S.code }); } catch { S.places = []; } }
+      const near = (S.places || []).find(p => p.data?.lat != null && milesApart(+p.data.lat, +p.data.lng, lat, lng) < 20);
+      if (near && !planMeta(near.title.slice(0, 40))?.base && !(S.away?.label) && !(!ask && ls.get('awayno') === near.title + new Date().toDateString())) { S.awayOffer = { city: near.title, lat, lng, place: near }; if (S.view === 'home' && !$layer.innerHTML) { S.tab = 'home'; render(); } return; } }
     let city = '';
     try { const j = await (await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat.toFixed(3)}&longitude=${lng.toFixed(3)}&localityLanguage=en`)).json(); city = j.city || j.locality || j.principalSubdivision || ''; } catch {}
     if (!city) { if (ask) toast('Travel mode is on.'); return; }
@@ -2259,8 +2264,15 @@ const SHAPES = {
   full: { name: 'Full day', slots: [['9:00', 'sight'], ['11:00', 'sight'], ['13:00', 'food'], ['15:00', 'sight'], ['17:00', 'sight'], ['19:30', 'food'], ['22:00', 'drink']] },
   food: { name: 'Food crawl', slots: [['10:00', 'coffee'], ['12:30', 'food'], ['15:00', 'coffee'], ['17:30', 'drink'], ['20:00', 'food']] },
   night: { name: 'Night out', slots: [['16:30', 'sight'], ['19:00', 'food'], ['21:00', 'drink'], ['23:00', 'drink']] },
-  rainy: { name: 'Rainy day', slots: [['10:00', 'indoor'], ['12:30', 'food'], ['14:30', 'indoor'], ['16:30', 'coffee'], ['19:30', 'food']] }
+  rainy: { name: 'Rainy day', slots: [['10:00', 'indoor'], ['12:30', 'food'], ['14:30', 'indoor'], ['16:30', 'coffee'], ['19:30', 'food']] },
+  // days at a base away from home (the cottage): the place itself is a stop (home1-3)
+  lake: { name: 'Lake day', slots: [['9:30', 'home1'], ['11:30', 'sight'], ['13:30', 'food'], ['16:00', 'home2'], ['19:00', 'home3']] },
+  town: { name: 'Town day', slots: [['10:00', 'coffee'], ['11:30', 'sight'], ['13:00', 'food'], ['15:30', 'coffee'], ['19:00', 'home3']] },
+  rainin: { name: 'Rainy day in', slots: [['10:00', 'home1'], ['13:00', 'food'], ['15:00', 'indoor'], ['19:00', 'home3']] },
+  out: { name: 'Out and about', slots: [['10:00', 'coffee'], ['11:30', 'sight'], ['13:30', 'food'], ['16:00', 'sight'], ['19:30', 'food'], ['21:30', 'drink']] }
 };
+const baseOf = key => key?.startsWith('c:') ? planMeta(key.slice(2))?.base || null : null;
+const shapeKeysOf = key => baseOf(key) ? ['lake', 'town', 'rainin', 'out'] : SHAPE_KEYS;
 const SHAPE_KEYS = ['easy', 'full', 'food', 'night', 'rainy'];
 // the same five shapes for a day at home (Plan a day), built on its own stops: daytime, drinks, dinner, after
 const LSHAPE = { easy: { slots: ['day', 'dinner'], sub: 'One thing, then dinner' }, full: { slots: ['day', 'drinks', 'dinner', 'evening'], sub: 'Daytime, drinks, dinner, after' },
@@ -2279,7 +2291,9 @@ function rngOf(seed) { let a = (seed >>> 0) || 1; return () => { a ^= a << 13; a
 const kmBetween = (a, b) => a?.lat == null || b?.lat == null ? 3 : Math.hypot((a.lat - b.lat) * 111, (a.lng - b.lng) * 111 * Math.cos(a.lat * Math.PI / 180));
 const hm = t => { const [h, m] = String(t).split(':').map(Number); return h * 60 + (m || 0); };
 const hhmm = n => `${Math.floor(n / 60) % 24}:${String(n % 60).padStart(2, '0')}`;
-function defaultShapes(days) { const n = days.length; return Object.fromEntries(days.map((d, i) => [d.k, n === 1 ? 'full' : i === 0 ? 'easy' : i === n - 1 ? 'food' : (i % 2 ? 'full' : 'night')])); }
+function defaultShapes(days, key) { const n = days.length, b = baseOf(key);
+  if (b) return Object.fromEntries(days.map((d, i) => [d.k, b.style === 'out' ? (i % 2 ? 'town' : 'out') : (i % 2 ? 'town' : 'lake')]));
+  return Object.fromEntries(days.map((d, i) => [d.k, n === 1 ? 'full' : i === 0 ? 'easy' : i === n - 1 ? 'food' : (i % 2 ? 'full' : 'night')])); }
 // Fill one day's slots. keep: liked ids that must land on this day if they fit; avoid: new ids not to reuse.
 function fillDay(dayK, shape, pool, opt) {
   const { liked, used, booked, rnd, keep = [], avoid = new Set(), maxNew = 2 } = opt;
@@ -2290,6 +2304,7 @@ function fillDay(dayK, shape, pool, opt) {
   const near = it => placed.length ? Math.min(...placed.map(p => kmBetween(p, it))) : 0;
   const take = (it, slot, isNew) => { slot.id = it.id; slot.n = isNew; used.add(it.id); placed.push(it); };
   // liked that must stay here first, then other liked by how many liked it, then new finds near what's placed
+  for (const sl of slots) if (sl.want.startsWith('home')) sl.id = 'home:' + sl.want;   // the base itself (the cottage)
   const order = arr => arr.slice().sort((a, b) => (b.likers.length - a.likers.length) || (rnd() - .5));
   for (const it of order(keep)) { const sl = slots.find(x => !x.id && fitsSlot(it._ty, x.want)); if (sl) take(it, sl, false); }
   for (const it of order(liked.filter(x => !used.has(x.id)))) {
@@ -2338,6 +2353,7 @@ async function poolLoad(key) {
   try {
     const raw = key.startsWith('g:') ? await frRpc('fr_trip_pool', { p_id: key.slice(2) }) : await rpc('plan_trip_pool', { p_code: S.code, p_member: S.me, p_city: key.slice(2) });
     box.list = (raw || []).map(x => ({ ...x, likers: x.likers || [], _ty: cardType(x) })); box.byId = Object.fromEntries(box.list.map(x => [x.id, x]));
+    const b = baseOf(key); if (b) { const nm = key.slice(2).replace(/^The /, 'the '); for (const [k2, t] of [['home1', 'Slow morning at ' + nm], ['home2', 'Downtime at ' + nm], ['home3', 'Dinner in at ' + nm]]) box.byId['home:' + k2] = { id: 'home:' + k2, title: t, home: true, likers: [], _ty: k2, lat: b.lat, lng: b.lng, ptype: 'home' }; }
   } catch { box.err = true; }
   box.busy = false; if (S.tKey === key) render(); return box;
 }
@@ -2353,7 +2369,7 @@ function autoReady(key) {
   let a = autoOf(key);
   const stale = !a || days.some(d => !a.days?.[d.k]);
   if (stale && !S.amaking?.[key]) {
-    const shapes = { ...defaultShapes(days), ...(a?.shapes || {}) }, keep = {}, fixed = {};
+    const shapes = { ...defaultShapes(days, key), ...(a?.shapes || {}) }, keep = {}, fixed = {};
     if (a) for (const d of days) if (a.days?.[d.k]) { keep[d.k] = a.days[d.k].filter(x => (!x.n || x.p) && x.p !== 'time').map(x => x.id); fixed[d.k] = a.days[d.k].filter(x => x.p === 'time'); }
     const off = a?.off || []; a = { ...planTrip(poolOf(key, a), days, tripBooked(key), shapes, a?.seed || (Date.now() % 100000), keep, fixed), off };
     S.amaking = { ...(S.amaking || {}), [key]: true }; autoSave(key, a).finally(() => { S.amaking[key] = false; });
@@ -2368,7 +2384,7 @@ const timeFixed = (k, list) => list.filter(x => x.p === 'time').map(x => ({ day:
 // one day again: liked, added and pinned stops stay on the day (time pins keep their time); the new finds change
 function rebuildDay(key, a, k, shape, seed, avoid = []) {
   const P = S.tpool[key], pool = poolOf(key, a), cur = a.days[k] || [], bk = [...tripBooked(key), ...timeFixed(k, cur)];
-  const keep = cur.filter(x => isKeep(x, P) && x.p !== 'time'), fixed = cur.filter(x => x.p === 'time');
+  const keep = cur.filter(x => isKeep(x, P) && x.p !== 'time' && !String(x.id).startsWith('home:')), fixed = cur.filter(x => x.p === 'time');
   const used = new Set([...Object.entries(a.days).filter(([d]) => d !== k).flatMap(([, l]) => l.map(x => x.id)), ...fixed.map(x => x.id)]);
   let list = fillDay(k, shape, pool, { liked: [], used, booked: bk, rnd: rngOf(seed), keep: keep.map(x => P.byId[x.id]).filter(Boolean), avoid: new Set(avoid) });
   const keepMeta = Object.fromEntries(keep.map(x => [x.id, x])); list = list.map(x => keepMeta[x.id] ? { ...x, n: keepMeta[x.id].n && !keepMeta[x.id].p, p: keepMeta[x.id].p, a: keepMeta[x.id].a } : x);
@@ -2395,7 +2411,7 @@ async function autoShape(key, k, shape) {   // liked stops that don't fit the ne
 async function autoTrip(key) {   // the whole trip again: pinned stops keep their day (and time), every liked stop stays in the trip
   const P = S.tpool[key], a = autoOf(key); if (!P?.list) return; const days = tripDaysOf(key), seed = Math.floor(Math.random() * 100000) + 1, keep = { __p: {} }, fixed = {};
   for (const d of days) { const l = a?.days?.[d.k] || []; keep[d.k] = l.filter(x => x.p === 'day').map(x => x.id); keep.__p[d.k] = l.filter(x => x.p === 'day'); fixed[d.k] = l.filter(x => x.p === 'time'); }
-  const b = { ...planTrip(poolOf(key, a), days, tripBooked(key), a?.shapes || defaultShapes(days), seed, keep, fixed), off: a?.off || [] };
+  const b = { ...planTrip(poolOf(key, a), days, tripBooked(key), a?.shapes || defaultShapes(days, key), seed, keep, fixed), off: a?.off || [] };
   const n = autoLiked(P).filter(x => !(a?.off || []).includes(x.id)).length; S.anote[key + 'trip'] = `Reshuffled the trip. All ${n} liked stops are on a day.`; await autoSave(key, b); render();
 }
 async function autoMove(key, k, id, to) {   // to another day (a pin to a time becomes a pin to the day)
@@ -2452,11 +2468,11 @@ function tripScreen(key) {
   const g = key.startsWith('g:') ? key.slice(2) : '', c = g ? '' : key.slice(2); S.tKey = key;
   if (g && !gtOf(g)) { gtLoad(g); return `<p class="muted" style="margin:26px 4px;font-size:14px">Opening the group trip…</p>`; }
   const k = tripCurDay(key), det = S.tDet[key] || !k;
-  const detail = () => g ? gTripHome(g, true) : planSheet(c, 'home');
+  const detail = () => g ? gTripHome(g, true) : baseOf(key) ? baseDetail(c) : planSheet(c, 'home');
   if (k && !S.tpool[key]) poolLoad(key);
   if (det) { S.dctx = null; const cx = k ? tripCtxNow() : null, st = cx?.stay || {}, a = k ? autoOf(key) : null, P = S.tpool[key];
     const nl = P?.list ? autoLiked(P).length : 0, nn = a ? Object.values(a.days || {}).flat().filter(x => x.n).length : 0;
-    const rows = cx ? `<div class="ttop">${a ? `<div class="atrip"><b>Your trip is planned</b><small>Built from ${nl} thing${nl === 1 ? '' : 's'} ${g ? 'the group' : partner() ? 'you two' : 'you'} liked${nn ? `, plus ${nn} new find${nn === 1 ? '' : 's'}` : ''}. Every one of them is on a day.${g ? ' Anyone can reshuffle.' : ''}</small>${S.anote[key + 'trip'] ? `<small class="anote">${esc(S.anote[key + 'trip'])}</small>` : ''}<button class="btn" data-act="atrip">Reshuffle the whole trip</button></div>` : ''}<button class="tmrow" data-act="staysheet">${ic('pin')}<span class="grow"><b>Where you’re staying</b><small>${esc(st.addr || st.name || st.label || 'Address, link, check-in and check-out')}</small></span><i>${st.addr ? 'See' : 'Add'}</i></button></div>` : '';
+    const rows = cx && !baseOf(key) ? `<div class="ttop">${a ? `<div class="atrip"><b>Your trip is planned</b><small>Built from ${nl} thing${nl === 1 ? '' : 's'} ${g ? 'the group' : partner() ? 'you two' : 'you'} liked${nn ? `, plus ${nn} new find${nn === 1 ? '' : 's'}` : ''}. Every one of them is on a day.${g ? ' Anyone can reshuffle.' : ''}</small>${S.anote[key + 'trip'] ? `<small class="anote">${esc(S.anote[key + 'trip'])}</small>` : ''}<button class="btn" data-act="atrip">Reshuffle the whole trip</button></div>` : ''}<button class="tmrow" data-act="staysheet">${ic('pin')}<span class="grow"><b>Where you’re staying</b><small>${esc(st.addr || st.name || st.label || 'Address, link, check-in and check-out')}</small></span><i>${st.addr ? 'See' : 'Add'}</i></button></div>` : '';
     return `${k ? `<button class="tdback" data-act="tdet" data-k="${esc(key)}" data-on="0"><span class="tdbk">‹</span><span>Back to the days</span></button>` : ''}${rows}${detail()}`; }
   S.dctx = g ? { g, k } : { c, k }; const ctx = dayCtx(); if (!ctx) { S.dctx = null; return detail(); }
   const dname = new Date(k + 'T12:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
@@ -2489,16 +2505,16 @@ function autoDayBody(key, k, ctx, a, P) {
     if (r.s) return `<div class="${cls} afix"><span class="tdt">${T(r.s.time)}</span><span class="abar st"></span><button class="grow atap" data-act="staysheet"><b>${r.s.s === 'in' ? 'Check in' : 'Check out'}</b><span class="asub">${esc(r.s.title)}</span></button></div>`;
     const x = r.x, it = x.it, liked = it.likers.length > 0, prev = list[list.indexOf(x) - 1]?.it;
     const pinT = x.p === 'time' ? ' · stays at this time' : x.p === 'day' ? ' · pinned to the day' : '';
-    const sub = (liked ? `${faces(it.likers)}${esc(who(it.likers))}` : x.a ? 'Added' : `New for you${prev ? ' · near ' + esc(prev.title) : ''}`) + pinT;
-    return `<div class="${cls} ${liked || x.a || x.p ? '' : 'anew'} ${x.p === 'time' ? 'atime' : ''}" data-id="${esc(x.id)}"><span class="tdt">${T(x.t)}</span><span class="abar"></span><button class="grow atap" data-act="aev" data-id="${esc(x.id)}"><b>${esc(it.title)}</b><span class="asub">${sub}</span></button>${x.p === 'time' ? `<svg class="alock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" role="img" aria-label="Pinned to this time"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>` : x.p === 'day' ? `<svg class="apin" viewBox="0 0 24 24" fill="currentColor" role="img" aria-label="Pinned to this day"><path d="M16 3l5 5-4 1-4 4 1 5-2 2-4-4-5 5-1-1 5-5-4-4 2-2 5 1 4-4z"/></svg>` : ''}${x.p === 'time' ? '<span class="adh off"></span>' : `<span class="adh" role="button" tabindex="0" aria-label="Drag to move ${esc(it.title)}"><i></i><i></i><i></i></span>`}</div>`;
+    const sub = it.home ? 'No driving' : (liked ? `${faces(it.likers)}${esc(who(it.likers))}` : x.a ? 'Added' : `New for you${prev ? ' · near ' + esc(prev.title) : ''}`) + pinT;
+    return `<div class="${cls} ${it.home ? 'ahome' : liked || x.a || x.p ? '' : 'anew'} ${x.p === 'time' ? 'atime' : ''}" data-id="${esc(x.id)}"><span class="tdt">${T(x.t)}</span><span class="abar"></span><button class="grow atap" data-act="aev" data-id="${esc(x.id)}"><b>${esc(it.title)}</b><span class="asub">${sub}</span></button>${x.p === 'time' ? `<svg class="alock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" role="img" aria-label="Pinned to this time"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>` : x.p === 'day' ? `<svg class="apin" viewBox="0 0 24 24" fill="currentColor" role="img" aria-label="Pinned to this day"><path d="M16 3l5 5-4 1-4 4 1 5-2 2-4-4-5 5-1-1 5-5-4-4 2-2 5 1 4-4z"/></svg>` : ''}${x.p === 'time' ? '<span class="adh off"></span>' : `<span class="adh" role="button" tabindex="0" aria-label="Drag to move ${esc(it.title)}"><i></i><i></i><i></i></span>`}</div>`;
   };
   const nLiked = list.filter(x => x.it.likers.length).length;
   const placed = new Set(Object.values(a.days).flat().map(x => x.id)), last = list[list.length - 1]?.it || list[0]?.it;
   const offS = new Set(a.off || []), add = P.list.filter(x => !placed.has(x.id) && !offS.has(x.id) && x._ty !== 'tour' && x.lat != null).map(x => ({ x, d: kmBetween(last, x) - (x.likers.length ? 5 : 0) })).sort((p, q) => p.d - q.d).slice(0, 6).map(o => o.x);
   const TY = { coffee: 'Coffee', food: 'Food', drink: 'Drinks', indoor: 'Inside', sight: 'Out and about' };
-  return `<div class="ashapes">${SHAPE_KEYS.map(sk => `<button class="${sk === shape ? 'on' : ''}" data-act="ashape" data-s="${sk}">${SHAPES[sk].name}</button>`).join('')}</div>
+  return `<div class="ashapes">${shapeKeysOf(key).map(sk => `<button class="${sk === shape ? 'on' : ''}" data-act="ashape" data-s="${sk}">${SHAPES[sk].name}</button>`).join('')}</div>
     <button class="btn ashuf" data-act="ashuf">${ic('shuffle')}Reshuffle ${esc(new Date(k + 'T12:00').toLocaleDateString('en-US', { weekday: 'long' }))}</button>
-    <small class="anote">${esc(S.anote[key + k] || `${SHAPES[shape].name} · ${nLiked} of ${list.length} stops ${g ? 'someone' : partner() ? 'one of you' : 'you'} liked. Swipe left to take one off, right for something new.`)}${S.aundo && S.aundo.key === key && S.aundo.k === k ? ' <button class="alink" data-act="aundo">Undo</button>' : ''}</small>
+    <small class="anote">${esc(S.anote[key + k] || `${SHAPES[shape].name} · ${nLiked} of ${list.filter(x => !x.it.home).length} stops ${g ? 'someone' : partner() ? 'one of you' : 'you'} liked. Swipe left to take one off, right for something new.`)}${S.aundo && S.aundo.key === key && S.aundo.k === k ? ' <button class="alink" data-act="aundo">Undo</button>' : ''}</small>
     <div class="aline" data-k="${esc(k)}">${all.length ? all.map((r, i) => (i === nowI ? `<div class="tdnow"><i></i><span>${hm(r.t) <= nowM ? 'Now' : 'Up next'}</span></div>` : '') + row(r, i)).join('') : `<p class="muted" style="font-size:14px;margin:14px 4px">Nothing fits this day yet. Swipe the piles below, or try another shape.</p>`}</div>
     ${add.length ? `<div class="sect" style="margin-top:18px">Add to the day</div><div class="tdideas">${add.map(x => `<button class="tdi" data-act="aadd" data-id="${esc(x.id)}">${x.img ? `<img src="${esc(x.img)}" alt="">` : `<span class="pimg">${ic('ticket')}</span>`}<span><b>${esc(x.title)}</b><small>${x.likers.length ? esc(who(x.likers)) : TY[x._ty] || ''} · tap to add</small></span></button>`).join('')}</div>` : ''}`;
 }
@@ -3021,7 +3037,7 @@ function homeHTML() {
   hintLoad(); recapLoad(); vtagLoad();
   const st = S.state, p = partner(), incoming = (st.sessions || []).filter(s => s.from !== S.me && s.my_left > 0 && !(s.filters?.evshare && s.created_at && Date.now() - new Date(s.created_at) > 8 * 864e5)).sort((a, b) => (a.filters?.share || a.filters?.evshare ? 1 : 0) - (b.filters?.share || b.filters?.evshare ? 1 : 0));   // a nudge for right now takes the one slot ahead of a some-time-soon list
   if (!ls.get('allv1')) { ls.set('allv1', '1'); S.homeDeck = 'all'; ls.set('deck', 'all'); }   // the Everything deck is the new front door, once
-  if (TRIPSIDE()) { S.homeDeck = 'trip'; if (!S.tSet) { S.tSet = true; S.tripCity = tripFocus() || ''; } if (!S.sd) sdLoad().then(() => { if (TRIPSIDE() && S.view === 'home' && document.querySelector('.tpills')) render(); }); }
+  if (TRIPSIDE()) { S.homeDeck = 'trip'; if (!S.tSet) { S.tSet = true; S.tripCity = tripFocus() || ''; } if (!S.sd && !S.sdTry) { S.sdTry = true; sdLoad().then(() => { if (S.sd && TRIPSIDE() && S.view === 'home' && document.querySelector('.tpills')) render(); }).finally(() => setTimeout(() => { S.sdTry = false; }, 30000)); } }
   else if (!HDECKS.some(d => d[0] === S.homeDeck)) S.homeDeck = 'all';
   const tov = TRIPSIDE() && tripFocus() && S.tView !== 'pile' ? tripFocus() : '', gov = TRIPSIDE() && tripGid() && S.tView !== 'pile' ? tripGid() : '';
   if (DOCK2 && S.acct && !FR.d && !S.frTry) { S.frTry = 1; frLoad().then(() => { if (S.view === 'home' && TRIPSIDE()) render(); else setTimeout(clashCheck, 300); }).catch(() => {}); }   // group trips show on the Trips side without opening Crew first
@@ -3033,7 +3049,7 @@ function homeHTML() {
       <button class="ib" data-act="search" aria-label="Search movies">${ic('search')}</button>${DOCK2 ? (sbA ? `<button class="ib" data-act="people" aria-label="Crew: your partner, friends and groups">${ic('users')}</button>` : '') : NEWUI ? `<button class="ib hlib" data-act="hlib" aria-label="What you liked">${ic('heart')}</button>` : sbA ? `<button class="ib" data-fr="open" aria-label="Friends and group plans">${ic('users')}</button>` : ''}
       ${DOCK2 ? '' : `<button class="ib shr ${ls.get('shared') ? 'shd' : ''}" data-act="sharefriends" aria-label="Share Let’s Together with friends">${ic('share')}</button>`}
       ${bellHTML()}<button class="ib" data-tab="you" aria-label="You and settings">${ic('gear')}</button></div>${TRIPSIDE() ? '' : slotHTML(incoming)}
-    <div id="hbot" style="display:contents">${TRIPSIDE() ? `<div id="tphd">${tripHead()}</div>` : `<div class="seg" style="margin:8px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="kc k-${CK[k]} ${S.homeDeck === k ? 'on' : ''}">${l}${heartTag(k)}</button>`).join('')}</div>`}${!TRIPSIDE() && scratchShow() && !S.awayOffer ? `<button class="scratch-pill" data-act="scratch">${ic('spark')}<span><b>A scratch card is waiting</b><small>One thing ${esc(p)} is in on</small></span><i>Scratch</i></button>` : ''}${S.awayOffer ? `<div class="trav"><span class="tic">${ic('pin')}</span><span class="grow"><b>Looks like you’re in ${esc(S.awayOffer.city)}</b><small>Show places to eat and things to do here?</small></span><button class="go" data-act="awayyes">Show</button><button class="x" data-act="awayno" aria-label="Not now">×</button></div>` : ''}${S.away && (S.homeDeck === 'dinner' || S.homeDeck === 'event') ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><small class="muted" style="font-size:12.5px">${ic('pin')} ${S.away.trip ? `Your ${esc(S.away.city)} trip` : `Showing ${esc(S.away.city)} on this phone`}</small><button class="chip" data-act="awayoff" style="padding:5px 12px;font-size:13px">Back to home</button></div>` : ''}${S.homeDeck === 'movie' && !NEWUI ? `<div class="row" style="margin:14px 2px 0"><button class="chip" data-act="movielib" style="padding:5px 12px;font-size:13px">${ic('film')} Movie library</button></div>` : ''}${shareChip()}${S.homeDeck === 'art' ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="gallery" style="padding:5px 12px;font-size:13px">${ic('frame')} Our gallery</button><small class="muted" style="font-size:12.5px">No nudges, just likes</small></div>` : ''}${S.homeDeck === 'trip' && !TRIPSIDE() ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="trips" style="padding:5px 12px;font-size:13px">${ic('heart')} Saved trips</button><button class="chip ${S.tripCity ? 'on' : ''}" data-act="tripcity" style="padding:5px 12px;font-size:13px">${esc(S.tripCity || 'Anywhere')} ▾</button></div>` : ''}
+    <div id="hbot" style="display:contents">${TRIPSIDE() ? `<div id="tphd">${tripHead()}</div>` : `<div class="seg" style="margin:8px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="kc k-${CK[k]} ${S.homeDeck === k ? 'on' : ''}">${l}${heartTag(k)}</button>`).join('')}</div>`}${!TRIPSIDE() && scratchShow() && !S.awayOffer ? `<button class="scratch-pill" data-act="scratch">${ic('spark')}<span><b>A scratch card is waiting</b><small>One thing ${esc(p)} is in on</small></span><i>Scratch</i></button>` : ''}${S.awayOffer ? `<div class="trav"><span class="tic">${ic('pin')}</span><span class="grow"><b>Looks like you’re ${S.awayOffer.place ? 'at ' + esc(S.awayOffer.city) : 'in ' + esc(S.awayOffer.city)}</b><small>${S.awayOffer.place ? 'Plan around it for the next few days?' : 'Show places to eat and things to do here?'}</small></span><button class="go" data-act="awayyes">${S.awayOffer.place ? 'Plan' : 'Show'}</button><button class="x" data-act="awayno" aria-label="Not now">×</button></div>` : ''}${S.away && (S.homeDeck === 'dinner' || S.homeDeck === 'event') ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><small class="muted" style="font-size:12.5px">${ic('pin')} ${S.away.trip ? `Your ${esc(S.away.city)} trip` : `Showing ${esc(S.away.city)} on this phone`}</small><button class="chip" data-act="awayoff" style="padding:5px 12px;font-size:13px">Back to home</button></div>` : ''}${S.homeDeck === 'movie' && !NEWUI ? `<div class="row" style="margin:14px 2px 0"><button class="chip" data-act="movielib" style="padding:5px 12px;font-size:13px">${ic('film')} Movie library</button></div>` : ''}${shareChip()}${S.homeDeck === 'art' ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="gallery" style="padding:5px 12px;font-size:13px">${ic('frame')} Our gallery</button><small class="muted" style="font-size:12.5px">No nudges, just likes</small></div>` : ''}${S.homeDeck === 'trip' && !TRIPSIDE() ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="trips" style="padding:5px 12px;font-size:13px">${ic('heart')} Saved trips</button><button class="chip ${S.tripCity ? 'on' : ''}" data-act="tripcity" style="padding:5px 12px;font-size:13px">${esc(S.tripCity || 'Anywhere')} ▾</button></div>` : ''}
     ${tov ? `<div class="tov">${tripScreen('c:' + tov)}</div>` : gov ? `<div class="tov">${tripScreen('g:' + gov)}</div>` : ''}
     <div class="stack" id="stack" style="margin:4px 0 6px${tov || gov ? ';display:none' : ''}">${S.doneHtml?.[S.homeDeck]?.day === new Date().toDateString() ? (setTimeout(() => libGrid(S.homeDeck), 0), S.doneHtml[S.homeDeck].html) : ''}</div>
     <div class="actions" id="acts" style="visibility:hidden${tov || gov ? ';display:none' : ''}"><button class="act sm" data-sw="undo" aria-label="Undo">${ic('undo')}</button><button class="act no" data-sw="no" aria-label="No">${ic('x')}</button>
@@ -4145,7 +4161,7 @@ async function dayStart() {
   S.listCards = [...anch, ...mine];
   const pk = p => p.mode === 'in' || pKind(p) === 'fri' ? 'fri' : 'sat';
   const tile = (c, both) => `<button class="tcard pa kc k-${CK[c.deck] || 'ask'} ${both ? 'both' : ''}" data-pl="around|${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy" draggable="false">` : `<span class="pimg">${emojiFor(c)}</span>`}<span class="tt"><b>${esc(c.title)}</b><small>${both ? 'You both like · ' : ''}${isDated(c) ? esc(dfmt(c.event_date) + (c.data?.time ? ' · ' + c.data.time : '')) : esc((c.subtitle || '').split(' · ')[0])}</small></span></button>`;
-  sheet(`<div class="grab"></div><div class="tn pday"><div class="tn-head"><div class="brand">${BRAND}</div><h2>Plan a day</h2><p class="muted" style="margin-top:8px;font-size:14px">Two or three things in one day, sent to ${esc(them())} to say yes or swap.</p></div>${hungryRow((S.plans || []).find(x => x.day === pToday() && hungryNext(x)) || null)}${BETA ? `<div id="wcslot">${wcBanner()}</div>` : ''}${NEWUI ? whoRow('day') + `<button class="jlink" data-sp="start" style="margin:4px auto 0;display:block">Make it a surprise for ${esc(them())} instead</button>` : ''}
+  sheet(`<div class="grab"></div><div class="tn pday"><div class="tn-head"><div class="brand">${BRAND}</div><h2>Plan a day</h2><p class="muted" style="margin-top:8px;font-size:14px">Two or three things in one day, sent to ${esc(them())} to say yes or swap.</p></div>${hungryRow((S.plans || []).find(x => x.day === pToday() && hungryNext(x)) || null)}${BETA ? `<div id="wcslot">${wcBanner()}</div><div id="stslot">${baseRow()}</div>` : ''}${NEWUI ? whoRow('day') + `<button class="jlink" data-sp="start" style="margin:4px auto 0;display:block">Make it a surprise for ${esc(them())} instead</button>` : ''}
     ${live.map(p => `<button class="tripbar kc k-${pk(p)}" data-pl="view|${p.id}" style="width:100%;text-align:left"><span class="tic">${ic(pk(p) === 'fri' ? 'moon' : 'sun')}</span><span class="grow"><b>${pDayName(p.day)}${p.mode === 'in' ? ' · night in' : ''}</b><small>${pSum(p)}<br>${pStatus(p)}</small></span><span class="go ${p.ok?.[S.me] ? '' : 'blink'}">Open</span></button>`).join('')}
     ${DOCK2 ? `<div class="sect" style="margin-top:16px">What kind of day?</div><div class="lshapes">${SHAPE_KEYS.map(k => `<button class="stile kc k-${k === 'night' ? 'fri' : 'sat'}" data-pl="new|out|${k}"><span><b>${SHAPES[k].name}</b><small>${LSHAPE[k].sub}</small></span></button>`).join('')}</div>` : ''}
     <div class="stiles" style="margin-top:14px">${DOCK2 ? '' : `<button class="stile kc k-sat" data-pl="new|out"><span class="tic">${ic('sun')}</span><span><b>A whole day</b><small>Daytime, dinner, something after</small></span></button>`}
@@ -4457,6 +4473,44 @@ function plansForm() {
     <div style="height:12px"></div><button class="btn" data-act="saveplans">Save weekend plans</button>`}
     ${favs.length ? `<div class="kv" style="margin-top:16px">Your favorites</div>${favs.map(f => `<div class="prow">${f.card.image ? `<img src="${esc(f.card.image)}" alt="" loading="lazy">` : `<span class="pimg">${emojiFor(f.card)}</span>`}<span class="grow"><b>${esc(f.card.title)}</b><small>Comes back now and then, next to something new</small></span><button class="x fav on" data-pl="fav|${f.card.id}" aria-label="Remove from favorites">★</button></div>`).join('')}` : `<p class="muted" style="font-size:13px;margin-top:12px">Tap ☆ on a place in a plan to make it a favorite. Favorites come back in future plans, next to something new.</p>`}`;
 }
+// A home base away from home (beta, Dave 21 Nov): a saved place (the cottage) for some days. It's stored like a couple trip,
+// so the days plan themselves with base shapes, and the phone switches to it for those days (trip_now).
+const BSTY = { home: ['Mostly at the place', 'One outing a day, dinners in'], out: ['Out and about', 'Towns, beaches, a dinner out each night'] };
+function baseRow() {
+  if (!BETA || !partner()) return '';
+  const ps = (S.places || []).filter(p => p.data?.lat != null), base = (S.settings?.plans || []).find(c => planMeta(c).base && (planMeta(c).to || '') >= pToday());
+  if (S.places === undefined) { S.places = null; rpc('place_list', { p_code: S.code }).then(x => { S.places = x || []; const el = document.getElementById('stslot'); if (el) el.innerHTML = baseRow(); }).catch(() => { S.places = []; }); }
+  if (base) { const m = planMeta(base); return `<button class="wcban off" data-act="stgo" data-c="${esc(base)}"><span class="tic">${ic('pin')}</span><span class="grow"><b>${esc(base)}: ${esc(dShort(m.from))} to ${esc(dShort(m.to))}</b><small>Your days there are planned. Tap to see them.</small></span><span class="go">Open</span></button>`; }
+  return `<div class="sect" style="margin:16px 0 8px">Away from home?</div><div class="hchips">${ps.map(p => `<button class="hchip" data-act="stnew" data-id="${esc(p.id)}">At ${esc(p.title)}</button>`).join('')}<button class="hchip" data-act="stadd">+ Another place</button></div>`;
+}
+function baseSheet() {
+  const f = S.stf; if (!f) return; const p = (S.places || []).find(x => x.id === f.id); if (!p) return;
+  const days = Array.from({ length: 21 }, (_, i) => pAdd(pToday(), i)), inR = d => f.from && d >= f.from && d <= (f.to || f.from);
+  sheet(`<div class="grab"></div><div class="body"><small class="tkick">Plan a day</small><h2>Days at ${esc(p.title)}</h2>
+    <p class="muted" style="margin-top:6px;font-size:14px">For those days, Hungry, the weekend card and your plans all switch to ${esc(p.title)}.</p>
+    <div class="sect" style="margin-top:16px">When are you there? <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:400">Tap the first day, then the last</span></div>
+    <div class="stdays2">${days.map(d => { const x = new Date(d + 'T12:00'); return `<button class="${inR(d) ? 'on' : ''}" data-act="stday" data-d="${d}"><small>${x.toLocaleDateString('en-US', { weekday: 'short' })}</small><b>${x.getDate()}</b></button>`; }).join('')}</div>
+    <div class="sect" style="margin-top:16px">What kind of days?</div><div class="wcopts">${Object.entries(BSTY).map(([k, [t, sub]]) => `<button class="apinopt ${f.style === k ? 'on' : ''}" data-act="ststyle" data-v="${k}"><b>${t}</b><small>${sub}</small></button>`).join('')}</div>
+    <div style="height:18px"></div><button class="btn" data-act="stsave" ${f.from ? '' : 'disabled'}>${f.from ? `Plan our days at ${esc(p.title.replace(/^The /, 'the '))}` : 'Pick your days'}</button></div>`);
+}
+async function baseSave() {
+  const f = S.stf, p = (S.places || []).find(x => x.id === f?.id); if (!p || !f.from) return; const to = f.to || f.from;
+  sheet(ltLoad(p.title, 'Finding what’s around it', ['Places to eat', 'Things to do', 'Building your days']));
+  let town = ''; try { const j = await (await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${(+p.data.lat).toFixed(3)}&longitude=${(+p.data.lng).toFixed(3)}&localityLanguage=en`)).json(); town = j.city || j.locality || ''; } catch {}
+  try { S.settings = await rpc('stay_set', { p_code: S.code, p_member: S.me, p_place: p.id, p_from: f.from, p_to: to, p_style: f.style || 'home', p_town: town || p.title }); } catch { closeSheet(); return toast('Could not save those days. Try again.'); }
+  const tw = planMeta(p.title.slice(0, 40)).base?.town || p.title;
+  try { await Promise.race([sb.functions.invoke('whereis', { body: { code: S.code, action: 'area', lat: p.data.lat, lng: p.data.lng, town: tw, place: p.id } }), new Promise(r => setTimeout(r, 25000))]); } catch {}
+  S.stf = null; delete S.tpool['c:' + p.title.slice(0, 40)];
+  sheet(`<div class="grab"></div><div class="body"><small class="tkick">${esc(p.title)}</small><h2>Swipe what’s around it</h2><p class="muted" style="margin-top:6px;font-size:14px">A quick round each, so your days there come from what you both like. ${esc(them())} gets the same rounds.</p>
+    <div style="height:14px"></div><button class="btn" data-act="stswipe" data-deck="event" data-town="${esc(tw)}">Things to do</button><div style="height:8px"></div><button class="btn ghost" data-act="stswipe" data-deck="dinner" data-town="${esc(tw)}">Places to eat and drink</button>
+    <button class="jlink" data-act="stgo" data-c="${esc(p.title.slice(0, 40))}" style="display:block;margin:14px auto 0">See our days first</button></div>`);
+}
+function baseDetail(c) {
+  const m = planMeta(c), b = m.base || {};
+  return `<div class="trp kc k-book" style="padding-top:6px"><div class="atrip"><b>At ${esc(c)}</b><small>${esc(dShort(m.from))} to ${esc(dShort(m.to))} · ${esc(BSTY[b.style || 'home'][0].toLowerCase())}. Hungry, the weekend card and plans use ${esc(c)} on these days.</small><button class="btn" data-act="atrip">Reshuffle every day</button></div>
+    <div style="height:10px"></div><button class="btn ghost" data-act="stswipe" data-deck="event" data-town="${esc(b.town || c)}">Swipe things to do around it</button><div style="height:8px"></div><button class="btn ghost" data-act="stswipe" data-deck="dinner" data-town="${esc(b.town || c)}">Swipe places to eat and drink</button>
+    <button class="jlink" data-act="stend" data-c="${esc(c)}" style="display:block;margin:16px auto 0">We’re not going after all</button></div>`;
+}
 // Weekend card (beta, Dave 21 Nov): opt-in only. No card is made until both say they're in and pick the time they keep free.
 const WC_WHEN = { sat: ['Saturday afternoon', 'Noon to about 6pm', 'Saturday'], sun: ['Sunday daytime', 'Late morning to late afternoon', 'Sunday'], whole: ['A whole day', 'Up to 90 minutes out of town', 'Saturday'] };
 const WC_EVERY = { every: 'Every weekend', other: 'Every other', month: 'Once a month' }, WC_BUD = [[0, 'Free'], [50, '$50'], [100, '$100'], [null, 'Any']];
@@ -4583,6 +4637,7 @@ async function hungry(kind, planId) {
   sheet(ltLoad(lbl, nx ? `Looking near ${esc(nx.card.title)}` : 'Looking near you', ['Your likes', 'Open when you get there', 'Close by']));
   let at = { lat: 42.3314, lng: -83.0458 }, when = new Date(), far = false;
   if (nx) { at = { lat: +nx.card.data.lat, lng: +nx.card.data.lng }; const [h, m] = nx.time.split(':').map(Number), d = new Date(); d.setHours(h, m - 75, 0, 0); if (d > when) when = d; }
+  else if (S.away?.lat != null && S.away.label) { at = { lat: S.away.lat, lng: S.away.lng }; S.hg.where = 'Near ' + S.away.label; }
   else { const g = await hgPos(); if (g) at = g; else { far = true; S.hg.where = 'Downtown Detroit'; } }
   try { S.hg.list = await rpc('hungry_spots', { p_code: S.code, p_member: S.me, p_lat: at.lat, p_lng: at.lng, p_kind: kind, p_at: when.toISOString() }); } catch { S.hg.list = []; }
   S.hg.when = when.getTime(); S.hg.nx = nx ? { title: nx.card.title, time: nx.time } : null; S.hg.far = far; hungrySheet();
@@ -7527,7 +7582,7 @@ document.addEventListener('click', async e => {
         step(on ? 'kids_on' : 'kids_off'); toast(on ? 'Kid-friendly from the next cards on, for both of you.' : 'Back to everything.'); return render(); }
       case 'travelon': return checkTravel(true);
       case 'traveloff': ls.del('travel'); ls.del('away'); S.away = null; S.awayOffer = null; gemAway(); return render();
-      case 'awayyes': if (!S.awayOffer) return; S.away = S.awayOffer; ls.set('away', JSON.stringify(S.away)); S.awayOffer = null; gemAway(); if (S.homeDeck !== 'event') S.homeDeck = 'dinner'; toast(`Showing ${S.away.city} on this phone. Home is still saved.`, 3500); return render();
+      case 'awayyes': if (!S.awayOffer) return; if (S.awayOffer.place) { const p = S.awayOffer.place, t0 = pToday(), d = new Date(t0 + 'T12:00'), sun = pAdd(t0, (7 - d.getDay()) % 7); S.awayOffer = null; S.stf = { id: p.id, from: t0, to: sun, style: 'home' }; return baseSheet(); } S.away = S.awayOffer; ls.set('away', JSON.stringify(S.away)); S.awayOffer = null; gemAway(); if (S.homeDeck !== 'event') S.homeDeck = 'dinner'; toast(`Showing ${S.away.city} on this phone. Home is still saved.`, 3500); return render();
       case 'awayno': if (S.awayOffer) ls.set('awayno', S.awayOffer.city + new Date().toDateString()); S.awayOffer = null; return render();
       case 'triploc': { const a = S.away; if (!a?.trip) return; t.disabled = true;
         const pos = await new Promise(res => navigator.geolocation.getCurrentPosition(res, () => res(null), { timeout: 12000 }));
@@ -7611,6 +7666,14 @@ document.addEventListener('click', async e => {
       case 'hungry': return hungry(t.dataset.hk, t.dataset.hp);
       case 'hadd': return hungryAdd(t.dataset.id);
       case 'wcopen': return wcOpen();
+      case 'stnew': S.stf = { id: t.dataset.id, from: '', to: '', style: 'home' }; return baseSheet();
+      case 'stday': { const f = S.stf, d = t.dataset.d; if (!f) return; if (!f.from || f.to || d < f.from) { f.from = d; f.to = ''; } else f.to = d; return baseSheet(); }
+      case 'ststyle': if (S.stf) S.stf.style = t.dataset.v; return baseSheet();
+      case 'stsave': return baseSave();
+      case 'stadd': S.plName = ''; S.plAddr = ''; S.plFound = null; return placeSheet();
+      case 'stgo': closeSheet(); S.side = 'trips'; S.view = 'home'; S.tab = 'home'; S.tSel = 'c:' + t.dataset.c; S.tView = 'home'; S.tripCity = t.dataset.c; return render();
+      case 'stswipe': closeSheet(); return startSession(t.dataset.deck, { away: t.dataset.town, n: 16 }, null);
+      case 'stend': { const c = t.dataset.c; try { S.settings = await rpc('stay_end', { p_code: S.code, p_member: S.me, p_name: c }); } catch {} if (S.away?.label === c) { S.away = null; ls.del('away'); } S.tSel = 'someday'; toast(`Took ${c} off your plans.`); return render(); }
       case 'wcset': return (S.wcf = null, S.wc ? wcSet() : wcLoad().then(wcSet));
       case 'wcf': { const v = t.dataset.v; S.wcf = { ...(S.wcf || {}), [t.dataset.k]: v === 'null' ? null : /^\d+$/.test(v) ? +v : v }; return wcSet(); }
       case 'wcin': return wcSave(true);
