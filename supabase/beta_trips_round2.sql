@@ -40,3 +40,9 @@
 --   stay Bairro Alto Rooftop Apartment, Rua da Rosa 123, check-in 15:00, check-out 08:00. Deck now 18 cards.
 --   BETADAVE couple Lisbon (Mar 12–18): 18 stops across Mar 12–17, flights for Dave and Ava (TP236 07:10),
 --   stay Casa do Largo, Alfama (14:00 / 11:00), bike tour booked Mar 15 10:00.
+
+-- Round 6 (21 Nov): auto-planned trip days. Migration trip_auto_plan on production:
+--   _trip_card_json(cards), fr_trip_pool(p_id) (signed in; plan deck + the city's trip cards, likers = member ids who swiped yes),
+--   plan_trip_pool(code, member, city) (likers = member names with yes/love), fr_trip_set/plan_trip_set kind 'auto'
+--   (data.auto / plan_meta[city].auto = {v, seed, shapes{day:shape}, days{day:[{id, t, n(new), x(extra), a(added)}]}, at, by}).
+--   Test data: fr_swipes seeded for "Lisbon with the crew" from its days entries (39 yes swipes).
