@@ -514,6 +514,7 @@ html.ios-app .coach{position:absolute}
 .ovb{font-size:14.5px;line-height:20px;color:var(--text);margin-top:9px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .ofx{font-size:13px;line-height:18px;color:rgba(245,239,232,.72);margin-top:7px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .home.one .stack .done{padding-top:var(--onetop,120px)}
+.home.one .card.flipped{background:#211b25}.home.one .card .cback{top:calc(var(--onetop,120px) - 8px);padding-top:16px;background:linear-gradient(180deg,#211b25,#19151c)}.home.one .stack:has(.card.flipped)::after{display:none}
 .home.one .stack .done .badge{display:none}
 .home.one .lgstk .sect{text-transform:none;letter-spacing:0;font-size:13px;font-weight:600;color:var(--text)}
 .home.one .lgstk .mstk{max-width:clamp(56px,calc((100cqh - 232px - var(--onetop,120px)) * .75),170px)}
@@ -1171,8 +1172,9 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .lgstk .mstw{margin-top:2px}.lgstk .mstk{max-width:clamp(56px,calc((100cqh - 232px) * .75),170px)}.lgstk .mhint{margin-top:8px}
 @container (max-height:400px){.lgstk .mhint{display:none}.lgstk .mstk{max-width:clamp(56px,calc((100cqh - 188px) * .75),170px)}}
 .mstw{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:10px}.mcol{display:flex;flex-direction:column;align-items:center;gap:10px}.mcol .sect{margin:0;text-align:center}
-.mstk{position:relative;width:100%;max-width:170px;aspect-ratio:3/4}.mcard{position:absolute;inset:0;border:0;padding:0;border-radius:18px;overflow:hidden;background:#2a2028;color:#fff;text-align:left;box-shadow:0 12px 26px -12px rgba(0,0,0,.8);transition:transform .19s ease,opacity .19s ease}
-.mcard img,.mcard .pimg{width:100%;height:100%;object-fit:cover;display:flex;align-items:center;justify-content:center;font-size:42px}.mcard b{position:absolute;left:0;right:0;bottom:0;padding:26px 11px 10px;font-family:var(--serif);font-weight:400;font-size:18px;line-height:1.08;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.75))}
+.done .mplay{display:flex;gap:9px;width:100%;max-width:340px;flex:none}.done .mplay .btn{flex:1 1 0;min-width:0;max-width:none;padding-left:4px;padding-right:4px;white-space:nowrap;font-size:14.5px}.done.tight>.badge{display:none}.done[style*="--mimg"] .mrow .mimg{height:var(--mimg);aspect-ratio:auto}
+.mstk{position:relative;width:100%;max-width:170px;aspect-ratio:3/4}.mstk .mcard{position:absolute;inset:0;border:0;padding:0;border-radius:18px;overflow:hidden;background:#2a2028;color:#fff;text-align:left;box-shadow:0 12px 26px -12px rgba(0,0,0,.8);transition:transform .19s ease,opacity .19s ease}
+.mstk .mcard img,.mstk .mcard .pimg{width:100%;height:100%;object-fit:cover;display:flex;align-items:center;justify-content:center;font-size:42px}.mstk .mcard b{position:absolute;left:0;right:0;bottom:0;padding:26px 11px 10px;font-family:var(--serif);font-weight:400;font-size:18px;line-height:1.08;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.75))}
 .mstk .mcard:nth-child(1){z-index:3}.mstk .mcard:nth-child(2){z-index:2;transform:rotate(3deg) translate(4px,2px)}.mstk .mcard:nth-child(3){z-index:1;transform:rotate(-4deg) translate(-4px,4px)}.mstk .mcard:nth-child(n+4){opacity:0;pointer-events:none}
 .mstk .mcard.outl{transform:translateX(-115%) rotate(-12deg);opacity:0}.mstk .mcard.outr{transform:translateX(115%) rotate(12deg);opacity:0}.mhint{text-align:center;font-size:12px;margin-top:12px}
 .tside .btn>.ic,.trp .btn>.ic{width:17px;height:17px;margin-right:8px;vertical-align:-3px}.mzl{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}.mzi{display:flex;flex-direction:column;gap:4px;text-decoration:none;color:#fff}.mzi img,.mzi .pimg{width:100%;aspect-ratio:1;border-radius:12px;object-fit:cover;background:#ecebe8}.mzi b{font-size:13.5px}.mzi small{color:#3ee0c5;font-size:12px}.mzi{background:none;border:0;padding:0;font:inherit;text-align:left;cursor:pointer}.mzhero{width:100%;max-height:260px;object-fit:contain;border-radius:14px;background:#ecebe8;margin:10px 0 6px}.mzsz{flex-wrap:wrap}.mzdel{display:block;margin:14px auto 0;color:#ff7a8a}.mzrow select{width:auto;min-width:72px;margin:0}.mzs a.btn{display:flex;align-items:center;justify-content:center;width:100%;box-sizing:border-box;text-decoration:none}.mzs small+a.btn{margin-top:16px!important}
@@ -7311,8 +7313,9 @@ function drawStack() {
     st.innerHTML = `<div class="done"><div class="badge">${ic(S.matches.length ? 'heart' : 'eye')}</div><h3>${S.matches.length > 1 ? `${S.matches.length} matches. Which one?` : S.matches.length ? 'You matched' : 'You are through the deck'}</h3>
       <p class="muted">${S.solo ? 'Your likes are saved. They count toward the next round, and you match the moment you both like the same one.' : waiting ? `${esc(them())} still has ${S.theirLeft} to swipe. You will both see matches as they land.` : 'You have both been through all of these.'}</p>
       ${S.matches.length ? endMatchesHTML() : ladderHTML(waiting)}
-      <button class="btn ghost" data-act="more">Deal more cards</button>${S.hist.length ? '<button class="btn ghost" data-sw="undo">Undo last swipe</button>' : ''}</div>`;
-    st.querySelectorAll('[data-why]').forEach(el => { const c = S.matches.find(x => x.id === el.dataset.why); if (c) whyLine(c, el); });
+      ${S.matches.length ? '<div class="mplay">' : ''}<button class="btn ghost" data-act="more">Deal more cards</button>${S.hist.length ? '<button class="btn ghost" data-sw="undo">Undo last swipe</button>' : ''}${S.matches.length ? '</div>' : ''}</div>`;
+    st.querySelectorAll('[data-why]').forEach(el => { const c = S.matches.find(x => x.id === el.dataset.why); if (c) Promise.resolve(whyLine(c, el)).then(endFit, () => {}); });
+    if (S.matches.length) { endFit(); setTimeout(endFit, 400); }
     return;
   }
   if (S.bite && S.doneHtml?.[S.sess?.deck]) { delete S.doneHtml[S.sess.deck]; try { ls.set('donehtml', JSON.stringify(S.doneHtml)); } catch {} }
@@ -7636,7 +7639,13 @@ function pairPeek() { const p = S.pair; document.querySelector('.cele')?.remove(
 function endMatchesHTML() {
   const ms = [...S.matches].sort((x, y) => (y.loves || 0) - (x.loves || 0)), many = ms.length > 1; S.listCards = ms;
   return `<div class="mrow ${many ? (ms.length === 2 ? 'two' : '') : 'one'}">${ms.map((c, i) => { const cl = chainLabel(c); return `<div class="mcard"><button class="mimg" data-detail="${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="">` : emojiFor(c)}</button><b>${esc(c.title)}</b>${c.loves >= 2 ? '<small class="lv">★ You both loved it</small>' : c.loves === 1 ? '<small class="lv">★ One of you loved it</small>' : ''}${c.deck === 'movie' && i < 3 ? `<small data-why="${c.id}" style="display:none"></small>` : ''}<button class="btn sm" data-final="${c.id}">${many ? 'Choose this' : 'Lock it in'}</button>${cl ? `<button class="btn ghost sm" data-chain="${c.id}">${cl} →</button>` : ''}</div>`; }).join('')}</div>
-    ${gameNow() ? gameBlock() : many && !S.solo ? '<button class="btn ghost" data-lad="game">Play for it</button><button class="btn ghost" data-lad="pick">Pick one at random</button>' : ''}`;
+    ${gameNow() ? gameBlock() : many && !S.solo ? '<div class="mplay"><button class="btn ghost" data-lad="game">Play for it</button><button class="btn ghost" data-lad="pick">Pick one at random</button></div>' : ''}`;
+}
+// End of a round: the picks and their buttons must fit without a scroll. First drop the badge, then take the overflow out of the pictures.
+function endFit() { const d = document.querySelector('.stack > .done'); if (!d || !d.querySelector('.mrow')) return;
+  d.classList.remove('tight'); d.style.removeProperty('--mimg'); if (d.scrollHeight - d.clientHeight <= 0) return;
+  d.classList.add('tight'); const over = d.scrollHeight - d.clientHeight, im = d.querySelector('.mimg'); if (over <= 0 || !im) return;
+  d.style.setProperty('--mimg', Math.max(84, im.offsetHeight - over) + 'px');
 }
 async function pickNext() {
   const c = await rpc('pick_next', { p_code: S.code, p_session: S.sess.id, p_skip: S.skips || [] });
