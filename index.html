@@ -490,7 +490,7 @@ html.ios-app .coach{position:absolute}
 .home.one .hdr .ib{background:none;box-shadow:none;flex:0 0 42px;width:42px;margin:0}
 .home.one:not([data-d=movie]) .hdr [data-act=search]{display:none}
 .home.one>.slot,.home.one #herep{position:absolute;z-index:4;margin:0;height:44px;overflow:hidden}
-.home.one:has(#herep>.herep)>.slot{display:none}
+.home.one:has(#herep>.herep)>.slot{display:none}.home.one #herep{pointer-events:none}.home.one #herep>*{pointer-events:auto}
 .home.one .slot .slotrow{height:44px}.home.one .slot .sld{display:none}.home.one .slot .sli{width:100%}
 .home.one .slot .sli>*,.home.one .herep{margin:0!important;padding:0!important;min-height:44px;height:44px;width:100%;background:none!important;box-shadow:none!important;border-radius:0;display:flex;align-items:center;gap:8px;text-shadow:0 1px 10px rgba(0,0,0,.8)}
 .home.one .slot .grow,.home.one .herep .grow{flex:0 1 auto;min-width:0;gap:0;display:flex;align-items:center;white-space:nowrap;overflow:hidden}
@@ -510,7 +510,7 @@ html.ios-app .coach{position:absolute}
 .home.one .card h3{font-size:clamp(32px,10.4vw,42px);line-height:1.04;margin-top:10px;text-wrap:balance;-webkit-line-clamp:3}
 .owy{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;min-height:18px;font-size:13px;font-weight:600;color:var(--text)}
 .owy b{font-weight:600;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.osc{display:flex;align-items:flex-end;gap:6px;height:18px;flex:none}.osc i{width:2px;height:9px;border-radius:1px;background:rgba(255,255,255,.42)}.osc i.on{height:18px;background:#fff}
+.osc{display:none}.osc i{width:2px;height:9px;border-radius:1px;background:rgba(255,255,255,.42)}.osc i.on{height:18px;background:#fff}
 .ovb{font-size:14.5px;line-height:20px;color:var(--text);margin-top:9px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .ofx{font-size:13px;line-height:18px;color:rgba(245,239,232,.72);margin-top:7px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .home.one .stack .done{padding-top:var(--onetop,120px)}
@@ -536,7 +536,6 @@ html.ios-app .coach{position:absolute}
 .home.one .seg{order:6;height:48px;box-sizing:border-box;margin:10px 2px 0!important;padding:2px;gap:0;border-radius:24px;background:#0a080c;box-shadow:inset 0 1px 3px rgba(0,0,0,.7)}
 .home.one .seg button{height:44px;min-height:44px;padding:0 2px;border-radius:22px;background:none!important;box-shadow:none!important;font-size:13px;font-weight:500;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:7px}
 .home.one .seg button.on{background:var(--surface2)!important;color:var(--text);font-weight:600}
-.home.one .seg button.on::before{content:'';flex:none;width:6px;height:6px;border-radius:50%;background:var(--kb,var(--ka,#ff4d7e));box-shadow:0 0 8px var(--kb,var(--ka,#ff4d7e))}
 .home.one .seg .hc{display:none}
 .home.one .dock{order:7;background:none;padding-left:0;padding-right:0;margin-top:6px}
 .home.one .dock button,.home.one .dock button.on{background:none!important;box-shadow:none!important;color:#cfc6d2!important;font-weight:500}
@@ -642,7 +641,8 @@ html.ios-app .coach{position:absolute}
 .gstage .btn{max-width:320px}
 .gcount{font-family:var(--serif);font-size:clamp(96px,34vw,150px);line-height:1;animation:pop .3s cubic-bezier(.2,1.4,.4,1)}
 .gpad{width:min(78vw,300px);aspect-ratio:1;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,#ff7a4d,#ff4d7e);box-shadow:0 0 70px -10px rgba(255,90,110,.9), inset 0 2px 0 rgba(255,255,255,.4);touch-action:none;-webkit-user-select:none;user-select:none}
-.gpad b{font-family:var(--serif);font-weight:400;font-size:84px;line-height:1}.gpad small{font-size:15px;letter-spacing:2px;font-weight:700;opacity:.9}
+.gpad b{font-family:var(--serif);font-weight:400;font-size:84px;line-height:1}
+.gcount.hid{animation:none}.gcount.hid i{display:inline-block;font-style:normal;animation:gbob .7s ease-in-out infinite}.gcount.hid i:nth-child(2){animation-delay:.14s}.gcount.hid i:nth-child(3){animation-delay:.28s}@keyframes gbob{50%{transform:translateY(-9%);opacity:.4}}.gtrun{visibility:hidden;margin-top:-6px;font-size:13.5px;font-weight:600;color:#ffb39c}@media (prefers-reduced-motion:reduce){.gcount.hid i{animation:none}}.gpad small{font-size:15px;letter-spacing:2px;font-weight:700;opacity:.9}
 .gpad.hit{animation:ghit .12s ease-out}
 .gbar{width:100%;max-width:340px;height:6px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden}
 .gbar i{display:block;height:100%;background:linear-gradient(90deg,#ff7a4d,#ff4d7e);transform-origin:left}
@@ -1172,7 +1172,7 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .lgstk .mstw{margin-top:2px}.lgstk .mstk{max-width:clamp(56px,calc((100cqh - 232px) * .75),170px)}.lgstk .mhint{margin-top:8px}
 @container (max-height:400px){.lgstk .mhint{display:none}.lgstk .mstk{max-width:clamp(56px,calc((100cqh - 188px) * .75),170px)}}
 .mstw{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:10px}.mcol{display:flex;flex-direction:column;align-items:center;gap:10px}.mcol .sect{margin:0;text-align:center}
-.done .mplay{display:flex;gap:9px;width:100%;max-width:340px;flex:none}.done .mplay .btn{flex:1 1 0;min-width:0;max-width:none;padding-left:4px;padding-right:4px;white-space:nowrap;font-size:14.5px}.done.tight>.badge{display:none}.done[style*="--mimg"] .mrow .mimg{height:var(--mimg);aspect-ratio:auto}
+.done .mplay{display:flex;gap:9px;width:100%;max-width:340px;flex:none}.done .mplay .btn{flex:1 1 0;min-width:0;max-width:none;padding-left:4px;padding-right:4px;white-space:nowrap;font-size:14.5px}.done.tight>.badge{display:none}.done.tighter>p.muted,.done.tighter .mcard [data-why]{display:none!important}.done.tighter .mrow{padding-top:4px;padding-bottom:8px}.done.tighter .gnow{padding-top:8px;padding-bottom:8px}.done .mcard [data-why]{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;padding:0 2px}.done .mcard [data-why][style*="none"]{display:none}.done .mcard>.btn:not(.ghost){margin-top:auto}.stack:has(>.done .mrow) .dbg .mos img.in{opacity:.16}.done .gnow{width:100%;max-width:340px;flex:none;margin:2px 0 0}.gnow.wait{display:flex;align-items:center;gap:11px}.gnow.wait>span{min-width:0}.glamp{flex:none;width:8px;height:8px;border-radius:50%;background:#ff5c8a;box-shadow:0 0 10px #ff5c8a;animation:glamp 1.5s ease-in-out infinite}@keyframes glamp{50%{opacity:.25}}@media (prefers-reduced-motion:reduce){.glamp{animation:none}}.done[style*="--mimg"] .mrow .mimg{height:var(--mimg);aspect-ratio:auto}
 .mstk{position:relative;width:100%;max-width:170px;aspect-ratio:3/4}.mstk .mcard{position:absolute;inset:0;border:0;padding:0;border-radius:18px;overflow:hidden;background:#2a2028;color:#fff;text-align:left;box-shadow:0 12px 26px -12px rgba(0,0,0,.8);transition:transform .19s ease,opacity .19s ease}
 .mstk .mcard img,.mstk .mcard .pimg{width:100%;height:100%;object-fit:cover;display:flex;align-items:center;justify-content:center;font-size:42px}.mstk .mcard b{position:absolute;left:0;right:0;bottom:0;padding:26px 11px 10px;font-family:var(--serif);font-weight:400;font-size:18px;line-height:1.08;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.75))}
 .mstk .mcard:nth-child(1){z-index:3}.mstk .mcard:nth-child(2){z-index:2;transform:rotate(3deg) translate(4px,2px)}.mstk .mcard:nth-child(3){z-index:1;transform:rotate(-4deg) translate(-4px,4px)}.mstk .mcard:nth-child(n+4){opacity:0;pointer-events:none}
@@ -1371,6 +1371,12 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .tw-fin{margin:16px auto 0;width:158px;height:204px;border-radius:18px;background:radial-gradient(90% 60% at 50% 30%,#7a4a8f,#2a1638 60%,#140a1c);box-shadow:0 0 60px -6px #ff4d7e;position:relative;animation:wkpop3 .5s cubic-bezier(.3,1.5,.5,1) both}.tw-fin b{position:absolute;left:13px;bottom:13px;font-family:var(--serif);font-weight:400;font-size:19px}
 @keyframes wkpop3{from{opacity:0;transform:scale(.7) rotate(-6deg)}to{opacity:1;transform:none}}
 .gnow{border-radius:16px;padding:13px 14px;margin:8px 0 2px;background:linear-gradient(135deg,rgba(255,181,71,.2),rgba(255,77,126,.14));text-align:left}.gnow b{display:block;font-size:16px}.gnow small{display:block;color:var(--muted);font-size:13.5px;margin-top:2px;line-height:1.35}
+.cbg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}.cbg.one{grid-template-columns:1fr}
+.cbt{position:relative;display:block;aspect-ratio:4/5;border-radius:18px;overflow:hidden;background:var(--surface2);padding:0;text-align:left;color:#fff}.cbg.one .cbt{aspect-ratio:16/11}
+.cbt img,.cbt .pimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:grid;place-items:center;font-size:44px}
+.cbx{position:absolute;left:0;right:0;bottom:0;padding:36px 12px 11px;background:linear-gradient(rgba(10,8,12,0),rgba(10,8,12,.88))}
+.cbx b{display:block;font-family:var(--serif);font-weight:400;font-size:20px;line-height:1.1;overflow-wrap:anywhere}.cbx small{display:block;margin-top:4px;font-size:12.5px;line-height:1.35;color:#e6dde2}.cbx small.bo{color:var(--gold)}
+.cbt.on::after{content:'';position:absolute;inset:0;border-radius:18px;box-shadow:inset 0 0 0 3px #ff7a4d}
 .pollo{position:relative;display:flex;align-items:center;width:100%;margin-top:8px;padding:14px 14px;border-radius:16px;background:rgba(255,255,255,.06);font-size:15px;text-align:left;overflow:hidden}.pollo i{position:absolute;left:0;top:0;bottom:0;background:rgba(255,255,255,.07);border-radius:16px}.pollo span{position:relative;flex:1}.pollo b{position:relative;color:var(--muted);font-weight:600}
 .pollo.on{background:linear-gradient(135deg,rgba(255,181,71,.34),rgba(255,77,126,.3));font-weight:700}.pollo.on i{background:rgba(255,255,255,.12)}
 
@@ -1414,7 +1420,7 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 @media (prefers-reduced-motion:reduce){.tcpts,#tcbar .dot{animation:none}}
 
 /* play for it: the wait, and quick draw */
-.tbseal{width:150px;height:124px;border-radius:24px;background:linear-gradient(135deg,rgba(255,255,255,.09),rgba(255,255,255,.03));display:flex;flex-direction:column;align-items:center;justify-content:center;animation:tbbeat 1.6s ease-in-out infinite}.tbseal b{font-family:var(--serif);font-weight:400;font-size:54px;line-height:1;color:#ffb547}.tbseal small{color:var(--muted);font-size:12px;margin-top:4px}
+.tbseal{width:150px;height:124px;border-radius:24px;background:linear-gradient(135deg,rgba(255,255,255,.09),rgba(255,255,255,.03));display:flex;flex-direction:column;align-items:center;justify-content:center;animation:tbbeat 1.6s ease-in-out infinite}.tbseal b{font-family:var(--serif);font-weight:400;font-size:54px;line-height:1;color:#ffb547}.tbseal small{color:var(--muted);font-size:12px;margin-top:4px}.tbseal.own{width:auto;min-width:150px;padding:0 20px}.tbseal.own b{font-size:44px;color:var(--text)}
 @keyframes tbbeat{0%,100%{transform:scale(1)}14%{transform:scale(1.05)}28%{transform:scale(1)}}
 .tbsteps{display:flex;gap:6px;width:100%;max-width:330px}.tbsteps div{flex:1;font-size:11.5px;color:var(--muted);padding-top:9px;position:relative;opacity:.6}.tbsteps div::before{content:"";position:absolute;left:0;right:0;top:0;height:5px;border-radius:5px;background:rgba(255,255,255,.12)}.tbsteps div.on{color:var(--text);opacity:1}.tbsteps div.on::before{background:linear-gradient(90deg,#ffb547,#ff4d7e)}
 .tbheart{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#ff7a4d,#ff4d7e);box-shadow:0 0 40px -8px rgba(255,90,110,.9);transition:transform .1s;touch-action:manipulation}.tbheart:active{transform:scale(.86)}.tbheart .ic{width:34px;height:34px}
@@ -2001,9 +2007,10 @@ const gameNow = () => { const id = S.sess?.id; return [S.tb, S.tbs].find(t => t 
 function gameBlock() {
   const t = gameNow(), g = (GAMES[t.game] || ['Quick game'])[0], p = esc(them());
   const [a, b, btn, main] = t.done ? (t.winner === S.me ? [`You won the ${g.toLowerCase()}`, 'Choose tonight’s pick.', 'Choose the pick', true] : [`${p} won the ${g.toLowerCase()}`, `${p} is choosing tonight’s pick.`, 'See the result', false])
-    : t.mine === true ? [`${g} in progress`, `Your turn is in. Waiting on ${p} to play.`, 'Open the game', false]
+    : t.mine === true ? (BETA ? [`${g}: still on`, `Your turn is in and sealed. ${p} hasn’t played yet.`, 'Open the game', false] : [`${g} in progress`, `Your turn is in. Waiting on ${p} to play.`, 'Open the game', false])
     : [`Your turn: ${g.toLowerCase()}`, `${p} is playing for tonight’s pick. The winner chooses.`, 'Play now', true];
-  return `<div class="gnow"><b>${a}</b><small>${b}</small></div><button class="btn ${main ? '' : 'ghost'}" data-act="tbopen">${btn}</button>${!t.done && t.mine === true ? `<button class="btn ghost" data-act="tbnudge">Nudge ${p}</button>` : ''}`;
+  const wt = !t.done && t.mine === true;
+  return `<div class="gnow${wt && BETA ? ' wait' : ''}">${wt && BETA ? '<i class="glamp"></i>' : ''}<span><b>${a}</b><small>${b}</small></span></div>${wt ? '<div class="mplay">' : ''}<button class="btn ${main ? '' : 'ghost'}" data-act="tbopen">${btn}</button>${wt ? `<button class="btn ghost" data-act="tbnudge">Nudge ${p}</button></div>` : ''}`;
 }
 // One round at a time: dealing takes a few seconds, and a second tap in that window used to deal and announce the round again.
 async function startSession(...a) { if (S.starting) return; S.starting = true; try { return await startSession1(...a); } finally { S.starting = false; } }
@@ -2041,6 +2048,10 @@ function render() {
   const td = document.querySelector('.tdays'), tdx = S.tdaysX; if (td) { if (tdx != null) td.scrollLeft = tdx; const on = td.querySelector('button.on');
     if (on && (on.offsetLeft < td.scrollLeft || on.offsetLeft + on.offsetWidth > td.scrollLeft + td.clientWidth)) td.scrollLeft = on.offsetLeft - td.clientWidth / 2 + on.offsetWidth / 2;
     td.onscroll = () => { S.tdaysX = td.scrollLeft; }; }
+  // The trip and someday pill rows keep their place across a redraw (tapping a city used to jump the row back to the start).
+  document.querySelectorAll('.home .tpills').forEach(tp => { const k = tp.classList.contains('tsw') ? 'sw' : 'city', x = (S.tpX ||= {})[k]; if (x) tp.scrollLeft = x;
+    const on = tp.querySelector('button.on'); if (on && (on.offsetLeft < tp.scrollLeft || on.offsetLeft + on.offsetWidth > tp.scrollLeft + tp.clientWidth)) tp.scrollLeft = on.offsetLeft - tp.clientWidth / 2 + on.offsetWidth / 2;
+    tp.onscroll = () => { S.tpX[k] = tp.scrollLeft; }; });
   const k1 = scrKey(), v1 = scrEl(); if (k1 && v1 && SCR[k1] != null && v1 !== v0) { const y = SCR[k1]; v1.scrollTop = y; requestAnimationFrame(() => { if (v1.isConnected && v1.scrollTop < y) v1.scrollTop = y; }); }
   return r;
 }
@@ -3566,7 +3577,8 @@ async function closeBy(id) { const from = (S.listCards || []).find(x => x.id ===
   sheet(cbHTML(), 'closeby'); }
 function cbHTML() { const { from, list, pick } = S.cb || {}; const lab = w => w === 'both' ? 'You both like' : w === 'mine' ? 'You liked' : 'A hidden gem';
   return `<div class="grab"></div><div class="body"><h2>Close by</h2><p class="muted" style="margin-top:4px">${list?.length ? `A short walk from ${esc(from?.title || 'here')}. Pick one to plan the two together.` : `Nothing you’ve liked is a short walk from ${esc(from?.title || 'here')} yet.`}</p>
-    ${(list || []).map(x => `<button class="pollo ${pick === x.id ? 'on' : ''}" data-act="cbpick" data-id="${x.id}"><span>${esc(x.title)}<small>${x.walk} min walk · ${lab(x.why)}</small></span></button>`).join('')}
+    ${BETA && list?.length ? `<div class="cbg ${list.length === 1 ? 'one' : ''}">${list.map(x => `<button class="cbt ${pick === x.id ? 'on' : ''}" data-act="cbpick" data-id="${x.id}">${x.image ? `<img src="${esc(x.image)}" alt="" loading="lazy">` : `<span class="pimg">${emojiFor(x)}</span>`}<span class="cbx"><b>${esc(x.title)}</b><small class="${x.why === 'both' ? 'bo' : ''}">${lab(x.why)}${list.length > 1 ? '<br>' : ' · '}${x.walk} min walk</small></span></button>`).join('')}</div>`
+      : (list || []).map(x => `<button class="pollo ${pick === x.id ? 'on' : ''}" data-act="cbpick" data-id="${x.id}"><span>${esc(x.title)}<small>${x.walk} min walk · ${lab(x.why)}</small></span></button>`).join('')}
     ${pick ? `<div style="height:10px"></div><button class="btn" data-act="cbplan">Plan these two</button>` : ''}<button class="jlink" data-act="closesheet">Done</button></div>`; }
 function cbPlan() { const { from, list, pick } = S.cb || {}, b = (list || []).find(x => x.id === pick); if (!from || !b) return; closeSheet(); S.pair = { a: from, b, kind: b.why }; step('closeby_plan'); pairPlan(); }
 // A unique spot arrives as a scratch card, like every covered card (Dave, 19 Nov): scratch it off and an Open sign swings in.
@@ -6021,7 +6033,7 @@ function renderGame() {
   if (S.tbSaid !== t.id + t.stage) { S.tbSaid = t.id + t.stage; send({ type: 'tbs', id: t.id, k: 1 }); }
   if (t.game === 'trivia' && t.stage === 'tb') return gameFrame(`<span class="badge">${ic('target')}</span><h3>All square</h3><p class="muted">You tied on points. One sudden-death question decides it: right answer wins, and if you are both right, the faster one takes it.</p><button class="btn" data-act="gplay">Start the tie-breaker</button>`);
   const how = t.game === 'taps' ? `After the countdown, tap the pad as many times as you can in <b>${t.cfg.seconds} seconds</b>.`
-    : t.game === 'clock' ? `After the countdown a timer starts and then hides. Tap to stop it as close to <b>${secs(t.cfg.target)} seconds</b> as you can.`
+    : t.game === 'clock' ? `After the countdown a timer starts and then hides.${BETA ? ' It keeps running while it is hidden.' : ''} Tap to stop it as close to <b>${secs(t.cfg.target)} seconds</b> as you can.`
     : `Three multiple-choice questions, <b>${t.cfg.seconds} seconds</b> each. A right answer scores, and if you are both right the faster one takes the point. Tied after three? One more question settles it.`;
   gameFrame(`<span class="badge">${ic(t.game === 'taps' ? 'spark' : t.game === 'clock' ? 'target' : 'film')}</span><h3>${GAMES[t.game][0]}</h3><p class="muted">${how}</p><p class="muted" style="font-size:13px">You each play on your own phone. The winner chooses tonight’s pick.</p><button class="btn" data-act="gplay">I’m ready</button>`);
 }
@@ -6041,16 +6053,18 @@ async function playGame() {
     const hit = e => { e.preventDefault(); n++; num.textContent = n; pad.classList.remove('hit'); void pad.offsetWidth; pad.classList.add('hit'); };
     pad.addEventListener('pointerdown', hit); bar.style.transition = `transform ${ms}ms linear`; setTimeout(() => bar.style.transform = 'scaleX(0)', 40);
     await wait(ms); pad.removeEventListener('pointerdown', hit); try { navigator.vibrate?.(60); } catch {}
-    st.innerHTML = `<div class="gcount">${n}</div><p class="muted">taps</p>`; await wait(900); return gameSubmit({ taps: n });
+    S.tbMine = { id: t.id, txt: n + ' taps' }; st.innerHTML = `<div class="gcount">${n}</div><p class="muted">taps</p>`; await wait(900); return gameSubmit({ taps: n });
   }
   if (t.game === 'clock') {
     if (!await countdown(st)) return void (S.playing = false);
-    st.innerHTML = `<p class="muted" style="margin:0">Stop at <b style="color:var(--text)">${secs(t.cfg.target)} s</b></p><div class="gcount" id="gt">0.00</div><button class="gpad" id="gpad"><b>STOP</b><small>tap anywhere here</small></button>`;
+    st.innerHTML = `<p class="muted" style="margin:0">Stop at <b style="color:var(--text)">${secs(t.cfg.target)} s</b></p><div class="gcount" id="gt">0.00</div>${BETA ? '<small class="gtrun" id="gtrun">Hidden, and still running</small>' : ''}<button class="gpad" id="gpad"><b>STOP</b><small>tap anywhere here</small></button>`;
     const t0 = performance.now(), disp = document.getElementById('gt'), pad = document.getElementById('gpad'); let done = false, raf;
-    raf = setInterval(() => { if (done) return; const e = performance.now() - t0; disp.textContent = e < 1200 ? secs(e) : '?.??'; }, 40);
+    let hid = false; raf = setInterval(() => { if (done || hid) return; const e = performance.now() - t0; if (e < 1200) return void (disp.textContent = secs(e));
+      if (!BETA) return void (disp.textContent = '?.??');
+      hid = true; disp.classList.add('hid'); disp.innerHTML = '<i>?</i>.<i>?</i><i>?</i>'; const rn = document.getElementById('gtrun'); if (rn) rn.style.visibility = 'visible'; }, 40);
     const ms = await new Promise(res => { pad.addEventListener('pointerdown', e => { e.preventDefault(); res(performance.now() - t0); }, { once: true }); setTimeout(() => res(t.cfg.target + 6000), t.cfg.target + 6000); });
     done = true; clearInterval(raf); const off = Math.abs(ms - t.cfg.target);
-    st.innerHTML = `<div class="gcount">${secs(ms)}</div><p class="muted">${secs(off)} s ${ms > t.cfg.target ? 'over' : 'under'} the target</p>`; await wait(1300); return gameSubmit({ ms: Math.round(ms) });
+    S.tbMine = { id: t.id, txt: secs(ms) + ' s' }; st.innerHTML = `<div class="gcount">${secs(ms)}</div><p class="muted">${secs(off)} s ${ms > t.cfg.target ? 'over' : 'under'} the target</p>`; await wait(1300); return gameSubmit({ ms: Math.round(ms) });
   }
   // trivia
   const tb = t.stage === 'tb', qs = tb ? [t.cfg.tb] : t.cfg.questions, lim = (t.cfg.seconds || 10) * 1000, out = [];
@@ -6068,7 +6082,8 @@ async function playGame() {
 }
 // Finished first: your result is sealed, and you can see where the other one is and poke them while you wait.
 function gameWait() { const t = S.tb, k = S.tbStat?.id === t.id ? S.tbStat.k : 0, th = esc(them());
-  gameFrame(`<div class="tbseal"><b>?</b><small>Your ${t.game === 'taps' ? 'taps' : t.game === 'clock' ? 'time' : t.stage === 'tb' ? 'tie-breaker answer' : 'answers'}, sealed</small></div><div class="tbsteps">${['Nudged', 'Opened', 'Playing', 'Done'].map((x, i) => `<div class="${i <= k ? 'on' : ''}">${x}</div>`).join('')}</div><h3 style="font-size:25px">${k === 2 ? `${th} is playing` : k === 1 ? `${th} opened it` : `Waiting on ${th}`}</h3><button class="tbheart" data-act="tbheart" aria-label="Send a heart">${ic('heart')}</button><p class="muted" id="tbwm" style="font-size:13.5px">${k ? 'Tap the heart and it lands on their screen' : 'The result opens here the moment they finish'}</p><div class="tbhk"><button class="btn ghost" data-act="tbheckle" data-m="No pressure">No pressure</button><button class="btn ghost" data-act="tbheckle" data-m="Tick tock">Tick tock</button></div><button class="jlink" data-act="tbnudge">Send ${th} another notification</button>`);
+  const own = BETA && S.tbMine?.id === t.id && t.stage !== 'tb' ? S.tbMine.txt : '';
+  gameFrame(`<div class="tbseal${own ? ' own' : ''}"><b>${own || '?'}</b><small>${own ? `Yours. ${th} can’t see it` : `Your ${t.game === 'taps' ? 'taps' : t.game === 'clock' ? 'time' : t.stage === 'tb' ? 'tie-breaker answer' : 'answers'}, sealed`}</small></div><div class="tbsteps">${['Nudged', 'Opened', 'Playing', 'Done'].map((x, i) => `<div class="${i <= k ? 'on' : ''}">${x}</div>`).join('')}</div><h3 style="font-size:25px">${k === 2 ? `${th} is playing` : k === 1 ? `${th} opened it` : BETA ? `Still on. ${th} plays next` : `Waiting on ${th}`}</h3><button class="tbheart" data-act="tbheart" aria-label="Send a heart">${ic('heart')}</button><p class="muted" id="tbwm" style="font-size:13.5px">${k ? 'Tap the heart and it lands on their screen' : 'The result opens here the moment they finish'}</p><div class="tbhk"><button class="btn ghost" data-act="tbheckle" data-m="No pressure">No pressure</button><button class="btn ghost" data-act="tbheckle" data-m="Tick tock">Tick tock</button></div><button class="jlink" data-act="tbnudge">Send ${th} another notification</button>`);
   S.tbPollT = setTimeout(async () => { if (S.view !== 'game' || S.tb?.id !== t.id || S.playing) return; try { const n = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: t.id }); if (S.tb?.id !== t.id || S.view !== 'game') return; const ch = n.done !== t.done || n.stage !== t.stage || n.mine !== t.mine; S.tb = n; if (ch) return render(); } catch {} gameWaitAgain(); }, 4000); }
 function gameWaitAgain() { clearTimeout(S.tbPollT); const id = S.tb?.id; S.tbPollT = setTimeout(async () => { if (S.view !== 'game' || S.tb?.id !== id || S.playing || S.tb.done || S.tb.stage === 'qd' || S.tb.mine !== true) return; try { const n = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: id }); if (S.tb?.id !== id || S.view !== 'game') return; const ch = n.done !== S.tb.done || n.stage !== S.tb.stage || n.mine !== S.tb.mine; S.tb = n; if (ch) return render(); } catch {} gameWaitAgain(); }, 4000); }
 function tbFly(n = 1) { for (let i = 0; i < n; i++) setTimeout(() => { const h = document.createElement('i'); h.className = 'tbfly'; h.innerHTML = '<svg viewBox="0 0 24 24"><path fill="#ff4d7e" d="M12 21.35l-1.450-1.320C5.400 15.360 2 12.280 2 8.500 2 5.420 4.420 3 7.500 3c1.740 0 3.410.81 4.500 2.090C13.090 3.810 14.760 3 16.500 3 19.580 3 22 5.420 22 8.500c0 3.780-3.400 6.860-8.550 11.540L12 21.350z"/></svg>'; h.style.left = (30 + Math.random() * 40) + '%'; document.body.appendChild(h); setTimeout(() => h.remove(), 1300); }, i * 140); }
@@ -7643,9 +7658,11 @@ function endMatchesHTML() {
 }
 // End of a round: the picks and their buttons must fit without a scroll. First drop the badge, then take the overflow out of the pictures.
 function endFit() { const d = document.querySelector('.stack > .done'); if (!d || !d.querySelector('.mrow')) return;
-  d.classList.remove('tight'); d.style.removeProperty('--mimg'); if (d.scrollHeight - d.clientHeight <= 0) return;
-  d.classList.add('tight'); const over = d.scrollHeight - d.clientHeight, im = d.querySelector('.mimg'); if (over <= 0 || !im) return;
-  d.style.setProperty('--mimg', Math.max(84, im.offsetHeight - over) + 'px');
+  const over = () => d.scrollHeight - d.clientHeight, im = d.querySelector('.mimg');
+  d.classList.remove('tight', 'tighter'); d.style.removeProperty('--mimg'); if (over() <= 0 || !im) return;
+  d.classList.add('tight'); if (over() <= 0) return;
+  if (im.offsetHeight - over() < 120) { d.classList.add('tighter'); if (over() <= 0) return; }
+  d.style.setProperty('--mimg', Math.max(84, im.offsetHeight - over()) + 'px');
 }
 async function pickNext() {
   const c = await rpc('pick_next', { p_code: S.code, p_session: S.sess.id, p_skip: S.skips || [] });
