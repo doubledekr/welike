@@ -482,7 +482,7 @@ html.ios-app .coach{position:absolute}
 .lbrow .trow{margin-top:4px;scroll-padding:0 18px}.tcard.lbc .tt b,.tcard.lbc .tt small{white-space:normal}.tcard.lbc{flex-basis:min(46vw,180px);aspect-ratio:1}.tcard.lbc.big{flex-basis:min(58vw,220px);aspect-ratio:4/3}.tcard.lbc.mv{flex-basis:min(34vw,132px);aspect-ratio:2/3}.tcard.lbc .tt small{display:block;font-size:11.5px;color:#cfe3e0;margin-top:2px;line-height:1.3}.tcard.lbc .tt b{font-size:13.5px;line-height:1.2}
 .lbbtns{display:flex;gap:8px;margin-top:4px}.lbbtns .btn{flex:1;margin:0;padding:12px 10px;font-size:14px}.lbfoot{font-size:12.5px;margin:12px 4px 8px;line-height:1.45}
 .lbph{display:block;background:linear-gradient(150deg,#3a5f58,#1e2b33)}.tcard .lbph{position:absolute;inset:0}
-/* one stream (beta, style guide): display above, controls below */
+/* one stream (beta, style guide): the header and the category switch on the body, then the picture, then the controls (Dave, 24 Nov: nothing sits on the top of a photo) */
 .home.one{position:relative}
 .home.one>.hdr,.home.one .scratch-pill,.home.one .trav:not(.herep){position:relative;z-index:3}
 .home.one .hdr .brand span{display:none}
@@ -492,7 +492,7 @@ html.ios-app .coach{position:absolute}
 .home.one>.slot,.home.one #herep{position:absolute;z-index:4;margin:0;height:44px;overflow:hidden}
 .home.one:has(#herep>.herep)>.slot{display:none}.home.one #herep{pointer-events:none}.home.one #herep>*{pointer-events:auto}
 .home.one .slot .slotrow{height:44px}.home.one .slot .sld{display:none}.home.one .slot .sli{width:100%}
-.home.one .slot .sli>*,.home.one .herep{margin:0!important;padding:0!important;min-height:44px;height:44px;width:100%;background:none!important;box-shadow:none!important;border-radius:0;display:flex;align-items:center;gap:8px;text-shadow:0 1px 10px rgba(0,0,0,.8)}
+.home.one .slot .sli>*,.home.one .herep{margin:0!important;padding:0!important;min-height:44px;height:44px;width:100%;background:none!important;box-shadow:none!important;border-radius:0;display:flex;align-items:center;gap:8px}
 .home.one .slot .grow,.home.one .herep .grow{flex:0 1 auto;min-width:0;gap:0;display:flex;align-items:center;white-space:nowrap;overflow:hidden}
 .home.one .slot .grow::before{content:'';flex:none;width:6px;height:6px;border-radius:50%;background:#ff5c8a;box-shadow:0 0 8px #ff5c8a;margin-right:7px}
 .home.one .slot .grow b,.home.one .herep .grow b{display:block;flex:0 1 auto;min-width:0;white-space:nowrap;font-family:inherit;font-size:13px;line-height:18px;font-weight:600;color:#fff;overflow:hidden;text-overflow:ellipsis}
@@ -501,26 +501,23 @@ html.ios-app .coach{position:absolute}
 .home.one .herep .hdot{flex:none;width:6px;height:6px;margin:0}
 .home.one .trav.herep b::after{content:none}
 .home.one .herep .x{flex:none;width:28px;height:44px;background:none;color:rgba(255,255,255,.7);font-size:17px}
-.home.one .stack{position:absolute;z-index:0;top:0;left:0;right:0;bottom:250px;margin:0!important;min-height:0}
-.home.one .stack::after{content:'';position:absolute;z-index:2;inset:0 0 auto 0;height:170px;pointer-events:none;background:linear-gradient(rgba(10,8,12,.82),rgba(10,8,12,.5) 45%,rgba(10,8,12,0))}
-.home.one .card{border-radius:0 0 28px 28px;box-shadow:none!important}
+.home.one .stack{position:relative;z-index:0;flex:1 1 0;min-height:0;margin:8px -14px 0!important}
+.home.one .card{border-radius:28px;box-shadow:none!important}
 .home.one .card.under{transform:none!important}
 .home.one .card .info,.home.one .card .tags,.home.one .card .gemk,.home.one .card .sub{display:none}
-.home.one .card .shade{padding:150px 16px 18px;background:linear-gradient(rgba(16,13,18,0),rgba(16,13,18,.88) 58%,rgba(16,13,18,.92));text-align:left}
+.home.one .card .shade{padding:150px 16px 18px;background:linear-gradient(rgba(16,13,18,0),rgba(16,13,18,.5) 70px,rgba(16,13,18,.88) 136px,rgba(16,13,18,.95));text-align:left}
 .home.one .card h3{font-size:clamp(32px,10.4vw,42px);line-height:1.04;margin-top:10px;text-wrap:balance;-webkit-line-clamp:3}
 .owy{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;min-height:18px;font-size:13px;font-weight:600;color:var(--text)}
 .owy b{font-weight:600;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .osc{display:none}.osc i{width:2px;height:9px;border-radius:1px;background:rgba(255,255,255,.42)}.osc i.on{height:18px;background:#fff}
 .ovb{font-size:14.5px;line-height:20px;color:var(--text);margin-top:9px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .ofx{font-size:13px;line-height:18px;color:rgba(245,239,232,.72);margin-top:7px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.home.one .stack .done{padding-top:var(--onetop,120px)}
-.home.one .card.flipped{background:#211b25}.home.one .card .cback{top:calc(var(--onetop,120px) - 8px);padding-top:16px;background:linear-gradient(180deg,#211b25,#19151c)}.home.one .stack:has(.card.flipped)::after{display:none}
 .home.one .stack .done .badge{display:none}
 .home.one .lgstk .sect{text-transform:none;letter-spacing:0;font-size:13px;font-weight:600;color:var(--text)}
-.home.one .lgstk .mstk{max-width:clamp(56px,calc((100cqh - 232px - var(--onetop,120px)) * .75),170px)}
-.onesp{order:3;flex:1;min-height:0;pointer-events:none}
+.home.one .lgstk .mstk{max-width:clamp(56px,calc((100cqh - 232px) * .75),170px)}
+.onesp{display:none}
 .nobtn .home.one .actions,.nobtn .home.one .onenote{display:none!important}
-.home.one .actions{order:4;display:flex;gap:8px;align-items:center;justify-content:flex-start;margin:0 2px;position:relative;z-index:2}
+.home.one .actions{order:4;display:flex;gap:8px;align-items:center;justify-content:flex-start;margin:12px 2px 0;position:relative;z-index:2}
 .home.one .act{order:2;flex:0 0 56px;width:56px;height:56px;border:0;border-radius:50%;background:var(--surface);color:var(--text);box-shadow:none;animation:none;font-size:21px;transition:transform .12s ease-out,opacity .12s ease-out}
 .home.one .act[data-sw=undo]{display:none}
 .home.one .act.sm{order:1;flex-basis:44px;width:44px;height:44px;color:var(--muted);font-size:18px}
@@ -533,7 +530,7 @@ html.ios-app .coach{position:absolute}
 .onenote{order:5;display:block;text-align:center;font-size:12.5px;line-height:17px;color:var(--muted);margin:8px 2px 0;min-height:17px}
 .home.one .actions[style*="hidden"]+.onenote{visibility:hidden}
 .home.one:has(#stack>.done) .actions,.home.one:has(#stack>.done) .onenote{display:none!important}
-.home.one .seg{order:6;height:48px;box-sizing:border-box;margin:10px 2px 0!important;padding:2px;gap:0;border-radius:24px;background:#0a080c;box-shadow:inset 0 1px 3px rgba(0,0,0,.7)}
+.home.one .seg{position:relative;z-index:3;height:48px;box-sizing:border-box;margin:8px 2px 0!important;padding:2px;gap:0;border-radius:24px;background:#0a080c;box-shadow:inset 0 1px 3px rgba(0,0,0,.7)}
 .home.one .seg button{height:44px;min-height:44px;padding:0 2px;border-radius:22px;background:none!important;box-shadow:none!important;font-size:13px;font-weight:500;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:7px}
 .home.one .seg button.on{background:var(--surface2)!important;color:var(--text);font-weight:600}
 .home.one .seg .hc{display:none}
@@ -986,13 +983,11 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .tpc .ctx{position:absolute;left:18px;right:16px;bottom:18px}.tpc .ctx b{display:block;font-family:var(--serif);font-weight:400;font-size:32px;line-height:1.05}.tpc .ctx small{display:block;font-size:13.5px;line-height:1.3;opacity:.92;margin-top:6px}
 .tdots{display:flex;justify-content:center;gap:7px;margin:14px 0 6px}.tdots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.2);transition:background .3s,transform .3s}.tdots i.on{background:#ff8a6a;transform:scale(1.3)}
 /* a plan opened from a banner or the inbox arrives in its own color: a burst, a rim that settles, and each stop lighting in turn */
-.scrim.kglow::before{content:"";position:fixed;left:50%;top:22%;width:60px;height:60px;margin:-30px;border-radius:50%;background:radial-gradient(circle,var(--kb),transparent 70%);filter:blur(6px);pointer-events:none;animation:kbloom .9s ease-out calc(0s - var(--ke,0s)) both}
+.scrim.kglow::before{content:"";position:fixed;left:50%;top:22%;width:60px;height:60px;margin:-30px;border-radius:50%;background:radial-gradient(circle,var(--kb),transparent 68%);pointer-events:none;animation:kbloom .9s ease-out calc(0s - var(--ke,0s)) both}
 @keyframes kbloom{0%{opacity:0;transform:scale(1)}40%{opacity:.85;transform:scale(9)}100%{opacity:0;transform:scale(16)}}
-.scrim.kglow .sheet{animation:pop .22s cubic-bezier(.2,.9,.3,1),kglow 1.6s ease-out calc(.1s - var(--ke,0s)) forwards}
-@keyframes kglow{0%{box-shadow:0 0 0 0 transparent}35%{box-shadow:0 0 70px 8px var(--kg)}100%{box-shadow:0 0 36px -8px var(--kg)}}
-.scrim.kset .sheet{box-shadow:0 0 36px -8px var(--kg)}
+.scrim.kglow .sheet,.scrim.kset .sheet{box-shadow:0 0 36px -8px var(--kg)}
 .scrim.kglow .prow{border-radius:14px;animation:kpulse .9s ease-out both;animation-delay:calc(.35s + var(--i,0) * .11s - var(--ke,0s))}
-@keyframes kpulse{0%{opacity:0;transform:translateY(12px)}40%{opacity:1;transform:none;box-shadow:0 0 22px -2px var(--kg)}100%{box-shadow:0 0 0 0 transparent}}
+@keyframes kpulse{0%{opacity:0;transform:translateY(12px)}45%,100%{opacity:1;transform:none}}
 
 /* ---- one palette: categories wear the five colors; glows, not edges; line icons, no tiles ---- */
 .seg button.kc .hc{background:linear-gradient(135deg,var(--ka),var(--kb));box-shadow:0 0 6px var(--kb)}
@@ -3241,16 +3236,11 @@ function oneLines(c) { const d = c.data || {}, vibe = d.gem && d.notes ? d.notes
   const lf = S.leadWhy?.[c.id]?.facts; if (lf && /through|on now|till|until/i.test(lf)) f.push(lf.split(' · ')[0].replace(/^T/, 't').replace(/^O/, 'o'));
   return `${vibe ? `<div class="ovb">${esc(vibe)}</div>` : ''}${f.length ? `<div class="ofx">${esc(f.join(' · '))}</div>` : ''}`; }
 // the picture ends where the answers begin; what sits on top of it (header, a reminder) sets where an end-of-pile screen starts
-function oneFit() { const home = document.querySelector('.home.one'), st = home?.querySelector('#stack'); if (!st) return;
-  // with the answer keys off, or an end-of-pile screen up, the display runs down to the category switch
-  const acts = home.querySelector('#acts'), a = acts && acts.offsetHeight && !st.querySelector(':scope > .done') ? acts : home.querySelector('.seg'); if (!a) return;
-  const hr = home.getBoundingClientRect(); st.style.bottom = Math.max(0, Math.round(hr.bottom - a.getBoundingClientRect().top + 12)) + 'px';
+function oneFit() { const home = document.querySelector('.home.one'); if (!home) return; const hr = home.getBoundingClientRect();
   // the one status message (your partner is here, else the first reminder) sits in the header row, between the mark and the keys
   const hdr = home.querySelector(':scope > .hdr'), mk = hdr?.querySelector('.brand svg'), k0 = [...(hdr?.querySelectorAll('.ib') || [])].find(b => b.offsetWidth);
   if (hdr && mk) { const h = hdr.getBoundingClientRect(), L = Math.round(mk.getBoundingClientRect().right - hr.left + 10), R = Math.round(hr.right - (k0 ? k0.getBoundingClientRect().left : h.right) + 4);
-    for (const e of [home.querySelector(':scope > .slot'), home.querySelector('#herep')]) if (e) { e.style.left = L + 'px'; e.style.right = R + 'px'; e.style.top = Math.round(h.top - hr.top + (h.height - 44) / 2) + 'px'; } }
-  let top = 0; home.querySelectorAll(':scope > .hdr, .scratch-pill, .trav:not(.herep)').forEach(e => { const r = e.getBoundingClientRect(); if (r.height) top = Math.max(top, r.bottom - hr.top); });
-  home.style.setProperty('--onetop', Math.round(top + 10) + 'px'); }
+    for (const e of [home.querySelector(':scope > .slot'), home.querySelector('#herep')]) if (e) { e.style.left = L + 'px'; e.style.right = R + 'px'; e.style.top = Math.round(h.top - hr.top + (h.height - 44) / 2) + 'px'; } } }
 window.addEventListener('resize', () => oneFit());
 function oneSync() { if (!oneOn()) return; const c = S.deck[0], yw = document.getElementById('yesw'), nt = document.getElementById('onenote'); if (yw) yw.textContent = yesWord(c);
   if (nt) nt.textContent = partner() ? `${them()} only sees your yes if they say yes too.` : 'Your yeses are kept for when your person joins.';
@@ -5026,7 +5016,7 @@ function hungrySheet() {
     ${g.far ? `<p class="muted" style="font-size:12.5px;margin-top:12px">Showing downtown. Allow location to see what's near you.</p>` : ''}
     <p class="muted" style="font-size:12px;margin-top:12px">Hours are from Google. Busy spots may have a wait.</p></div>`);
 }
-function daySheet(id) {
+function daySheet(id, soft) {
   const p = (S.plans || []).find(x => x.id === id); if (!p) return toast('That plan is not around any more.');
   const mine = !!p.ok?.[S.me], t = pToday(), past = p.day < t, bars = p.items.map(i => i.card).filter(c => c && isBar(c));
   const near = bars.length === 1 && S.pool ? S.pool.filter(c => isBar(c) && c.id !== bars[0].id && !p.items.some(i => i.card?.id === c.id)).map(c => ({ c, mi: pMi(bars[0], c) })).filter(x => x.mi != null && x.mi <= 0.5 && openAt(x.c, p.day, '21:00', 60) !== false).sort((a, b) => a.mi - b.mi).slice(0, 3) : [];
@@ -5056,6 +5046,7 @@ function daySheet(id) {
   const canRm = !past && (p.status === 'sent' || p.status === 'agreed'), ps = S.plSent?.id === p.id ? S.plSent : null;
   const land = ps ? `<div class="plsent"><span class="plck"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span class="grow"><b>${ps.minor ? 'Saved' : partner() ? 'Sent to ' + esc(them()) : 'Saved'}</b><small>${ps.minor ? (!partner() ? 'Your plan is up to date.' : p.ok?.[them()] ? `Small change, so ${esc(them())}’s yes still stands.` : `Small change, so no new notification for ${esc(them())}.`) : ps.rounds === null ? 'Setting up your picks…' : ps.round ? 'Swipe your picks. The first one you both like fills the open spot.' : partner() ? `${esc(them())} can say yes, swap something, or pass.` : 'It’s on your calendar of plans.'}</small></span>${ps.round ? `<button class="pill hot" data-open="${ps.round}">Swipe</button>` : ''}</div>` : '';
   if (!$layer.querySelector('.sheet #pwx') || S.kgId !== id) { S.kgId = id; S.kgAt = Date.now(); }
+  sheetSoft = !!soft;
   sheet(`<div class="grab"></div><div class="body"><h2>${auto ? pAutoName(p) + (pDayName(p.day) !== dfmt(p.day) ? ' · ' + pDayName(p.day) : '') : pDayName(p.day) + (p.mode === 'in' ? ': a night in' : '')}</h2><p class="muted" style="margin-top:6px;font-size:14px">${auto ? (solo ? 'Put together from what you like.' : `Put together from things you like${p.by !== 'auto' ? `, then changed by ${p.by === S.me ? 'you' : esc(p.by)}` : ''}. Swap anything you like.`) : `${p.by === S.me ? 'You' : esc(p.by)} put this together${pDayName(p.day) !== dfmt(p.day) ? ' for ' + esc(dfmt(p.day)) : ''}.`}</p>
     <div id="pwx" class="pwx" hidden></div>
     ${land}${p.where ? `<p class="muted" style="font-size:13px;margin-top:4px">${ic('pin')} Around ${esc(p.where.name)}</p>` : ''}<div style="margin-top:8px">${p.items.map((i, k) => (pHid(i.card) ? row(i) : canRm ? plSw(i.slot, row(i)) : row(i)) + pSug(p, i, past) + ((g => g ? g + pLeg(p, i) : pLeg(p, i) + pQuestLink(p, k, past))(pGap(p, k, past)))).join('')}</div>${canRm && !ls.get('plswiped') && p.items.length > 2 ? '<p class="inhint" style="margin-top:6px">Swipe a stop left to take it out.</p>' : ''}${shapes}
@@ -5065,8 +5056,8 @@ function daySheet(id) {
   { const sc = $layer.querySelector('.scrim'), el = (Date.now() - S.kgAt) / 1000, on = el < 1.9;   // a redraw while it is still arriving carries on from where it was
     sc?.classList.add('kc', 'k-' + pKind(p), on ? 'kglow' : 'kset'); if (on) { sc.style.setProperty('--ke', el + 's'); sc.querySelectorAll('.prow').forEach((r, i) => r.style.setProperty('--i', i)); } }
   pWeatherFill(p);
-  if (!past && p.mode !== 'in') bookFetch(p.items.map(i => i.card).filter(Boolean)).then(ok => { if (ok && S.plView === id && S.kgId === id && $layer.querySelector('.sheet #pwx')) daySheet(id); });
-  if (!S.pool) dayPool().then(() => { if (S.plView === id && document.querySelector('[data-pl^="resp"],[data-pl="edit"]')) daySheet(id); }).catch(() => {});
+  if (!past && p.mode !== 'in') bookFetch(p.items.map(i => i.card).filter(Boolean)).then(ok => { if (ok && S.plView === id && S.kgId === id && $layer.querySelector('.sheet #pwx')) daySheet(id, true); });
+  if (!S.pool) dayPool().then(() => { if (S.plView === id && document.querySelector('[data-pl^="resp"],[data-pl="edit"]')) daySheet(id, true); }).catch(() => {});
 }
 async function dayAct(v, a, t) {
   if (v === 'sug') return sugSheet(a);
@@ -5083,7 +5074,7 @@ async function dayAct(v, a, t) {
   if (v === 'sidegame') { closeSheet(); return openGame(a); }
   if (v === 'new') { const sh = (t?.dataset?.pl || '').split('|')[2]; return dayDraft({ mode: a, shape: LSHAPE[sh] ? sh : null, ...(B2 && DOCK2 && S.pdDay && t?.closest?.('.pd2') ? { day: S.pdDay } : {}) }); }
   if (v === 'around') { if (!partner() && twoOnly()) return; if (!partner()) return toast('Invite your other half first.'); if (!S.pool) await dayPool(); let c = S.pool.find(x => x.id === a) || (S.listCards || []).find(x => x.id === a) || (S.detailCard?.id === a ? S.detailCard : null); if (!c) { try { c = await rpc('get_card', { p_code: S.code, p_id: a }); } catch {} } if (!c) return dayStart(); if (!S.pool.some(x => x.id === c.id)) S.pool.push(c); document.querySelector('.cele')?.remove(); return dayDraft({ anchor: c }); }
-  if (v === 'view') { if (!(S.plans || []).some(p => p.id === a)) S.plans = await rpc('plan_list', { p_code: S.code, p_member: S.me }); return daySheet(a); }
+  if (v === 'view') { const t0 = performance.now(), had = (S.plans || []).some(p => p.id === a); if (!had) S.plans = await rpc('plan_list', { p_code: S.code, p_member: S.me }); daySheet(a); return perfSheet('plan', t0, had); }
   if (v === 'edit') { const p = S.plans.find(x => x.id === S.plView); if (!p) return; if (!S.pool) await dayPool(); for (const i of p.items) if (i.card && !S.pool.some(x => x.id === i.card.id)) S.pool.push(i.card); return dayDraft({ plan: p }); }
   if (v === 'fav') {
     const on = !isFav(a); t.disabled = true;
@@ -6738,6 +6729,11 @@ function perfTab(deck, t0) {
     if (n - t0 < 2500 && S.homeDeck === deck) requestAnimationFrame(tick); else perfSend({ k: 'tab', deck, render: r, frame: f, card: c, gap, left: S.homeDeck !== deck ? 1 : 0 }); };
   requestAnimationFrame(tick);
 }
+// A sheet opened by a tap: when it first painted, and the longest stall in its first 2.5 seconds.
+function perfSheet(key, t0, had) { if (!BETA) return; const r = Math.round(performance.now() - t0); let f = null, gap = 0, last = performance.now(), n0 = 0;
+  const tick = () => { const n = performance.now(); if (f === null) f = Math.round(n - t0); else gap = Math.max(gap, Math.round(n - last)); last = n; n0++;
+    if (n - t0 < 2500) requestAnimationFrame(tick); else perfSend({ k: 'sheet', key, render: r, frame: f, gap, frames: n0, had: had ? 1 : 0 }); };
+  requestAnimationFrame(tick); }
 if (BETA) {
   addEventListener('error', e => perfSend({ k: 'err', m: String(e.message || '').slice(0, 160), l: e.lineno }));
   addEventListener('unhandledrejection', e => perfSend({ k: 'rej', m: String(e.reason?.message || e.reason || '').slice(0, 160) })); }
@@ -7679,9 +7675,12 @@ function renderMatches() {
 }
 
 /* ---------- sheets ---------- */
+let sheetSoft = false;   // set just before a background refresh calls sheet()
 function sheet(html, key, sub) {
   const old = key && $layer.querySelector(`.sheet[data-k="${key}"]`);
-  if (old) { const y = old.scrollTop, same = old.dataset.v === (sub || ''); old.parentElement.className = 'scrim'; old.classList.add('still'); old.dataset.v = sub || ''; old.innerHTML = html;
+  const soft = sheetSoft; sheetSoft = false;
+  if (old && soft && old._h === html && old.dataset.v === (sub || '')) return;   // a background refresh that changed nothing leaves the sheet alone (a plan used to be rebuilt twice in its first seconds)
+  if (old) { old._h = html; const y = old.scrollTop, same = old.dataset.v === (sub || ''); old.parentElement.className = 'scrim'; old.classList.add('still'); old.dataset.v = sub || ''; old.innerHTML = html;
     if (same) old.scrollTop = y; else { old.scrollTop = 0; old.querySelector('.body')?.classList.add('swapin'); } return; }
   const open = DOCK2 && $layer.querySelector('.scrim > .sheet');
   if (open && !(key && open.dataset.k && open.dataset.k !== key)) {   // beta: a sheet is already up, so change what's in it without replaying the slide-up
@@ -7691,7 +7690,7 @@ function sheet(html, key, sub) {
     if (same) open.scrollTop = y; else { open.scrollTop = 0; open.firstElementChild?.nextElementSibling?.classList.add('swapin'); } return;
   }
   $layer.innerHTML = `<div class="scrim" data-scrim><div class="sheet"${key ? ` data-k="${key}" data-v="${sub || ''}"` : ''}>${html}</div></div>`;
-  const nw = $layer.querySelector('.sheet'); if (nw) nw.dataset.sig = String(html).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 40);
+  const nw = $layer.querySelector('.sheet'); if (nw) nw._h = html; if (nw) nw.dataset.sig = String(html).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 40);
 }
 /* ---------- reservations: does this place take them, and where ---------- */
 // Looked up once per restaurant (kept 90 days) when someone likes it, opens it, or it lands in a plan.
