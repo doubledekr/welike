@@ -482,6 +482,52 @@ html.ios-app .coach{position:absolute}
 .lbrow .trow{margin-top:4px;scroll-padding:0 18px}.tcard.lbc .tt b,.tcard.lbc .tt small{white-space:normal}.tcard.lbc{flex-basis:min(46vw,180px);aspect-ratio:1}.tcard.lbc.big{flex-basis:min(58vw,220px);aspect-ratio:4/3}.tcard.lbc.mv{flex-basis:min(34vw,132px);aspect-ratio:2/3}.tcard.lbc .tt small{display:block;font-size:11.5px;color:#cfe3e0;margin-top:2px;line-height:1.3}.tcard.lbc .tt b{font-size:13.5px;line-height:1.2}
 .lbbtns{display:flex;gap:8px;margin-top:4px}.lbbtns .btn{flex:1;margin:0;padding:12px 10px;font-size:14px}.lbfoot{font-size:12.5px;margin:12px 4px 8px;line-height:1.45}
 .lbph{display:block;background:linear-gradient(150deg,#3a5f58,#1e2b33)}.tcard .lbph{position:absolute;inset:0}
+/* one stream (beta, style guide): display above, controls below */
+.home.one{position:relative}
+.home.one>.hdr,.home.one .slot,.home.one #herep,.home.one .scratch-pill,.home.one .trav{position:relative;z-index:3}
+.home.one .hdr .brand span{display:none}
+.home.one .hdr .ib{background:none;box-shadow:none}
+.home.one:not([data-d=movie]) .hdr [data-act=search]{display:none}
+.home.one .slot .sli>*{background:none!important;box-shadow:none!important;padding-left:2px;text-shadow:0 1px 10px rgba(0,0,0,.75)}
+.home.one .stack{position:absolute;z-index:0;top:0;left:0;right:0;bottom:250px;margin:0!important;min-height:0}
+.home.one .stack::after{content:'';position:absolute;z-index:2;inset:0 0 auto 0;height:150px;pointer-events:none;background:linear-gradient(rgba(10,8,12,.66),rgba(10,8,12,0))}
+.home.one .card{border-radius:0 0 28px 28px;box-shadow:none!important}
+.home.one .card.under{transform:none!important}
+.home.one .card .info,.home.one .card .tags,.home.one .card .gemk,.home.one .card .sub{display:none}
+.home.one .card .shade{padding:150px 16px 18px;background:linear-gradient(rgba(16,13,18,0),rgba(16,13,18,.88) 58%,rgba(16,13,18,.92));text-align:left}
+.home.one .card h3{font-size:clamp(32px,10.4vw,42px);line-height:1.04;margin-top:10px;text-wrap:balance;-webkit-line-clamp:3}
+.owy{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;min-height:18px;font-size:13px;font-weight:600;color:var(--text)}
+.owy b{font-weight:600;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.osc{display:flex;align-items:flex-end;gap:6px;height:18px;flex:none}.osc i{width:2px;height:9px;border-radius:1px;background:rgba(255,255,255,.42)}.osc i.on{height:18px;background:#fff}
+.ovb{font-size:14.5px;line-height:20px;color:var(--text);margin-top:9px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ofx{font-size:13px;line-height:18px;color:rgba(245,239,232,.72);margin-top:7px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.home.one .stack .done{padding-top:var(--onetop,120px)}
+.home.one .stack .done .badge{display:none}
+.home.one .lgstk .sect{text-transform:none;letter-spacing:0;font-size:13px;font-weight:600;color:var(--text)}
+.home.one .slot .sli{width:100%}
+.home.one .lgstk .mstk{max-width:clamp(56px,calc((100cqh - 232px - var(--onetop,120px)) * .75),170px)}
+.onesp{order:3;flex:1;min-height:0;pointer-events:none}
+.home.one .actions{order:4;display:flex!important;gap:8px;align-items:center;justify-content:flex-start;margin:0 2px;position:relative;z-index:2}
+.home.one .act{order:2;flex:0 0 56px;width:56px;height:56px;border:0;border-radius:50%;background:var(--surface);color:var(--text);box-shadow:none;animation:none;font-size:21px;transition:transform .12s ease-out,opacity .12s ease-out}
+.home.one .act[data-sw=undo]{display:none}
+.home.one .act.sm{order:1;flex-basis:44px;width:44px;height:44px;color:var(--muted);font-size:18px}
+.home.one .act.yes{order:3;flex:1 1 auto;width:auto;border-radius:18px;background:linear-gradient(135deg,#ff7a4d,#ff4d7e);color:var(--accent-ink);font-size:20px;display:flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 12px 30px -12px rgba(255,77,126,.75)}
+.home.one .act.yes span{font-size:15.5px;font-weight:700}
+.home.one .act.love{order:4;color:var(--text)}
+.home.one .actions[data-v=yes] .act,.home.one .actions[data-v=no] .act,.home.one .actions[data-v=love] .act,.home.one .actions[data-v=seen] .act{opacity:.45}
+.home.one .actions[data-v=yes] .act.yes{opacity:1;transform:scale(.97);box-shadow:0 12px 40px -8px rgba(255,77,126,.95)}
+.home.one .actions[data-v=no] .act.no,.home.one .actions[data-v=love] .act.love,.home.one .actions[data-v=seen] #seenb{opacity:1;transform:scale(.94);background:var(--surface2)}
+.onenote{order:5;display:block;text-align:center;font-size:12.5px;line-height:17px;color:var(--muted);margin:8px 2px 0;min-height:17px}
+.home.one .actions[style*="hidden"]+.onenote{visibility:hidden}
+.home.one:has(#stack>.done) .actions,.home.one:has(#stack>.done) .onenote{display:none!important}
+.home.one .seg{order:6;height:48px;box-sizing:border-box;margin:10px 2px 0!important;padding:2px;gap:0;border-radius:24px;background:#0a080c;box-shadow:inset 0 1px 3px rgba(0,0,0,.7)}
+.home.one .seg button{height:44px;min-height:44px;padding:0 2px;border-radius:22px;background:none!important;box-shadow:none!important;font-size:13px;font-weight:500;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:7px}
+.home.one .seg button.on{background:var(--surface2)!important;color:var(--text);font-weight:600}
+.home.one .seg button.on::before{content:'';flex:none;width:6px;height:6px;border-radius:50%;background:var(--kb,var(--ka,#ff4d7e));box-shadow:0 0 8px var(--kb,var(--ka,#ff4d7e))}
+.home.one .seg .hc{position:static;padding:0;width:6px;height:6px;font-size:0;border-radius:50%;background:#ffd23f!important;box-shadow:0 0 8px #ffd23f!important;flex:none}
+.home.one .dock{order:7;background:none;padding-left:0;padding-right:0;margin-top:6px}
+.home.one .dock button,.home.one .dock button.on{background:none!important;box-shadow:none!important;color:#cfc6d2!important;font-weight:500}
+.home.one .dock button svg{color:#cfc6d2!important}
 /* lead view (beta): one picture edge to edge, tabs and reminders on it as plain words */
 .home.lead{position:relative}
 .home.lead>.hdr,.home.lead .slot,.home.lead .seg,.home.lead #herep,.home.lead .scratch-pill,.home.lead .trav{position:relative;z-index:3}
@@ -3131,17 +3177,18 @@ function homeHTML() {
   if (tov && !S.lib && !S.libLoading) { S.libLoading = true; loadLib().then(() => { S.libLoading = false; if (document.querySelector('.tov')) render(); }).catch(() => { S.libLoading = false; }); }
   if (B2 && partner() && !S.ftTry) { S.ftTry = 1; setTimeout(() => firstTen(false), 1500); }
   if (LEAD()) setTimeout(leadFit, 0);
-  return `<div class="home ${TRIPSIDE() ? 'tside' : ''}${B2 ? ' hb2' : ''}${LEAD() && !tov && !gov ? ' lead' : ''}">
+  const one = ONE() && !tov && !gov; if (one) setTimeout(oneFit, 0);
+  return `<div class="home ${TRIPSIDE() ? 'tside' : ''}${B2 ? ' hb2' : ''}${LEAD() && !tov && !gov ? ' lead' : ''}${one ? ' one' : ''}" data-d="${S.homeDeck}">
     <div class="row hdr ${sbA || NEWUI ? 'h5' : ''}"><div class="brand grow hb">${MARK}<span>${BRAND}</span></div>
       <button class="ib" data-act="search" aria-label="Search movies">${ic('search')}</button>${DOCK2 ? (sbA ? `<button class="ib" data-act="people" aria-label="Crew: your partner, friends and groups">${ic('users')}</button>` : '') : NEWUI ? `<button class="ib hlib" data-act="hlib" aria-label="What you liked">${ic('heart')}</button>` : sbA ? `<button class="ib" data-fr="open" aria-label="Friends and group plans">${ic('users')}</button>` : ''}
       ${DOCK2 ? '' : `<button class="ib shr ${ls.get('shared') ? 'shd' : ''}" data-act="sharefriends" aria-label="Share Let’s Together with friends">${ic('share')}</button>`}
-      ${bellHTML()}<button class="ib" data-tab="you" aria-label="You and settings">${ic('gear')}</button></div>${TRIPSIDE() ? '' : slotHTML(incoming)}
+      ${one ? `<button class="ib" data-act="ldall" aria-label="Everything in this category">${ic('list')}</button>` : ''}${bellHTML()}<button class="ib" data-tab="you" aria-label="You and settings">${ic('gear')}</button></div>${TRIPSIDE() ? '' : slotHTML(incoming)}
     <div id="hbot" style="display:contents">${TRIPSIDE() ? `<div id="tphd">${tripHead()}</div>` : `<div class="seg" style="margin:8px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="kc k-${CK[k]} ${S.homeDeck === k ? 'on' : ''}">${l}${heartTag(k)}</button>`).join('')}</div>`}${B2 && !TRIPSIDE() ? `<div id="herep">${hereHTML()}</div>` : ''}${!TRIPSIDE() && scratchShow() && !S.awayOffer ? `<button class="scratch-pill" data-act="scratch">${ic('spark')}<span><b>A scratch card is waiting</b><small>One thing ${esc(p)} is in on</small></span><i>Scratch</i></button>` : ''}${S.awayOffer ? `<div class="trav"><span class="tic">${ic('pin')}</span><span class="grow"><b>Looks like you’re ${S.awayOffer.place ? 'at ' + esc(S.awayOffer.city) : 'in ' + esc(S.awayOffer.city)}</b><small>${S.awayOffer.place ? 'Plan around it for the next few days?' : 'Show places to eat and things to do here?'}</small></span><button class="go" data-act="awayyes">${S.awayOffer.place ? 'Plan' : 'Show'}</button><button class="x" data-act="awayno" aria-label="Not now">×</button></div>` : ''}${S.away && (S.homeDeck === 'dinner' || S.homeDeck === 'event') ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><small class="muted" style="font-size:12.5px">${ic('pin')} ${S.away.trip ? `Your ${esc(S.away.city)} trip` : `Showing ${esc(S.away.city)} on this phone`}</small><button class="chip" data-act="awayoff" style="padding:5px 12px;font-size:13px">Back to home</button></div>` : ''}${S.homeDeck === 'movie' && !NEWUI ? `<div class="row" style="margin:14px 2px 0"><button class="chip" data-act="movielib" style="padding:5px 12px;font-size:13px">${ic('film')} Movie library</button></div>` : ''}${shareChip()}${S.homeDeck === 'art' ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="gallery" style="padding:5px 12px;font-size:13px">${ic('frame')} Our gallery</button><small class="muted" style="font-size:12.5px">No nudges, just likes</small></div>` : ''}${S.homeDeck === 'trip' && !TRIPSIDE() ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="trips" style="padding:5px 12px;font-size:13px">${ic('heart')} Saved trips</button><button class="chip ${S.tripCity ? 'on' : ''}" data-act="tripcity" style="padding:5px 12px;font-size:13px">${esc(S.tripCity || 'Anywhere')} ▾</button></div>` : ''}
     ${tov ? `<div class="tov">${tripScreen('c:' + tov)}</div>` : gov ? `<div class="tov">${tripScreen('g:' + gov)}</div>` : ''}
-    ${LBON() && !tov && !gov && !LEAD() ? `<div class="wrow"><div id="whyslot"></div>${lbToggle()}</div>` : ''}${LB() && !tov && !gov ? (LEAD() ? `<div id="lbrows" class="ld">${leadHTML()}</div>` : `<div id="lbrows">${lbHTML()}</div>`) : ''}<div class="stack" id="stack" style="margin:4px 0 6px${tov || gov || LB() ? ';display:none' : ''}">${S.doneHtml?.[S.homeDeck]?.day === new Date().toDateString() ? (setTimeout(() => libGrid(S.homeDeck), 0), S.doneHtml[S.homeDeck].html) : ''}</div>
-    <div class="actions" id="acts" style="visibility:hidden${tov || gov || LB() ? ';display:none' : ''}"><button class="act sm" data-sw="undo" aria-label="Undo">${ic('undo')}</button><button class="act no" data-sw="no" aria-label="No">${ic('x')}</button>
+    ${LBON() && !tov && !gov && !LEAD() && !one ? `<div class="wrow"><div id="whyslot"></div>${lbToggle()}</div>` : ''}${LB() && !tov && !gov ? (LEAD() ? `<div id="lbrows" class="ld">${leadHTML()}</div>` : `<div id="lbrows">${lbHTML()}</div>`) : ''}<div class="stack" id="stack" style="margin:4px 0 6px${tov || gov || LB() ? ';display:none' : ''}">${S.doneHtml?.[S.homeDeck]?.day === new Date().toDateString() ? (setTimeout(() => libGrid(S.homeDeck), 0), S.doneHtml[S.homeDeck].html) : ''}</div>
+    ${one ? '<div class="onesp"></div>' : ''}<div class="actions" id="acts" style="visibility:hidden${tov || gov || LB() ? ';display:none' : ''}"><button class="act sm" data-sw="undo" aria-label="Undo">${ic('undo')}</button><button class="act no" data-sw="no" aria-label="No">${ic('x')}</button>
       <button class="act sm" data-sw="seen" id="seenb" aria-label="Never again" style="display:none">${ic('never')}</button>
-      <button class="act love" data-sw="love" aria-label="Love it">${ic('star')}</button><button class="act yes" data-sw="yes" aria-label="Yes">${ic('heart')}</button></div>
+      <button class="act love" data-sw="love" aria-label="${one ? 'Hell yeah' : 'Love it'}">${ic('star')}</button><button class="act yes" data-sw="yes" aria-label="Yes">${ic('heart')}${one ? '<span id="yesw">I’d go</span>' : ''}</button></div>${one ? '<small class="onenote" id="onenote"></small>' : ''}
     ${soloMode() ? `<div class="dock"><button class="on" data-fr="open" style="flex-direction:row;justify-content:center;gap:8px;font-size:14px;padding:13px 0">${ic('users')}<span>Plan something with friends</span></button></div></div>` : DOCK2 ? dock2HTML() + '</div>' : `<div class="dock"><button class="on" data-act="tonight">${ic('spark')}<span>Tonight</span></button><button class="kc k-sat" data-act="planday">${ic('sun')}<span>Plan a day</span></button>${sbA ? `<button class="kc k-match" data-act="people">${ic('users')}<span>Crew</span></button>` : `<button class="kc k-match" data-sp="start">${ic('heart')}<span>Surprise</span></button>`}<button class="kc k-book" data-act="plantrip">${ic('plane')}<span>Trip</span></button></div></div>`}
   </div>`;
 }
@@ -3149,7 +3196,49 @@ function homeHTML() {
 // Rows: Your spots (places you both said yes to and went to in a plan), This weekend, New near you, Hidden gems;
 // Watch has Tonight's movie night. Discover leads with Picked for you two this week (opt-in, both must turn it on).
 const LBON = () => B2 && !TRIPSIDE() && S.homeDeck !== 'trip';
-const LB = () => LBON() && S.lbMode === 'browse';
+const LB = () => LBON() && S.lbMode === 'browse' && !BETA;
+// One stream (beta, Dave 23 Nov; canvas board 35, claude/style-guide.md): the picture is the display, edge to edge,
+// and every control sits below it: the four answers, the category switch, the dock. Browse and Swipe are one pile;
+// a few lead cards (seasonal, this weekend, new near you) are put at the front of it by bite_lead.
+const ONE = () => BETA && LBON();
+const oneOn = () => !!document.querySelector('.home.one');
+const yesWord = c => !c ? 'I’d go' : c.deck === 'movie' ? 'I’d watch it' : c.deck === 'art' ? 'I like it' : c.deck === 'dinner' && c.kind === 'cook' ? 'I’d eat that' : c.deck === 'activity' ? 'I’m in' : 'I’d go';
+function oneWhy(c) { const L = S.leadWhy?.[c.id]; if (L?.label) return L.label; const w = (S.why || {})[c.id]; if (w && S.bite) return w;
+  if (c.data?.gem) return 'Hidden gem'; if (c.data?.unique) return 'Unique spot'; if (justOpened(c)) return 'Just opened';
+  if (c.deck === 'event' && !c.data?.place) return c.data?.flex ? 'This week' : fmtDate(c.event_date);
+  if (c.deck === 'movie') return (c.data?.services || [])[0] ? 'On ' + c.data.services[0] : '';
+  return ''; }
+const oneTitle = c => S.leadWhy?.[c.id]?.title || c.title;
+function oneLines(c) { const d = c.data || {}, vibe = d.gem && d.notes ? d.notes : '', f = [];
+  if (c.subtitle) f.push(c.subtitle.split(' · ').slice(0, c.deck === 'movie' ? 3 : 1).join(' · '));
+  if (d.miles != null && c.deck !== 'movie') f.push(d.miles + ' mi'); if (d.rating) f.push('★ ' + d.rating); else if (d.user_rating) f.push('★ ' + d.user_rating);
+  if (d.price && typeof d.price === 'string') f.push(d.price);
+  const lf = S.leadWhy?.[c.id]?.facts; if (lf && /through|on now|till|until/i.test(lf)) f.push(lf.split(' · ')[0].replace(/^T/, 't').replace(/^O/, 'o'));
+  return `${vibe ? `<div class="ovb">${esc(vibe)}</div>` : ''}${f.length ? `<div class="ofx">${esc(f.join(' · '))}</div>` : ''}`; }
+// the picture ends where the answers begin; what sits on top of it (header, a reminder) sets where an end-of-pile screen starts
+function oneFit() { const home = document.querySelector('.home.one'), st = home?.querySelector('#stack'); if (!st) return;
+  // with an end-of-pile screen up there is nothing to answer, so the answers step aside and the display runs down to the switch
+  const a = st.querySelector(':scope > .done') ? home.querySelector('.seg') : home.querySelector('#acts'); if (!a) return;
+  const hr = home.getBoundingClientRect(); st.style.bottom = Math.max(0, Math.round(hr.bottom - a.getBoundingClientRect().top + 12)) + 'px';
+  let top = 0; home.querySelectorAll(':scope > .hdr, :scope > .slot, #herep, .scratch-pill, .trav').forEach(e => { const r = e.getBoundingClientRect(); if (r.height) top = Math.max(top, r.bottom - hr.top); });
+  home.style.setProperty('--onetop', Math.round(top + 10) + 'px'); }
+window.addEventListener('resize', () => oneFit());
+function oneSync() { if (!oneOn()) return; const c = S.deck[0], yw = document.getElementById('yesw'), nt = document.getElementById('onenote'); if (yw) yw.textContent = yesWord(c);
+  if (nt) nt.textContent = partner() ? `${them()} only sees your yes if they say yes too.` : 'Your yeses are kept for when your person joins.';
+  const sc = document.querySelector('#stack .card:not(.under) .osc'); if (sc) { const n = Math.min(S.deck.length, 7); sc.innerHTML = n > 1 ? Array.from({ length: n }, (_, i) => `<i class="${i ? '' : 'on'}"></i>`).join('') : ''; }
+  oneFit(); }
+// Lead cards: what Browse used to show first. Their labels come from local_browse; once a day per category the first few
+// unanswered ones are put at the front of the caller's own pile (rpc bite_lead), so one swipe answers everything.
+async function oneLead(deck, sid) {
+  if (deck === 'movie') return;
+  if (!S.lb?.[deck] || Date.now() - S.lb[deck].at > 3e5) { const a = S.away && !S.away.trip ? { p_lat: S.away.lat, p_lng: S.away.lng } : {};
+    try { const r = await rpc('local_browse', { p_code: S.code, p_member: S.me, p_deck: deck, ...a }); (S.lb ||= {})[deck] = { at: Date.now(), rows: r?.rows || [] }; } catch { return; } }
+  const ids = [], W = S.leadWhy ||= {};
+  for (const [rk, n] of [['season', 2], ['weekend', 1], ['new', 1]]) { const row = S.lb[deck].rows.find(r => r.k === rk); let k = 0;
+    for (const c of row?.items || []) { W[c.id] ||= { label: row.title, title: rk === 'season' && c.tag ? `${c.tag} at ${c.title}` : '', facts: rk === 'season' ? c.why : '' }; if (k < n && !ids.includes(c.id)) { ids.push(c.id); k++; } } }
+  const key = 'lead_' + deck, mark = new Date().toDateString() + '|' + sid;
+  if (ids.length && ls.get(key) !== mark) { try { await rpc('bite_lead', { p_code: S.code, p_member: S.me, p_session: sid, p_cards: ids }); ls.set(key, mark); } catch {} }
+}
 function lbToggle() { return `<div class="lbt"><button data-act="lbmode" data-k="browse" class="${S.lbMode === 'browse' ? 'on' : ''}">Browse</button><button data-act="lbmode" data-k="swipe" class="${S.lbMode !== 'browse' ? 'on' : ''}">Swipe</button></div>`; }
 function lbTile(c, big) { (S.lbIdx ||= {})[c.id] = c; const img = c.image || '';
   return `<button class="tcard lbc ${big ? 'big' : ''} ${c.deck === 'movie' ? 'mv' : ''}" data-act="lbopen" data-id="${c.id}">${img ? `<img src="${esc(img)}" alt="" loading="lazy" draggable="false">` : `<span class="pimg lbph"></span>`}<span class="tt"><b>${esc(c.title)}</b><small>${esc([c.tag, c.why].filter(Boolean).join(' · ') || (c.subtitle || '').split(' · ')[0])}</small></span></button>`; }
@@ -3292,7 +3381,7 @@ function switchDeck(deck) {
   if (!hb || S.view !== 'home' || S.tab !== 'home') return render();
   const t = document.createElement('template'); t.innerHTML = homeHTML(); const nb = t.content.getElementById('hbot');
   if (!nb) return render();
-  hb.innerHTML = nb.innerHTML; document.querySelector('.home')?.classList.toggle('lead', LEAD() && !!document.getElementById('lbrows')); loadBite();
+  hb.innerHTML = nb.innerHTML; const hm = document.querySelector('.home'); if (hm) { hm.classList.toggle('lead', LEAD() && !!document.getElementById('lbrows')); hm.classList.toggle('one', ONE() && !!hm.querySelector('.onesp')); hm.dataset.d = deck; } oneFit(); loadBite();
 }
 // A category's cards as last seen, kept on the phone for a few minutes so coming back to it is instant. The server
 // is still asked every time, and its answer replaces this only if something changed.
@@ -3373,6 +3462,7 @@ async function loadBite() {
     if (og) await og;
     const r = await deckStart(deck, extra, away);
     if (!here()) return;
+    if (ONE() && !away) { const lp = oneLead(deck, r.id).then(() => { if (here()) deckWhy(); }).catch(() => {}); if (ls.get('lead_' + deck) !== new Date().toDateString() + '|' + r.id) await Promise.race([lp, new Promise(z => setTimeout(z, 2500))]); if (!here()) return; }
     if ((await loadSession(r.id, () => here() && !(pre && S.hist.length))) === false || !here()) return;
     S.dcDeck = deck; S.dcSess = S.sess.id;
     if (pre !== deckKey()) drawStack();
@@ -3409,7 +3499,7 @@ function steerDraw(ans) { const c = S.steer, st = document.getElementById('stack
   else h = card(c.kick, c.title, c.sub) + yn;
   setDone(st, `<div class="done steer">${h}</div>`); try { navigator.vibrate?.([20, 40, 20]); } catch {} }
 // One quiet line above the top card saying why it is there (a steering thread, or the reasons behind a place pick).
-function deckWhy() { const st = document.getElementById('stack'); if (!st) return; if (st.style.display === 'none') return void document.getElementById('whyl')?.remove(); let el = document.getElementById('whyl'); const c = S.deck[0], t = c && S.bite && !biteGoal() ? (S.why || {})[c.id] : '';
+function deckWhy() { const st = document.getElementById('stack'); if (!st) return; if (oneOn()) { document.getElementById('whyl')?.remove(); const b = st.querySelector('.card:not(.under) .owy b'), c0 = S.deck[0]; if (b && c0) b.textContent = oneWhy(c0); return; } if (st.style.display === 'none') return void document.getElementById('whyl')?.remove(); let el = document.getElementById('whyl'); const c = S.deck[0], t = c && S.bite && !biteGoal() ? (S.why || {})[c.id] : '';
   // the line keeps its place in a pile that can show reasons, so the card never jumps between cards that have one and cards that don't
   if (!(c && S.bite && !biteGoal())) return void el?.remove(); if (!el) { el = document.createElement('div'); el.id = 'whyl'; el.className = 'whyl'; const slot = document.getElementById('whyslot'); if (slot) slot.appendChild(el); else st.parentNode.insertBefore(el, st); } el.textContent = t || '';
   const near = c.data?.lat != null && /walk|close|near|block/i.test(t); el.dataset.act = near ? 'closeby' : ''; el.dataset.id = near ? c.id : ''; el.classList.toggle('tap', near); }
@@ -6745,8 +6835,8 @@ function inviteSheet() {
 const btnsOn = () => { const v = ls.get('btns'); return v === '1' || (v !== '0' && !(isPhone() || navigator.maxTouchPoints > 0)); };
 const btnSync = () => document.body.classList.toggle('nobtn', !btnsOn());
 // With the buttons gone, undo shows for a few seconds after each swipe
-function undoChip() { document.querySelector('.undof')?.remove(); if (btnsOn() || !S.hist?.length) return; const st = document.getElementById('stack'); if (!st) return; const r = st.getBoundingClientRect();
-  const b = document.createElement('button'); b.className = 'undof'; b.dataset.sw = 'undo'; b.setAttribute('aria-label', 'Undo last swipe'); b.innerHTML = ic('undo') + '<span>Undo</span>'; b.style.left = (r.left + 12) + 'px'; b.style.top = (r.top + 12) + 'px'; document.body.appendChild(b);
+function undoChip() { document.querySelector('.undof')?.remove(); if ((btnsOn() && !oneOn()) || !S.hist?.length) return; const st = document.getElementById('stack'); if (!st) return; const r = st.getBoundingClientRect();
+  const b = document.createElement('button'); b.className = 'undof'; b.dataset.sw = 'undo'; b.setAttribute('aria-label', 'Undo last swipe'); b.innerHTML = ic('undo') + '<span>Undo</span>'; b.style.left = (r.left + 12) + 'px'; b.style.top = (r.top + (oneOn() ? (parseInt(getComputedStyle(document.querySelector('.home.one')).getPropertyValue('--onetop')) || 110) : 12)) + 'px'; document.body.appendChild(b);
   clearTimeout(undoChip.t); undoChip.t = setTimeout(() => { b.classList.add('out'); setTimeout(() => b.remove(), 300); }, 4500); }
 const isPhone = () => /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
 const holdForInstall = () => !standalone() && isPhone() && Date.now() - Number(ls.get('a2hs') || 0) < 864e5;
@@ -6872,10 +6962,10 @@ function cardHTML(c, cls = '') {
   else if (c.deck === 'event') { tags.push(`<span class="tag">${c.data.flex ? 'This week' : fmtDate(c.event_date)}</span>`); if (c.kind) tags.push(`<span class="tag">${esc(c.kind)}</span>`); if (c.data.area) tags.push(`<span class="tag">${esc(c.data.area)}</span>`); }
   if (c.deck === 'activity' && c.data.chain) tags.push(`<span class="tag">Then pick ${c.data.chain.deck === 'movie' ? 'a movie' : c.data.chain.deck === 'event' ? 'an event' : 'the food'}</span>`);
   const art = c.image ? `<img class="bg" src="${esc(c.image)}" alt="" draggable="false" onerror="this.remove()">` : '';
-  const gem = !!c.data?.gem;
+  const gem = !!c.data?.gem, one = oneOn() && S.view === 'home';
   return `<div class="card ${cls}${gem ? ' gemc' : ''}" data-id="${c.id}"><div class="art ${c.deck}">${emojiFor(c)}</div>${art}
-    ${gem ? '<span class="gfx"><i></i><i></i><i></i><i></i><i></i></span>' : ''}<div class="shade">${gem ? `<div class="gemk">${ic('gem')}<span>Hidden gem</span><b class="gst"></b><b class="gst"></b></div>` : ''}<h3>${esc(c.title)}</h3>${gem && c.data.notes ? `<div class="sub gsub">${esc(c.data.notes)}</div>` : c.subtitle ? `<div class="sub">${esc(c.subtitle)}</div>` : ''}<div class="tags">${tags.join('')}</div></div>
-    <div class="info">i</div><div class="stamp yes">${VERD(c)[1]}</div><div class="stamp no">${VERD(c)[0]}</div><div class="stamp love">${VERD(c)[2]}</div>${DWN(c) ? `<div class="stamp seen ${DWN(c).length > 9 ? 'long' : ''}">${DWN(c)}</div>` : ''}</div>`;
+    ${gem ? '<span class="gfx"><i></i><i></i><i></i><i></i><i></i></span>' : ''}<div class="shade">${gem ? `<div class="gemk">${ic('gem')}<span>Hidden gem</span><b class="gst"></b><b class="gst"></b></div>` : ''}${one ? `<div class="owy"><b>${esc(oneWhy(c))}</b><span class="osc" aria-hidden="true"></span></div>` : ''}<h3>${esc(one ? oneTitle(c) : c.title)}</h3>${gem && c.data.notes ? `<div class="sub gsub">${esc(c.data.notes)}</div>` : c.subtitle ? `<div class="sub">${esc(c.subtitle)}</div>` : ''}<div class="tags">${tags.join('')}</div>${one ? oneLines(c) : ''}</div>
+    <div class="info">i</div><div class="stamp yes">${one ? yesWord(c) : VERD(c)[1]}</div><div class="stamp no">${VERD(c)[0]}</div><div class="stamp love">${VERD(c)[2]}</div>${DWN(c) ? `<div class="stamp seen ${DWN(c).length > 9 ? 'long' : ''}">${DWN(c)}</div>` : ''}</div>`;
 }
 function updateBar() { const el = document.getElementById('prog'); if (el && !(S.revealUntil > Date.now())) el.textContent = S.bite || S.solo || !partner() ? '' : S.sess?.filters?.live ? (S.theirLeft ? `${them()} is swiping · ${S.theirLeft} to go` : `${them()} has finished`) : `${them()} has ${S.theirLeft ? S.theirLeft + ' to go' : 'finished'}`; const m = document.getElementById('mcount'); if (m) { m.textContent = S.matches.length ? `${S.matches.length} match${S.matches.length > 1 ? 'es' : ''}` : 'No matches yet'; m.className = 'pill' + (S.matches.length ? ' hot' : ''); m.style.display = S.bite && !S.matches.length ? 'none' : ''; } }
 const BITEN = { trip: 'Trip ideas', dinner: 'Eat & Drink', event: 'Go Out', mix: 'Discover', art: 'Art', activity: 'Things to do' };   // a day's pile opened full screen is named for its pile, never 'Browse movies'
@@ -7184,7 +7274,7 @@ function pilePose(id, i) {
   return { transform: `translate(${(r2 - .5) * 18}px,${(r3 - .5) * 10 + i * 2}px) rotate(${sg * (1.6 + (r1 % .5) * 2 * 2.6)}deg)`, filter: `brightness(${.66 - i * .08})`, boxShadow: '0 10px 20px -10px rgba(0,0,0,.9)' };
 }
 function drawStack() {
-  const st = document.getElementById('stack'); if (!st) return; updateBar(); if (S.deck[0]?.data?.gem) tip1('gem', 'A hidden gem: somewhere most people walk past.');
+  const st = document.getElementById('stack'); if (!st) return; updateBar(); if (oneOn()) setTimeout(oneFit, 0); if (S.deck[0]?.data?.gem) tip1('gem', 'A hidden gem: somewhere most people walk past.');
   else if (S.deck[0]?.data?.unique) tip1('uq', 'A unique spot: an independent shop near you. Scratch to see inside.');
   else if (evFind(S.deck[0])) tip1('evfind', 'A food or drink event, on for a day or two. Scratch to see what’s on.');
   else if (S.homeDeck === 'dinner') tip1('eatdrink', 'Eat & Drink is restaurants and bars together, with a food or drink find covered now and then.');
@@ -7222,7 +7312,7 @@ function drawStack() {
     } });
   S.pileAt = st; S.pileDepth = depth;
   cs[0].style.transform = ''; cs[0].classList.add('tl'); cs[0].insertAdjacentHTML('beforeend', GLS); tiltWatch(); btnSync();
-  attachDrag(cs[0]);
+  attachDrag(cs[0]); oneSync();
   if (S.deck[0]?.data?.gem && !gemSeen().includes(S.deck[0].id)) gemCover(cs[0], S.deck[0]);
   else if (S.deck[0]?.data?.unique && !gemSeen().includes(S.deck[0].id)) uniqueCover(cs[0], S.deck[0]);
   else if (evFind(S.deck[0]) && !gemSeen().includes(S.deck[0].id)) { const c = S.deck[0], dr = DRINKW.test(`${c.title} ${c.kind || ''}`);
@@ -7321,8 +7411,8 @@ function attachDrag(el) {
   const stamp = k => el.querySelector('.stamp.' + k);
   const down = e => { if (el.classList.contains('flipped') || el._flipping) return; on = true; sx = e.clientX; sy = e.clientY; dx = dy = 0; t0 = Date.now(); el.style.transition = 'none'; try { el.setPointerCapture(e.pointerId); } catch {} };
   const move = e => { if (!on) return; dx = e.clientX - sx; dy = e.clientY - sy; el.style.transform = `translate(${dx}px,${dy}px) rotate(${dx / 18}deg)`;
-    const up = dy < -60 && Math.abs(dx) < 70, dn = !!stamp('seen') && dy > 60 && Math.abs(dx) < 70, v = up || dn; stamp('yes').style.opacity = v ? 0 : Math.max(0, Math.min(1, dx / 90)); stamp('no').style.opacity = v ? 0 : Math.max(0, Math.min(1, -dx / 90)); stamp('love').style.opacity = up ? Math.min(1, (-dy - 40) / 70) : 0; if (stamp('seen')) stamp('seen').style.opacity = dn ? Math.min(1, (dy - 40) / 70) : 0; };
-  const up = () => { if (!on) return; on = false; const dist = Math.hypot(dx, dy);
+    const up = dy < -60 && Math.abs(dx) < 70, dn = !!stamp('seen') && dy > 60 && Math.abs(dx) < 70, v = up || dn; stamp('yes').style.opacity = v ? 0 : Math.max(0, Math.min(1, dx / 90)); stamp('no').style.opacity = v ? 0 : Math.max(0, Math.min(1, -dx / 90)); stamp('love').style.opacity = up ? Math.min(1, (-dy - 40) / 70) : 0; if (stamp('seen')) stamp('seen').style.opacity = dn ? Math.min(1, (dy - 40) / 70) : 0; const ak = document.getElementById('acts'); if (ak) ak.dataset.v = up ? 'love' : dn ? 'seen' : dx > 45 ? 'yes' : dx < -45 ? 'no' : ''; };
+  const up = () => { if (!on) return; on = false; const dist = Math.hypot(dx, dy); const ak = document.getElementById('acts'); if (ak) ak.dataset.v = '';
     if (dist < 8 && Date.now() - t0 < 350) { el.style.transform = ''; return flipCard(el, S.deck[0]); }
     if (dy < -110 && Math.abs(dx) < 90) return commit('love'); if (dy > 110 && Math.abs(dx) < 90 && DWN(S.deck[0])) return commit('seen'); if (dx > 95) return commit('yes'); if (dx < -95) return commit('no');
     el.style.transition = 'transform .25s cubic-bezier(.2,.8,.2,1)'; el.style.transform = ''; el.querySelectorAll('.stamp').forEach(s => s.style.opacity = 0); };
@@ -7888,7 +7978,8 @@ document.addEventListener('click', async e => {
       case 'ldyes': return leadSay(ds.id, true, t);
       case 'ldno': return leadSay(ds.id, false, t);
       case 'ldwatch': { const c = S.lbIdx?.[ds.id]; if (c) showFinal(c, false, [c]); return; }
-      case 'ldall': { sheet(`<div class="grab"></div><div class="body ldallb"><h2>${esc(HDECKS.find(x => x[0] === S.homeDeck)?.[1] || 'Browse')}</h2>${lbHTML(!!S.lbPicks?.both)}<button class="btn ghost" data-act="lbmode" data-k="swipe" style="margin-top:6px">Swipe the pile instead</button></div>`); return lbCarWire(); }
+      case 'ldall': { const dk0 = S.homeDeck; if (!S.lb?.[dk0] || Date.now() - S.lb[dk0].at > 3e5 || (dk0 === 'all' && partner() && !S.lbPicks)) { t.disabled = true; await lbLoad(true).catch(() => {}); t.disabled = false; if (S.homeDeck !== dk0) return; }
+        sheet(`<div class="grab"></div><div class="body ldallb"><h2>${esc(HDECKS.find(x => x[0] === S.homeDeck)?.[1] || 'Browse')}</h2>${lbHTML(!ONE() && !!S.lbPicks?.both)}${ONE() ? '' : '<button class="btn ghost" data-act="lbmode" data-k="swipe" style="margin-top:6px">Swipe the pile instead</button>'}</div>`); return lbCarWire(); }
       case 'lbopen': { const c = S.lbIdx?.[ds.id]; if (!c) return; S.listCards = [c, ...(S.listCards || []).filter(x => x.id !== c.id)]; closeSheet(); return showDetail(c); }
       case 'lbpickset': { t.disabled = true; try { S.lbPicks = await rpc('local_picks_set', { p_code: S.code, p_member: S.me, p_in: ds.v === '1' }); } catch { toast('Could not save that. Try again in a moment.'); } return lbDraw(); }
       case 'lbround': { t.disabled = true; try { const r = await rpc('local_picks_round', { p_code: S.code, p_member: S.me }); if (!r?.id) return toast('Nothing to swipe this week.');
