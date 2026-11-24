@@ -484,13 +484,25 @@ html.ios-app .coach{position:absolute}
 .lbph{display:block;background:linear-gradient(150deg,#3a5f58,#1e2b33)}.tcard .lbph{position:absolute;inset:0}
 /* one stream (beta, style guide): display above, controls below */
 .home.one{position:relative}
-.home.one>.hdr,.home.one .slot,.home.one #herep,.home.one .scratch-pill,.home.one .trav{position:relative;z-index:3}
+.home.one>.hdr,.home.one .scratch-pill,.home.one .trav:not(.herep){position:relative;z-index:3}
 .home.one .hdr .brand span{display:none}
-.home.one .hdr .ib{background:none;box-shadow:none}
+.home.one>.hdr{gap:0}
+.home.one .hdr .ib{background:none;box-shadow:none;flex:0 0 42px;width:42px;margin:0}
 .home.one:not([data-d=movie]) .hdr [data-act=search]{display:none}
-.home.one .slot .sli>*{background:none!important;box-shadow:none!important;padding-left:2px;text-shadow:0 1px 10px rgba(0,0,0,.75)}
+.home.one>.slot,.home.one #herep{position:absolute;z-index:4;margin:0;height:44px;overflow:hidden}
+.home.one:has(#herep>.herep)>.slot{display:none}
+.home.one .slot .slotrow{height:44px}.home.one .slot .sld{display:none}.home.one .slot .sli{width:100%}
+.home.one .slot .sli>*,.home.one .herep{margin:0!important;padding:0!important;min-height:44px;height:44px;width:100%;background:none!important;box-shadow:none!important;border-radius:0;display:flex;align-items:center;gap:8px;text-shadow:0 1px 10px rgba(0,0,0,.8)}
+.home.one .slot .grow,.home.one .herep .grow{flex:0 1 auto;min-width:0;gap:0;display:flex;align-items:center;white-space:nowrap;overflow:hidden}
+.home.one .slot .grow::before{content:'';flex:none;width:6px;height:6px;border-radius:50%;background:#ff5c8a;box-shadow:0 0 8px #ff5c8a;margin-right:7px}
+.home.one .slot .grow b,.home.one .herep .grow b{display:block;flex:0 1 auto;min-width:0;white-space:nowrap;font-family:inherit;font-size:13px;line-height:18px;font-weight:600;color:#fff;overflow:hidden;text-overflow:ellipsis}
+.home.one .slot .grow small,.home.one .slot .tic,.home.one .herep small{display:none!important}
+.home.one .slot .go,.home.one .herep .go{flex:none;margin-left:0;background:none!important;color:rgba(255,255,255,.8)!important;padding:0!important;font-size:13px;font-weight:600;box-shadow:none!important}
+.home.one .herep .hdot{flex:none;width:6px;height:6px;margin:0}
+.home.one .trav.herep b::after{content:none}
+.home.one .herep .x{flex:none;width:28px;height:44px;background:none;color:rgba(255,255,255,.7);font-size:17px}
 .home.one .stack{position:absolute;z-index:0;top:0;left:0;right:0;bottom:250px;margin:0!important;min-height:0}
-.home.one .stack::after{content:'';position:absolute;z-index:2;inset:0 0 auto 0;height:150px;pointer-events:none;background:linear-gradient(rgba(10,8,12,.66),rgba(10,8,12,0))}
+.home.one .stack::after{content:'';position:absolute;z-index:2;inset:0 0 auto 0;height:170px;pointer-events:none;background:linear-gradient(rgba(10,8,12,.82),rgba(10,8,12,.5) 45%,rgba(10,8,12,0))}
 .home.one .card{border-radius:0 0 28px 28px;box-shadow:none!important}
 .home.one .card.under{transform:none!important}
 .home.one .card .info,.home.one .card .tags,.home.one .card .gemk,.home.one .card .sub{display:none}
@@ -504,10 +516,10 @@ html.ios-app .coach{position:absolute}
 .home.one .stack .done{padding-top:var(--onetop,120px)}
 .home.one .stack .done .badge{display:none}
 .home.one .lgstk .sect{text-transform:none;letter-spacing:0;font-size:13px;font-weight:600;color:var(--text)}
-.home.one .slot .sli{width:100%}
 .home.one .lgstk .mstk{max-width:clamp(56px,calc((100cqh - 232px - var(--onetop,120px)) * .75),170px)}
 .onesp{order:3;flex:1;min-height:0;pointer-events:none}
-.home.one .actions{order:4;display:flex!important;gap:8px;align-items:center;justify-content:flex-start;margin:0 2px;position:relative;z-index:2}
+.nobtn .home.one .actions,.nobtn .home.one .onenote{display:none!important}
+.home.one .actions{order:4;display:flex;gap:8px;align-items:center;justify-content:flex-start;margin:0 2px;position:relative;z-index:2}
 .home.one .act{order:2;flex:0 0 56px;width:56px;height:56px;border:0;border-radius:50%;background:var(--surface);color:var(--text);box-shadow:none;animation:none;font-size:21px;transition:transform .12s ease-out,opacity .12s ease-out}
 .home.one .act[data-sw=undo]{display:none}
 .home.one .act.sm{order:1;flex-basis:44px;width:44px;height:44px;color:var(--muted);font-size:18px}
@@ -524,7 +536,7 @@ html.ios-app .coach{position:absolute}
 .home.one .seg button{height:44px;min-height:44px;padding:0 2px;border-radius:22px;background:none!important;box-shadow:none!important;font-size:13px;font-weight:500;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:7px}
 .home.one .seg button.on{background:var(--surface2)!important;color:var(--text);font-weight:600}
 .home.one .seg button.on::before{content:'';flex:none;width:6px;height:6px;border-radius:50%;background:var(--kb,var(--ka,#ff4d7e));box-shadow:0 0 8px var(--kb,var(--ka,#ff4d7e))}
-.home.one .seg .hc{position:static;padding:0;width:6px;height:6px;font-size:0;border-radius:50%;background:#ffd23f!important;box-shadow:0 0 8px #ffd23f!important;flex:none}
+.home.one .seg .hc{display:none}
 .home.one .dock{order:7;background:none;padding-left:0;padding-right:0;margin-top:6px}
 .home.one .dock button,.home.one .dock button.on{background:none!important;box-shadow:none!important;color:#cfc6d2!important;font-weight:500}
 .home.one .dock button svg{color:#cfc6d2!important}
@@ -3182,7 +3194,7 @@ function homeHTML() {
     <div class="row hdr ${sbA || NEWUI ? 'h5' : ''}"><div class="brand grow hb">${MARK}<span>${BRAND}</span></div>
       <button class="ib" data-act="search" aria-label="Search movies">${ic('search')}</button>${DOCK2 ? (sbA ? `<button class="ib" data-act="people" aria-label="Crew: your partner, friends and groups">${ic('users')}</button>` : '') : NEWUI ? `<button class="ib hlib" data-act="hlib" aria-label="What you liked">${ic('heart')}</button>` : sbA ? `<button class="ib" data-fr="open" aria-label="Friends and group plans">${ic('users')}</button>` : ''}
       ${DOCK2 ? '' : `<button class="ib shr ${ls.get('shared') ? 'shd' : ''}" data-act="sharefriends" aria-label="Share Let’s Together with friends">${ic('share')}</button>`}
-      ${one ? `<button class="ib" data-act="ldall" aria-label="Everything in this category">${ic('list')}</button>` : ''}${bellHTML()}<button class="ib" data-tab="you" aria-label="You and settings">${ic('gear')}</button></div>${TRIPSIDE() ? '' : slotHTML(incoming)}
+      ${bellHTML()}<button class="ib" data-tab="you" aria-label="You and settings">${ic('gear')}</button></div>${TRIPSIDE() ? '' : slotHTML(incoming)}
     <div id="hbot" style="display:contents">${TRIPSIDE() ? `<div id="tphd">${tripHead()}</div>` : `<div class="seg" style="margin:8px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="kc k-${CK[k]} ${S.homeDeck === k ? 'on' : ''}">${l}${heartTag(k)}</button>`).join('')}</div>`}${B2 && !TRIPSIDE() ? `<div id="herep">${hereHTML()}</div>` : ''}${!TRIPSIDE() && scratchShow() && !S.awayOffer ? `<button class="scratch-pill" data-act="scratch">${ic('spark')}<span><b>A scratch card is waiting</b><small>One thing ${esc(p)} is in on</small></span><i>Scratch</i></button>` : ''}${S.awayOffer ? `<div class="trav"><span class="tic">${ic('pin')}</span><span class="grow"><b>Looks like you’re ${S.awayOffer.place ? 'at ' + esc(S.awayOffer.city) : 'in ' + esc(S.awayOffer.city)}</b><small>${S.awayOffer.place ? 'Plan around it for the next few days?' : 'Show places to eat and things to do here?'}</small></span><button class="go" data-act="awayyes">${S.awayOffer.place ? 'Plan' : 'Show'}</button><button class="x" data-act="awayno" aria-label="Not now">×</button></div>` : ''}${S.away && (S.homeDeck === 'dinner' || S.homeDeck === 'event') ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><small class="muted" style="font-size:12.5px">${ic('pin')} ${S.away.trip ? `Your ${esc(S.away.city)} trip` : `Showing ${esc(S.away.city)} on this phone`}</small><button class="chip" data-act="awayoff" style="padding:5px 12px;font-size:13px">Back to home</button></div>` : ''}${S.homeDeck === 'movie' && !NEWUI ? `<div class="row" style="margin:14px 2px 0"><button class="chip" data-act="movielib" style="padding:5px 12px;font-size:13px">${ic('film')} Movie library</button></div>` : ''}${shareChip()}${S.homeDeck === 'art' ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="gallery" style="padding:5px 12px;font-size:13px">${ic('frame')} Our gallery</button><small class="muted" style="font-size:12.5px">No nudges, just likes</small></div>` : ''}${S.homeDeck === 'trip' && !TRIPSIDE() ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="trips" style="padding:5px 12px;font-size:13px">${ic('heart')} Saved trips</button><button class="chip ${S.tripCity ? 'on' : ''}" data-act="tripcity" style="padding:5px 12px;font-size:13px">${esc(S.tripCity || 'Anywhere')} ▾</button></div>` : ''}
     ${tov ? `<div class="tov">${tripScreen('c:' + tov)}</div>` : gov ? `<div class="tov">${tripScreen('g:' + gov)}</div>` : ''}
     ${LBON() && !tov && !gov && !LEAD() && !one ? `<div class="wrow"><div id="whyslot"></div>${lbToggle()}</div>` : ''}${LB() && !tov && !gov ? (LEAD() ? `<div id="lbrows" class="ld">${leadHTML()}</div>` : `<div id="lbrows">${lbHTML()}</div>`) : ''}<div class="stack" id="stack" style="margin:4px 0 6px${tov || gov || LB() ? ';display:none' : ''}">${S.doneHtml?.[S.homeDeck]?.day === new Date().toDateString() ? (setTimeout(() => libGrid(S.homeDeck), 0), S.doneHtml[S.homeDeck].html) : ''}</div>
@@ -3217,10 +3229,14 @@ function oneLines(c) { const d = c.data || {}, vibe = d.gem && d.notes ? d.notes
   return `${vibe ? `<div class="ovb">${esc(vibe)}</div>` : ''}${f.length ? `<div class="ofx">${esc(f.join(' · '))}</div>` : ''}`; }
 // the picture ends where the answers begin; what sits on top of it (header, a reminder) sets where an end-of-pile screen starts
 function oneFit() { const home = document.querySelector('.home.one'), st = home?.querySelector('#stack'); if (!st) return;
-  // with an end-of-pile screen up there is nothing to answer, so the answers step aside and the display runs down to the switch
-  const a = st.querySelector(':scope > .done') ? home.querySelector('.seg') : home.querySelector('#acts'); if (!a) return;
+  // with the answer keys off, or an end-of-pile screen up, the display runs down to the category switch
+  const acts = home.querySelector('#acts'), a = acts && acts.offsetHeight && !st.querySelector(':scope > .done') ? acts : home.querySelector('.seg'); if (!a) return;
   const hr = home.getBoundingClientRect(); st.style.bottom = Math.max(0, Math.round(hr.bottom - a.getBoundingClientRect().top + 12)) + 'px';
-  let top = 0; home.querySelectorAll(':scope > .hdr, :scope > .slot, #herep, .scratch-pill, .trav').forEach(e => { const r = e.getBoundingClientRect(); if (r.height) top = Math.max(top, r.bottom - hr.top); });
+  // the one status message (your partner is here, else the first reminder) sits in the header row, between the mark and the keys
+  const hdr = home.querySelector(':scope > .hdr'), mk = hdr?.querySelector('.brand svg'), k0 = [...(hdr?.querySelectorAll('.ib') || [])].find(b => b.offsetWidth);
+  if (hdr && mk) { const h = hdr.getBoundingClientRect(), L = Math.round(mk.getBoundingClientRect().right - hr.left + 10), R = Math.round(hr.right - (k0 ? k0.getBoundingClientRect().left : h.right) + 4);
+    for (const e of [home.querySelector(':scope > .slot'), home.querySelector('#herep')]) if (e) { e.style.left = L + 'px'; e.style.right = R + 'px'; e.style.top = Math.round(h.top - hr.top + (h.height - 44) / 2) + 'px'; } }
+  let top = 0; home.querySelectorAll(':scope > .hdr, .scratch-pill, .trav:not(.herep)').forEach(e => { const r = e.getBoundingClientRect(); if (r.height) top = Math.max(top, r.bottom - hr.top); });
   home.style.setProperty('--onetop', Math.round(top + 10) + 'px'); }
 window.addEventListener('resize', () => oneFit());
 function oneSync() { if (!oneOn()) return; const c = S.deck[0], yw = document.getElementById('yesw'), nt = document.getElementById('onenote'); if (yw) yw.textContent = yesWord(c);
@@ -3366,6 +3382,9 @@ async function leadSay(id, yes, t) {
   lbDraw(); refresh().catch(() => {});
   if (yes && !r?.match) setTimeout(() => { const car = document.getElementById('ldcar'); if (car) car.scrollBy({ left: car.clientWidth, behavior: 'smooth' }); }, 650);
 }
+// everything in the category on show: the rows Browse used to have, in a sheet
+async function seeAll(t) { const dk0 = S.homeDeck; if (!S.lb?.[dk0] || Date.now() - S.lb[dk0].at > 3e5 || (dk0 === 'all' && partner() && !S.lbPicks)) { if (t) t.disabled = true; await lbLoad(true).catch(() => {}); if (t) t.disabled = false; if (S.homeDeck !== dk0) return; }
+        sheet(`<div class="grab"></div><div class="body ldallb"><h2>${esc(HDECKS.find(x => x[0] === S.homeDeck)?.[1] || 'Browse')}</h2>${lbHTML(!ONE() && !!S.lbPicks?.both)}${ONE() ? '' : '<button class="btn ghost" data-act="lbmode" data-k="swipe" style="margin-top:6px">Swipe the pile instead</button>'}</div>`); return lbCarWire(); }
 function lbDinnerIn() {
   const go = () => { const L = (S.lib || []).filter(c => c.deck === 'dinner' && c.who === 'both' && (c.data?.delivery || c.data?.takeout));
     sheet(`<div class="grab"></div><div class="body"><h2>Dinner in</h2><p class="muted" style="margin-top:6px;font-size:14px">Places you both said yes to that deliver or do takeout.</p>
@@ -7813,7 +7832,7 @@ document.addEventListener('click', async e => {
       if (a === 'seen') push(`${S.me} can’t make it`, `${c?.title || 'That event'}: the date doesn’t work.`, './');   // "Not for me" stays quiet
       closeSheet(); toast(a === 'seen' ? 'Marked as can’t make it.' : 'Okay, passed.', 2500); refresh().catch(() => {}); return; }
     if (ds.like) { t.disabled = true; const r = await rpc('like_card', { p_code: S.code, p_member: S.me, p_card: ds.like }); t.outerHTML = '<span class="pill hot">Liked</span>'; if (r.match) { toast('You have both liked that one. It will come up first next round.', 3500); send({ type: 'shortlist' }); } refresh().catch(() => {}); return; }
-    if (ds.hdeck) { if (ds.hdeck === S.homeDeck && document.querySelector('#stack .card')) return; const pt = BETA ? performance.now() : 0; switchDeck(ds.hdeck); if (BETA) perfTab(ds.hdeck, pt); return; }
+    if (ds.hdeck) { if (ds.hdeck === S.homeDeck && oneOn()) return seeAll(null); if (ds.hdeck === S.homeDeck && document.querySelector('#stack .card')) return; const pt = BETA ? performance.now() : 0; switchDeck(ds.hdeck); if (BETA) perfTab(ds.hdeck, pt); return; }
     if (ds.lad) return ladder(ds.lad, t);
     if (ds.chg) { const o = S.chg?.[+ds.chg]; if (!o) return; if (o.widen) { const cur = Number(S.settings?.radius_mi || 2), next = [5, 10, 25].find(m => m > cur) || 25; S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { radius_mi: next } }); toast(`Looking within ${next} miles now.`); } return startSession(o.deck, o.filters, o.label); }
     if (ds.tbpick) { t.disabled = true; S.tb = await rpc('tiebreak_pick', { p_code: S.code, p_member: S.me, p_id: S.tb.id, p_card: ds.tbpick }); send({ type: 'tb', id: S.tb.id, picked: true }); push(`Tonight: ${S.tb.pick.title}`, `${S.me} won and picked it.`, './?tb=' + S.tb.id, { round: S.tb.session }); render(); return pickReveal(S.tb); }
@@ -7978,8 +7997,7 @@ document.addEventListener('click', async e => {
       case 'ldyes': return leadSay(ds.id, true, t);
       case 'ldno': return leadSay(ds.id, false, t);
       case 'ldwatch': { const c = S.lbIdx?.[ds.id]; if (c) showFinal(c, false, [c]); return; }
-      case 'ldall': { const dk0 = S.homeDeck; if (!S.lb?.[dk0] || Date.now() - S.lb[dk0].at > 3e5 || (dk0 === 'all' && partner() && !S.lbPicks)) { t.disabled = true; await lbLoad(true).catch(() => {}); t.disabled = false; if (S.homeDeck !== dk0) return; }
-        sheet(`<div class="grab"></div><div class="body ldallb"><h2>${esc(HDECKS.find(x => x[0] === S.homeDeck)?.[1] || 'Browse')}</h2>${lbHTML(!ONE() && !!S.lbPicks?.both)}${ONE() ? '' : '<button class="btn ghost" data-act="lbmode" data-k="swipe" style="margin-top:6px">Swipe the pile instead</button>'}</div>`); return lbCarWire(); }
+      case 'ldall': return seeAll(t);
       case 'lbopen': { const c = S.lbIdx?.[ds.id]; if (!c) return; S.listCards = [c, ...(S.listCards || []).filter(x => x.id !== c.id)]; closeSheet(); return showDetail(c); }
       case 'lbpickset': { t.disabled = true; try { S.lbPicks = await rpc('local_picks_set', { p_code: S.code, p_member: S.me, p_in: ds.v === '1' }); } catch { toast('Could not save that. Try again in a moment.'); } return lbDraw(); }
       case 'lbround': { t.disabled = true; try { const r = await rpc('local_picks_round', { p_code: S.code, p_member: S.me }); if (!r?.id) return toast('Nothing to swipe this week.');
