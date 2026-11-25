@@ -4104,7 +4104,7 @@ function ideaDays(i) { const t = pToday(), dated = i.cards.filter(isDated);
 /* ---------- flowers: Florist One, test mode, only in the beta copy at /t. Browse, pick a day, see the total. Never orders. ---------- */
 const BETA = !!window.LT_BETA;
 // The 25 Nov beta (one-stream home, calm plan sheet, plan ask, game wording, Close by tiles, One more?): R2 switches it on for everyone when Dave says go. BETA alone still gates sign-in, friends, flowers, the calendar link, the timing probe, the deck cache and the finds preview.
-const REL2 = !!window.LT_REL2;
+const REL2 = true;   // 25 Nov, Dave: go
 const R2 = BETA || REL2;
 if (R2) document.documentElement.classList.add('bt');
 // Beta plan sheet: a stop opens on a tap to show its map, ride, booking, favourite and swap; closed, it is just the stop.
@@ -5547,12 +5547,13 @@ function howTo() {
 /* ---------- what's new ---------- */
 // Shown once per person (kept on the account, so Safari and the Home Screen app agree) to people who were already
 // here before the update. Someone who has just joined got the intro tour and does not need a second one.
-const NEWS = { v: 'n9-layout', since: '2026-11-21T14:00:00Z' };   // Dave, 20 Nov: the tested beta layout goes live (heart up top, Tonight spin, Trips someday); people who saw n8 get only these screens
+const NEWS = { v: 'n10-home', since: '2026-11-25T20:50:00Z' };   // Dave, 25 Nov: the one-stream home and the plan ask go live; people who saw n9 get only these two screens
+// was: n9-layout, 2026-11-21T14:00:00Z     // Dave, 20 Nov: the tested beta layout goes live (heart up top, Tonight spin, Trips someday); people who saw n8 get only these screens
 // was: n8-nights, 2026-11-20T03:45:00Z   // Dave, 19 Nov 10:40pm: after-the-night check-in, Go again, plan gaps; people who saw n7 get only the new screens
 function newsDue() { const b = S.inbox; return NEWUI && !!b && b.news !== NEWS.v && !!b.joined && new Date(b.joined) < new Date(NEWS.since); }
 function newsShow(force) {
   if (!force && (!newsDue() || S.view !== 'home' || $layer.innerHTML || document.querySelector('.coach,.scr,.sco,.match,.lfront,.wn'))) return false;
-  S.walkSeen7 = S.inbox?.news === 'n7-discover'; S.walkSeen8 = S.inbox?.news === 'n8-nights';
+  S.walkSeen7 = S.inbox?.news === 'n7-discover'; S.walkSeen8 = S.inbox?.news === 'n8-nights'; S.walkSeen9 = S.inbox?.news === 'n9-layout';
   if (S.inbox) S.inbox.news = NEWS.v; rpc('news_seen', { p_code: S.code, p_member: S.me, p_v: NEWS.v }).catch(() => {});
   return walkShow();
 }
@@ -5568,11 +5569,13 @@ const WALK = [
   { k: 'heart', a: '#ff4d7e', b: '#ffb547', kick: 'New: the heart up top', h: 'Everything you liked', p: 'Tap the heart at the top for everything you’ve liked, together and on your own. It replaces the buttons that sat above the cards.', open: true, n9: 1 },
   { k: 'spin', a: '#ffb547', b: '#ff7a4d', kick: 'New: Tonight', h: 'Spin for tonight', p: 'Tonight picks one thing you both already like: a movie, dinner or somewhere to go. Say you’re in, or respin once.', open: true, n9: 1 },
   { k: 'someday', a: '#4d9bff', b: '#2dd4bf', kick: 'New: Trips', h: 'Where to, someday?', p: 'Trips moved behind the Trip button at the bottom. Keep a someday list of places you’d both love to go.', open: true, n9: 1 },
+  { k: 'home', a: '#ff7a4d', b: '#ffb547', kick: 'New: one screen', h: 'The picture is the card', p: 'Your pile now fills the screen. Swipe right for yes, left for no, up for hell yeah. The four piles sit at the top; tap the one you’re on to see everything in it.', open: true, n10: 1 },
+  { k: 'ask', a: '#4d9bff', b: '#2dd4bf', kick: 'New in plans', h: 'Your plan comes first', p: 'One weekend plan a week, ready on Sunday evening. When it’s waiting on you it’s the first thing in the pile. Say you’re in with one tap, or look closer and swap a stop.', open: true, n10: 1 },
   { k: 'end', a: '#ffb547', b: '#ff4d7e', kick: 'That’s it', h: 'Swipe whenever you like', p: 'Hell yeah is for the places you’d love to go, and the ones you’ve been and loved.' },
 ];
-const WALKS0 = () => S.walkSeen8 ? WALK.filter(x => x.n9 || x.k === 'end') : S.walkSeen7 ? WALK.filter(x => x.n8 || x.n9 || x.k === 'end') : WALK;
+const WALKS0 = () => S.walkSeen9 ? WALK.filter(x => x.n10 || x.k === 'end') : S.walkSeen8 ? WALK.filter(x => x.n9 || x.n10 || x.k === 'end') : S.walkSeen7 ? WALK.filter(x => x.n8 || x.n9 || x.n10 || x.k === 'end') : WALK;
 // Beta: someone coming back gets two pages of news and the last page, not ten (sim, 25 Nov).
-const WALKS = () => { const base = WALKS0(); if (!R2) return base; const xs = base.filter(x => x.k !== 'end'), top = ['plans', 'spin'].map(k => xs.find(x => x.k === k)).filter(Boolean); return [...(top.length ? top : xs.slice(0, 2)), ...base.filter(x => x.k === 'end')]; };
+const WALKS = () => { const base = WALKS0(); if (!R2) return base; const xs = base.filter(x => x.k !== 'end'), top = ['home', 'ask'].map(k => xs.find(x => x.k === k)).filter(Boolean); return [...(top.length ? top : xs.slice(0, 2)), ...base.filter(x => x.k === 'end')]; };
 function walkShow() {
   document.querySelector('.wn')?.remove(); closeSheet();
   const el = document.createElement('div'); el.className = 'wn wk'; document.body.appendChild(el);
@@ -5600,6 +5603,8 @@ function walkDraw() {
     night: () => `<div class="wk-step" style="display:block"><b>A taco spot you went to</b><span class="rcv">${RCV.map(([k, l]) => `<button class="pill" data-wkrc="${k}">${l}</button>`).join('')}</span></div><p class="muted" id="wkrcm" style="font-size:13px;margin-top:10px;min-height:18px"></p>`,
     again: () => `<div class="wk-step" style="display:block"><b>Go again?</b><small style="display:block;margin-top:4px;line-height:1.4">You both loved that taco spot from your date night last month, and it’s 4 min on foot from Saturday’s show. Go again?</small></div>`,
     heart: () => `<div class="wk-step"><span class="grow"><b>With ${T}</b><small>Things you both said yes to</small></span><span class="ib hlib">${ic('heart')}</span></div><div class="wk-step"><span class="grow"><b>Mine</b><small>Everything you liked on your own</small></span></div>`,
+    home: () => `<div class="wk-step"><span class="grow"><b>Discover · Watch · Eat & Drink · Go Out</b><small>At the top of the screen</small></span></div><div class="wk-step"><span class="grow"><b>Swipe the picture</b><small>Tap it for the details</small></span></div>`,
+    ask: () => `<div class="wk-step"><span class="grow"><b>Saturday’s plan is ready</b><small>Put together from things you like</small></span></div><div class="wk-step"><span class="grow"><b>I’m in</b><small>Or look closer</small></span></div>`,
     spin: () => `<div class="spinrow">${Object.values(SPINK).map(v => `<span class="spinb">${ic(v[1])}<span>${v[0]}</span></span>`).join('')}</div>`,
     someday: () => `<div class="frpicks" style="justify-content:center">${['Lisbon', 'Kyoto', 'New Orleans'].map((c, i) => `<span class="frpick ${i ? '' : 'on'}">${c}</span>`).join('')}</div><p class="muted" style="font-size:13px;margin-top:10px;text-align:center">Lit up: you both want to go</p>`,
     close: () => `<div class="wk-step"><span class="grow"><b>A ramen spot</b><small>You both like it · 2 min walk</small></span></div><div class="wk-step"><span class="grow"><b>A cocktail bar</b><small>You like it · 6 min walk</small></span></div>`,
