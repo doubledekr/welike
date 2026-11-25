@@ -1178,7 +1178,7 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .bt .lfc{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-right:-18px;padding-right:18px}.bt .lfc::-webkit-scrollbar{display:none}.bt .lfc .chip{flex:none;white-space:nowrap}
 @keyframes tapw{50%{opacity:.4}}.tapw{animation:tapw .8s ease-in-out infinite;pointer-events:none}
 @keyframes tapbar{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}body.tapbar::after{content:"";position:fixed;left:0;top:var(--st);width:40%;height:2px;z-index:95;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:tapbar 1s linear infinite;pointer-events:none}
-.bt .fr .topbar .ib{min-width:44px;min-height:44px}
+.bt .fr .topbar .ib{min-width:44px;min-height:44px}.bt .prow .pill{min-height:44px;min-width:60px}
 .bt .chip.on,.bt .frpick.on{background:var(--text);color:#17121a;border-color:transparent;box-shadow:none}
 .bt .ysw.on{background:var(--text);color:#17121a;box-shadow:none}
 .bt .steerc{width:100%;max-width:340px;aspect-ratio:auto;align-items:flex-start;text-align:left;padding:26px 22px;border-radius:28px;background:var(--surface);color:var(--text);box-shadow:none;gap:8px}
@@ -5266,8 +5266,8 @@ async function sideLikes(planId, slot) {
     .sort((a, b) => ((a.mi ?? 50) - (b.mi ?? 50)) || ((b.c.who !== S.me) - (a.c.who !== S.me))).slice(0, 14);
   S.side = { plan: planId, slot }; S.listCards = fit.map(x => x.c);
   if (S.view === 'swipe' || S.view === 'matches') { S.view = 'home'; S.tab = 'home'; render(); }
-  sheet(`<div class="grab"></div><div class="body"><h2>Pick for ${PSLOT[slot][0].toLowerCase()}</h2><p class="muted" style="margin-top:6px;font-size:14px">${pDayName(p.day)} at ${pT(t)}. One of you has liked each of these and they are open then. Pick ${esc(them())}’s and it goes straight in. Pick your own and ${esc(them())} can agree or pick theirs: two different picks go to a quick game.</p>
-    <div style="margin-top:8px">${fit.length ? fit.map(({ c, mi }) => `<div class="prow"><button data-detail="${c.id}" style="flex:none;padding:0">${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy">` : `<span class="pimg">${emojiFor(c)}</span>`}</button><span class="grow"><b>${esc(c.title)}</b><small>${c.who === S.me ? 'You liked this' : esc(c.who) + ' liked this'}${mi != null ? ' · ' + mi + ' mi away' : ''}</small></span><button class="pill ${c.who === S.me ? '' : 'hot'}" data-pl="sidepick|${c.id}">Pick</button></div>`).join('') : `<p class="muted" style="font-size:14px;padding:10px 0">Neither of you has liked anything that fits this spot and is open then. Try a different time, or leave the spot out.</p>`}</div>
+  sheet(`<div class="grab"></div><div class="body"><h2>Pick for ${PSLOT[slot][0].toLowerCase()}</h2><p class="muted" style="margin-top:6px;font-size:14px">${pDayName(p.day)} at ${pT(t)}. Each of these is open then, and at least one of you has liked it. Pick one. If ${esc(them())} likes it too, it goes straight in. If not, ${esc(them())} can agree or pick another: two different picks go to a quick game.</p>
+    <div style="margin-top:8px">${fit.length ? fit.map(({ c, mi }) => `<div class="prow"><button data-detail="${c.id}" style="flex:none;padding:0">${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy">` : `<span class="pimg">${emojiFor(c)}</span>`}</button><span class="grow"><b>${esc(c.title)}</b><small>${mi != null ? mi + ' mi away' : esc(c.kind || '')}</small></span><button class="pill" data-pl="sidepick|${c.id}">Pick</button></div>`).join('') : `<p class="muted" style="font-size:14px;padding:10px 0">Neither of you has liked anything that fits this spot and is open then. Try a different time, or leave the spot out.</p>`}</div>
     <div style="height:14px"></div><button class="btn ghost" data-pl="view|${planId}">Back to the plan</button></div>`);
 }
 async function sidePick(cardId, t) {
@@ -5555,13 +5555,14 @@ function howTo() {
 /* ---------- what's new ---------- */
 // Shown once per person (kept on the account, so Safari and the Home Screen app agree) to people who were already
 // here before the update. Someone who has just joined got the intro tour and does not need a second one.
-const NEWS = { v: 'n10-home', since: '2026-11-25T20:50:00Z' };   // Dave, 25 Nov: the one-stream home and the plan ask go live; people who saw n9 get only these two screens
+const NEWS = { v: 'n11-crew', since: '2026-11-25T22:05:00Z' };   // Dave, 25 Nov evening: tell people about friends and groups; people who saw n10 get only that page
+// was: n10-home, 2026-11-25T20:50:00Z     // Dave, 25 Nov: the one-stream home and the plan ask go live; people who saw n9 get only these two screens
 // was: n9-layout, 2026-11-21T14:00:00Z     // Dave, 20 Nov: the tested beta layout goes live (heart up top, Tonight spin, Trips someday); people who saw n8 get only these screens
 // was: n8-nights, 2026-11-20T03:45:00Z   // Dave, 19 Nov 10:40pm: after-the-night check-in, Go again, plan gaps; people who saw n7 get only the new screens
 function newsDue() { const b = S.inbox; return NEWUI && !!b && b.news !== NEWS.v && !!b.joined && new Date(b.joined) < new Date(NEWS.since); }
 function newsShow(force) {
   if (!force && (!newsDue() || S.view !== 'home' || $layer.innerHTML || document.querySelector('.coach,.scr,.sco,.match,.lfront,.wn'))) return false;
-  S.walkSeen7 = S.inbox?.news === 'n7-discover'; S.walkSeen8 = S.inbox?.news === 'n8-nights'; S.walkSeen9 = S.inbox?.news === 'n9-layout';
+  S.walkSeen7 = S.inbox?.news === 'n7-discover'; S.walkSeen8 = S.inbox?.news === 'n8-nights'; S.walkSeen9 = S.inbox?.news === 'n9-layout'; S.walkSeen10 = S.inbox?.news === 'n10-home';
   if (S.inbox) S.inbox.news = NEWS.v; rpc('news_seen', { p_code: S.code, p_member: S.me, p_v: NEWS.v }).catch(() => {});
   return walkShow();
 }
@@ -5579,11 +5580,12 @@ const WALK = [
   { k: 'someday', a: '#4d9bff', b: '#2dd4bf', kick: 'New: Trips', h: 'Where to, someday?', p: 'Trips moved behind the Trip button at the bottom. Keep a someday list of places you’d both love to go.', open: true, n9: 1 },
   { k: 'home', a: '#ff7a4d', b: '#ffb547', kick: 'New: one screen', h: 'The picture is the card', p: 'Your pile now fills the screen. Swipe right for yes, left for no, up for hell yeah. The four piles sit at the top; tap the one you’re on to see everything in it.', open: true, n10: 1 },
   { k: 'ask', a: '#4d9bff', b: '#2dd4bf', kick: 'New in plans', h: 'Your plan comes first', p: 'One weekend plan a week, ready on Sunday evening. When it’s waiting on you it’s the first thing in the pile. Say you’re in with one tap, or look closer and swap a stop.', open: true, n10: 1 },
+  { k: 'crew', a: '#ff4d7e', b: '#ffb547', kick: 'New: Crew', h: 'Friends and groups', p: 'Tap the people key at the top. Invite a friend with one link, sort friends into private groups, and plan a double date, a night out or a trip together. Friends never see your couple swipes.', open: true, n11: 1 },
   { k: 'end', a: '#ffb547', b: '#ff4d7e', kick: 'That’s it', h: 'Swipe whenever you like', p: 'Hell yeah is for the places you’d love to go, and the ones you’ve been and loved.' },
 ];
-const WALKS0 = () => S.walkSeen9 ? WALK.filter(x => x.n10 || x.k === 'end') : S.walkSeen8 ? WALK.filter(x => x.n9 || x.n10 || x.k === 'end') : S.walkSeen7 ? WALK.filter(x => x.n8 || x.n9 || x.n10 || x.k === 'end') : WALK;
+const WALKS0 = () => S.walkSeen10 ? WALK.filter(x => x.n11 || x.k === 'end') : S.walkSeen9 ? WALK.filter(x => x.n10 || x.n11 || x.k === 'end') : S.walkSeen8 ? WALK.filter(x => x.n9 || x.n10 || x.n11 || x.k === 'end') : S.walkSeen7 ? WALK.filter(x => x.n8 || x.n9 || x.n10 || x.n11 || x.k === 'end') : WALK;
 // Beta: someone coming back gets two pages of news and the last page, not ten (sim, 25 Nov).
-const WALKS = () => { const base = WALKS0(); if (!R2) return base; const xs = base.filter(x => x.k !== 'end'), top = ['home', 'ask'].map(k => xs.find(x => x.k === k)).filter(Boolean); return [...(top.length ? top : xs.slice(0, 2)), ...base.filter(x => x.k === 'end')]; };
+const WALKS = () => { const base = WALKS0(); if (!R2) return base; const xs = base.filter(x => x.k !== 'end'), top = ['home', 'ask', 'crew'].map(k => xs.find(x => x.k === k)).filter(Boolean); return [...(top.length ? top : xs.slice(0, 2)), ...base.filter(x => x.k === 'end')]; };
 function walkShow() {
   document.querySelector('.wn')?.remove(); closeSheet();
   const el = document.createElement('div'); el.className = 'wn wk'; document.body.appendChild(el);
@@ -5612,6 +5614,7 @@ function walkDraw() {
     again: () => `<div class="wk-step" style="display:block"><b>Go again?</b><small style="display:block;margin-top:4px;line-height:1.4">You both loved that taco spot from your date night last month, and it’s 4 min on foot from Saturday’s show. Go again?</small></div>`,
     heart: () => `<div class="wk-step"><span class="grow"><b>With ${T}</b><small>Things you both said yes to</small></span><span class="ib hlib">${ic('heart')}</span></div><div class="wk-step"><span class="grow"><b>Mine</b><small>Everything you liked on your own</small></span></div>`,
     home: () => `<div class="wk-step"><span class="grow"><b>Discover · Watch · Eat & Drink · Go Out</b><small>At the top of the screen</small></span></div><div class="wk-step"><span class="grow"><b>Swipe the picture</b><small>Tap it for the details</small></span></div>`,
+    crew: () => `<div class="wk-step"><span class="grow"><b>Invite a friend</b><small>One link. No partner needed</small></span></div><div class="wk-step"><span class="grow"><b>Private groups</b><small>College friends, couples you know. Only you see them</small></span></div>`,
     ask: () => `<div class="wk-step"><span class="grow"><b>Saturday’s plan is ready</b><small>Put together from things you like</small></span></div><div class="wk-step"><span class="grow"><b>I’m in</b><small>Or look closer</small></span></div>`,
     spin: () => `<div class="spinrow">${Object.values(SPINK).map(v => `<span class="spinb">${ic(v[1])}<span>${v[0]}</span></span>`).join('')}</div>`,
     someday: () => `<div class="frpicks" style="justify-content:center">${['Lisbon', 'Kyoto', 'New Orleans'].map((c, i) => `<span class="frpick ${i ? '' : 'on'}">${c}</span>`).join('')}</div><p class="muted" style="font-size:13px;margin-top:10px;text-align:center">Lit up: you both want to go</p>`,
@@ -6382,6 +6385,9 @@ function renderFriends() {
     ${solo ? `<button class="frcta" data-fr="couple"><span class="tic">${ic('heart')}</span><span class="grow"><b>Set up your own decks</b><small>Movies, places and trips to swipe on your own, or with your person later</small></span><span class="ych">›</span></button>` : ''}
     ${rv ? `<div class="frrev"><small>This week</small><b>You and ${esc(frNames(rv.friends.map(f => f.name)))} ${rv.friends.length > 1 ? 'all' : 'both'} love ${esc(rv.title)}</b>${rv.sub ? `<span>${esc(rv.sub)}</span>` : ''}<button class="btn sm" data-fr="revealgo">${rv.deck === 'trip' ? 'Plan the trip' : 'Plan a hang'}</button></div>` : ''}
     ${!d.friends.length ? `<button class="frcta" data-fr="invite"><span class="tic">${ic('share')}</span><span class="grow"><b>Invite your first friend</b><small>One link. They join with a first name, no partner needed</small></span><span class="ych">›</span></button>` : ''}
+    <div class="sect">Your private groups</div>
+    <div class="ycard"><button class="yrow" data-fr="group"><span class="tic">${ic('plus')}</span><span class="grow"><b>New group</b><small>Local, with kids, wedding party. Sort friends your way</small></span><span class="ych">›</span></button>
+      ${d.groups.map(g => `<button class="yrow" data-fr="group" data-id="${g.id}"><span class="tic">${ic('list')}</span><span class="grow"><b>${esc(g.name)}</b><small>${g.members.length ? esc(frNames(g.members.map(id => d.friends.find(f => f.id === id)?.name).filter(Boolean))) : 'Nobody yet'}</small></span><span class="ych">›</span></button>`).join('')}</div>
     <div class="sect">Your plans</div>
     ${plans.length ? `<div class="ycard">${plans.map(frPlanRow).join('')}</div>` : '<p class="muted frempty">Nothing yet. Start a trip, a dinner or a night out, and invite who you like.</p>'}
     <button class="btn frnew" data-fr="new">${ic('plus')}Start a plan</button>
@@ -6390,9 +6396,6 @@ function renderFriends() {
       ${d.friends.length ? `<button class="yrow" data-fr="invite"><span class="tic">${ic('share')}</span><span class="grow"><b>Invite a friend</b><small>One link. They join with a first name, no partner needed</small></span><span class="ych">›</span></button>` : ''}
       <button class="yrow" data-fr="addcode"><span class="tic">${ic('plus')}</span><span class="grow"><b>Enter a friend’s code</b><small>Yours is ${esc(d.me.code)}</small></span><span class="ych">›</span></button>
       <div class="yrow"><span class="tic">${ic('spark')}</span><span class="grow"><b>Match with friends</b><small>${d.share ? 'Once a week you see one thing you and a friend both love' : 'Once a week, one thing you and a friend both love. Nothing else is shared'}</small></span><button class="ysw ${d.share ? 'on' : ''}" data-fr="share">${d.share ? 'On' : 'Off'}</button></div></div>
-    <div class="sect">Your private groups</div>
-    <div class="ycard">${d.groups.map(g => `<button class="yrow" data-fr="group" data-id="${g.id}"><span class="tic">${ic('list')}</span><span class="grow"><b>${esc(g.name)}</b><small>${g.members.length ? esc(frNames(g.members.map(id => d.friends.find(f => f.id === id)?.name).filter(Boolean))) : 'Nobody yet'}</small></span><span class="ych">›</span></button>`).join('')}
-      <button class="yrow" data-fr="group"><span class="tic">${ic('plus')}</span><span class="grow"><b>New group</b><small>Local, with kids, wedding party. Sort friends your way</small></span><span class="ych">›</span></button></div>
     <p class="muted frfine">Only you see your groups and who is in them. Friends never see your couple swipes${pn ? `, and ${esc(pn)} only sees a plan you include ${esc(pn)} in` : ''}.</p></div>`;
 }
 function frGroupSheet(id) {
