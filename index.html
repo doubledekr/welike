@@ -1176,6 +1176,8 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .bt .undof{min-height:44px}
 .bt .kv,.bt .sect,.bt .sgrp,.bt .lbk,.bt .spk,.bt .tbk,.bt .wk-k,.bt .steerk,.bt .steerc small,.bt .whorow>small,.bt .scr-k,.bt .mzk,.bt .wn-top small,.bt .surp .skick,.bt .trp .tkick{text-transform:none!important;letter-spacing:0!important;font-size:13px;font-weight:600}
 .bt .lfc{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-right:-18px;padding-right:18px}.bt .lfc::-webkit-scrollbar{display:none}.bt .lfc .chip{flex:none;white-space:nowrap}
+@keyframes tapw{50%{opacity:.4}}.tapw{animation:tapw .8s ease-in-out infinite;pointer-events:none}
+@keyframes tapbar{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}body.tapbar::after{content:"";position:fixed;left:0;top:var(--st);width:40%;height:2px;z-index:95;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:tapbar 1s linear infinite;pointer-events:none}
 .bt .chip.on,.bt .frpick.on{background:var(--text);color:#17121a;border-color:transparent;box-shadow:none}
 .bt .ysw.on{background:var(--text);color:#17121a;box-shadow:none}
 .bt .steerc{width:100%;max-width:340px;aspect-ratio:auto;align-items:flex-start;text-align:left;padding:26px 22px;border-radius:28px;background:var(--surface);color:var(--text);box-shadow:none;gap:8px}
@@ -2024,6 +2026,10 @@ async function outings(ms = 6000) {
 
 /* ---------- data ---------- */
 // What Home is drawn from. Coming back to the app only redraws Home when this changed, so the cards don't flicker.
+// Back to Home (25 Nov, Dave: "sluggish when you click back"): draw it at once from what is already here, then fetch behind it and
+// redraw only if something on Home actually changed and nothing is open or being dragged.
+function goHome() { S.view = 'home'; S.tab = 'home'; const was = homeSig(); render();
+  refresh().then(() => { bellSync(); if (S.view === 'home' && S.tab === 'home' && !$layer.innerHTML && !S.dragOn && homeSig() !== was) render(); }).catch(() => {}); }
 const homeSig = () => { try { return JSON.stringify([S.state, S.plans, S.share, S.settings, S.pantry, S.favs, S.surp]); } catch { return String(Math.random()); } };
 const swPend = new Set();   // swipes still being saved
 async function refresh() {
@@ -2039,9 +2045,9 @@ async function loadSession(id, keep) {
   S.sess = d.session; S.deck = d.deck; S.matches = d.matches; S.total = d.total; S.theirLeft = d.their_left; S.solo = !!d.session.solo; S.rewatch = !!d.session.filters?.rewatch; S.bite = !!d.session.filters?.bite; S.hist = [];
 }
 async function openSession(id) {
-  try { closeSheet(); await loadSession(id); S.skips = [];
+  try { closeSheet(); const tbq = rpc('tiebreak_open', { p_code: S.code, p_member: S.me, p_session: id }).catch(() => null); await loadSession(id); S.skips = [];
     // a game already running for this round: someone who has not played yet lands straight in it, since that is the thing waiting on them
-    S.tbs = await rpc('tiebreak_open', { p_code: S.code, p_member: S.me, p_session: id }).catch(() => null);
+    S.tbs = await tbq;
     if (S.tbs && !S.tbs.done && S.tbs.mine !== true && !S.tbs.pick) { S.tb = S.tbs; S.view = 'game'; return render(); }
     S.view = 'swipe'; render(); }
   catch (e) { toast('That round is no longer available.'); S.view = 'home'; render(); }
@@ -6982,7 +6988,8 @@ function inviteSheet() {
 const btnsOn = () => { const v = ls.get('btns'); return v === '1' || (v !== '0' && !(isPhone() || navigator.maxTouchPoints > 0)); };
 const btnSync = () => document.body.classList.toggle('nobtn', !btnsOn());
 // With the buttons gone, undo shows for a few seconds after each swipe
-function undoChip() { document.querySelector('.undof')?.remove(); if ((btnsOn() && !oneOn()) || !S.hist?.length) return; const st = document.getElementById('stack'); if (!st) return; const r = st.getBoundingClientRect();
+function undoChip() { document.querySelector('.undof')?.remove(); if ((btnsOn() && !oneOn()) || !S.hist?.length) return; const st = document.getElementById('stack'); if (!st || st.querySelector('.done')) return;   // the end of a pile has its own Undo; a floating one sat on top of the words
+  const r = st.getBoundingClientRect();
   const b = document.createElement('button'); b.className = 'undof'; b.dataset.sw = 'undo'; b.setAttribute('aria-label', 'Undo last swipe'); b.innerHTML = ic('undo') + '<span>Undo</span>'; b.style.left = (r.left + 12) + 'px'; b.style.top = (r.top + (oneOn() ? (parseInt(getComputedStyle(document.querySelector('.home.one')).getPropertyValue('--onetop')) || 110) : 12)) + 'px'; document.body.appendChild(b);
   clearTimeout(undoChip.t); undoChip.t = setTimeout(() => { b.classList.add('out'); setTimeout(() => b.remove(), 300); }, 4500); }
 const isPhone = () => /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
@@ -7570,10 +7577,10 @@ function gemCover(el, c, o = {}) { if (!el || el.querySelector('.gcov')) return;
 function attachDrag(el) {
   let sx = 0, sy = 0, dx = 0, dy = 0, t0 = 0, on = false;
   const stamp = k => el.querySelector('.stamp.' + k);
-  const down = e => { if (el.classList.contains('flipped') || el._flipping) return; on = true; sx = e.clientX; sy = e.clientY; dx = dy = 0; t0 = Date.now(); el.style.transition = 'none'; try { el.setPointerCapture(e.pointerId); } catch {} };
+  const down = e => { if (el.classList.contains('flipped') || el._flipping) return; on = true; S.dragOn = true; sx = e.clientX; sy = e.clientY; dx = dy = 0; t0 = Date.now(); el.style.transition = 'none'; try { el.setPointerCapture(e.pointerId); } catch {} };
   const move = e => { if (!on) return; dx = e.clientX - sx; dy = e.clientY - sy; el.style.transform = `translate(${dx}px,${dy}px) rotate(${dx / 18}deg)`;
     const up = dy < -60 && Math.abs(dx) < 70, dn = !!stamp('seen') && dy > 60 && Math.abs(dx) < 70, v = up || dn; stamp('yes').style.opacity = v ? 0 : Math.max(0, Math.min(1, dx / 90)); stamp('no').style.opacity = v ? 0 : Math.max(0, Math.min(1, -dx / 90)); stamp('love').style.opacity = up ? Math.min(1, (-dy - 40) / 70) : 0; if (stamp('seen')) stamp('seen').style.opacity = dn ? Math.min(1, (dy - 40) / 70) : 0; const ak = document.getElementById('acts'); if (ak) ak.dataset.v = up ? 'love' : dn ? 'seen' : dx > 45 ? 'yes' : dx < -45 ? 'no' : ''; };
-  const up = () => { if (!on) return; on = false; const dist = Math.hypot(dx, dy); const ak = document.getElementById('acts'); if (ak) ak.dataset.v = '';
+  const up = () => { if (!on) return; on = false; S.dragOn = false; const dist = Math.hypot(dx, dy); const ak = document.getElementById('acts'); if (ak) ak.dataset.v = '';
     if (dist < 8 && Date.now() - t0 < 350) { el.style.transform = ''; return flipCard(el, S.deck[0]); }
     if (dy < -110 && Math.abs(dx) < 90) return commit('love'); if (dy > 110 && Math.abs(dx) < 90 && DWN(S.deck[0])) return commit('seen'); if (dx > 95) return commit('yes'); if (dx < -95) return commit('no');
     el.style.transition = 'transform .25s cubic-bezier(.2,.8,.2,1)'; el.style.transform = ''; el.querySelectorAll('.stamp').forEach(s => s.style.opacity = 0); };
@@ -7961,7 +7968,13 @@ async function saveAdd(t) {
 }
 
 /* ---------- events ---------- */
-document.addEventListener('click', async e => {
+// A tap that takes longer than a moment says so (25 Nov, Dave): the thing tapped pulses and a thin line runs along the top until the app has answered.
+let tapN = 0;
+document.addEventListener('click', e => { const p = onTap(e); if (!R2) return; const t = e.target.closest?.('button,a,[data-act]'); let on = false;
+  const tm = setTimeout(() => { on = true; t?.classList.add('tapw'); if (++tapN === 1) document.body.classList.add('tapbar'); }, 150);
+  const done = () => { clearTimeout(tm); if (on) { t?.classList.remove('tapw'); if (--tapN <= 0) { tapN = 0; document.body.classList.remove('tapbar'); } } };
+  p.then(done, er => { done(); throw er; }); });
+const onTap = async e => {
   if (S.slDrag && Date.now() - S.slDrag < 350 && e.target.closest('.sli')) return;
   const t = e.target.closest('[data-wk],[data-into],[data-tripclaim],[data-datesok],[data-tripstay],[data-staysave],[data-stayok],[data-sp],[data-pl],[data-inurl],[data-tab],[data-nudge],[data-open],[data-act],[data-sw],[data-go],[data-f],[data-days],[data-list],[data-del],[data-detail],[data-save],[data-chain],[data-watched],[data-unsee],[data-svc],[data-hdeck],[data-like],[data-final],[data-lad],[data-chg],[data-tbpick],[data-g],[data-seenany],[data-padd],[data-lib],[data-libf],[data-tripc],[data-who],[data-gcity],[data-getaway],[data-libc],[data-planf],[data-planact],[data-tripbook],[data-tripinvite],[data-tripsearch],[data-planbook],[data-planpick],[data-tripdates],[data-datesave],[data-tripitem],[data-astack],[data-shpick],[data-feel],[data-seenme],[data-pset],[data-fr],[data-rc],[data-wkrc],#jgo') || (e.target.matches('[data-scrim]') ? e.target : null);
   if (!t) return; const ds = t.dataset;
@@ -7976,7 +7989,7 @@ document.addEventListener('click', async e => {
     if (ds.pl) { const [v, a, a2] = ds.pl.split('|'); if (v === 'side') return await sideLikes(a, a2); if (v === 'sidepick') return await sidePick(a, t); if (v === 'tip') { ls.set('pdtip', '1'); return dayEdit(); } return await dayAct(v, a, t); }
     if (ds.inurl) return inboxGo(ds.inurl);
     if (ds.shpick) { const on = !S.shSel.has(ds.shpick); on ? S.shSel.add(ds.shpick) : S.shSel.delete(ds.shpick); t.classList.toggle('on', on); const g = document.getElementById('shgo'); if (g) g.innerHTML = shGoLabel(); return; }
-    if (ds.tab) { S.tab = ds.tab; S.view = 'home'; if (ds.tab === 'home') { S.revEntry = true; await refresh(); } return render(); }
+    if (ds.tab) { S.tab = ds.tab; S.view = 'home'; if (ds.tab === 'home') { S.revEntry = true; if (R2 && S.state) return goHome(); await refresh(); } return render(); }
     if (ds.final) { const c = await rpc('set_final', { p_code: S.code, p_session: S.sess.id, p_card: ds.final }); send({ type: 'final', card: c }); push(`Tonight: ${c.title}`, `${S.me} locked it in.`, `./?s=${S.sess.id}`, { round: S.sess.id }); return showFinal(c); }
     if (ds.wk) return walkTap(ds.wk, t);
     if (ds.into) { const [a, id] = ds.into.split('|'), c = S.detailCard?.id === id ? S.detailCard : null; t.disabled = true;
@@ -8041,7 +8054,7 @@ document.addEventListener('click', async e => {
     if (ds.unsee) { await rpc('unsee', { p_code: S.code, p_member: S.me, p_card: ds.unsee }); await refresh(); toast(S.view === 'library' ? 'Taken out of your Watched.' : 'Taken out of Seen for you.', 3000); if (S.view === 'library') { document.querySelector('.lfront')?.remove(); return openLibrary(); } return loadList(); }
     if (ds.chain) { const c = S.matches.find(x => x.id === ds.chain) || document.querySelector('.match')?._card; document.querySelector('.match')?.remove(); if (S.starting) return; t.disabled = true; if (c?.data?.chain) await startSession(c.data.chain.deck, c.data.chain.filters || {}, `Since we both said ${c.title}`); return; }
     switch (ds.act) {
-      case 'home': S.view = 'home'; S.tab = 'home'; S.revEntry = true; await refresh(); return render();
+      case 'home': S.view = 'home'; S.tab = 'home'; S.revEntry = true; if (R2 && S.state) return goHome(); await refresh(); return render();
       case 'swipe': S.view = 'swipe'; return render();
       case 'matches': document.querySelector('.match')?.remove(); try { const d = await rpc('get_session', { p_code: S.code, p_session: S.sess.id, p_member: S.me }); S.matches = d.matches; S.theirLeft = d.their_left; } catch {} S.view = 'matches'; return render();
       case 'reshuffle': { const mm = document.querySelector('.match'); if (mm?._pool) { const c = libPick(mm._pool, mm._card?.id); return showFinal(c, true, mm._pool); } const c = await pickNext(); if (!c) return; send({ type: 'final', card: c, shuffle: true, session: S.sess.id }); return showFinal(c, true); }
@@ -8158,7 +8171,7 @@ document.addEventListener('click', async e => {
       case 'lbtonight': { const r = S.lb?.movie?.rows.find(x => x.k === 'tonight'); if (!r || r.items.length < 2) return; t.disabled = true;
         S.tb = await rpc('tiebreak_lib', { p_code: S.code, p_member: S.me, p_cards: r.items.map(c => c.id) }); S.view = 'game'; send({ type: 'game', id: S.tb.id, lib: true }); push(`${S.me} wants to pick tonight’s movie`, 'A quick game. The winner chooses.', `./?tb=${S.tb.id}`); return render(); }
       case 'lbdinnerin': return lbDinnerIn();
-      case 'liveten': { t.disabled = true; let r = null; try { r = await rpc('live_ten', { p_code: S.code, p_member: S.me }); } catch {} if (!r?.id) { t.disabled = false; return toast('Not enough new cards for ten right now. Try again tomorrow.', 4000); }
+      case 'liveten': { t.disabled = true; const lt0 = t.textContent; if (R2) t.textContent = 'Dealing…'; let r = null; try { r = await rpc('live_ten', { p_code: S.code, p_member: S.me }); } catch {} if (!r?.id) { t.disabled = false; t.textContent = lt0; return toast('Not enough new cards for ten right now. Try again tomorrow.', 4000); }
         S.hereOff = true; send({ type: 'live10', session: r.id }); step('live_ten'); return openSession(r.id); }
       case 'hereoff': S.hereOff = true; return hereDraw();
       case 'pdshape': { S.pdShape = ds.k; document.querySelectorAll('.pdshape').forEach(b => b.classList.toggle('on', b.dataset.k === ds.k)); return pdPrev(); }
@@ -8435,7 +8448,7 @@ document.addEventListener('click', async e => {
       case 'signout': ls.del('name'); authCookie.clear(); S.me = null; if (S.chan) sb.removeChannel(S.chan); return render();
     }
   } catch (er) { console.error(er); toast(errMsg(er)); }
-});
+};
 document.addEventListener('input', e => { if (e.target.id === 'jc') joinWho(); });
 document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'sq') { e.preventDefault(); searchGo(); return; }
   if (e.key === 'Enter' && e.target.id === 'tcq') { e.preventDefault(); e.target.blur(); document.querySelector('[data-act="tripadd"]')?.click(); return; }
