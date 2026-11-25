@@ -4828,14 +4828,14 @@ function toastAct(msg, label, fn, ms = 4000, onEnd) {
   t.querySelector('button').addEventListener('click', e => { e.stopPropagation(); fin(true); });
   toastT = setTimeout(() => fin(false), ms);
 }
-// Weekend plans arrive on their own: Saturday's on Wednesday evening, Friday night's on Friday afternoon. Each is made from
-// what the two of you like, with one spot left open to swipe on together. Sunday is left alone.
+// One weekend plan a week arrives on its own (Dave, 25 Nov): made on Sunday evening for the day the couple chose (Saturday unless
+// they picked Friday night or Sunday), from what the two of them like. It arrives complete; any stop can be swapped.
 const pByName = p => p.by === 'auto' ? 'Let’s Together' : p.by;
 const PWHY = w => !w ? '' : w === 'keep' ? 'Keep watching: the next couple of episodes' : w === 'both' ? 'You both liked this' : w === 'fav' ? '★ One of your favorites' : w === 'again' ? 'You both loved this last time' : w === 'new' ? 'New to you, and well rated' : '';   // a stop only one of you liked carries no line: swipes stay private
 const isFav = id => (S.favs || []).some(f => f.card?.id === id);
 const FSHAPE = { in: 'Night in', drink_movie: 'A drink, then a movie', bar_dinner: 'New bar, then dinner' };
 const pShape = p => p.auto !== 'fri' ? null : p.mode === 'out' ? 'bar_dinner' : p.items.some(i => i.slot === 'drinks') ? 'drink_movie' : 'in';
-const pAutoName = p => p.auto === 'fri' ? 'Friday night' : 'Saturday';
+const pAutoName = p => p.auto === 'fri' ? 'Friday night' : new Date(p.day + 'T12:00').getDay() === 0 ? 'Sunday' : 'Saturday';
 const OUTDOOR = /garden|zoo|park|market|festival|outdoor|trail|farm|fair|botanical|beach|patio|rooftop|walking|cruise|kayak|bike/i;
 const WX = {};
 // What to wear, from the forecast for that day where the plan is (Open-Meteo, no key, up to a week out).
@@ -4864,11 +4864,13 @@ const pLeg = (p, i) => { const l = i.card && (p.legs || []).find(x => x.from ===
 function pWeatherFill(p) { pWeather(p).then(t => { const el = document.getElementById('pwx'); if (t && el && S.plView === p.id) { el.textContent = t; el.hidden = false; } }).catch(() => {}); }
 function plansForm() {
   const st = S.settings || {}, off = st.plans_off === true, fs = st.friday_start || '18:30', ff = st.friday_fav || '', pr = st.plan_price || '', favs = S.favs || [];
+  const pd = ['fri', 'sun'].includes(st.plan_day) ? st.plan_day : 'sat', PDN = { sat: 'Saturday', fri: 'Friday night', sun: 'Sunday' };
   const times = ['17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30'];
-  return `<div class="note" style="border-style:solid"><b>${off ? 'Weekend plans are off.' : 'Saturday’s plan arrives Wednesday evening. Friday night’s arrives Friday afternoon.'}</b> ${off ? 'Turn them back on any time.' : 'Each one is made from what you both like, with one spot left open to swipe on together. Sunday stays free.'}
+  return `<div class="note" style="border-style:solid"><b>${off ? 'Weekend plans are off.' : `One plan a week, for ${PDN[pd]}. It arrives Sunday evening.`}</b> ${off ? 'Turn them back on any time.' : 'It is made from what you both like and arrives complete. Swap any stop you like.'}
     <div style="height:10px"></div><button class="btn ghost sm" data-act="plansoff">${off ? 'Turn weekend plans on' : 'Turn them off'}</button></div>
-    ${off ? '' : `<label class="field"><span>Friday night starts at</span><select id="p_fs">${times.map(x => `<option value="${x}" ${x === fs ? 'selected' : ''}>${pT(x)}</option>`).join('')}</select></label>
-    <div class="kv">Favorite kind of Friday</div><div class="chips">${[['', 'Mix it up'], ...Object.entries(FSHAPE)].map(([k, l]) => `<button class="chip ${k === ff ? 'on' : ''}" data-pset="ff|${k}">${l}</button>`).join('')}</div>
+    ${off ? '' : `<div class="kv">Plan for</div><div class="chips">${Object.entries(PDN).map(([k, l]) => `<button class="chip ${k === pd ? 'on' : ''}" data-pset="pd|${k}">${l}</button>`).join('')}</div>
+    <div class="pfri" style="${pd === 'fri' ? '' : 'display:none'}"><label class="field"><span>Friday night starts at</span><select id="p_fs">${times.map(x => `<option value="${x}" ${x === fs ? 'selected' : ''}>${pT(x)}</option>`).join('')}</select></label>
+    <div class="kv">Favorite kind of Friday</div><div class="chips">${[['', 'Mix it up'], ...Object.entries(FSHAPE)].map(([k, l]) => `<button class="chip ${k === ff ? 'on' : ''}" data-pset="ff|${k}">${l}</button>`).join('')}</div></div>
     <div class="kv">Spend</div><div class="chips">${[['', 'Any price'], ['$', '$'], ['$$', 'Up to $$'], ['$$$', 'Up to $$$']].map(([k, l]) => `<button class="chip ${k === pr ? 'on' : ''}" data-pset="pr|${k}">${l}</button>`).join('')}</div>
     <div class="kv">Bars</div><div class="chips"><button class="chip ${st.no_bars ? '' : 'on'}" data-pset="nb|0">Include bars</button><button class="chip ${st.no_bars ? 'on' : ''}" data-pset="nb|1">No bars</button></div>
     <label class="field"><span>Foods to leave out of plans</span><input id="p_avoid" maxlength="200" value="${esc((st.plan_avoid || []).join(', '))}" placeholder="Like sushi, seafood"></label>
@@ -7908,7 +7910,7 @@ document.addEventListener('click', async e => {
     if (ds.fr) return await frClick(t, ds);
     if (ds.rc) return await recapAct(t);
     if (ds.wkrc) { t.parentElement.querySelectorAll('.pill').forEach(x => x.classList.toggle('hot', x === t)); const m = document.getElementById('wkrcm'); if (m) m.textContent = ds.wkrc === 'loved' ? 'If ' + them() + ' loved it too, it can come back.' : ds.wkrc === 'nope' ? 'It won’t come back for you.' : 'Noted. Only you see this.'; return walkOk(); }
-    if (ds.pset) { t.parentElement.querySelectorAll('[data-pset]').forEach(x => x.classList.toggle('on', x === t)); return; }
+    if (ds.pset) { t.parentElement.querySelectorAll('[data-pset]').forEach(x => x.classList.toggle('on', x === t)); if (ds.pset.startsWith('pd|')) { const f = t.closest('.sheet, .body, #app')?.querySelector('.pfri'); if (f) f.style.display = ds.pset === 'pd|fri' ? '' : 'none'; } return; }
     if (ds.pl) { const [v, a, a2] = ds.pl.split('|'); if (v === 'side') return await sideLikes(a, a2); if (v === 'sidepick') return await sidePick(a, t); if (v === 'tip') { ls.set('pdtip', '1'); return dayEdit(); } return await dayAct(v, a, t); }
     if (ds.inurl) return inboxGo(ds.inurl);
     if (ds.shpick) { const on = !S.shSel.has(ds.shpick); on ? S.shSel.add(ds.shpick) : S.shSel.delete(ds.shpick); t.classList.toggle('on', on); const g = document.getElementById('shgo'); if (g) g.innerHTML = shGoLabel(); return; }
@@ -8234,7 +8236,7 @@ document.addEventListener('click', async e => {
         setTimeout(() => { const l = document.getElementById('inlately'); if (l) l.innerHTML = '<p class="muted" style="font-size:14px;padding:6px 0 4px">All clear.</p>'; t.remove(); document.querySelector('.inhint')?.remove(); }, rows.length * 70 + 420);
         if (S.inbox) S.inbox.items = []; rpc('inbox_dismiss', { p_code: S.code, p_member: S.me, p_id: null }).catch(() => {}); bellSync(); return; }
       case 'saveplans': { const root = t.closest('.sheet') || document, pick = k => (root.querySelector(`[data-pset^="${k}|"].on`)?.dataset.pset || '|').split('|')[1];
-        t.disabled = true; try { S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { friday_start: root.querySelector('#p_fs').value, friday_fav: pick('ff'), plan_price: pick('pr'), no_bars: pick('nb') === '1', plan_avoid: root.querySelector('#p_avoid').value.split(',').map(x => x.trim()).filter(Boolean) } }); } catch { t.disabled = false; return toast('Could not save. Try again.'); }
+        t.disabled = true; try { S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { plan_day: pick('pd') || 'sat', friday_start: root.querySelector('#p_fs').value, friday_fav: pick('ff'), plan_price: pick('pr'), no_bars: pick('nb') === '1', plan_avoid: root.querySelector('#p_avoid').value.split(',').map(x => x.trim()).filter(Boolean) } }); } catch { t.disabled = false; return toast('Could not save. Try again.'); }
         toast('Saved for both of you.'); return render(); }
       case 'plansoff': { S.settings = await rpc('set_settings', { p_code: S.code, p_settings: { plans_off: S.settings?.plans_off !== true } }); toast(S.settings.plans_off ? 'Weekend plans are off.' : 'Weekend plans are back on.'); return render(); }
       case 'occ': return occSheet(ds.occ);
