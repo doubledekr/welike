@@ -1167,6 +1167,43 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .lgstk .mstw{margin-top:2px}.lgstk .mstk{max-width:clamp(56px,calc((100cqh - 232px) * .75),170px)}.lgstk .mhint{margin-top:8px}
 @container (max-height:400px){.lgstk .mhint{display:none}.lgstk .mstk{max-width:clamp(56px,calc((100cqh - 188px) * .75),170px)}}
 .mstw{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:10px}.mcol{display:flex;flex-direction:column;align-items:center;gap:10px}.mcol .sect{margin:0;text-align:center}
+/* beta sweep from the phone-use sim (25 Nov): nothing you tap is under 44, labels are sentence case, one coral thing per screen */
+.bt .topbar .back{width:44px;height:44px}
+.bt .chips .chip,.bt .frpick,.bt .tpills button,.bt .ysw{min-height:44px;display:inline-flex;align-items:center}
+.bt .ysw{padding-left:16px;padding-right:16px}
+.bt .d2 .pg button.peek{flex:0 0 44px}.bt .whyl.tap,.bt .whyl[data-act=closeby]{min-height:44px;display:flex;align-items:center}.bt .home.one .slot .go,.bt .home.one .herep .go{min-height:44px;display:flex;align-items:center}
+.bt .wn-top button{min-height:44px;min-width:44px}
+.bt .undof{min-height:44px}
+.bt .kv,.bt .sect,.bt .sgrp,.bt .lbk,.bt .spk,.bt .tbk,.bt .wk-k,.bt .steerk,.bt .steerc small,.bt .whorow>small,.bt .scr-k,.bt .mzk,.bt .wn-top small,.bt .surp .skick,.bt .trp .tkick{text-transform:none!important;letter-spacing:0!important;font-size:13px;font-weight:600}
+.bt .chip.on,.bt .frpick.on{background:var(--text);color:#17121a;border-color:transparent;box-shadow:none}
+.bt .ysw.on{background:var(--text);color:#17121a;box-shadow:none}
+.bt .steerc{width:100%;max-width:340px;aspect-ratio:auto;align-items:flex-start;text-align:left;padding:26px 22px;border-radius:28px;background:var(--surface);color:var(--text);box-shadow:none;gap:8px}
+.bt .steerc small{color:var(--muted);opacity:1}.bt .steerc b{font-size:34px}.bt .steerc span{font-size:14.5px;color:var(--muted);opacity:1}
+.bt .steeryn{max-width:340px}.bt .steeryn .btn{min-height:56px;border-radius:18px}.bt .steeryn .btn:not(.ghost){color:var(--accent-ink)}
+/* beta: calm plan sheet. Closed, a stop is its picture, its place in the order, its name and why. One coral key on the sheet. */
+.pcalm .prow{min-height:64px}.pcalm .prow .pimg,.pcalm .prow img{width:64px;height:64px;border-radius:14px}
+.pcalm .prow b{font-size:16px}.pcalm .prow small{font-size:13px}
+.pcalm .pstop:not(.open) .plk:has(a),.pcalm .pstop:not(.open) .psugb,.pcalm .pstop:not(.open) .x.fav,.pcalm .pstop:not(.open) .pill[data-pl^="book"]{display:none}
+.pcalm .pstop.open .plk{display:flex;flex-wrap:wrap;gap:8px;font-size:0;margin-top:8px;overflow:visible}
+.pcalm .pstop.open .plk a{font-size:14px;min-height:44px;padding:0 14px;border-radius:14px;background:var(--surface2);color:var(--text);display:inline-flex;align-items:center}
+.pcalm .psugb{display:flex;align-items:center;min-height:44px;margin:0 0 8px 78px;padding:0 14px;border-radius:14px;background:var(--surface2);color:var(--text);font-size:14px;font-weight:600}
+.pcalm .prow .x.fav{width:44px;height:44px}
+.pcalm .pill{height:44px;min-height:44px;padding:0 16px;font-size:14px;border-radius:14px}
+.pcalm .pill.hot{background:var(--surface2);color:var(--text);box-shadow:none}
+.pcalm .btn:not(.ghost){color:var(--accent-ink)}
+.pcalm .kv{text-transform:none;letter-spacing:0;font-size:13px;font-weight:600;color:var(--text)}
+.pcalm .chip{min-height:44px;display:inline-flex;align-items:center}.pcalm .chip.on{background:var(--text);color:#17121a;box-shadow:none}
+.pmore{display:none}.pmore.open{display:block}.pmoreb{display:block;min-height:44px;margin:6px auto 0;color:var(--muted);font-size:14px}
+.pcalm .tto{min-height:44px}
+/* beta: the plan ask in front of the pile */
+.done.pask{justify-content:safe center;gap:10px;padding:14px 18px;text-align:left;align-items:stretch}
+.pask .pkw{font-size:13px;font-weight:600;color:var(--text);line-height:18px}
+.pask h3{font-size:clamp(34px,10vw,42px);line-height:1.04;margin:-2px 0 4px}
+.pks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:2px 0 8px}.pks.n1{grid-template-columns:minmax(0,46%)}.pks.n2{grid-template-columns:repeat(2,minmax(0,1fr))}.pks.n4{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.pkt{display:flex;flex-direction:column;min-width:0}.pkt img,.pkt .pimg{width:100%;aspect-ratio:4/5;max-height:min(34cqh,230px);border-radius:14px;object-fit:cover;background:var(--surface);display:grid;place-items:center;font-size:34px}.pkt .pkh{color:var(--muted);font-size:26px;font-weight:300}
+.pkt small{font-size:12px;line-height:16px;color:var(--muted);margin-top:7px}.pkt b{font-family:var(--serif);font-weight:400;font-size:17px;line-height:1.12;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.pks.n4 .pkt b{font-size:15px}
+.pask>.btn{max-width:none;min-height:56px;border-radius:18px;color:var(--accent-ink);font-size:16px}.done.pask .mplay{max-width:none}.stack:has(>.done.pask) .dbg{display:none}.pask .mplay .btn{min-height:48px;font-size:15px}
+.pask .pkn{font-size:12.5px;line-height:17px;color:var(--muted);text-align:center}
 .done .mplay{display:flex;gap:9px;width:100%;max-width:340px;flex:none}.done .mplay .btn{flex:1 1 0;min-width:0;max-width:none;padding-left:4px;padding-right:4px;white-space:nowrap;font-size:14.5px}.done.tight>.badge{display:none}.done.tighter>p.muted,.done.tighter .mcard [data-why]{display:none!important}.done.tighter .mrow{padding-top:4px;padding-bottom:8px}.done.tighter .gnow{padding-top:8px;padding-bottom:8px}.done .mcard [data-why]{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;padding:0 2px}.done .mcard [data-why][style*="none"]{display:none}.done .mcard>.btn:not(.ghost){margin-top:auto}.stack:has(>.done .mrow) .dbg .mos img.in{opacity:.16}.done .gnow{width:100%;max-width:340px;flex:none;margin:2px 0 0}.gnow.wait{display:flex;align-items:center;gap:11px}.gnow.wait>span{min-width:0}.glamp{flex:none;width:8px;height:8px;border-radius:50%;background:#ff5c8a;box-shadow:0 0 10px #ff5c8a;animation:glamp 1.5s ease-in-out infinite}@keyframes glamp{50%{opacity:.25}}@media (prefers-reduced-motion:reduce){.glamp{animation:none}}.done[style*="--mimg"] .mrow .mimg{height:var(--mimg);aspect-ratio:auto}
 .mstk{position:relative;width:100%;max-width:170px;aspect-ratio:3/4}.mstk .mcard{position:absolute;inset:0;border:0;padding:0;border-radius:18px;overflow:hidden;background:#2a2028;color:#fff;text-align:left;box-shadow:0 12px 26px -12px rgba(0,0,0,.8);transition:transform .19s ease,opacity .19s ease}
 .mstk .mcard img,.mstk .mcard .pimg{width:100%;height:100%;object-fit:cover;display:flex;align-items:center;justify-content:center;font-size:42px}.mstk .mcard b{position:absolute;left:0;right:0;bottom:0;padding:26px 11px 10px;font-family:var(--serif);font-weight:400;font-size:18px;line-height:1.08;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.75))}
@@ -3539,11 +3576,15 @@ async function eatSheet() { ls.set('eatAt', String(Date.now())); let opts = []; 
     <div class="sect" style="margin-top:14px">How far for a good dinner?</div><div class="eatcs">${[['2', 'Close by'], ['5', 'A short drive'], ['15', 'Worth the trip']].map(([v, l]) => chip('far', v, l, t.far === v)).join('')}</div>
     <div class="sect" style="margin-top:14px">Usual night out?</div><div class="eatcs">${[['casual', 'Casual'], ['nice', 'Somewhere nice'], ['mix', 'Depends']].map(([v, l]) => chip('vibe', v, l, t.vibe === v)).join('')}</div>
     <div style="height:14px"></div><button class="btn" data-act="eatsave">Show my picks</button><button class="jlink" data-act="closesheet">Not now</button>`); }
+// Beta: the end of a pile says plainly that you are done, and names the one thing still open if there is one.
+function doneNext() { if (!partner()) return ''; const t = pToday(), up = (S.plans || []).filter(p => p.day >= t && (p.status === 'sent' || p.status === 'agreed')).sort((a, b) => a.day < b.day ? -1 : 1)[0];
+  if (!up) return ' Nothing else needs you today.'; const d = pDayName(up.day), day = /^(Today|Tomorrow)$/.test(d) ? d : d.split(',')[0] === 'Sat' ? 'Saturday' : d.split(',')[0] === 'Fri' ? 'Friday' : d.split(',')[0] === 'Sun' ? 'Sunday' : d;
+  return up.status === 'agreed' ? ` ${day} is set: you are both in.` : up.ok?.[S.me] ? ` ${day}’s plan is waiting on ${esc(them())}.` : ` ${day}’s plan is waiting on you.`; }
 function biteDoneHTML() {
   a2hsMoment('done');
   const names = { movie: 'movies', dinner: 'places to eat', event: 'things to do', trip: 'trip ideas', art: 'artworks' }, extra = !!S.sess?.filters?.extra, none = !S.total, p = partner();
   return `<div class="done"><div class="badge">${ic(DIC[S.sess.deck] || 'film')}</div><h3>${none ? 'Nothing new here today' : S.sess.deck === 'dinner' ? 'Those are today’s three picks' : `That is today’s handful of ${names[S.sess.deck] || 'cards'}`}</h3>
-    <p class="muted">${none ? (S.sess.deck === 'dinner' ? 'Add your ZIP code in settings to load restaurants near you, or add your own there too.' : 'Check back tomorrow, or add your own in settings.') : 'A fresh handful arrives tomorrow.'}${!extra && p && !none ? ' Play a quick guessing round to unlock a few more now.' : ''}</p>
+    <p class="muted">${none ? (S.sess.deck === 'dinner' ? 'Add your ZIP code in settings to load restaurants near you, or add your own there too.' : 'Check back tomorrow, or add your own in settings.') : 'A fresh handful arrives tomorrow.'}${BETA ? doneNext() : !extra && p && !none ? ' Play a quick guessing round to unlock a few more now.' : ''}</p>
     ${TRIPSIDE() ? '' : `${p ? `<button class="btn ghost" data-act="guess">How well do you know ${esc(p)}?</button>` : ''}${DOCK2 ? '' : `<button class="btn shareapp" data-act="shareapp">${ic('share')} Share the app with friends</button>`}${S.hist.length ? '<button class="btn ghost" data-sw="undo">Undo last swipe</button>' : ''}`}<div id="libgrid" class="lgrid"></div></div>`;
 }
 // ---------- Discover: reasons, the likes grid, Close by, the unique-spot cover ----------
@@ -4034,6 +4075,10 @@ function ideaDays(i) { const t = pToday(), dated = i.cards.filter(isDated);
   return out; }
 /* ---------- flowers: Florist One, test mode, only in the beta copy at /t. Browse, pick a day, see the total. Never orders. ---------- */
 const BETA = !!window.LT_BETA;
+if (BETA) document.documentElement.classList.add('bt');
+// Beta plan sheet: a stop opens on a tap to show its map, ride, booking, favourite and swap; closed, it is just the stop.
+if (BETA) document.addEventListener('click', e => { const ps = e.target.closest?.('.pcalm .pstop'); if (!ps || e.target.closest('button,a,input,.pleg,.pgap')) return; const on = !ps.classList.contains('open');
+  ps.parentElement.querySelectorAll('.pstop.open').forEach(x => x.classList.remove('open')); ps.classList.toggle('open', on); S.plOpen = on ? S.plView + '|' + ps.dataset.ps : null; try { localStorage.setItem('wl_pstoptap', '1'); } catch {} ps.closest('.body')?.querySelector('.inhint')?.remove(); });
 // 21 Nov release (Dave's go): everything built in the beta up to today is on for everyone. BETA alone still gates sign-in, friends, flowers, the timing probe, the deck cache and the finds preview.
 const B2 = BETA || REL;
 const FLC = [['an', 'Anniversary'], ['bd', 'Birthday'], ['lr', 'Love & romance'], ['ao', 'Just because'], ['ty', 'Thank you']];
@@ -5041,18 +5086,22 @@ function daySheet(id, soft) {
     : past ? ((p.status === 'agreed' || p.status === 'sent') ? `<p class="muted" style="text-align:center;margin:14px 0 8px">Did you go?</p><div class="row" style="gap:10px"><button class="btn" data-pl="resp|went" style="flex:1">We went</button><button class="btn ghost" data-pl="resp|skipped" style="flex:1">Didn’t happen</button></div>` : '')
     : mine ? `<p class="muted" style="text-align:center;margin:14px 0 8px;font-size:13.5px">${p.status === 'agreed' ? 'You are both in.' : S.plSent?.id === p.id ? '' : `Sent. Waiting on ${esc(them())}.`}</p><div class="row" style="gap:10px"><button class="btn ghost" data-pl="edit" style="flex:1">Change it</button><button class="btn ghost" data-pl="resp|drop" style="flex:1">Call it off</button></div>`
     : `<div style="height:14px"></div><button class="btn" data-pl="resp|yes">I’m in</button><div class="row" style="gap:10px;margin-top:10px"><button class="btn ghost" data-pl="edit" style="flex:1">Change something</button><button class="btn ghost" data-pl="resp|${auto ? 'busy' : 'drop'}" style="flex:1">${auto ? 'We already have plans' : 'Not this time'}</button></div>`;
-  const shapes = sh ? `<div class="kv pshape">Rather do something else tonight?</div><div class="chips">${Object.entries(FSHAPE).map(([k, l]) => `<button class="chip ${k === sh ? 'on' : ''}" data-pl="shape|${k}">${l}</button>`).join('')}</div>` : '';
+  const shapes = sh ? `<div class="kv pshape">Rather do something else${p.day === t ? ' tonight' : ''}?</div><div class="chips">${Object.entries(FSHAPE).map(([k, l]) => `<button class="chip ${k === sh ? 'on' : ''}" data-pl="shape|${k}">${l}</button>`).join('')}</div>` : '';
   S.plView = p.id;
   const canRm = !past && (p.status === 'sent' || p.status === 'agreed'), ps = S.plSent?.id === p.id ? S.plSent : null;
   const land = ps ? `<div class="plsent"><span class="plck"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span class="grow"><b>${ps.minor ? 'Saved' : partner() ? 'Sent to ' + esc(them()) : 'Saved'}</b><small>${ps.minor ? (!partner() ? 'Your plan is up to date.' : p.ok?.[them()] ? `Small change, so ${esc(them())}’s yes still stands.` : `Small change, so no new notification for ${esc(them())}.`) : ps.rounds === null ? 'Setting up your picks…' : ps.round ? 'Swipe your picks. The first one you both like fills the open spot.' : partner() ? `${esc(them())} can say yes, swap something, or pass.` : 'It’s on your calendar of plans.'}</small></span>${ps.round ? `<button class="pill hot" data-open="${ps.round}">Swipe</button>` : ''}</div>` : '';
   if (!$layer.querySelector('.sheet #pwx') || S.kgId !== id) { S.kgId = id; S.kgAt = Date.now(); }
+  const swHint = canRm && !ls.get('plswiped') && p.items.length > 2 ? '<p class="inhint" style="margin-top:6px">Swipe a stop left to take it out.</p>' : '';
+  const calL = BETA && !past && p.items.some(i => i.card) ? `<a class="pcal" href="${CFG.url}/functions/v1/ics?plan=${p.id}" target="_blank" rel="noopener">${ic('cal')}Add ${p.items.filter(i => i.card).length > 1 ? 'every stop' : 'it'} to my calendar</a>` : '';
+  const nearP = near.length ? `<p class="muted" style="margin-top:12px;font-size:13px">Also a short walk away, and you both like them: ${near.map(x => `${esc(x.c.title)} (${x.mi} mi)`).join(', ')}.</p>` : '';
+  const moreIn = shapes + calL + swHint + nearP;   // beta: everything that is not the plan or its answer waits behind "More options"
   sheetSoft = !!soft;
-  sheet(`<div class="grab"></div><div class="body"><h2>${auto ? pAutoName(p) + (pDayName(p.day) !== dfmt(p.day) ? ' · ' + pDayName(p.day) : '') : pDayName(p.day) + (p.mode === 'in' ? ': a night in' : '')}</h2><p class="muted" style="margin-top:6px;font-size:14px">${auto ? (solo ? 'Put together from what you like.' : `Put together from things you like${p.by !== 'auto' ? `, then changed by ${p.by === S.me ? 'you' : esc(p.by)}` : ''}. Swap anything you like.`) : `${p.by === S.me ? 'You' : esc(p.by)} put this together${pDayName(p.day) !== dfmt(p.day) ? ' for ' + esc(dfmt(p.day)) : ''}.`}</p>
+  sheet(`<div class="grab"></div><div class="body${BETA ? ' pcalm' : ''}"><h2>${auto ? pAutoName(p) + (pDayName(p.day) !== dfmt(p.day) ? ' · ' + pDayName(p.day) : '') : pDayName(p.day) + (p.mode === 'in' ? ': a night in' : '')}</h2><p class="muted" style="margin-top:6px;font-size:14px">${auto ? (solo ? 'Put together from what you like.' : `Put together from things you like${p.by !== 'auto' ? `, then changed by ${p.by === S.me ? 'you' : esc(p.by)}` : ''}. Swap anything you like.`) : `${p.by === S.me ? 'You' : esc(p.by)} put this together${pDayName(p.day) !== dfmt(p.day) ? ' for ' + esc(dfmt(p.day)) : ''}.`}</p>
     <div id="pwx" class="pwx" hidden></div>
-    ${land}${p.where ? `<p class="muted" style="font-size:13px;margin-top:4px">${ic('pin')} Around ${esc(p.where.name)}</p>` : ''}<div style="margin-top:8px">${p.items.map((i, k) => (pHid(i.card) ? row(i) : canRm ? plSw(i.slot, row(i)) : row(i)) + pSug(p, i, past) + ((g => g ? g + pLeg(p, i) : pLeg(p, i) + pQuestLink(p, k, past))(pGap(p, k, past)))).join('')}</div>${canRm && !ls.get('plswiped') && p.items.length > 2 ? '<p class="inhint" style="margin-top:6px">Swipe a stop left to take it out.</p>' : ''}${shapes}
+    ${land}${p.where ? `<p class="muted" style="font-size:13px;margin-top:4px">${ic('pin')} Around ${esc(p.where.name)}</p>` : ''}<div style="margin-top:8px">${p.items.map((i, k) => { const h = (pHid(i.card) ? row(i) : canRm ? plSw(i.slot, row(i)) : row(i)) + pSug(p, i, past) + ((g => g ? g + pLeg(p, i) : pLeg(p, i) + pQuestLink(p, k, past))(pGap(p, k, past))); return BETA ? `<div class="pstop${S.plOpen === p.id + '|' + i.slot ? ' open' : ''}" data-ps="${i.slot}">${h}</div>` : h; }).join('')}</div>${BETA ? (!past && !ls.get('pstoptap') && p.items.some(i => i.card && !pHid(i.card)) ? '<p class="inhint" style="margin-top:6px">Tap a stop for the map, a ride or a swap.</p>' : '') + (!past && p.day === t ? hungryRow(p) : '') + acts + (moreIn ? `<button class="jlink pmoreb" data-act="plmore">More options</button><div class="pmore${S.plMore === p.id ? ' open' : ''}">${moreIn}</div>` : '') : `${swHint}${shapes}
     ${!past && p.day === t ? hungryRow(p) : ''}
-    ${BETA && !past && p.items.some(i => i.card) ? `<a class="pcal" href="${CFG.url}/functions/v1/ics?plan=${p.id}" target="_blank" rel="noopener">${ic('cal')}Add ${p.items.filter(i => i.card).length > 1 ? 'every stop' : 'it'} to my calendar</a>` : ''}
-    ${near.length ? `<p class="muted" style="margin-top:12px;font-size:13px">Also a short walk away, and you both like them: ${near.map(x => `${esc(x.c.title)} (${x.mi} mi)`).join(', ')}.</p>` : ''}${acts}</div>`, 'plan', 'view');
+    ${calL}
+    ${nearP}${acts}`}</div>`, 'plan', 'view');
   { const sc = $layer.querySelector('.scrim'), el = (Date.now() - S.kgAt) / 1000, on = el < 1.9;   // a redraw while it is still arriving carries on from where it was
     sc?.classList.add('kc', 'k-' + pKind(p), on ? 'kglow' : 'kset'); if (on) { sc.style.setProperty('--ke', el + 's'); sc.querySelectorAll('.prow').forEach((r, i) => r.style.setProperty('--i', i)); } }
   pWeatherFill(p);
@@ -5451,7 +5500,9 @@ const WALK = [
   { k: 'someday', a: '#4d9bff', b: '#2dd4bf', kick: 'New: Trips', h: 'Where to, someday?', p: 'Trips moved behind the Trip button at the bottom. Keep a someday list of places you’d both love to go.', open: true, n9: 1 },
   { k: 'end', a: '#ffb547', b: '#ff4d7e', kick: 'That’s it', h: 'Swipe whenever you like', p: 'Hell yeah is for the places you’d love to go, and the ones you’ve been and loved.' },
 ];
-const WALKS = () => S.walkSeen8 ? WALK.filter(x => x.n9 || x.k === 'end') : S.walkSeen7 ? WALK.filter(x => x.n8 || x.n9 || x.k === 'end') : WALK;
+const WALKS0 = () => S.walkSeen8 ? WALK.filter(x => x.n9 || x.k === 'end') : S.walkSeen7 ? WALK.filter(x => x.n8 || x.n9 || x.k === 'end') : WALK;
+// Beta: someone coming back gets two pages of news and the last page, not ten (sim, 25 Nov).
+const WALKS = () => { const base = WALKS0(); if (!BETA) return base; const xs = base.filter(x => x.k !== 'end'), top = ['plans', 'spin'].map(k => xs.find(x => x.k === k)).filter(Boolean); return [...(top.length ? top : xs.slice(0, 2)), ...base.filter(x => x.k === 'end')]; };
 function walkShow() {
   document.querySelector('.wn')?.remove(); closeSheet();
   const el = document.createElement('div'); el.className = 'wn wk'; document.body.appendChild(el);
@@ -7013,6 +7064,18 @@ function renderSwipe() {
 }
 // Put a finished/empty screen in the card area without touching the picture wall behind it, and do nothing at all if
 // the same screen is already showing (so switching to a finished category doesn't flash).
+// Beta: a plan that is waiting on your answer comes to you. It sits in front of the day's pile, once a day, with the
+// answer under your thumb (sim, 25 Nov: 17 of 20 weekend plans on live were never answered; the way in was a small line at the top).
+const planWait = () => { if (!partner()) return null; const t = pToday(); return (S.plans || []).filter(p => p.status === 'sent' && p.day >= t && !p.ok?.[S.me] && p.by !== S.me && p.items.some(i => i.card)).sort((a, b) => a.day < b.day ? -1 : a.day > b.day ? 1 : 0)[0] || null; };
+const paskKey = p => p.id + '|' + pToday();
+function planAsk(st) { if (!BETA || S.view !== 'home' || !oneOn() || !S.bite || TRIPSIDE()) return false; const p = planWait(); if (!p || S.paskHold || ls.get('pask') === paskKey(p)) return false;   // one ask per visit: a second plan waits for the next open
+  const its = p.items.filter(i => i.card || i.find || i.pair).slice().sort((a, b) => (a.time || '').localeCompare(b.time || '')).slice(0, 4), auto = !!p.auto;
+  const tile = i => { const c = i.card; return `<span class="pkt">${!c ? '<span class="pimg pkh">+</span>' : pHid(c) ? `<span class="pimg">${ic('gem')}</span>` : c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy">` : `<span class="pimg">${emojiFor(c)}</span>`}<small>${esc(pOrd(p, i))}</small><b>${!c ? 'Still to find' : pHid(c) ? 'A surprise' : esc(c.title.split(/[,(]/)[0].trim())}</b></span>`; };
+  const name = auto ? pAutoName(p) + (pDayName(p.day) !== dfmt(p.day) ? ' · ' + pDayName(p.day) : '') : pDayName(p.day);
+  const acts = document.getElementById('acts'); if (acts) acts.style.visibility = 'hidden'; S.revEntry = false; document.getElementById('whyl')?.remove();
+  setDone(st, `<div class="done pask"><small class="pkw">${auto ? 'Put together from things you like' : esc(p.by) + ' put this together'}</small><h3>${esc(name)}</h3><div class="pks n${its.length}">${its.map(tile).join('')}</div>
+    <button class="btn" data-act="paskyes" data-id="${p.id}">I’m in</button><div class="mplay"><button class="btn ghost" data-pl="view|${p.id}">Look closer</button><button class="btn ghost" data-act="pasklater" data-id="${p.id}">Not now</button></div>
+    <small class="pkn">${esc(them())} hears when you say yes. Nothing is booked.</small></div>`); return true; }
 function setDone(st, html) {
   const cur = st.querySelector(':scope > .done'); if (cur && cur.outerHTML === html) return;
   setTimeout(() => { if (st.querySelector('#libgrid')) libGrid(S.homeDeck); }, 0);
@@ -7313,6 +7376,7 @@ function drawStack() {
   else if (S.homeDeck === 'event') tip1('goout', 'Go Out is things to do: escape rooms, comedy, bowling, museums and what’s on.');
   else if (S.homeDeck === 'all') tip1('disc', 'Discover is a bit of everything, with finds near you mixed in.');
   const acts = document.getElementById('acts'), seen = document.getElementById('seenb');
+  if (planAsk(st)) { if (seen) seen.style.display = 'none'; return; }
   if (biteGoal()) { S.revEntry = false; acts.style.visibility = 'hidden'; if (seen) seen.style.display = 'none'; deckWhy(); return setDone(st, biteGoalHTML()); }
   if (!S.deck.length && moreOn() && S.moreEnd !== S.sess.id) { S.revEntry = false; if (seen) seen.style.display = 'none'; deckWhy(); return void moreStop(); }
   deckWhy();
@@ -8288,6 +8352,9 @@ document.addEventListener('click', async e => {
       case 'pairplan': return pairPlan();
       case 'pairpeek': return pairPeek();
       case 'gplay': return playGame();
+      case 'paskyes': S.plView = ds.id; S.paskHold = true; return dayAct('resp', 'yes', t);
+      case 'plmore': { const m = t.nextElementSibling, on = !m?.classList.contains('open'); m?.classList.toggle('open', on); S.plMore = on ? S.plView : null; if (on) m.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
+      case 'pasklater': { const p = (S.plans || []).find(x => x.id === ds.id); if (p) ls.set('pask', paskKey(p)); S.paskHold = true; return drawStack(); }
       case 'tbheart': { S.tbHearts = (S.tbHearts || 0) + 1; tbFly(1); send({ type: 'tbh', id: S.tb.id }); const m = document.getElementById('tbwm'); if (m) m.textContent = `${S.tbHearts} sent. They show on ${them()}’s screen if the app is open.`; return; }
       case 'tbheckle': { if (Date.now() - (S.tbHkAt || 0) < 4000) return; S.tbHkAt = Date.now(); send({ type: 'tbh', id: S.tb.id, m: ds.m }); const m = document.getElementById('tbwm'); if (m) m.textContent = `Sent: “${ds.m}”`; return; }
       case 'tbopen': { const g = gameNow(); if (!g) return render(); try { S.tb = await rpc('tiebreak_get', { p_code: S.code, p_member: S.me, p_id: g.id }); } catch { S.tb = g; } S.view = 'game'; return render(); }
