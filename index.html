@@ -1195,6 +1195,11 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .pcalm .chip{min-height:44px;display:inline-flex;align-items:center}.pcalm .chip.on{background:var(--text);color:#17121a;box-shadow:none}
 .pmore{display:none}.pmore.open{display:block}.pmoreb{display:block;min-height:44px;margin:6px auto 0;color:var(--muted);font-size:14px}
 .pcalm .tto{min-height:44px}
+/* the Thanksgiving card */
+.tgc{text-align:center;padding-top:8px}.tgm{width:96px;height:96px;margin:6px auto 18px;border-radius:26px;box-shadow:0 0 44px -6px rgba(255,110,90,.75);animation:tgin .5s cubic-bezier(.2,.9,.3,1.2) both}.tgm svg{width:100%;height:100%;display:block;box-shadow:none;border-radius:26px}
+.tgc h2{font-size:clamp(30px,8.6vw,38px);line-height:1.08;text-wrap:balance}.tgc p{color:var(--muted);font-size:16px;line-height:1.5;margin:12px auto 22px;max-width:300px;text-wrap:balance}
+.tgc .btn{color:var(--accent-ink);min-height:56px;border-radius:18px;width:100%;max-width:none}
+@keyframes tgin{from{opacity:0;transform:scale(.7) rotate(-8deg)}to{opacity:1;transform:none}}@media (prefers-reduced-motion:reduce){.tgm{animation:none}}
 /* beta: One more? */
 .omg{display:flex;flex-direction:column;gap:10px}.omt{aspect-ratio:auto!important;height:min(118px,16vh);width:100%}.omt .cbx{padding-top:30px}
 .omwin{display:block;height:min(240px,32vh);margin:12px 0 14px}.om h2{margin-top:2px}.omw{display:block;font-size:13px;font-weight:600;color:var(--gold)}
@@ -2079,7 +2084,17 @@ function onHand(card) { const ing = card.data?.ingredients || []; if (!ing.lengt
 const SCR = {};
 const scrEl = () => $app.querySelector('.tov') || $app.querySelector('.view');
 const scrKey = () => { const v = scrEl(); if (!v) return null; return [S.view, S.tab, S.side, S.tSel || '', v.className, ($app.querySelector('h1,h2,.tphead b')?.textContent || '').slice(0, 40)].join('|'); };
+// A card for the day itself (Dave, 25 Nov 2026): Thanksgiving is the fourth Thursday of November. Shown once to whoever opens
+// the app that day, and never on any other day. No push, nothing to do, one key to close.
+const isThanksgiving = d => d.getMonth() === 10 && d.getDay() === 4 && d.getDate() >= 22 && d.getDate() <= 28;
+function tgCard(n = 0) { const d = new Date(), k = 'tg' + d.getFullYear(); if (!S.me || !isThanksgiving(d) || ls.get(k)) return;
+  if ($layer.innerHTML || document.querySelector('.wn')) { if (n < 12) setTimeout(() => tgCard(n + 1), 4000); return; }
+  ls.set(k, '1'); const p = partner();
+  sheet(`<div class="grab"></div><div class="body tgc"><div class="tgm">${MARK}</div><h2>Happy Thanksgiving${p ? `, ${esc(S.me)} and ${esc(p)}` : `, ${esc(S.me)}`}</h2>
+    <p>${p ? 'Here’s to the people you get to do things with. Enjoy today, together.' : 'Here’s to the people you get to do things with. Enjoy today.'}</p><button class="btn" data-act="closesheet">Happy Thanksgiving</button></div>`, 'tg');
+  setTimeout(() => { const m = document.querySelector('.tgc .tgm'); if (!m) return; const r = m.getBoundingClientRect(); try { confetti(r.left + r.width / 2, r.top + r.height / 2, 70); } catch {} }, 450); }
 function render() {
+  if (S.view === 'home' && S.me && !S.tgTried) { S.tgTried = true; setTimeout(tgCard, 1800); }
   if (!DOCK2) return renderCore();
   const k0 = scrKey(), v0 = scrEl(); if (k0 && v0) SCR[k0] = v0.scrollTop;
   const r = renderCore();
@@ -5077,18 +5092,20 @@ async function hungry(kind, planId) {
   let at = { lat: 42.3314, lng: -83.0458 }, when = new Date(), far = false;
   if (nx) { at = { lat: +nx.card.data.lat, lng: +nx.card.data.lng }; const [h, m] = nx.time.split(':').map(Number), d = new Date(); d.setHours(h, m - 75, 0, 0); if (d > when) when = d; }
   else if (S.away?.lat != null && S.away.label) { at = { lat: S.away.lat, lng: S.away.lng }; S.hg.where = 'Near ' + S.away.label; }
-  else { const g = await hgPos(); if (g) at = g; else { far = true; S.hg.where = 'Downtown Detroit'; } }
+  else { const g = await hgPos(), st = S.settings || {}, hm = st.lat != null ? { lat: +st.lat, lng: +st.lng } : st.zgeo?.lat != null ? { lat: +st.zgeo.lat, lng: +st.zgeo.lng } : null;
+    if (g) at = g; else if (hm) { at = hm; S.hg.where = 'Near home'; } else { far = true; S.hg.where = 'Downtown Detroit'; } }
   try { S.hg.list = await rpc('hungry_spots', { p_code: S.code, p_member: S.me, p_lat: at.lat, p_lng: at.lng, p_kind: kind, p_at: when.toISOString() }); } catch { S.hg.list = []; }
   S.hg.when = when.getTime(); S.hg.nx = nx ? { title: nx.card.title, time: nx.time } : null; S.hg.far = far; hungrySheet();
 }
+const mineOrBoth = c => (c.likers || []).length >= 2 || (c.likers || [])[0] === S.me;
 function hungrySheet() {
   const g = S.hg; if (!g) return; const lbl = HK.find(x => x[0] === g.kind)?.[1] || 'Food', P = partner();
-  const who = l => l.length >= 2 ? 'You both like it' : l[0] === S.me ? 'You liked it' : l.length ? esc(l[0]) + ' liked it' : 'New for you';
+  const who = l => l.length >= 2 ? 'You both like it' : l[0] === S.me ? 'You liked it' : 'New for you';   // a place only your partner liked is never named: swipes stay private
   const close = m => { const d = new Date((g.when || Date.now()) + m * 60000); return 'Open till ' + tm12(`${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`); };
   const row = c => { const mi = Math.round(c.km * 0.621 * 10) / 10, walk = Math.round(c.km / 4.8 * 60);
-    return `<div class="hgr ${c.likers.length ? '' : 'hnew'}">${c.img ? `<img src="${esc(c.img)}" alt="" loading="lazy">` : `<span class="hgi">${ic('pin')}</span>`}<span class="grow"><b>${esc(c.title)}</b>${c.season?.name ? `<small class="hsn">${esc(c.season.name)}${c.season.to ? ' · through ' + new Date(c.season.to + 'T12:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}</small>` : ''}<small>${who(c.likers)} · ${mi < 0.1 ? 'right there' : walk <= 20 ? walk + ' min walk' : mi + ' mi'} · ${close(c.closes_in)}${c.rating ? ' · ' + esc(c.rating) + '★' : ''}</small></span>
+    return `<div class="hgr ${mineOrBoth(c) ? '' : 'hnew'}">${c.img ? `<img src="${esc(c.img)}" alt="" loading="lazy">` : `<span class="hgi">${ic('pin')}</span>`}<span class="grow"><b>${esc(c.title)}</b>${c.season?.name ? `<small class="hsn">${esc(c.season.name)}${c.season.to ? ' · through ' + new Date(c.season.to + 'T12:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}</small>` : ''}<small>${who(c.likers)} · ${mi < 0.1 ? 'right there' : walk <= 20 ? walk + ' min walk' : mi + ' mi'} · ${close(c.closes_in)}${c.rating ? ' · ' + esc(c.rating) + '★' : ''}</small></span>
       ${g.planId && g.nx ? `<button class="hgo hadd" data-act="hadd" data-id="${esc(c.id)}">Add first</button>` : ''}<a class="hgo" href="${esc(c.place_id ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.title)}&query_place_id=${encodeURIComponent(c.place_id)}` : mapsUrl(c.title + ' ' + (c.address || 'Detroit')))}" target="_blank" rel="noopener">Go</a></div>`; };
-  const l = g.list || [], seas = l.filter(c => c.season?.name), liked = l.filter(c => c.likers.length && !c.season?.name), fresh = l.filter(c => !c.likers.length && !c.season?.name);
+  const l = g.list || [], seas = l.filter(c => c.season?.name), liked = l.filter(c => mineOrBoth(c) && !c.season?.name), fresh = l.filter(c => !mineOrBoth(c) && !c.season?.name);
   sheet(`<div class="grab"></div><div class="body"><small class="tkick">${esc(g.where)}${g.nx ? ' · before ' + esc(tm12(g.nx.time)) : ''}</small><h2>${esc(lbl)}</h2>
     <div class="hchips" style="margin:10px 0 4px">${HK.map(([k, n]) => `<button class="hchip ${k === g.kind ? 'on' : ''}" data-act="hungry" data-hk="${k}" data-hp="${g.planId}">${n}</button>`).join('')}</div>
     ${!l.length ? `<p class="muted" style="margin-top:14px">Nothing ${g.nx ? 'open before then' : 'open right now'} close by from what you two have liked. Try another kind, or swipe Eat & Drink to add more.</p>` : ''}
@@ -5489,6 +5506,8 @@ function inboxGo(u) {
   if (q.get('surprise')) return surpOpen(q.get('surprise'));
   if (q.get('recap') && NEWUI) return recapOpen(q.get('recap'));
   if (q.get('finds') && BETA) return findsPreview();
+  if (q.get('drinks') && B2) return hungry('drinks').catch(() => {});   // the bar-night push (25 Nov) lands on the Drinks list
+  if (q.get('om') && BETA) return omStart();
   if (q.get('plan')) { S.favAsk = q.get('fav') ? q.get('plan') : null; return dayAct('view', q.get('plan')).catch(() => {}); }
   if (q.get('reveal')) { prepRevealTest(); return render(); }
   if (q.get('planfor')) return dayAct('around', q.get('planfor')).catch(() => {});
@@ -8520,6 +8539,7 @@ if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').ca
     else if (q.get('surprise') && S.me) surpOpen(q.get('surprise'));
     else if (q.get('recap') && S.me) recapOpen(q.get('recap'));
     else if (q.get('om') && S.me && BETA) { omStart(); }
+    else if (q.get('drinks') && S.me && B2) { hungry('drinks'); }
     else if (q.get('wcard') && S.me && B2) { wcOpen(); } else if (q.get('first10') && S.me && B2) { firstTen(true); } else if (q.get('picks') && S.me && B2) { S.lbMode = 'browse'; ls.set('lbmode', 'browse'); S.homeDeck = 'all'; render(); } else if (q.get('plan') && S.me) { S.favAsk = q.get('fav') ? q.get('plan') : null; dayAct('view', q.get('plan')).catch(() => {}); } else if (q.get('planfor') && S.me) dayAct('around', q.get('planfor')).catch(() => {}); else if (q.get('invite') && S.me) { if (!partner()) inviteSheet(); } else if (q.get('tripplan') && S.me) openTripPlan(q.get('tripplan')); else if (q.get('trip') && S.me) openGetaway(q.get('trip'), partner()); else if (SHW[q.get('share')] && S.me) openShareTab(q.get('share')); } }); }
 
 // iPhone keeps a Home Screen app's storage apart from the browser's, so signing up in Safari and then opening the
@@ -8631,6 +8651,11 @@ async function boot() {
   if (spq) { carrySignIn(); return surpView(spq); }
   if (snq) { carrySignIn(); return spinOpen(null, snq); }
   if (plq) { carrySignIn(); return dayAct('view', plq).catch(() => {}); } if (plf) { carrySignIn(); return dayAct('around', plf).catch(() => {}); }
+  { // links that only worked when the app was already open; from a closed app they landed on Home with nothing shown (found 25 Nov)
+    const q9 = new URLSearchParams(location.search), k9 = ['drinks', 'wcard', 'first10', 'picks', 'om'].find(k => q9.get(k));
+    if (k9) { try { history.replaceState(null, '', location.pathname); } catch {} carrySignIn();
+      if (k9 === 'drinks' && B2) return hungry('drinks').catch(() => {}); if (k9 === 'wcard' && B2) return wcOpen(); if (k9 === 'first10' && B2) return firstTen(true); if (k9 === 'om' && BETA) return omStart();
+      if (k9 === 'picks' && B2) { S.lbMode = 'browse'; ls.set('lbmode', 'browse'); S.homeDeck = 'all'; render(); } } }
   nextOnboard(); tripAuto(); if (!(ls.get('ob2') && pollHeroNow()) && !newsShow()) { checkTravel(); scratchCheck(); } installCheck(); evPeek(); carrySignIn();
 }
 boot();
