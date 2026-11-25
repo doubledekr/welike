@@ -3476,7 +3476,7 @@ function deckStash() { if (!S.dcDeck || !S.sess || S.dcSess !== S.sess.id || !S.
   (S.dc ||= {})[S.dcDeck] = { day: new Date().toDateString(), at: Date.now(), s: { sess: S.sess, deck: S.deck.slice(), matches: S.matches, total: S.total, theirLeft: S.theirLeft, solo: S.solo, rewatch: S.rewatch, bite: S.bite } }; }
 const deckKey = () => (S.sess?.id || '') + ':' + S.deck.map(c => c.id).join();
 // shows in Watch: held back on live, on for the beta page and the sim (Dave, 19 Nov)
-const SHOWS = !!(window.LT_BETA || window.LT_SIM);
+const SHOWS = !!(window.LT_BETA || window.LT_SIM || window.LT_REL3);   // shows in Watch: with the next set (REL3)
 async function deckStart(deck, extra, away) {
   return deck === 'all' ? rpc('start_all', SHOWS ? { p_code: S.code, p_member: S.me, p_opts: { series: true } } : { p_code: S.code, p_member: S.me })
     : deck === 'art' ? rpc('start_art', { p_code: S.code, p_member: S.me, p_extra: extra })
@@ -3534,7 +3534,7 @@ async function loadBite() {
   let pre = null;
   try {
     const away = S.away && (dk === 'dinner' || dk === 'event') ? S.away.city : '';
-    { const dc = BETA && !away && !extra && S.dc?.[deck];
+    { const dc = R3 && !away && !extra && S.dc?.[deck];
       if (dc && dc.day === new Date().toDateString() && Date.now() - dc.at < 600000 && document.getElementById('stack')) {
         Object.assign(S, dc.s); S.deck = dc.s.deck.slice(); S.hist = []; S.dcDeck = deck; S.dcSess = S.sess.id; pre = deckKey(); drawStack(); } }
     // Eat and Go out: with a good stock of saved places the cards are dealt at once and the Google lookup runs
@@ -3553,7 +3553,7 @@ async function loadBite() {
     if ((await loadSession(r.id, () => here() && !(pre && S.hist.length))) === false || !here()) return;
     S.dcDeck = deck; S.dcSess = S.sess.id;
     if (pre !== deckKey()) drawStack();
-    if (BETA && !S.warmed) { S.warmed = true; setTimeout(deckWarm, 1200); }
+    if (R3 && !S.warmed) { S.warmed = true; setTimeout(deckWarm, 1200); }
     if (look) lateFill(dk, r.id, look, bg, res);
     eatWhy(r.id); if (deck === 'all') discWhy(r.id);
     if (deck === 'dinner' && !away) { if (!eatAsked() && S.deck.length && !$layer.innerHTML && !document.querySelector('.wn,.match')) setTimeout(() => { if (S.tab === 'home' && S.sess?.id === r.id && !$layer.innerHTML) eatSheet(); }, 700); }
@@ -4106,6 +4106,9 @@ const BETA = !!window.LT_BETA;
 // The 25 Nov beta (one-stream home, calm plan sheet, plan ask, game wording, Close by tiles, One more?): R2 switches it on for everyone when Dave says go. BETA alone still gates sign-in, friends, flowers, the calendar link, the timing probe, the deck cache and the finds preview.
 const REL2 = true;   // 25 Nov, Dave: go
 const R2 = BETA || REL2;
+// The next set for live: shows in Watch, the deck cache and warm-up, Add to calendar and Plans in your calendar. Off until Dave says go.
+const REL3 = !!window.LT_REL3;
+const R3 = BETA || REL3;
 if (R2) document.documentElement.classList.add('bt');
 // Beta plan sheet: a stop opens on a tap to show its map, ride, booking, favourite and swap; closed, it is just the stop.
 if (R2) document.addEventListener('click', e => { const ps = e.target.closest?.('.pcalm .pstop'); if (!ps || e.target.closest('button,a,input,.pleg,.pgap')) return; const on = !ps.classList.contains('open');
@@ -5160,7 +5163,7 @@ function daySheet(id, soft) {
   const land = ps ? `<div class="plsent"><span class="plck"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span class="grow"><b>${ps.minor ? 'Saved' : partner() ? 'Sent to ' + esc(them()) : 'Saved'}</b><small>${ps.minor ? (!partner() ? 'Your plan is up to date.' : p.ok?.[them()] ? `Small change, so ${esc(them())}’s yes still stands.` : `Small change, so no new notification for ${esc(them())}.`) : ps.rounds === null ? 'Setting up your picks…' : ps.round ? 'Swipe your picks. The first one you both like fills the open spot.' : partner() ? `${esc(them())} can say yes, swap something, or pass.` : 'It’s on your calendar of plans.'}</small></span>${ps.round ? `<button class="pill hot" data-open="${ps.round}">Swipe</button>` : ''}</div>` : '';
   if (!$layer.querySelector('.sheet #pwx') || S.kgId !== id) { S.kgId = id; S.kgAt = Date.now(); }
   const swHint = canRm && !ls.get('plswiped') && p.items.length > 2 ? '<p class="inhint" style="margin-top:6px">Swipe a stop left to take it out.</p>' : '';
-  const calL = BETA && !past && p.items.some(i => i.card) ? `<a class="pcal" href="${CFG.url}/functions/v1/ics?plan=${p.id}" target="_blank" rel="noopener">${ic('cal')}Add ${p.items.filter(i => i.card).length > 1 ? 'every stop' : 'it'} to my calendar</a>` : '';
+  const calL = R3 && !past && p.items.some(i => i.card) ? `<a class="pcal" href="${CFG.url}/functions/v1/ics?plan=${p.id}" target="_blank" rel="noopener">${ic('cal')}Add ${p.items.filter(i => i.card).length > 1 ? 'every stop' : 'it'} to my calendar</a>` : '';
   const nearP = near.length ? `<p class="muted" style="margin-top:12px;font-size:13px">Also a short walk away, and you both like them: ${near.map(x => `${esc(x.c.title)} (${x.mi} mi)`).join(', ')}.</p>` : '';
   const moreIn = shapes + calL + swHint + nearP;   // beta: everything that is not the plan or its answer waits behind "More options"
   sheetSoft = !!soft;
@@ -7047,8 +7050,8 @@ function youHTML() {
     <div class="ycard"><div class="yrow"><span class="tic">${ic('heart')}</span><span class="grow"><b>${esc(S.me)}</b><small>${p ? 'Paired with ' + esc(p) : soloMode() ? 'Swiping on your own' : 'Not paired yet'}</small></span><button class="ysw" data-act="rename">Rename</button></div>
       <div class="yrow"><span class="tic">${ic('share')}</span><span class="grow"><b>${soloMode() ? 'Add your person' : esc(S.code)}</b><small>${soloMode() ? 'Whenever you like. Your decks and likes stay yours' : 'Your couple code'}</small></span><button class="ysw" data-act="invite">Invite</button></div>
       ${BETA ? `<button class="yrow" data-act="acct"><span class="tic">${ic('user')}</span><span class="grow"><b>${S.acct ? 'Account saved' : 'Save your account'}</b><small>${S.acct ? esc(S.acct.email || 'Signed in with Apple or Google') : 'So you can sign back in on any phone'}</small></span><span class="ych">›</span></button>
-      <button class="yrow" data-fr="open"><span class="tic">${ic('users')}</span><span class="grow"><b>Friends and group plans</b><small>Trips, dinners and nights out with other people</small></span><span class="ych">›</span></button>
-${soloMode() ? '' : `      <button class="yrow" data-act="calsub"><span class="tic">${ic('cal')}</span><span class="grow"><b>Plans in your calendar</b><small>Every plan you both agree to shows up on its own</small></span><span class="ych">›</span></button>`}` : ''}
+      <button class="yrow" data-fr="open"><span class="tic">${ic('users')}</span><span class="grow"><b>Friends and group plans</b><small>Trips, dinners and nights out with other people</small></span><span class="ych">›</span></button>` : ''}
+${soloMode() || !R3 ? '' : `      <button class="yrow" data-act="calsub"><span class="tic">${ic('cal')}</span><span class="grow"><b>Plans in your calendar</b><small>Every plan you both agree to shows up on its own</small></span><span class="ych">›</span></button>`}
 ${soloMode() ? '' : `      <button class="yrow" data-act="bdays"><span class="tic">${ic('heart')}</span><span class="grow"><b>Birthday and anniversary</b><small>${S.dates?.bday || S.dates?.anniv ? esc([S.dates.bday ? 'Birthday ' + mdText(S.dates.bday) : '', S.dates.anniv ? 'Anniversary ' + mdText(S.dates.anniv) : ''].filter(Boolean).join(' · ')) : 'So you both get a heads-up before the day'}</small></span><span class="ych">›</span></button>`}
       <button class="yrow" data-tab="lists"><span class="tic">${ic('list')}</span><span class="grow"><b>Your own lists</b><small>Dinners, activities and pantry</small></span><span class="ych">›</span></button>
       ${sw(S.settings?.kids === true, 'kidsset', 'Planning with kids', S.settings?.kids === true ? 'Family films and kid-friendly places, for both of you' : 'Turn on for kid-friendly films, places and ideas', 'heart')}</div>
