@@ -18,6 +18,6 @@ async def plan(p,path):
     a=await ph.audit('plan',shot=True); print(path,'plan sheet calendar link:',r,'small',a['small'],'errs',ph.errs); await ph.close()
 async def main():
   async with async_playwright() as p:
-    for path in ('n','l'): await one(p,path)
+    for path in ('l','t'): await one(p,path)
     pass
 asyncio.run(main())

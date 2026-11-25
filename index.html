@@ -3476,7 +3476,7 @@ function deckStash() { if (!S.dcDeck || !S.sess || S.dcSess !== S.sess.id || !S.
   (S.dc ||= {})[S.dcDeck] = { day: new Date().toDateString(), at: Date.now(), s: { sess: S.sess, deck: S.deck.slice(), matches: S.matches, total: S.total, theirLeft: S.theirLeft, solo: S.solo, rewatch: S.rewatch, bite: S.bite } }; }
 const deckKey = () => (S.sess?.id || '') + ':' + S.deck.map(c => c.id).join();
 // shows in Watch: held back on live, on for the beta page and the sim (Dave, 19 Nov)
-const SHOWS = !!(window.LT_BETA || window.LT_SIM || window.LT_REL3);   // shows in Watch: with the next set (REL3)
+const SHOWS = !!(window.LT_BETA || window.LT_SIM);   // shows in Watch: held for live (Dave, 25 Nov)
 async function deckStart(deck, extra, away) {
   return deck === 'all' ? rpc('start_all', SHOWS ? { p_code: S.code, p_member: S.me, p_opts: { series: true } } : { p_code: S.code, p_member: S.me })
     : deck === 'art' ? rpc('start_art', { p_code: S.code, p_member: S.me, p_extra: extra })
@@ -4106,8 +4106,8 @@ const BETA = !!window.LT_BETA;
 // The 25 Nov beta (one-stream home, calm plan sheet, plan ask, game wording, Close by tiles, One more?): R2 switches it on for everyone when Dave says go. BETA alone still gates sign-in, friends, flowers, the calendar link, the timing probe, the deck cache and the finds preview.
 const REL2 = true;   // 25 Nov, Dave: go
 const R2 = BETA || REL2;
-// The next set for live: shows in Watch, the deck cache and warm-up, Add to calendar and Plans in your calendar. Off until Dave says go.
-const REL3 = !!window.LT_REL3;
+// The next set, live since 25 Nov: the deck cache and warm-up, Add to calendar and Plans in your calendar. Shows are not part of it.
+const REL3 = true;
 const R3 = BETA || REL3;
 if (R2) document.documentElement.classList.add('bt');
 // Beta plan sheet: a stop opens on a tap to show its map, ride, booking, favourite and swap; closed, it is just the stop.
