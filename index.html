@@ -1178,6 +1178,7 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .bt .lfc{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-right:-18px;padding-right:18px}.bt .lfc::-webkit-scrollbar{display:none}.bt .lfc .chip{flex:none;white-space:nowrap}
 @keyframes tapw{50%{opacity:.4}}.tapw{animation:tapw .8s ease-in-out infinite;pointer-events:none}
 @keyframes tapbar{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}body.tapbar::after{content:"";position:fixed;left:0;top:var(--st);width:40%;height:2px;z-index:95;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:tapbar 1s linear infinite;pointer-events:none}
+.bt .fr .topbar .ib{min-width:44px;min-height:44px}
 .bt .chip.on,.bt .frpick.on{background:var(--text);color:#17121a;border-color:transparent;box-shadow:none}
 .bt .ysw.on{background:var(--text);color:#17121a;box-shadow:none}
 .bt .steerc{width:100%;max-width:340px;aspect-ratio:auto;align-items:flex-start;text-align:left;padding:26px 22px;border-radius:28px;background:var(--surface);color:var(--text);box-shadow:none;gap:8px}
@@ -1749,7 +1750,10 @@ const simFetch = (u, o = {}) => { const h = new Headers(o.headers || {}); let k 
 const sb = createClient(CFG.url, CFG.key, { auth: { persistSession: false, autoRefreshToken: false }, ...(SIM ? { global: { fetch: simFetch } } : {}) });
 // Accounts (beta first): a person signs in with Apple, Google or an emailed code. The couple code stays how partners link.
 const AUTH = { passkey: false, apple: 'app.letstogether.web', google: '613628144755-h3npqt0snsmebvaej443jcbd7j4e3pn6.apps.googleusercontent.com' };   // public IDs; an empty one hides its button
-const sbA = SIM ? sb : window.LT_BETA ? createClient(CFG.url, CFG.key, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'wl_auth', experimental: { passkey: true } } }) : null;
+// Accounts and friends (Save your account, Crew, groups, group plans): live for everyone when REL4 is on. Couple codes keep working as before,
+// and nobody who is already in is shown a sign-in screen (Dave, 19 and 25 Nov).
+const REL4 = true;   // 25 Nov, Dave: go
+const sbA = SIM ? sb : (window.LT_BETA || REL4) ? createClient(CFG.url, CFG.key, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'wl_auth', experimental: { passkey: true } } }) : null;
 
 const DECKS = {
   movie:    { label: 'Movie night',  em: '🎬', hint: 'Something to watch',        nudge: 'Movie night?' },
@@ -2150,7 +2154,7 @@ function renderLanding() {
   const i = S.obI = Math.max(0, Math.min(3, S.obI || 0)), C = [['#ffb547', '#ff4d7e'], ['#ffb547', '#ff7a4d'], ['#ff7a9c', '#ff4d7e'], ['#ffb547', '#ff4d7e']][i];
   step('tour' + (i + 1));
   const top = skip => `<div class="wn-top"><span class="wk-dots">${[1, 2, 3].map(k => `<i class="${k <= i ? 'on' : ''}"></i>`).join('')}</span>${skip ? '<button data-act="ob2go" data-i="3">Skip</button>' : `<button data-act="ob2go" data-i="${i - 1}">Back</button>`}</div>`;
-  const code = '<button class="jlink" data-act="getstarted" data-mode="code">I have a code from my partner</button>' + (BETA ? '<button class="jlink" data-act="acct">I already have an account</button>' : '');
+  const code = '<button class="jlink" data-act="getstarted" data-mode="code">I have a code from my partner</button>' + (R4 ? '<button class="jlink" data-act="acct">I already have an account</button>' : '');
   const body = [
     () => `<div class="ob2-hello">${MARK}<div class="brand">${BRAND}</div>${tvHello() ? '<small class="wk-k" style="margin-top:22px">Couples Night: Trivia Edition</small>' : ''}<h1${tvHello() ? ' style="margin-top:6px"' : ''}>Stop asking <em>“what do you want to do?”</em></h1><p class="wk-p">Swipe whenever you like. It only shows what you both said yes to, ready for the night you want a plan. Let’s do more together.${tvHello() ? ' Set up your couple first, and the trivia vote is right after.' : ''}</p></div><button class="btn wk-cta" data-act="ob2go" data-i="1">See how it works</button>${code}`,
     () => `${top(1)}<small class="wk-k">Try all four</small><h2 class="wk-h">You each swipe on your own</h2><p class="wk-p">Flick this card each way. Nobody sees your swipes unless you both say yes.</p>${ob2SwipeStage()}<button class="btn wk-cta wait" id="wkgo" data-act="ob2go" data-i="2" disabled>Flick the card</button>`,
@@ -4109,6 +4113,7 @@ const R2 = BETA || REL2;
 // The next set, live since 25 Nov: the deck cache and warm-up, Add to calendar and Plans in your calendar. Shows are not part of it.
 const REL3 = true;
 const R3 = BETA || REL3;
+const R4 = BETA || REL4;
 if (R2) document.documentElement.classList.add('bt');
 // Beta plan sheet: a stop opens on a tap to show its map, ride, booking, favourite and swap; closed, it is just the stop.
 if (R2) document.addEventListener('click', e => { const ps = e.target.closest?.('.pcalm .pstop'); if (!ps || e.target.closest('button,a,input,.pleg,.pgap')) return; const on = !ps.classList.contains('open');
@@ -4366,7 +4371,7 @@ function renderPeople() {
       <button class="yrow" data-act="bdays"><span class="tic">${ic('cal')}</span><span class="grow"><b>Birthdays and anniversary</b><small>${dt.bday || dt.anniv ? 'Saved' : 'Add them, and we’ll help you plan ahead'}</small></span><span class="ych">›</span></button>
       <button class="yrow" data-sp="start"><span class="tic">${ic('spark')}</span><span class="grow"><b>Plan a surprise for ${esc(p)}</b><small>Kept secret until it’s time</small></span><span class="ych">›</span></button></div>` : '';
   const qs = `<div class="sect">Plan something with people</div><div class="pqs">${starts.map(([k, l, i]) => `<button class="pqsb" data-act="pstart" data-k="${k}">${ic(i)}<span>${l}</span></button>`).join('')}</div>`;
-  if (!d) { $app.innerHTML = `<div class="view fr you"><div class="topbar" style="margin-bottom:6px"><button class="back" data-tab="home" aria-label="Back">‹</button><div class="brand grow">Crew</div></div>${us}${qs}<div class="sect">Friends and groups</div><button class="frcta" data-fr="open"><span class="tic">${ic('users')}</span><span class="grow"><b>Add your friends</b><small>Sign in once, then invite friends, make groups like “College friends” or “Couples we know”, and plan with them</small></span><span class="ych">›</span></button></div>`; return; }
+  if (!d) { $app.innerHTML = `<div class="view fr you"><div class="topbar" style="margin-bottom:6px"><button class="back" data-tab="home" aria-label="Back">‹</button><div class="brand grow">Crew</div></div>${us}${qs}<div class="sect">Friends and groups</div><button class="frcta" data-fr="open"><span class="tic">${ic('users')}</span><span class="grow"><b>${S.acct ? 'Your friends' : 'Add your friends'}</b><small>${S.acct ? 'Invite friends, make groups like “College friends” or “Couples we know”, and plan with them' : 'Sign in once, then invite friends, make groups like “College friends” or “Couples we know”, and plan with them'}</small></span><span class="ych">›</span></button></div>`; return; }
   renderFriends(); const v = $app.querySelector('.view.fr'); if (!v) return;
   const b = v.querySelector('.topbar .brand'); if (b) b.textContent = 'Crew';
   const rq = S.frReq || { in: [], out: [] }, req = rq.in.length || rq.out.length ? `<div class="sect">Friend requests</div><div class="ycard">${rq.in.map(x => `<div class="yrow"><span class="tic">${ic('user')}</span><span class="grow"><b>${esc(x.name)}</b><small>Wants to be friends</small></span><button class="pill hot" data-act="frreq" data-id="${x.id}" data-y="1">Accept</button><button class="pill" data-act="frreq" data-id="${x.id}" data-y="">Not now</button></div>`).join('')}${rq.out.map(x => `<div class="yrow"><span class="tic">${ic('user')}</span><span class="grow"><b>${esc(x.name)}</b><small>Request sent, waiting on them</small></span></div>`).join('')}</div>` : '';
@@ -7049,7 +7054,7 @@ function youHTML() {
   return `<div class="you"><div class="brand">You</div>
     <div class="ycard"><div class="yrow"><span class="tic">${ic('heart')}</span><span class="grow"><b>${esc(S.me)}</b><small>${p ? 'Paired with ' + esc(p) : soloMode() ? 'Swiping on your own' : 'Not paired yet'}</small></span><button class="ysw" data-act="rename">Rename</button></div>
       <div class="yrow"><span class="tic">${ic('share')}</span><span class="grow"><b>${soloMode() ? 'Add your person' : esc(S.code)}</b><small>${soloMode() ? 'Whenever you like. Your decks and likes stay yours' : 'Your couple code'}</small></span><button class="ysw" data-act="invite">Invite</button></div>
-      ${BETA ? `<button class="yrow" data-act="acct"><span class="tic">${ic('user')}</span><span class="grow"><b>${S.acct ? 'Account saved' : 'Save your account'}</b><small>${S.acct ? esc(S.acct.email || 'Signed in with Apple or Google') : 'So you can sign back in on any phone'}</small></span><span class="ych">›</span></button>
+      ${R4 ? `<button class="yrow" data-act="acct"><span class="tic">${ic('user')}</span><span class="grow"><b>${S.acct ? 'Account saved' : 'Save your account'}</b><small>${S.acct ? esc(S.acct.email || 'Signed in with Apple or Google') : 'So you can sign back in on any phone'}</small></span><span class="ych">›</span></button>
       <button class="yrow" data-fr="open"><span class="tic">${ic('users')}</span><span class="grow"><b>Friends and group plans</b><small>Trips, dinners and nights out with other people</small></span><span class="ych">›</span></button>` : ''}
 ${soloMode() || !R3 ? '' : `      <button class="yrow" data-act="calsub"><span class="tic">${ic('cal')}</span><span class="grow"><b>Plans in your calendar</b><small>Every plan you both agree to shows up on its own</small></span><span class="ych">›</span></button>`}
 ${soloMode() ? '' : `      <button class="yrow" data-act="bdays"><span class="tic">${ic('heart')}</span><span class="grow"><b>Birthday and anniversary</b><small>${S.dates?.bday || S.dates?.anniv ? esc([S.dates.bday ? 'Birthday ' + mdText(S.dates.bday) : '', S.dates.anniv ? 'Anniversary ' + mdText(S.dates.anniv) : ''].filter(Boolean).join(' · ')) : 'So you both get a heads-up before the day'}</small></span><span class="ych">›</span></button>`}
@@ -8648,7 +8653,7 @@ async function boot() {
     if (/^[A-Z0-9]{4,8}$/.test(fq)) { ls.set('fpend', fq); try { history.replaceState(null, '', location.pathname); } catch {} }
     if (S.acct && (!S.code || !S.me)) { try { const r = await frLoad(); if (r?.ok) ls.set('solo', '1'); } catch {} } }
   if (!S.code || !S.me) return render();
-  if (sbA && !S.acct && !ls.get('acctask')) setTimeout(() => { if (!$layer.innerHTML && S.view === 'home') { ls.set('acctask', '1'); acctSheet(); } }, 1800);
+  if (sbA && BETA && !S.acct && !ls.get('acctask')) setTimeout(() => { if (!$layer.innerHTML && S.view === 'home') { ls.set('acctask', '1'); acctSheet(); } }, 1800);
   try { await refresh(); } catch (e) { if (String(e.message).includes('bad_code')) { ls.del('code'); ls.del('name'); authCookie.clear(); S.code = S.me = null; return render(); } $app.innerHTML = `<div class="center"><div class="brand">${BRAND}</div><p class="muted" style="margin:12px 0 18px">Could not reach the server. Check your connection.</p><button class="btn" onclick="location.reload()">Try again</button></div>`; return; }
   connect(); resavePush();
   if (sbA && S.acct && S.settings?.solo && !partner() && !FR.d) frLoad().then(r => { if (r?.ok && S.view === 'home' && S.tab === 'home' && !$layer.innerHTML) render(); }).catch(() => {});
