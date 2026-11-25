@@ -6736,6 +6736,7 @@ async function simSheet() {
 }
 function acctSheet(stage) {
   if (SIM) return simSheet();
+  if (!S.acct) applePrep().catch(() => {});
   const who = S.code && S.me ? (partner() ? `you and ${esc(them())}` : 'your couple') : 'your couple';
   if (S.acct) { sheet(`<div class="grab"></div><div class="body acs"><span class="acsic">${ic('user')}</span><h2>Your account is saved</h2>
     <p class="muted">Signed in as <b>${esc(S.acct.email || 'your Apple or Google account')}</b>. Sign in with it on any phone and you’re back with ${who}.</p>
@@ -6784,18 +6785,27 @@ async function acctDone(u, how) {
   closeSheet(); try { const r = await frLoad(); if (r?.ok) ls.set('solo', '1'); } catch {} return render();
 }
 const acctNameOf = u => { const m = u?.user_metadata || {}; return String(m.given_name || (m.full_name || m.name || '').split(' ')[0] || '').slice(0, 24); };
-const loadJs = src => new Promise((ok, no) => { if (document.querySelector(`script[src="${src}"]`)) return ok(); const s = document.createElement('script'); s.src = src; s.async = true; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
+// One tag per script. A load that failed takes its tag away, so the next try really loads it again (it used to count a failed tag as loaded).
+const loadJs = src => new Promise((ok, no) => { const had = document.querySelector(`script[src="${src}"]`); if (had?.dataset.ok) return ok(); if (had) { had.addEventListener('load', ok); had.addEventListener('error', no); return; }
+  const s = document.createElement('script'); s.src = src; s.async = true; s.onload = () => { s.dataset.ok = '1'; ok(); }; s.onerror = e => { s.remove(); no(e); }; document.head.appendChild(s); });
 async function nonces() { const raw = [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join(''); const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw)); return { raw, hashed: [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, '0')).join('') }; }
+// Apple's sheet has to open straight from the tap. Anything awaited first (loading Apple's script, hashing the nonce) and Safari
+// treats the popup as unasked-for and blocks it, which is what "didn't finish" was on 25 Nov. So both are done when the account sheet opens.
+let appleN = null, appleP = null;
+function applePrep() { if (!AUTH.apple || !sbA) return Promise.resolve(null); if (appleN) return Promise.resolve(appleN);
+  return appleP = appleP || (async () => { await loadJs('https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js'); const n = await nonces();
+    window.AppleID.auth.init({ clientId: AUTH.apple, scope: 'email', redirectURI: location.origin + location.pathname, usePopup: true, nonce: n.hashed }); appleP = null; return appleN = n; })().catch(e => { appleP = null; throw e; }); }
 async function acctApple(t) {
   t.disabled = true;
   try {
-    await loadJs('https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js');
-    const n = await nonces();
-    window.AppleID.auth.init({ clientId: AUTH.apple, scope: 'email', redirectURI: location.origin + location.pathname, usePopup: true, nonce: n.hashed });
-    const r = await window.AppleID.auth.signIn();
+    let n = appleN, p = n ? window.AppleID.auth.signIn() : null;   // ready: the popup opens inside the tap itself
+    if (!p) { n = await applePrep(); p = window.AppleID.auth.signIn(); }
+    const r = await p; appleN = null;                               // a nonce is good for one sign-in
     const { data, error } = await sbA.auth.signInWithIdToken({ provider: 'apple', token: r.authorization.id_token, nonce: n.raw });
     if (error) throw error; return acctDone(data.user);
-  } catch (e) { t.disabled = false; if (!/popup_closed|user_cancel/i.test(String(e?.error || e?.message || ''))) toast('Apple sign-in didn’t finish. Try again, or use your email.', 3800); }
+  } catch (e) { t.disabled = false; appleN = null; applePrep().catch(() => {});
+    const why = String(e?.error || e?.code || e?.message || e || '').slice(0, 90); perfSend({ k: 'apple', err: why });
+    if (!/popup_closed|user_cancel/i.test(why)) toast('Apple sign-in didn’t finish. Try again, or use your email.' + (BETA && why ? ` (${why})` : ''), 5200); }
 }
 async function acctGoogle() {
   try {
