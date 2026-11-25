@@ -1746,7 +1746,7 @@ const SIM = !!window.LT_SIM;
 const simFetch = (u, o = {}) => { const h = new Headers(o.headers || {}); let k = '', who = ''; try { k = localStorage.getItem('wl_simkey') || ''; who = localStorage.getItem('wl_simp') || ''; } catch {} if (k) h.set('X-Client-Info', `sim:${k}:${who}`); return fetch(u, { ...o, headers: h }); };
 const sb = createClient(CFG.url, CFG.key, { auth: { persistSession: false, autoRefreshToken: false }, ...(SIM ? { global: { fetch: simFetch } } : {}) });
 // Accounts (beta first): a person signs in with Apple, Google or an emailed code. The couple code stays how partners link.
-const AUTH = { passkey: false, apple: '', google: '613628144755-h3npqt0snsmebvaej443jcbd7j4e3pn6.apps.googleusercontent.com' };   // public IDs; an empty one hides its button
+const AUTH = { passkey: false, apple: 'app.letstogether.web', google: '613628144755-h3npqt0snsmebvaej443jcbd7j4e3pn6.apps.googleusercontent.com' };   // public IDs; an empty one hides its button
 const sbA = SIM ? sb : window.LT_BETA ? createClient(CFG.url, CFG.key, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'wl_auth', experimental: { passkey: true } } }) : null;
 
 const DECKS = {
