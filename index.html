@@ -782,6 +782,7 @@ html.ios-app .scr,html.ios-app .sco{position:absolute}
 .getaway{margin-top:12px;width:100%}
 .hsb .go.alt{background:rgba(255,255,255,.14);color:#fff}
 .prow{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+button.prow.cupi{width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);color:inherit;font:inherit;min-height:44px}.cupi .grow{min-width:0}.cupi b{display:block;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.cupi small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}.cupi .cupt{color:#ffb39c}.cupr{margin:4px 0 12px}
 .prow img,.prow .pimg{flex:none;width:58px;height:58px;border-radius:12px;object-fit:cover;background:var(--surface2);display:grid;place-items:center;font-size:20px;color:#ffb4a0}
 .prow b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:14.5px;line-height:1.25;font-weight:600}
 .prow small{display:block;font-size:12.5px;color:var(--muted);line-height:1.3;margin-top:2px}
@@ -3457,8 +3458,23 @@ async function leadSay(id, yes, t) {
   if (yes && !r?.match) setTimeout(() => { const car = document.getElementById('ldcar'); if (car) car.scrollBy({ left: car.clientWidth, behavior: 'smooth' }); }, 650);
 }
 // everything in the category on show: the rows Browse used to have, in a sheet
+// Coming up (Dave, 25 Nov: "a spot for upcoming events that stays even if you dismiss a card or a planned day"). Every confirmed
+// event near home for the next two weeks, by day, including ones you swiped past. Marks only what is safe to show: you both said
+// yes, you said yes, in your plan. Tap one for the card (yes, send, plan).
+function cupRow() { const n = S.cup?.items?.length; if (!S.cup || Date.now() - S.cup.at > 6e5) cupLoad();
+  return `<button class="tripbar cupr" data-act="cup" style="width:100%;text-align:left"><span class="tic">${ic('cal')}</span><span class="grow"><b>Coming up</b><small>${n ? n + ' event' + (n === 1 ? '' : 's') + ' in the next two weeks' : 'Events near you, the next two weeks'}</small></span><span class="go">See</span></button>`; }
+async function cupLoad() { if (S.cupP) return S.cupP; S.cupP = rpc('coming_up', { p_code: S.code, p_member: S.me }).then(r => { S.cup = { ...r, at: Date.now() }; for (const c of r.items || []) (S.lbIdx ||= {})[c.id] = c; return S.cup; }).finally(() => { S.cupP = null; }); return S.cupP; }
+async function cupSheet(t) { if (t) t.disabled = true; try { if (!S.cup || Date.now() - S.cup.at > 6e5) await cupLoad(); } catch { if (t) t.disabled = false; return toast('Couldn’t load events. Try again in a moment.'); }
+  const L = S.cup.items || [], td = pToday(), tm = pAdd(td, 1), days = [...new Set(L.map(c => c.day))];
+  const dname = d => d === td ? 'Today' : d === tm ? 'Tomorrow' : new Date(d + 'T12:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+  const tag = c => c.plan ? 'In your plan' : c.both ? 'You both said yes' : c.mine ? 'You said yes' : '';
+  const row = c => { const d = c.data || {}, bits = [d.time, d.venue || c.subtitle, c.mi != null ? c.mi + ' mi' : ''].filter(Boolean).map(String);
+    return `<button class="prow cupi" data-act="lbopen" data-id="${c.id}">${c.image ? `<img src="${esc(c.image)}" alt="" loading="lazy">` : `<span class="pimg">${ic('cal')}</span>`}<span class="grow"><b>${esc(c.title)}</b><small>${esc(bits.join(' · '))}</small>${tag(c) ? `<small class="cupt">${tag(c)}</small>` : ''}</span></button>`; };
+  sheet(`<div class="grab"></div><div class="body"><small class="tkick">The next two weeks</small><h2>Coming up</h2>
+    <p class="muted" style="margin-top:6px;font-size:14px">Events near you, checked against their own pages. They stay here even after you swipe past them.</p>
+    ${L.length ? days.map(d => `<div class="sect" style="margin-top:16px">${dname(d)}</div>${L.filter(c => c.day === d).map(row).join('')}`).join('') : '<p class="muted" style="margin-top:16px">Nothing listed yet. New events come in every few days.</p>'}</div>`); }
 async function seeAll(t) { const dk0 = S.homeDeck; if (!S.lb?.[dk0] || Date.now() - S.lb[dk0].at > 3e5 || (dk0 === 'all' && partner() && !S.lbPicks)) { if (t) t.disabled = true; await lbLoad(true).catch(() => {}); if (t) t.disabled = false; if (S.homeDeck !== dk0) return; }
-        sheet(`<div class="grab"></div><div class="body ldallb"><h2>${esc(HDECKS.find(x => x[0] === S.homeDeck)?.[1] || 'Browse')}</h2>${lbHTML(!ONE() && !!S.lbPicks?.both)}${ONE() ? '' : '<button class="btn ghost" data-act="lbmode" data-k="swipe" style="margin-top:6px">Swipe the pile instead</button>'}</div>`); return lbCarWire(); }
+        sheet(`<div class="grab"></div><div class="body ldallb"><h2>${esc(HDECKS.find(x => x[0] === S.homeDeck)?.[1] || 'Browse')}</h2>${BETA && ['all', 'event'].includes(S.homeDeck) ? cupRow() : ''}${lbHTML(!ONE() && !!S.lbPicks?.both)}${ONE() ? '' : '<button class="btn ghost" data-act="lbmode" data-k="swipe" style="margin-top:6px">Swipe the pile instead</button>'}</div>`); return lbCarWire(); }
 function lbDinnerIn() {
   const go = () => { const L = (S.lib || []).filter(c => c.deck === 'dinner' && c.who === 'both' && (c.data?.delivery || c.data?.takeout));
     sheet(`<div class="grab"></div><div class="body"><h2>Dinner in</h2><p class="muted" style="margin-top:6px;font-size:14px">Places you both said yes to that deliver or do takeout.</p>
@@ -4594,6 +4610,7 @@ async function dayStart() {
     if (!dsl.includes(S.pdDay)) S.pdDay = t0;
     const dl = d => d === t0 ? 'Today' : d === pAdd(t0, 1) ? 'Tomorrow' : new Date(d + 'T12:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
     return sheet(`<div class="grab"></div><div class="tn pday pd2"><div class="tn-head"><h2>Plan a day</h2></div>
+      ${BETA ? cupRow() : ''}
       ${live.map(p => `<button class="tripbar kc k-${pk(p)}" data-pl="view|${p.id}" style="width:100%;text-align:left"><span class="tic">${ic(pk(p) === 'fri' ? 'moon' : 'sun')}</span><span class="grow"><b>${pDayName(p.day)}${p.mode === 'in' ? ' · night in' : ''}</b><small>${pSum(p)}<br>${pStatus(p)}</small></span><span class="go ${p.ok?.[S.me] ? '' : 'blink'}">Open</span></button>`).join('')}
       <div class="pdays">${dsl.map(d => `<button data-act="pdday" data-d="${d}" class="${S.pdDay === d ? 'on' : ''}">${dl(d)}</button>`).join('')}</div>
       <div class="trow pdsh">${SHAPE_KEYS.map(k => `<button class="pdshape ${S.pdShape === k ? 'on' : ''}" data-act="pdshape" data-k="${k}"><b>${SHAPES[k].name}</b><small>${LSHAPE[k].sub}</small></button>`).join('')}<button class="pdshape ${S.pdShape === 'in' ? 'on' : ''}" data-act="pdshape" data-k="in"><b>Night in</b><small>A movie, and dinner to order or cook</small></button></div>
@@ -8205,6 +8222,7 @@ const onTap = async e => {
       case 'ldno': return leadSay(ds.id, false, t);
       case 'ldwatch': { const c = S.lbIdx?.[ds.id]; if (c) showFinal(c, false, [c]); return; }
       case 'ldall': return seeAll(t);
+      case 'cup': return cupSheet(t);
       case 'lbopen': { const c = S.lbIdx?.[ds.id]; if (!c) return; S.listCards = [c, ...(S.listCards || []).filter(x => x.id !== c.id)]; closeSheet(); return showDetail(c); }
       case 'lbpickset': { t.disabled = true; try { S.lbPicks = await rpc('local_picks_set', { p_code: S.code, p_member: S.me, p_in: ds.v === '1' }); } catch { toast('Could not save that. Try again in a moment.'); } return lbDraw(); }
       case 'lbround': { t.disabled = true; try { const r = await rpc('local_picks_round', { p_code: S.code, p_member: S.me }); if (!r?.id) return toast('Nothing to swipe this week.');
