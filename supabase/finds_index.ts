@@ -81,10 +81,10 @@ After searching, end your answer with ONLY a JSON array (up to 12 items, short v
 [{"name":"...","kind":"two or three word type, e.g. Odd museum","area":"neighbourhood or town","address":"if a source gives it","line":"...","score":1-10 for how surprising and worth the trip,"sources":["url"]}]`;
 }
 function promptEvents(p: string, today: string, sites: string[]) {
-  return `Today is ${today}. Find one-off and offbeat things to do ${NEAR(p)} in the next 14 days that a couple would not find on a big ticketing site: food and drink pop-ups, cook-offs, tastings, supper clubs, night and holiday markets, maker and craft fairs, oddities or vintage expos, small art openings, unusual workshops, farm and orchard events, small-town festivals. Skip big concerts, sports, chain promotions, recurring weekly bar trivia, and anything already over.
+  return `Today is ${today}. Find one-off and offbeat things to do ${NEAR(p)} in the next 14 days that a couple would not find on a big ticketing site: food and drink pop-ups, cook-offs, tastings, supper clubs, night and holiday markets, maker and craft fairs, oddities or vintage expos, small art openings, unusual workshops, farm and orchard events, small-town festivals, AND the free public holiday and civic events people go to together: parades, tree and menorah lightings, holiday light shows and strolls, turkey trots and holiday runs, fireworks, city celebrations and open-air markets (these count even when they are big and well known, as long as they are not ticketed concerts or sports). Put any parade or lighting in the next 7 days first. Skip big concerts, sports, chain promotions, recurring weekly bar trivia, and anything already over.
 ${sites.length ? `Start with these local sources: ${sites.slice(0, 8).join(", ")}. Then look wider: venue sites and their social posts, local news, community calendars, Eventbrite.` : `Look at the area's event calendars, local magazines and news, venue sites and their social posts, community calendars and Eventbrite.`}
 ${RULES} An event needs a date, a start time and a venue; leave it out if any is missing.
-After searching, end your answer with ONLY a JSON array (up to 12 items, short values):
+After searching, end your answer with ONLY a JSON array (up to 16 items, short values):
 [{"title":"...","kind":"Food|Drink|Market|Art|Workshop|Festival|Outdoors|Odd","date":"YYYY-MM-DD","time":"7:00 PM","end":"10:00 PM or empty","venue":"...","address":"...","price":"if a source gives it, else empty","line":"...","sources":["url"]}]`;
 }
 
