@@ -3586,18 +3586,22 @@ async function loadBite() {
 const biteDay = () => { let o = null; try { o = JSON.parse(ls.get('bl') || 'null'); } catch {} const d = new Date().toDateString(); return o && o.d === d ? o : { d, n: {}, more: {} }; };
 const biteSave = o => { try { ls.set('bl', JSON.stringify(o)); } catch {} };
 const biteLike = (deck, by) => { const o = biteDay(); o.n[deck] = Math.max(0, (o.n[deck] || 0) + by); biteSave(o); };
-const biteGoal = () => { if (!S.bite || !S.sess || !S.deck.length || S.sess.deck === 'trip' || TRIPSIDE()) return false; const o = biteDay(); return (o.n[S.sess.deck] || 0) >= 2 && !o.more[S.sess.deck]; };
+const biteGoal = () => { if (!S.bite || !S.sess || !S.deck.length || S.sess.deck === 'trip' || S.sess.deck === 'movie' || TRIPSIDE()) return false; const o = biteDay(); return (o.n[S.sess.deck] || 0) >= 2 && !o.more[S.sess.deck]; };
 function biteGoalHTML() { const p = partner(), names = { movie: 'movies', dinner: 'places', event: 'things to do', trip: 'trips', art: 'artworks', mix: 'of everything' };
   return `<div class="done goal"><div class="badge">${ic('heart')}</div><h3>Two saved for your next night</h3><p class="muted">${p ? `If ${esc(p)} likes either of them too, it’s a match.` : 'They’re saved for when your person joins.'} No need to do more. There are more ${names[S.sess.deck] || 'cards'} whenever you feel like it.</p><button class="btn ghost" data-act="bitemore">Keep browsing</button>${S.hist.length ? '<button class="jlink" data-sw="undo">Undo last swipe</button>' : ''}</div>`; }
 // Movies run deep, so keep browsing keeps going: another handful each time, with a steering card now and then to give it a direction.
 const allDeck = () => !!(S.bite && S.sess?.deck === 'mix' && S.sess?.filters?.all);
-const moreOn = () => allDeck() || !!(S.bite && S.sess?.deck === 'movie' && biteDay().more.movie);
+// 26 Nov, Dave: movies have no two-likes stop. You can swipe through every movie on your services, a handful at a time,
+// loaded ahead so there is no wait, and every third handful starts with a steering card (an actor, a director, a genre, trivia).
+const moreOn = () => allDeck() || !!(S.bite && S.sess?.deck === 'movie');
+const steerTurn = () => (S.moreN || 0) % 3 === 2;
 async function moreNext(steer) { const sid = S.sess?.id, st = document.getElementById('stack'); if (!sid || S.moreBusy) return; S.moreBusy = true;
   try { const r = await rpc('bite_more', { p_code: S.code, p_member: S.me, p_session: sid, p_steer: steer?.filter || null }); if (S.sess?.id !== sid) return;
     const have = new Set(S.deck.map(c => c.id)), add = (r?.added || []).filter(c => !have.has(c.id));
     if (!add.length) { S.moreEnd = sid; if (steer) toast('Nothing more on that thread tonight. Back to your usual mix.', 3500); return drawStack(); }
     if (steer?.why) { S.why = S.why || {}; add.forEach(c => { S.why[c.id] = steer.why; }); }
-    S.deck.push(...add); S.total = (S.total || 0) + add.length; S.moreN = (S.moreN || 0) + 1; if (!steer) eatWhy(sid); st?.querySelector(':scope > .done')?.remove(); drawStack();
+    const pre = S.deck.length > 0;   // loaded ahead: the next swipe draws them, so a card being dragged is never redrawn
+    S.deck.push(...add); S.total = (S.total || 0) + add.length; S.moreN = (S.moreN || 0) + 1; if (!steer) eatWhy(sid); if (pre) return; st?.querySelector(':scope > .done')?.remove(); drawStack();
   } catch { toast('Could not load more just now.'); } finally { S.moreBusy = false; } }
 async function moreStop() { const st = document.getElementById('stack'), acts = document.getElementById('acts'); if (!st) return; acts.style.visibility = 'hidden';
   setDone(st, '<div class="done"><p class="muted">Finding a few more…</p></div>'); let c = null; try { c = await rpc('steer_next', { p_code: S.code, p_member: S.me }); } catch {}
@@ -7520,7 +7524,10 @@ function drawStack() {
   const acts = document.getElementById('acts'), seen = document.getElementById('seenb');
   if (planAsk(st)) { if (seen) seen.style.display = 'none'; return; }
   if (biteGoal()) { S.revEntry = false; acts.style.visibility = 'hidden'; if (seen) seen.style.display = 'none'; deckWhy(); return setDone(st, biteGoalHTML()); }
-  if (!S.deck.length && moreOn() && S.moreEnd !== S.sess.id) { S.revEntry = false; if (seen) seen.style.display = 'none'; deckWhy(); return void moreStop(); }
+  if (!S.deck.length && moreOn() && S.moreEnd !== S.sess.id) { S.revEntry = false; if (seen) seen.style.display = 'none'; deckWhy();
+    if (steerTurn() || S.sess.deck !== 'movie') return void moreStop();
+    acts.style.visibility = 'hidden'; setDone(st, '<div class="done"><p class="muted">Finding a few more…</p></div>'); return void moreNext(null); }
+  if (S.sess?.deck === 'movie' && moreOn() && S.deck.length <= 3 && !S.moreBusy && S.moreEnd !== S.sess.id && !steerTurn()) setTimeout(() => { if (S.deck.length <= 3 && !S.moreBusy) moreNext(null); }, 0);
   deckWhy();
   if (!S.deck.length) {
     if (S.bite) S.revEntry = false;
