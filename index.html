@@ -3461,10 +3461,10 @@ async function leadSay(id, yes, t) {
 // Coming up (Dave, 25 Nov: "a spot for upcoming events that stays even if you dismiss a card or a planned day"). Every confirmed
 // event near home for the next two weeks, by day, including ones you swiped past. Marks only what is safe to show: you both said
 // yes, you said yes, in your plan. Tap one for the card (yes, send, plan).
-function cupRow() { const n = S.cup?.items?.length; if (!S.cup || Date.now() - S.cup.at > 6e5) cupLoad();
+function cupRow() { const n = S.cup?.items?.length; if (!S.cup || Date.now() - S.cup.at > 6e5) cupLoad().catch(() => {});
   return `<button class="tripbar cupr" data-act="cup" style="width:100%;text-align:left"><span class="tic">${ic('cal')}</span><span class="grow"><b>Coming up</b><small>${n ? n + ' event' + (n === 1 ? '' : 's') + ' in the next two weeks' : 'Events near you, the next two weeks'}</small></span><span class="go">See</span></button>`; }
 async function cupLoad() { if (S.cupP) return S.cupP; S.cupP = rpc('coming_up', { p_code: S.code, p_member: S.me }).then(r => { S.cup = { ...r, at: Date.now() }; for (const c of r.items || []) (S.lbIdx ||= {})[c.id] = c; return S.cup; }).finally(() => { S.cupP = null; }); return S.cupP; }
-async function cupSheet(t) { if (t) t.disabled = true; try { if (!S.cup || Date.now() - S.cup.at > 6e5) await cupLoad(); } catch { if (t) t.disabled = false; return toast('Couldn’t load events. Try again in a moment.'); }
+async function cupSheet(t) { try { if (!S.cup || Date.now() - S.cup.at > 6e5) await cupLoad(); } catch { return toast('Couldn’t load events. Try again in a moment.'); }
   const L = S.cup.items || [], td = pToday(), tm = pAdd(td, 1), days = [...new Set(L.map(c => c.day))];
   const dname = d => d === td ? 'Today' : d === tm ? 'Tomorrow' : new Date(d + 'T12:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
   const tag = c => c.plan ? 'In your plan' : c.both ? 'You both said yes' : c.mine ? 'You said yes' : '';
