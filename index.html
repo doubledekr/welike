@@ -3273,7 +3273,7 @@ function homeHTML() {
   const one = ONE() && !tov && !gov; if (one) setTimeout(oneFit, 0);
   return `<div class="home ${TRIPSIDE() ? 'tside' : ''}${B2 ? ' hb2' : ''}${LEAD() && !tov && !gov ? ' lead' : ''}${one ? ' one' : ''}" data-d="${S.homeDeck}">
     <div class="row hdr ${sbA || NEWUI ? 'h5' : ''}"><div class="brand grow hb">${MARK}<span>${BRAND}</span></div>
-      <button class="ib" data-act="search" aria-label="Search movies">${ic('search')}</button>${DOCK2 ? (sbA ? `<button class="ib" data-act="people" aria-label="Crew: your partner, friends and groups">${ic('users')}</button>` : '') : NEWUI ? `<button class="ib hlib" data-act="hlib" aria-label="What you liked">${ic('heart')}</button>` : sbA ? `<button class="ib" data-fr="open" aria-label="Friends and group plans">${ic('users')}</button>` : ''}
+      ${TRIPSIDE() ? `<button class="ib" data-act="tsearch" aria-label="Search places">${ic('search')}</button>` : `<button class="ib" data-act="search" aria-label="Search movies">${ic('search')}</button>`}${DOCK2 ? (sbA ? `<button class="ib" data-act="people" aria-label="Crew: your partner, friends and groups">${ic('users')}</button>` : '') : NEWUI ? `<button class="ib hlib" data-act="hlib" aria-label="What you liked">${ic('heart')}</button>` : sbA ? `<button class="ib" data-fr="open" aria-label="Friends and group plans">${ic('users')}</button>` : ''}
       ${DOCK2 ? '' : `<button class="ib shr ${ls.get('shared') ? 'shd' : ''}" data-act="sharefriends" aria-label="Share Let’s Together with friends">${ic('share')}</button>`}
       ${bellHTML()}<button class="ib" data-tab="you" aria-label="You and settings">${ic('gear')}</button></div>${TRIPSIDE() ? '' : slotHTML(incoming)}
     <div id="hbot" style="display:contents">${TRIPSIDE() ? `<div id="tphd">${tripHead()}</div>` : `<div class="seg" style="margin:8px 0 2px">${HDECKS.map(([k, l]) => `<button data-hdeck="${k}" class="kc k-${CK[k]} ${S.homeDeck === k ? 'on' : ''}">${l}${heartTag(k)}</button>`).join('')}</div>`}${B2 && !TRIPSIDE() ? `<div id="herep">${hereHTML()}</div>` : ''}${!TRIPSIDE() && scratchShow() && !S.awayOffer ? `<button class="scratch-pill" data-act="scratch">${ic('spark')}<span><b>A scratch card is waiting</b><small>One thing ${esc(p)} is in on</small></span><i>Scratch</i></button>` : ''}${S.awayOffer ? `<div class="trav"><span class="tic">${ic('pin')}</span><span class="grow"><b>Looks like you’re ${S.awayOffer.place ? 'at ' + esc(S.awayOffer.city) : 'in ' + esc(S.awayOffer.city)}</b><small>${S.awayOffer.place ? 'Plan around it for the next few days?' : 'Show places to eat and things to do here?'}</small></span><button class="go" data-act="awayyes">${S.awayOffer.place ? 'Plan' : 'Show'}</button><button class="x" data-act="awayno" aria-label="Not now">×</button></div>` : ''}${S.away && (S.homeDeck === 'dinner' || S.homeDeck === 'event') ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><small class="muted" style="font-size:12.5px">${ic('pin')} ${S.away.trip ? `Your ${esc(S.away.city)} trip` : `Showing ${esc(S.away.city)} on this phone`}</small><button class="chip" data-act="awayoff" style="padding:5px 12px;font-size:13px">Back to home</button></div>` : ''}${S.homeDeck === 'movie' && !NEWUI ? `<div class="row" style="margin:14px 2px 0"><button class="chip" data-act="movielib" style="padding:5px 12px;font-size:13px">${ic('film')} Movie library</button></div>` : ''}${shareChip()}${S.homeDeck === 'art' ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="gallery" style="padding:5px 12px;font-size:13px">${ic('frame')} Our gallery</button><small class="muted" style="font-size:12.5px">No nudges, just likes</small></div>` : ''}${S.homeDeck === 'trip' && !TRIPSIDE() ? `<div class="row" style="justify-content:space-between;margin:14px 2px 0"><button class="chip" data-act="trips" style="padding:5px 12px;font-size:13px">${ic('heart')} Saved trips</button><button class="chip ${S.tripCity ? 'on' : ''}" data-act="tripcity" style="padding:5px 12px;font-size:13px">${esc(S.tripCity || 'Anywhere')} ▾</button></div>` : ''}
@@ -4411,7 +4411,7 @@ function sdSheet() { const sd = S.sd; if (!sd) return; const mine = new Set(sd.m
     <div class="frpicks" style="margin-top:12px">${(sd.places || []).map(c => `<button class="frpick ${mine.has(c) ? 'on' : ''}" data-act="sdtog" data-c="${esc(c)}"${mine.has(c) && !picked.has(c) ? ' data-liked="1"' : ''}>${esc(c)}</button>`).join('')}</div>
     <div style="height:16px"></div><button class="btn" data-act="sddone">Done</button></div>`, 'sd'); }
 async function sdTog(c, t) { const on = !t.classList.contains('on'); if (!on && t.dataset.liked) return toast('You liked trip ideas there, so it stays on your list.');
-  t.classList.toggle('on', on); try { S.sd = await rpc('someday_set', { p_code: S.code, p_member: S.me, p_city: c, p_on: on }); } catch { t.classList.toggle('on', !on); toast('That didn’t save. Try again.'); } }
+  t.classList.toggle('on', on); try { S.sd = await rpc('someday_set', { p_code: S.code, p_member: S.me, p_city: c, p_on: on }); const h = document.getElementById('tphd'); if (h && TRIPSIDE()) h.innerHTML = tripHead(); } catch { t.classList.toggle('on', !on); toast('That didn’t save. Try again.'); } }
 // a group's someday places: only where everyone in it wants to go
 async function gTripSheet(id) { const g = FR.d?.groups.find(x => x.id === id); if (!g) return;
   sheet(`<div class="grab"></div><div class="body"><h2>${esc(g.name)}</h2><p class="muted">Looking at where everyone wants to go…</p></div>`, 'gtrip');
@@ -5769,6 +5769,18 @@ function recReply(p) {
   sheet(`<div class="grab"></div><div class="tn"><div class="tn-head"><h2>Try again, babe.</h2><p class="muted" style="margin-top:8px;font-size:14.5px">${esc(p.from)} passed on <b style="color:var(--text)">${esc(c.title)}</b>.</p></div></div>
     <div style="height:16px"></div><button class="btn" data-act="search">Send another pick</button><div style="height:10px"></div><button class="btn ghost" data-act="closesheet">Leave it for now</button>`);
 }
+// Trips side: the header search finds places for someday, not movies (26 Nov, Dave)
+async function tSearchSheet() {
+  if (!S.sd) { try { S.sd = await rpc('someday_get', { p_code: S.code, p_member: S.me }); } catch { return toast('Couldn’t load places. Try again in a moment.'); } }
+  sheet(`<div class="grab"></div><div class="body"><h2>Find a place</h2><p class="muted" style="margin-top:6px">Tap a place to add it to your someday list. ${esc(them())} only sees it once you both pick it.</p>
+    <label class="field"><span>Where to?</span><input id="tsq" maxlength="40" enterkeyhint="search" autocomplete="off" placeholder="Lisbon, Japan, Chicago…"></label><div id="tsres"></div></div>`, 'sd');
+  const i = document.getElementById('tsq'); tSearchDraw(''); i?.addEventListener('input', () => tSearchDraw(i.value)); setTimeout(() => i?.focus(), 250);
+}
+function tSearchDraw(q) { const el = document.getElementById('tsres'); if (!el) return; const sd = S.sd || {}, mine = new Set(sd.mine || []), picked = new Set(sd.picked || []), plans = S.settings?.plans || [];
+  const n = x => String(x).toLowerCase().normalize('NFD').replace(/[^a-z ]/g, ''), k = n(q).trim();
+  const all = [...new Set([...plans, ...(sd.places || [])])], hit = k ? all.filter(c => n(c).split(/[ ,]+/).some(w => w.startsWith(k)) || n(c).includes(k)) : all;
+  el.innerHTML = hit.length ? `<div class="frpicks" style="margin-top:12px">${hit.slice(0, 40).map(c => plans.includes(c) ? `<button class="frpick on" data-tripbook="${esc(c)}">${esc(c)}</button>` : `<button class="frpick ${mine.has(c) ? 'on' : ''}" data-act="sdtog" data-c="${esc(c)}"${mine.has(c) && !picked.has(c) ? ' data-liked="1"' : ''}>${esc(c)}</button>`).join('')}</div>`
+    : `<p class="muted" style="margin-top:14px">No place called “${esc(q.trim())}” yet. Try a nearby city or the country.</p>`; }
 function searchSheet() {
   sheet(`<div class="grab"></div><h2>Find a movie</h2><p class="muted" style="margin-top:6px;font-size:14.5px">Search by title, actor, director or genre. Tap a result to send it to your other half with the trailer, or like it so it gets dealt early in your next round.</p>
     <label class="field"><span>Search your services</span><input id="sq" maxlength="60" enterkeyhint="search" placeholder="Knives Out, Zendaya, heist…"></label>
@@ -8440,6 +8452,7 @@ const onTap = async e => {
       case 'newsdone': S.walk = null; document.querySelector('.wn')?.remove(); return S.view === 'home' && S.tab === 'home' ? render() : null;
       case 'newstry': document.querySelector('.wn')?.remove(); return dayStart();
       case 'search': return searchSheet();
+      case 'tsearch': return tSearchSheet();
       case 'searchgo': return searchGo();
       case 'shortlist': return openLibrary('all');
       case 'movielib': return openLibrary('movie');
