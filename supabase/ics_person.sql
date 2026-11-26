@@ -1,0 +1,4 @@
+-- 26 Nov 2026: one calendar per person (migration one_calendar_per_person, then _ics_person marks a partner's events quiet).
+-- _ics_person(token): couple plans (_ics_events) + group plans the person is in ("Maybe: " if not yet in) + the partner's
+-- group plans they are not part of ("<partner>: ", quiet = no reminder). fr_cal_feed() gives a signed-in person their token.
+-- ics edge function v9: ?feed= uses _ics_person.

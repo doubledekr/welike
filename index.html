@@ -6725,7 +6725,8 @@ async function frClick(t, ds) {
     case 'npgo': return frNpGo(t);
     case 'plan': return frOpenPlan(ds.id);
     case 'back': { const up = p?.up; FR.plan = null; if (up) return frOpenPlan(up.id, true); S.view = 'friends'; try { await frLoad(); } catch {} return render(); }
-    case 'respond': if (ds.in === '0' && p.status === 'in' && !t.dataset.sure) { t.dataset.sure = '1'; t.querySelector('b').textContent = 'Tap again to leave'; return; } return frAct('respond', { in: ds.in === '1' }, t);
+    case 'respond': if (ds.in === '0' && p.status === 'in' && !t.dataset.sure) { t.dataset.sure = '1'; t.querySelector('b').textContent = 'Tap again to leave'; return; } { const rr = await frAct('respond', { in: ds.in === '1' }, t);
+      if (rr?.ok && ds.in === '1' && !ls.get('calask')) { ls.set('calask', '1'); setTimeout(() => { if (!$layer.innerHTML) calAsk(); }, 700); } return rr; }
     case 'wk': FR.wk[ds.o] = ds.v; return void t.parentElement.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === t));
     case 'wksave': { const q = frPollOf('weekend'), v = { ...(q.mine || {}), ...FR.wk }; if (q.options.some(o => !v[o.id])) return frWhy('all'); const r = await frAct('vote', { poll: q.id, v }, t); if (r) { FR.wk = {}; toast(r.day ? `It’s ${frWk(r.day)}.` : 'Sent.'); } return; }
     case 'rank': { const r = FR.rank[ds.q] || (FR.rank[ds.q] = []), i = r.indexOf(ds.o); i >= 0 ? r.splice(i, 1) : r.length < 3 ? r.push(ds.o) : toast('Three is the most. Tap one to take it off.'); return renderFPlan(); }
@@ -6934,13 +6935,20 @@ if (BETA) {
   addEventListener('error', e => perfSend({ k: 'err', m: String(e.message || '').slice(0, 160), l: e.lineno }));
   addEventListener('unhandledrejection', e => perfSend({ k: 'rej', m: String(e.reason?.message || e.reason || '').slice(0, 160) })); }
 // ===== Calendar =====
+// 26 Nov, Dave: one calendar per person. The link is yours alone; it holds your plans together, every group plan and trip you
+// are in (still being decided shows as Maybe), and your partner's group plans you are not part of. Built per person by _ics_person.
+function calAsk() { sheet(`<div class="grab"></div><div class="body acs"><span class="acsic">${ic('cal')}</span><h2>Add your plans to your calendar?</h2>
+    <p class="muted">Subscribe once and every plan you join shows up on its own, with the time and place.</p>
+    <button class="btn" data-act="calsub">Add to my calendar</button><button class="btn ghost" data-act="closesheet" style="margin-top:10px">Not now</button></div>`); }
 async function calSheet(t) {
-  t.disabled = true; let tok; try { tok = await rpc('cal_feed', { p_code: S.code, p_member: S.me }); } catch {} t.disabled = false;
-  if (!tok) return toast('Could not make your calendar link. Try again.');
+  if (t) t.disabled = true; let tok;
+  try { if (S.code && S.me) tok = await rpc('cal_feed', { p_code: S.code, p_member: S.me }); if (!tok && sbA && S.acct) { const r = await frRpc('fr_cal_feed', {}); tok = r?.ok ? r.token : null; } } catch {}
+  if (t) t.disabled = false;
+  if (!tok) return toast(sbA && !S.acct && !(S.code && S.me) ? 'Sign in first, then add your calendar.' : 'Could not make your calendar link. Try again.');
   const https = `${CFG.url}/functions/v1/ics?feed=${tok}`, wc = https.replace(/^https:/, 'webcal:');
   S.calLink = https; step('cal_open');
   sheet(`<div class="grab"></div><div class="body acs"><span class="acsic">${ic('cal')}</span><h2>Plans in your calendar</h2>
-    <p class="muted">Subscribe once. Every plan you both agree to shows up with its times and places, with a heads-up an hour before. Changes update on their own.</p>
+    <p class="muted">Subscribe once. Your plans${partner() ? ` with ${esc(them())}` : ''} and every group plan and trip you’re in show up with times and places, and a heads-up an hour before. Plans still being decided say Maybe. New plans and changes arrive on their own.</p>
     <a class="btn" href="${wc}">Add to my iPhone calendar</a>
     <button class="btn ghost" data-act="calcopy" style="margin-top:10px">Copy the link for Google Calendar</button>
     <p class="muted acfine">The link is just for you. Anyone who has it can see your plans, so don’t post it.</p></div>`);
@@ -7108,7 +7116,7 @@ function youHTML() {
       <div class="yrow"><span class="tic">${ic('share')}</span><span class="grow"><b>${soloMode() ? 'Add your person' : esc(S.code)}</b><small>${soloMode() ? 'Whenever you like. Your decks and likes stay yours' : 'Your couple code'}</small></span><button class="ysw" data-act="invite">Invite</button></div>
       ${R4 ? `<button class="yrow" data-act="acct"><span class="tic">${ic('user')}</span><span class="grow"><b>${S.acct ? 'Account saved' : 'Save your account'}</b><small>${S.acct ? esc(S.acct.email || 'Signed in with Apple or Google') : 'So you can sign back in on any phone'}</small></span><span class="ych">›</span></button>
       <button class="yrow" data-fr="open"><span class="tic">${ic('users')}</span><span class="grow"><b>Friends and group plans</b><small>Trips, dinners and nights out with other people</small></span><span class="ych">›</span></button>` : ''}
-${soloMode() || !R3 ? '' : `      <button class="yrow" data-act="calsub"><span class="tic">${ic('cal')}</span><span class="grow"><b>Plans in your calendar</b><small>Every plan you both agree to shows up on its own</small></span><span class="ych">›</span></button>`}
+${(soloMode() && !S.acct) || !R3 ? '' : `      <button class="yrow" data-act="calsub"><span class="tic">${ic('cal')}</span><span class="grow"><b>Plans in your calendar</b><small>Your plans and group plans, in one calendar</small></span><span class="ych">›</span></button>`}
 ${soloMode() ? '' : `      <button class="yrow" data-act="bdays"><span class="tic">${ic('heart')}</span><span class="grow"><b>Birthday and anniversary</b><small>${S.dates?.bday || S.dates?.anniv ? esc([S.dates.bday ? 'Birthday ' + mdText(S.dates.bday) : '', S.dates.anniv ? 'Anniversary ' + mdText(S.dates.anniv) : ''].filter(Boolean).join(' · ')) : 'So you both get a heads-up before the day'}</small></span><span class="ych">›</span></button>`}
       <button class="yrow" data-tab="lists"><span class="tic">${ic('list')}</span><span class="grow"><b>Your own lists</b><small>Dinners, activities and pantry</small></span><span class="ych">›</span></button>
       ${sw(S.settings?.kids === true, 'kidsset', 'Planning with kids', S.settings?.kids === true ? 'Family films and kid-friendly places, for both of you' : 'Turn on for kid-friendly films, places and ideas', 'heart')}</div>
