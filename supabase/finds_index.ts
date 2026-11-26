@@ -22,19 +22,23 @@ const apiKey = () => Deno.env.get("ANTHROPIC_API_KEY") ?? Deno.env.get("CLAUDE_A
 const MODELS = [Deno.env.get("CLAUDE_FINDS_MODEL"), "claude-sonnet-5-5", "claude-sonnet-4-5"].filter(Boolean) as string[];
 const DAILY_GUARD = 1500;
 
-async function ask(prompt: string, loc: Record<string, string>, uses = 6): Promise<{ text: string | null; err: string; searches: number }> {
+async function ask(prompt: string, loc: Record<string, string>, uses = 6, fetches = 0): Promise<{ text: string | null; err: string; searches: number }> {
   const key = apiKey(); if (!key) return { text: null, err: "no key", searches: 0 };
   const ctl = new AbortController(); const timer = setTimeout(() => ctl.abort(), 140000);
   let err = "";
   const ul: Record<string, string> = { type: "approximate" };
   for (const k of ["city", "region", "country"]) if (loc[k]) ul[k] = loc[k];
   const tool = { type: "web_search_20250305", name: "web_search", max_uses: uses, user_location: ul };
+  // calendar sweep reads the calendar pages themselves (web_fetch); if the API refuses the fetch tool, try the beta header, then search only.
+  const fetchTool = { type: "web_fetch_20250910", name: "web_fetch", max_uses: fetches };
+  const tries: { tools: unknown[]; beta?: string }[] = fetches ? [{ tools: [tool, fetchTool] }, { tools: [tool, fetchTool], beta: "web-fetch-2025-09-10" }, { tools: [tool] }] : [{ tools: [tool] }];
   try {
-    for (const model of MODELS) {
-      const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", signal: ctl.signal,
-        headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
-        body: JSON.stringify({ model, max_tokens: 9000, tools: [tool], messages: [{ role: "user", content: prompt }] }) });
-      if (!r.ok) { const t = (await r.text()).slice(0, 300); err = `${model} ${r.status} ${t}`; if (r.status === 404 || (r.status === 400 && /model/i.test(t))) continue; return { text: null, err, searches: 0 }; }
+    for (const model of MODELS) for (const tr of tries) {
+      const hd: Record<string, string> = { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" };
+      if (tr.beta) hd["anthropic-beta"] = tr.beta;
+      const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", signal: ctl.signal, headers: hd,
+        body: JSON.stringify({ model, max_tokens: 12000, tools: tr.tools, messages: [{ role: "user", content: prompt }] }) });
+      if (!r.ok) { const t = (await r.text()).slice(0, 300); err = `${model} ${r.status} ${t}`; if (r.status === 400 && /fetch|tool|beta/i.test(t) && !/model/i.test(t)) continue; if (r.status === 404 || (r.status === 400 && /model/i.test(t))) break; return { text: null, err, searches: 0 }; }
       const d = await r.json();
       const blocks = (d.content ?? []) as any[];
       const text = blocks.filter((b) => b.type === "text").map((b) => b.text).join("").trim();   // cited answers come in many blocks; "" keeps the JSON whole
@@ -64,7 +68,7 @@ The "line" is shown to couples on a card: one sentence, at most 100 characters, 
 const NEAR = (p: string) => `in or near ${p} (within about 30 miles / 50 km; include the nearby towns people from there actually go to)`;
 
 function promptSources(p: string) {
-  return `Find the best places to learn what is happening and what is worth visiting ${NEAR(p)}: local and regional event calendars, city or county magazines, alt-weeklies, newspapers' things-to-do pages, food and drink guides, travel and tourism boards, local newsletters and blogs, community calendars, markets' and venues' own listings, and the local Reddit communities (name them even if you cannot open them). Prefer sources that are current (updated in the last month) and specific to this area.
+  return `Find the best places to learn what is happening and what is worth visiting ${NEAR(p)}: local and regional event calendars, city or county magazines, alt-weeklies, newspapers' things-to-do pages, food and drink guides, travel and tourism boards, local newsletters and blogs, community calendars, markets' and venues' own listings, and the local Reddit communities (name them even if you cannot open them). Prefer sources that are current (updated in the last month) and specific to this area. For calendars give the address of the calendar's main listing page that keeps updating (for example example.com/events), never a single dated article, a past month or a page for another town. Include at least 6 real event calendars: the city's and the county's, the tourism board's, the main local magazine or alt-weekly calendar, the main arts and culture calendar, and community or neighbourhood calendars.
 Use only what you find. After searching, end your answer with ONLY a JSON array (up to 15 items, short values):
 [{"name":"...","url":"https://...","type":"Events calendar|Magazine|Newspaper|Food guide|Tourism|Newsletter|Blog|Community|Venue|Reddit","covers":"what it is good for, a few words","fresh":"how current it looked, a few words"}]`;
 }
@@ -80,16 +84,26 @@ ${RULES}
 After searching, end your answer with ONLY a JSON array (up to 12 items, short values):
 [{"name":"...","kind":"two or three word type, e.g. Odd museum","area":"neighbourhood or town","address":"if a source gives it","line":"...","score":1-10 for how surprising and worth the trip,"sources":["url"]}]`;
 }
-// Events come in themes (26 Nov, Dave: "no mention of Noel Night ... gaps in finding things"). One search pass over a whole
-// metro can only hold so much, so each run looks at one theme with its own slots, and "signature" looks 45 days ahead for
-// the big annual nights a city plans around. _finds_tick rotates the theme per area.
+// Events (26 Nov, Dave: "no mention of Noel Night ... gaps in finding things"; then "a thorough once weekly run").
+// One search pass over a whole metro can only hold so much, so the weekly run per area is several calls, each with its own
+// slots: signature (big annual nights, 60 days ahead), civic (free public events and markets), culture (food, drink, arts),
+// and a calendar sweep that reads the area's own calendar pages (mode "calendar", a few sites per call), so new and plainly
+// named events are found whatever a search engine ranks. Each run is logged in finds_runs with how many events were new.
 const THEMES: Record<string, { days: number; n: number; ask: string }> = {
-  signature: { days: 45, n: 20, ask: `the big annual and seasonal events that people in this area plan around and look forward to every year: holiday walks and open-house nights, parades, the main festivals, art and gallery walks, light displays, fireworks, food and restaurant weeks, cultural celebrations, the city's signature street or neighbourhood nights. Include the well-known ones even if everybody knows them` },
-  civic: { days: 14, n: 16, ask: `free public holiday and civic events people go to together: parades, tree and menorah lightings, light shows and strolls, turkey trots and holiday runs, fireworks, city and neighbourhood celebrations, open-air markets` },
+  signature: { days: 60, n: 24, ask: `the big annual and seasonal events that people in this area plan around and look forward to every year: holiday walks and open-house nights, parades, the main festivals, art and gallery walks, light displays, fireworks, food and restaurant weeks, cultural celebrations, the city's signature street or neighbourhood nights. Include the well-known ones even if everybody knows them` },
+  civic: { days: 21, n: 24, ask: `free public and civic events and markets people go to together: parades, tree and menorah lightings, light shows and strolls, turkey trots and fun runs, fireworks, city, church, school and neighbourhood celebrations and fairs, night and holiday markets, maker and craft fairs, vintage and flea markets, small-town festivals. First-time and small events count as much as famous ones` },
+  culture: { days: 21, n: 24, ask: `food, drink, art and culture events: pop-ups, supper clubs, tastings, beer, wine and cocktail events, restaurant and bar takeovers, special dinners, gallery openings and art walks, small live music and jazz nights, comedy, theatre and dance, readings, film screenings, museum after-hours, workshops and classes, farm and orchard events, oddities expos. Skip big arena concerts. New and one-time events count as much as well-known ones` },
   food: { days: 14, n: 16, ask: `food and drink events: pop-ups, supper clubs, tastings, cook-offs, beer, wine and cocktail events, restaurant and bar takeovers, food festivals and restaurant weeks, special dinners` },
   arts: { days: 14, n: 16, ask: `art and culture nights: gallery openings and art walks, small live music and jazz nights, comedy, theatre and dance, readings, film screenings and festivals, museum after-hours. Skip big arena concerts` },
   markets: { days: 14, n: 16, ask: `markets and things to do with your hands: night and holiday markets, maker and craft fairs, vintage and flea markets, workshops and classes, farm and orchard events, oddities expos, small-town festivals` },
 };
+function promptCalendar(p: string, today: string, sites: string[]) {
+  return `Today is ${today}. You are reading the local event calendars for ${p}. Open each of these calendar pages (and their next pages or month views if events run on): ${sites.join(", ")}.
+List EVERY event on them in the next 21 days that a couple could go to together ${NEAR(p)}, whatever it is called and whether or not it has happened before: festivals, holiday events, markets, food and drink events, music, comedy, theatre, art, talks, workshops, outdoor events, community and church fairs. Skip sports, kids-only events, online events, support groups and meetings, recurring weekly bar trivia, and anything over. If a link is a dated article, a past month or another town, go to that site's current events calendar instead. If a page will not open, search for that calendar's events instead.
+${RULES} An event needs a date, a start time and a venue; leave it out if any is missing.
+After reading, end your answer with ONLY a JSON array (up to 40 items, short values):
+[{"title":"...","kind":"Food|Drink|Market|Art|Music|Workshop|Festival|Outdoors|Odd","date":"YYYY-MM-DD","time":"7:00 PM","end":"10:00 PM or empty","venue":"...","address":"...","price":"if given, else empty","line":"...","sources":["url"]}]`;
+}
 function promptEvents(p: string, today: string, sites: string[], theme = "") {
   const th = THEMES[theme];
   const what = th ? `${th.ask}` : `one-off and offbeat things a couple would not find on a big ticketing site: food and drink pop-ups, cook-offs, tastings, supper clubs, night and holiday markets, maker and craft fairs, oddities or vintage expos, small art openings, unusual workshops, farm and orchard events, small-town festivals, AND the free public holiday and civic events people go to together: parades, tree and menorah lightings, holiday light shows and strolls, turkey trots and holiday runs, fireworks, city celebrations and open-air markets (these count even when they are big and well known, as long as they are not ticketed concerts or sports). Put any parade or lighting in the next 7 days first`;
@@ -115,7 +129,7 @@ Deno.serve(async (req: Request) => {
     const area = typeof a.area === "string" ? a.area : null, save = !!a.save && !!area;
     const done = async (items: any[], extra: Record<string, unknown>) => {
       let saved: unknown = null;
-      if (save) { const { data, error } = await sb.rpc("_finds_apply", { p_area: area, p_mode: mode, p_items: items }); saved = error ? { error: error.message } : data; }
+      if (save) { const { data, error } = await sb.rpc("_finds_apply", { p_area: area, p_mode: mode === "calendar" ? "events" : mode, p_items: items }); saved = error ? { error: error.message } : data; }
       if (area && extra.err) await sb.from("find_areas").update({ last_note: `${mode}: ${String(extra.err).slice(0, 200)}` }).eq("id", area);
       return json({ ok: true, mode, place, ...extra, found: items.length, saved, items });
     };
@@ -131,7 +145,7 @@ Deno.serve(async (req: Request) => {
       if (area && city) await sb.from("find_areas").update({ city, region, country: country ?? "US", place: [city, region].filter(Boolean).join(", ") + (county && county !== city ? ` (${county})` : "") }).eq("id", area);
       return json({ ok: !!city, mode, city, region, country, county });
     }
-    if (!place || !["sources", "openings", "gems", "events"].includes(mode)) return json({ ok: false, reason: "bad_args" });
+    if (!place || !["sources", "openings", "gems", "events", "calendar"].includes(mode)) return json({ ok: false, reason: "bad_args" });
     const t0 = Date.now();
 
     if (mode === "sources") {
@@ -139,13 +153,17 @@ Deno.serve(async (req: Request) => {
       const items = lastArray(r.text).filter((x) => x?.name && /^https?:\/\//.test(String(x?.url ?? "")));
       return done(items, { searches: r.searches, ms: Date.now() - t0, err: r.err || undefined });
     }
-    if (mode === "events") {
-      const theme = String(a.theme ?? ""); const r = await ask(promptEvents(place, today, sites, theme), loc, theme === "signature" ? 8 : 6);
+    if (mode === "events" || mode === "calendar") {
+      const theme = mode === "calendar" ? "calendar" : String(a.theme ?? "");
+      const r = mode === "calendar" ? await ask(promptCalendar(place, today, sites), loc, 3, 6) : await ask(promptEvents(place, today, sites, theme), loc, THEMES[theme] ? 8 : 6);
       const items = lastArray(r.text).filter((x) => x?.title && x?.date && x?.time && x?.venue && Array.isArray(x?.sources) && x.sources.length && x.date >= today);
       // the line under the title: venue, then the town from the address (never just the state)
       for (const x of items) { const ps = String(x.address ?? "").split(",").map((t: string) => t.trim()).filter(Boolean); const town = ps.length && /^[A-Z]{2}( \d{5})?$/.test(ps[ps.length - 1]) ? ps[ps.length - 2] : ps[ps.length - 1];
         x.subtitle = town && !String(x.venue).toLowerCase().includes(String(town).toLowerCase()) ? `${x.venue} · ${town}` : x.venue; }
-      return done(items, { searches: r.searches, ms: Date.now() - t0, err: r.err || undefined });
+      let fresh: any = null;
+      if (area) { const { data } = await sb.rpc("_finds_new", { p_area: area, p_items: items }); fresh = data;
+        await sb.from("finds_runs").insert({ area, mode, theme, sites: mode === "calendar" ? sites : null, found: items.length, fresh: fresh?.n ?? null, fresh_titles: fresh?.titles ?? null, searches: r.searches, err: r.err || null }); }
+      return done(items, { theme, searches: r.searches, ms: Date.now() - t0, err: r.err || undefined, fresh });
     }
 
     // openings and gems: then confirm each on Google Places
