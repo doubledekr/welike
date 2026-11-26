@@ -80,12 +80,24 @@ ${RULES}
 After searching, end your answer with ONLY a JSON array (up to 12 items, short values):
 [{"name":"...","kind":"two or three word type, e.g. Odd museum","area":"neighbourhood or town","address":"if a source gives it","line":"...","score":1-10 for how surprising and worth the trip,"sources":["url"]}]`;
 }
-function promptEvents(p: string, today: string, sites: string[]) {
-  return `Today is ${today}. Find one-off and offbeat things to do ${NEAR(p)} in the next 14 days that a couple would not find on a big ticketing site: food and drink pop-ups, cook-offs, tastings, supper clubs, night and holiday markets, maker and craft fairs, oddities or vintage expos, small art openings, unusual workshops, farm and orchard events, small-town festivals, AND the free public holiday and civic events people go to together: parades, tree and menorah lightings, holiday light shows and strolls, turkey trots and holiday runs, fireworks, city celebrations and open-air markets (these count even when they are big and well known, as long as they are not ticketed concerts or sports). Put any parade or lighting in the next 7 days first. Skip big concerts, sports, chain promotions, recurring weekly bar trivia, and anything already over.
+// Events come in themes (26 Nov, Dave: "no mention of Noel Night ... gaps in finding things"). One search pass over a whole
+// metro can only hold so much, so each run looks at one theme with its own slots, and "signature" looks 45 days ahead for
+// the big annual nights a city plans around. _finds_tick rotates the theme per area.
+const THEMES: Record<string, { days: number; n: number; ask: string }> = {
+  signature: { days: 45, n: 20, ask: `the big annual and seasonal events that people in this area plan around and look forward to every year: holiday walks and open-house nights, parades, the main festivals, art and gallery walks, light displays, fireworks, food and restaurant weeks, cultural celebrations, the city's signature street or neighbourhood nights. Include the well-known ones even if everybody knows them` },
+  civic: { days: 14, n: 16, ask: `free public holiday and civic events people go to together: parades, tree and menorah lightings, light shows and strolls, turkey trots and holiday runs, fireworks, city and neighbourhood celebrations, open-air markets` },
+  food: { days: 14, n: 16, ask: `food and drink events: pop-ups, supper clubs, tastings, cook-offs, beer, wine and cocktail events, restaurant and bar takeovers, food festivals and restaurant weeks, special dinners` },
+  arts: { days: 14, n: 16, ask: `art and culture nights: gallery openings and art walks, small live music and jazz nights, comedy, theatre and dance, readings, film screenings and festivals, museum after-hours. Skip big arena concerts` },
+  markets: { days: 14, n: 16, ask: `markets and things to do with your hands: night and holiday markets, maker and craft fairs, vintage and flea markets, workshops and classes, farm and orchard events, oddities expos, small-town festivals` },
+};
+function promptEvents(p: string, today: string, sites: string[], theme = "") {
+  const th = THEMES[theme];
+  const what = th ? `${th.ask}` : `one-off and offbeat things a couple would not find on a big ticketing site: food and drink pop-ups, cook-offs, tastings, supper clubs, night and holiday markets, maker and craft fairs, oddities or vintage expos, small art openings, unusual workshops, farm and orchard events, small-town festivals, AND the free public holiday and civic events people go to together: parades, tree and menorah lightings, holiday light shows and strolls, turkey trots and holiday runs, fireworks, city celebrations and open-air markets (these count even when they are big and well known, as long as they are not ticketed concerts or sports). Put any parade or lighting in the next 7 days first`;
+  return `Today is ${today}. Find ${what}, ${NEAR(p)}, in the next ${th?.days ?? 14} days. Skip sports, chain promotions, recurring weekly bar trivia, and anything already over.
 ${sites.length ? `Start with these local sources: ${sites.slice(0, 8).join(", ")}. Then look wider: venue sites and their social posts, local news, community calendars, Eventbrite.` : `Look at the area's event calendars, local magazines and news, venue sites and their social posts, community calendars and Eventbrite.`}
 ${RULES} An event needs a date, a start time and a venue; leave it out if any is missing.
-After searching, end your answer with ONLY a JSON array (up to 16 items, short values):
-[{"title":"...","kind":"Food|Drink|Market|Art|Workshop|Festival|Outdoors|Odd","date":"YYYY-MM-DD","time":"7:00 PM","end":"10:00 PM or empty","venue":"...","address":"...","price":"if a source gives it, else empty","line":"...","sources":["url"]}]`;
+After searching, end your answer with ONLY a JSON array (up to ${th?.n ?? 16} items, short values):
+[{"title":"...","kind":"Food|Drink|Market|Art|Music|Workshop|Festival|Outdoors|Odd","date":"YYYY-MM-DD","time":"7:00 PM","end":"10:00 PM or empty","venue":"...","address":"...","price":"if a source gives it, else empty","line":"...","sources":["url"]}]`;
 }
 
 Deno.serve(async (req: Request) => {
@@ -128,7 +140,7 @@ Deno.serve(async (req: Request) => {
       return done(items, { searches: r.searches, ms: Date.now() - t0, err: r.err || undefined });
     }
     if (mode === "events") {
-      const r = await ask(promptEvents(place, today, sites), loc);
+      const theme = String(a.theme ?? ""); const r = await ask(promptEvents(place, today, sites, theme), loc, theme === "signature" ? 8 : 6);
       const items = lastArray(r.text).filter((x) => x?.title && x?.date && x?.time && x?.venue && Array.isArray(x?.sources) && x.sources.length && x.date >= today);
       // the line under the title: venue, then the town from the address (never just the state)
       for (const x of items) { const ps = String(x.address ?? "").split(",").map((t: string) => t.trim()).filter(Boolean); const town = ps.length && /^[A-Z]{2}( \d{5})?$/.test(ps[ps.length - 1]) ? ps[ps.length - 2] : ps[ps.length - 1];
