@@ -97,7 +97,7 @@ Deno.serve(async (req: Request) => {
         snacks: [["coffee_shop", "cafe", "bakery", "ice_cream_shop", "dessert_shop", "donut_shop", "tea_house", "juice_shop", "chocolate_shop", "sandwich_shop", "pizza_restaurant", "deli", "bagel_shop"], ["coffee_shop", "cafe", "bakery", "ice_cream_shop", "dessert_shop", "donut_shop", "tea_house", "juice_shop", "chocolate_shop", "pizza_restaurant"]],
         do: [["book_store", "art_gallery", "park", "museum", "plaza", "tourist_attraction", "historical_landmark", "market", "gift_shop", "bowling_alley", "video_arcade", "movie_theater", "comedy_club", "performing_arts_theater", "dog_park"], ["book_store", "art_gallery", "park", "museum", "plaza", "tourist_attraction", "historical_landmark", "market", "gift_shop", "bowling_alley", "movie_theater"]],
       };
-      const fm = "places.id,places.displayName,places.primaryTypeDisplayName,places.primaryType,places.location,places.rating,places.userRatingCount,places.currentOpeningHours,places.photos,places.googleMapsUri,places.shortFormattedAddress";
+      const fm = "places.id,places.displayName,places.primaryTypeDisplayName,places.primaryType,places.location,places.rating,places.userRatingCount,places.currentOpeningHours,places.photos,places.googleMapsUri,places.shortFormattedAddress,places.businessStatus,places.websiteUri";
       const now = Date.now(), out: Record<string, any[]> = {};
       await Promise.all(Object.entries(G).map(async ([k, lists]) => {
         let d: any = null;
@@ -106,11 +106,11 @@ Deno.serve(async (req: Request) => {
             body: JSON.stringify({ includedTypes: types, maxResultCount: 20, rankPreference: "DISTANCE", locationRestriction: { circle: { center: { latitude: lat, longitude: lng }, radius } } }) });
           d = await r.json(); log("whereis_corner"); if (r.ok) break; d = null;
         }
-        out[k] = ((d?.places ?? []) as any[]).filter((p: any) => p.location && p.displayName?.text && p.currentOpeningHours?.openNow !== false && !/fast_food|gas_station|convenience|lodging|hotel/.test(String(p.primaryType ?? ""))
+        out[k] = ((d?.places ?? []) as any[]).filter((p: any) => p.location && p.displayName?.text && (p.businessStatus ?? "OPERATIONAL") === "OPERATIONAL" && p.currentOpeningHours?.openNow !== false && !/fast_food|gas_station|convenience|lodging|hotel/.test(String(p.primaryType ?? ""))
             && (k === "do" ? (p.userRatingCount ?? 0) >= 10 && (p.rating ?? 5) >= 4.0 : (p.userRatingCount ?? 0) >= 15 && (p.rating ?? 0) >= 4.0))
           .map((p: any) => { const m = miles(lat, lng, p.location.latitude, p.location.longitude) * 1609.344, nc = p.currentOpeningHours?.nextCloseTime;
             return { id: p.id, name: p.displayName.text, type: p.primaryTypeDisplayName?.text ?? null, ptype: p.primaryType ?? null, lat: p.location.latitude, lng: p.location.longitude,
-              rating: p.rating ?? null, ratings: p.userRatingCount ?? null, maps: p.googleMapsUri ?? null, address: p.shortFormattedAddress ?? null, photo: p.photos?.[0]?.name ?? null,
+              rating: p.rating ?? null, ratings: p.userRatingCount ?? null, maps: p.googleMapsUri ?? null, address: p.shortFormattedAddress ?? null, photo: p.photos?.[0]?.name ?? null, url: p.websiteUri ?? null,
               walk: Math.max(1, Math.round(m * 1.25 / 80)), closes: nc && Date.parse(nc) - now < 24 * 3600e3 ? nc : null, open: p.currentOpeningHours?.openNow ?? null }; })
           .filter((p: any) => p.walk <= mins + 1).sort((x: any, y: any) => x.walk - y.walk);
       }));

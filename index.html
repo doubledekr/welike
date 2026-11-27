@@ -3490,7 +3490,7 @@ async function cornerSheet(mins, force) {
   }
   const liked = new Set((S.lib || []).filter(c => c.who === 'both' || c.who === 'mine').map(c => c.data?.place_id).filter(Boolean));
   const till = iso => { if (!iso) return ''; const t = new Date(iso); return 'Open till ' + tm12(`${t.getHours()}:${String(t.getMinutes()).padStart(2, '0')}`); };
-  const row = p => `<div class="hgr">${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : `<span class="hgi">${ic('pin')}</span>`}<span class="grow"><b>${esc(p.name)}</b><small>${esc([p.walk + ' min walk', till(p.closes), p.type].filter(Boolean).join(' · '))}</small>${liked.has(p.id) ? '<small class="cupt">One of your likes</small>' : ''}</span><a class="hgo" href="${esc(p.maps || mapsUrl(p.name))}" target="_blank" rel="noopener">Go</a></div>`;
+  const row = p => `<div class="hgr">${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : `<span class="hgi">${ic('pin')}</span>`}<span class="grow"><b>${esc(p.name)}</b><small>${esc([p.walk + ' min walk', till(p.closes), p.type].filter(Boolean).join(' · '))}</small>${liked.has(p.id) ? '<small class="cupt">One of your likes</small>' : ''}</span><button class="hgo" data-act="cgo" data-id="${esc(p.id)}">Go</button></div>`;
   const G = S.corner.g, sect = (n, l) => l?.length ? `<div class="sect" style="margin-top:16px">${n}</div>${l.map(row).join('')}` : '', any = ['drinks', 'snacks', 'do'].some(x => G[x]?.length);
   sheet(`<div class="grab"></div><div class="body"><small class="tkick">From home · ${mins}-minute walk</small><h2>Around the corner</h2>
     <p class="muted" style="margin-top:6px;font-size:14px">Open right now. Wander, and pick as you go.</p>
@@ -3499,6 +3499,15 @@ async function cornerSheet(mins, force) {
     ${any ? '' : `<p class="muted" style="margin-top:16px">Nothing open within ${mins} minutes right now.${mins === 5 ? ' Try 10 minutes.' : ''}</p>`}
     <p class="muted" style="font-size:12px;margin-top:14px">Hours are from Google. <button class="jlink" data-act="homeaddr" style="font-size:12px;display:inline;padding:0">Not walking from the right spot? Set your address</button></p></div>`);
 }
+// Go: Apple Maps or Google Maps (walking), and the place's own website when it has one (27 Nov, Dave)
+function cornerGo(id) { const p = Object.values(S.corner?.g || {}).flat().find(x => x.id === id); if (!p) return;
+  const apple = `https://maps.apple.com/?q=${encodeURIComponent(p.name)}&ll=${p.lat},${p.lng}&dirflg=w`, goo = p.maps || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name)}&query_place_id=${encodeURIComponent(p.id)}`;
+  S.cBack = true;
+  sheet(`<div class="grab"></div><div class="body acs" style="text-align:left"><small class="tkick">${esc(p.walk + ' min walk')}</small><h2>${esc(p.name)}</h2>${p.address ? `<p class="muted" style="margin-top:4px;font-size:14px">${esc(p.address)}</p>` : ''}
+    <a class="btn" href="${esc(apple)}" target="_blank" rel="noopener" style="margin-top:14px">Open in Apple Maps</a>
+    <a class="btn ghost" href="${esc(goo)}" target="_blank" rel="noopener" style="margin-top:10px">Open in Google Maps</a>
+    ${p.url ? `<a class="btn ghost" href="${esc(p.url)}" target="_blank" rel="noopener" style="margin-top:10px">Their website</a>` : ''}
+    <button class="jlink" data-act="corner" style="margin-top:6px">Back to the list</button></div>`); }
 function homeAddrSheet(then, ask) {
   S.haThen = !!then;
   sheet(`<div class="grab"></div><div class="body"><h2>${ask ? 'Is home in the right spot?' : 'Your home address'}</h2>
@@ -4475,7 +4484,7 @@ function tonightSheet() {
   const TD = p ? ['movie', 'gold', 'dinner', 'activity', 'event', 'mix'] : ['movie', 'dinner', 'activity', 'event', 'mix'];
   const goldLeft = S.surp?.left !== false, goldNext = S.surp?.next ? new Date(S.surp.next + 'T12:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'next month';
   let h = `<div class="grab"></div><div class="tn"><div class="tn-head"><div class="brand">${BRAND}</div><h2>What should we<br>do together?</h2>${NEWUI && p ? '' : `<p class="muted" style="margin-top:8px;font-size:14px">Swipe to flip through. Tap one to start${p ? `, and ${esc(p)} gets the same cards` : ''}.</p>`}</div>
-    ${B2 && p ? hungryRow((S.plans || []).find(x => x.day === pToday() && hungryNext(x)) || null) : ''}${NEWUI && p ? whoRow('tonight') + `<div class="sect" style="margin-top:14px">Spin from what you both like</div><div class="spinrow">${Object.entries(SPINK).map(([k, v]) => `<button class="spinb" data-act="spin" data-k="${k}">${ic(v[1])}<span>${v[0]}</span></button>`).join('')}</div>${R2 && omTime() ? '<button class="btn ghost omgo" data-act="omstart">Already out? One more</button>' : ''}${BETA ? cornerRow() : ''}<div class="sect" style="margin-top:18px">Or swipe a round together</div><p class="muted" style="font-size:13px;margin-top:4px">Flip through, then tap one. ${esc(p)} gets the same cards.</p>` : ''}
+    ${BETA ? cornerRow() : ''}${B2 && p ? hungryRow((S.plans || []).find(x => x.day === pToday() && hungryNext(x)) || null) : ''}${NEWUI && p ? whoRow('tonight') + `<div class="sect" style="margin-top:14px">Spin from what you both like</div><div class="spinrow">${Object.entries(SPINK).map(([k, v]) => `<button class="spinb" data-act="spin" data-k="${k}">${ic(v[1])}<span>${v[0]}</span></button>`).join('')}</div>${R2 && omTime() ? '<button class="btn ghost omgo" data-act="omstart">Already out? One more</button>' : ''}<div class="sect" style="margin-top:18px">Or swipe a round together</div><p class="muted" style="font-size:13px;margin-top:4px">Flip through, then tap one. ${esc(p)} gets the same cards.</p>` : ''}
     <div class="tdeck" id="tdeck">` + TD.map((d, i) => d === 'gold' ? `<div class="tpc goldc" data-k="gold"><span class="gls gold"></span><span class="gband"></span><svg class="gbow" viewBox="0 0 262 350" aria-hidden="true"><defs><linearGradient id="gbv" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c9566e"/><stop offset=".55" stop-color="#8e1f3a"/><stop offset="1" stop-color="#560f22"/></linearGradient></defs><g transform="translate(131,142) scale(1.5)"><path d="M-4 6C-14 22-24 40-30 52L-16 48-10 60C-6 44-2 26 4 8Z" fill="#8e1f3a"/><path d="M4 6C14 22 24 40 30 52L16 48 10 60C6 44 2 26-4 8Z" fill="#560f22"/><path d="M0 0C-18-30-52-30-56-6-58 14-30 18 0 2Z" fill="url(#gbv)"/><path d="M0 0C18-30 52-30 56-6 58 14 30 18 0 2Z" fill="url(#gbv)"/><path d="M-8-3C-24-18-42-16-44-4-44 4-28 6-8 3Z" fill="#560f22" opacity=".55"/><path d="M8-3C24-18 42-16 44-4 44 4 28 6 8 3Z" fill="#560f22" opacity=".55"/><rect x="-10" y="-10" width="20" height="20" rx="6" fill="#8e1f3a"/><rect x="-10" y="-10" width="20" height="9" rx="5" fill="#c9566e" opacity=".6"/></g></svg><span class="cnum">${surpItems().some(x => x.mine && x.status !== 'revealed' && x.day >= pToday()) ? 'Yours is set' : goldLeft ? '1 left in ' + new Date().toLocaleDateString(undefined, { month: 'short' }) : 'Next one ' + goldNext}</span><span class="ctx"><b>Plan a<br>surprise</b><small>${esc(p)} won’t know what until you reveal it</small></span></div>` : `<div class="tpc ${CK[d] ? 'kc k-' + CK[d] : 'mixc'}" data-k="${d}">${CK[d] ? '' : '<span class="wbx"><span class="whl"></span></span><span class="veil"></span>'}<span class="cbg">${ic(DIC[d])}</span><span class="cic">${ic(DIC[d])}</span><span class="ctx"><b>${DECKS[d].label}</b><small>${DECKS[d].hint}</small></span></div>`).join('') + `</div>
     <div class="tdots">${TD.map(() => '<i></i>').join('')}</div>`;
   // Only the newest round can be "in progress": it has to be from the last 18 hours, not decided yet, and still have cards waiting. An older unfinished round never comes back once a newer one exists.
@@ -4656,7 +4665,7 @@ async function dayStart() {
     if (!dsl.includes(S.pdDay)) S.pdDay = t0;
     const dl = d => d === t0 ? 'Today' : d === pAdd(t0, 1) ? 'Tomorrow' : new Date(d + 'T12:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
     return sheet(`<div class="grab"></div><div class="tn pday pd2"><div class="tn-head"><h2>Plan a day</h2></div>
-      ${(BETA || REL5) ? cupRow() : ''}
+      ${(BETA || REL5) ? cupRow() : ''}${BETA ? cornerRow() : ''}
       ${live.map(p => `<button class="tripbar kc k-${pk(p)}" data-pl="view|${p.id}" style="width:100%;text-align:left"><span class="tic">${ic(pk(p) === 'fri' ? 'moon' : 'sun')}</span><span class="grow"><b>${pDayName(p.day)}${p.mode === 'in' ? ' · night in' : ''}</b><small>${pSum(p)}<br>${pStatus(p)}</small></span><span class="go ${p.ok?.[S.me] ? '' : 'blink'}">Open</span></button>`).join('')}
       <div class="pdays">${dsl.map(d => `<button data-act="pdday" data-d="${d}" class="${S.pdDay === d ? 'on' : ''}">${dl(d)}</button>`).join('')}</div>
       <div class="trow pdsh">${SHAPE_KEYS.map(k => `<button class="pdshape ${S.pdShape === k ? 'on' : ''}" data-act="pdshape" data-k="${k}"><b>${SHAPES[k].name}</b><small>${LSHAPE[k].sub}</small></button>`).join('')}<button class="pdshape ${S.pdShape === 'in' ? 'on' : ''}" data-act="pdshape" data-k="in"><b>Night in</b><small>A movie, and dinner to order or cook</small></button></div>
@@ -8295,6 +8304,7 @@ const onTap = async e => {
       case 'corner': return cornerSheet(Number(ds.m) || S.corner?.mins || 5, !!ds.m);
       case 'homeaddr': return homeAddrSheet(document.querySelector('.sheet h2')?.textContent === 'Around the corner');
       case 'hafind': return homeAddrFind(t);
+      case 'cgo': return cornerGo(ds.id);
       case 'hapick': return homeAddrPick(Number(ds.i));
       case 'haskip': ls.set('homeaddr', '1'); return cornerSheet(5, true);
       case 'lbopen': { const c = S.lbIdx?.[ds.id]; if (!c) return; S.listCards = [c, ...(S.listCards || []).filter(x => x.id !== c.id)]; closeSheet(); return showDetail(c); }
