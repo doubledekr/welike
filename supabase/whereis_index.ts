@@ -4,6 +4,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 //   action "geocode": an address or place name typed by the person (their cottage, a friend's house) -> up to 3 matches
 //                     with name, address and coordinates, so it can be saved as one of their places.
 //   action "area":    (21 Nov) once per place away from home: good places within 25 miles saved as this couple's own cards.
+//   action "corner":  (27 Nov) open now within a 5 or 10 minute walk of home: drinks, snacks, things to do. Saves nothing.
 //   action "quest":   a side quest between two stops: a short, well-rated stop (ice cream, coffee, a bookshop, a park,
 //                     a view) close to the walk or drive from A to B, open at that time. Returns up to 3; saves nothing.
 //                     With snack:true it's a snack break near A instead (coffee, a bakery, dessert): up to 8 within
@@ -84,6 +85,42 @@ Deno.serve(async (req: Request) => {
       // a photo for each, so the suggestion looks like somewhere you'd want to stop
       await Promise.all(out.map(async (p: any) => { if (!p.photo || p.image) return; try { const pr = await fetch(`https://places.googleapis.com/v1/${p.photo}/media?maxWidthPx=600&skipHttpRedirect=true`, { headers: { "X-Goog-Api-Key": key } }); const pd = await pr.json(); p.image = pr.ok ? pd.photoUri ?? null : null; } catch (_) { p.image = null; } }));
       return json({ leg: Math.round(leg * 100) / 100, quests: out });
+    }
+    if (b.action === "corner") {
+      // 27 Nov, Dave: "days where we want to wander without a plan but want to make sure there are places really close".
+      // Open now, within a 5 (or 10) minute walk of home (or of lat/lng if given): drinks, snacks, and things to do. Saves nothing.
+      const st = couple.settings ?? {}, lat = isFinite(Number(b.lat)) && b.lat != null ? Number(b.lat) : Number(st.lat), lng = isFinite(Number(b.lng)) && b.lng != null ? Number(b.lng) : Number(st.lng);
+      if (!isFinite(lat) || !isFinite(lng)) return json({ error: "no_home" }, 400);
+      const mins = Number(b.mins) === 10 ? 10 : 5, radius = mins === 10 ? 800 : 420;
+      const G: Record<string, string[][]> = {
+        drinks: [["bar", "pub", "wine_bar", "brewery", "cocktail_bar", "beer_garden", "lounge_bar", "sports_bar", "irish_pub", "night_club"], ["bar", "pub", "wine_bar", "brewery", "cocktail_bar", "night_club"]],
+        snacks: [["coffee_shop", "cafe", "bakery", "ice_cream_shop", "dessert_shop", "donut_shop", "tea_house", "juice_shop", "chocolate_shop", "sandwich_shop", "pizza_restaurant", "deli", "bagel_shop"], ["coffee_shop", "cafe", "bakery", "ice_cream_shop", "dessert_shop", "donut_shop", "tea_house", "juice_shop", "chocolate_shop", "pizza_restaurant"]],
+        do: [["book_store", "art_gallery", "park", "museum", "plaza", "tourist_attraction", "historical_landmark", "market", "gift_shop", "bowling_alley", "video_arcade", "movie_theater", "comedy_club", "performing_arts_theater", "dog_park"], ["book_store", "art_gallery", "park", "museum", "plaza", "tourist_attraction", "historical_landmark", "market", "gift_shop", "bowling_alley", "movie_theater"]],
+      };
+      const fm = "places.id,places.displayName,places.primaryTypeDisplayName,places.primaryType,places.location,places.rating,places.userRatingCount,places.currentOpeningHours,places.photos,places.googleMapsUri,places.shortFormattedAddress";
+      const now = Date.now(), out: Record<string, any[]> = {};
+      await Promise.all(Object.entries(G).map(async ([k, lists]) => {
+        let d: any = null;
+        for (const types of lists) {
+          const r = await fetch("https://places.googleapis.com/v1/places:searchNearby", { method: "POST", headers: { "Content-Type": "application/json", "X-Goog-Api-Key": key, "X-Goog-FieldMask": fm },
+            body: JSON.stringify({ includedTypes: types, maxResultCount: 20, rankPreference: "DISTANCE", locationRestriction: { circle: { center: { latitude: lat, longitude: lng }, radius } } }) });
+          d = await r.json(); log("whereis_corner"); if (r.ok) break; d = null;
+        }
+        out[k] = ((d?.places ?? []) as any[]).filter((p: any) => p.location && p.displayName?.text && p.currentOpeningHours?.openNow !== false && !/fast_food|gas_station|convenience|lodging|hotel/.test(String(p.primaryType ?? ""))
+            && (k === "do" ? (p.userRatingCount ?? 0) >= 10 && (p.rating ?? 5) >= 4.0 : (p.userRatingCount ?? 0) >= 15 && (p.rating ?? 0) >= 4.0))
+          .map((p: any) => { const m = miles(lat, lng, p.location.latitude, p.location.longitude) * 1609.344, nc = p.currentOpeningHours?.nextCloseTime;
+            return { id: p.id, name: p.displayName.text, type: p.primaryTypeDisplayName?.text ?? null, ptype: p.primaryType ?? null, lat: p.location.latitude, lng: p.location.longitude,
+              rating: p.rating ?? null, ratings: p.userRatingCount ?? null, maps: p.googleMapsUri ?? null, address: p.shortFormattedAddress ?? null, photo: p.photos?.[0]?.name ?? null,
+              walk: Math.max(1, Math.round(m * 1.25 / 80)), closes: nc && Date.parse(nc) - now < 24 * 3600e3 ? nc : null, open: p.currentOpeningHours?.openNow ?? null }; })
+          .filter((p: any) => p.walk <= mins + 1).sort((x: any, y: any) => x.walk - y.walk);
+      }));
+      const all = Object.values(out).flat(), { data: ch } = await sb.rpc("_chain_ids", { p_items: all.map((p: any) => ({ id: p.id, name: p.name, ptype: p.ptype })) }), chain = new Set((ch ?? []) as string[]);
+      // drinks are real bars; a place shows in one group only (a bar first, then a snack spot, then things to do)
+      const BARRE = /bar|pub|brew|wine|cocktail|lounge|tavern|beer|distill|night_club/, used = new Set<string>();
+      out.drinks = (out.drinks ?? []).filter((p: any) => BARRE.test(String(p.ptype ?? "")));
+      for (const k of ["drinks", "snacks", "do"]) out[k] = (out[k] ?? []).filter((p: any) => !chain.has(p.id) && !used.has(p.id) && (used.add(p.id), true)).slice(0, 10);
+      await Promise.all(Object.values(out).flatMap((l) => l.slice(0, 5)).map(async (p: any) => { if (!p.photo) return; try { const pr = await fetch(`https://places.googleapis.com/v1/${p.photo}/media?maxWidthPx=400&skipHttpRedirect=true`, { headers: { "X-Goog-Api-Key": key } }); const pd = await pr.json(); p.image = pr.ok ? pd.photoUri ?? null : null; } catch (_) { p.image = null; } }));
+      return json({ mins, home: !(isFinite(Number(b.lat)) && b.lat != null), groups: out });
     }
     if (b.action === "area") {
       // A place away from home (the cottage): once, pull good places around it into this couple's own cards, tagged
