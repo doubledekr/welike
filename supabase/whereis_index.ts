@@ -4,6 +4,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 //   action "geocode": an address or place name typed by the person (their cottage, a friend's house) -> up to 3 matches
 //                     with name, address and coordinates, so it can be saved as one of their places.
 //   action "area":    (21 Nov) once per place away from home: good places within 25 miles saved as this couple's own cards.
+//   action "route":   (27 Nov) a walking route from home to a place: map picture (data URL) and plain steps.
 //   action "corner":  (27 Nov) open now within a 5 or 10 minute walk of home: drinks, snacks, things to do. Saves nothing.
 //   action "quest":   a side quest between two stops: a short, well-rated stop (ice cream, coffee, a bookshop, a park,
 //                     a view) close to the walk or drive from A to B, open at that time. Returns up to 3; saves nothing.
@@ -85,6 +86,26 @@ Deno.serve(async (req: Request) => {
       // a photo for each, so the suggestion looks like somewhere you'd want to stop
       await Promise.all(out.map(async (p: any) => { if (!p.photo || p.image) return; try { const pr = await fetch(`https://places.googleapis.com/v1/${p.photo}/media?maxWidthPx=600&skipHttpRedirect=true`, { headers: { "X-Goog-Api-Key": key } }); const pd = await pr.json(); p.image = pr.ok ? pd.photoUri ?? null : null; } catch (_) { p.image = null; } }));
       return json({ leg: Math.round(leg * 100) / 100, quests: out });
+    }
+    if (b.action === "route") {
+      // 27 Nov, Dave: directions in the app. A walking route from home (or from/to given) as a map picture and plain steps.
+      // Routes API for the path and steps, Static Maps for the picture, fetched here so the key never reaches the phone.
+      const st = couple.settings ?? {}, to = [Number(b.lat), Number(b.lng)];
+      const from = isFinite(Number(b.flat)) && b.flat != null ? [Number(b.flat), Number(b.flng)] : [Number(st.lat), Number(st.lng)];
+      if (![...to, ...from].every(isFinite)) return json({ error: "bad_location" }, 400);
+      const r = await fetch("https://routes.googleapis.com/directions/v2:computeRoutes", { method: "POST",
+        headers: { "Content-Type": "application/json", "X-Goog-Api-Key": key, "X-Goog-FieldMask": "routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline,routes.legs.steps.navigationInstruction,routes.legs.steps.distanceMeters,routes.legs.steps.staticDuration" },
+        body: JSON.stringify({ origin: { location: { latLng: { latitude: from[0], longitude: from[1] } } }, destination: { location: { latLng: { latitude: to[0], longitude: to[1] } } }, travelMode: "WALK", units: "IMPERIAL" }) });
+      const d = await r.json(); log("whereis_route");
+      if (!r.ok || !d.routes?.[0]) return json({ error: "google", detail: d?.error?.message ?? r.status }, 502);
+      const rt = d.routes[0], poly = rt.polyline?.encodedPolyline ?? "";
+      const steps = ((rt.legs?.[0]?.steps ?? []) as any[]).map((x: any) => ({ text: x.navigationInstruction?.instructions ?? "", m: x.distanceMeters ?? 0, s: parseInt(String(x.staticDuration ?? "0")) || 0 })).filter((x: any) => x.text);
+      // the picture: dark map, route in the app's coral, home and the place marked
+      const style = ["element:geometry|color:0x1d1b22", "element:labels.text.fill|color:0x9b96a6", "element:labels.text.stroke|color:0x1d1b22", "feature:road|element:geometry|color:0x2e2b36", "feature:road.arterial|element:geometry|color:0x37333f", "feature:water|element:geometry|color:0x10141c", "feature:poi|element:geometry|color:0x24222a", "feature:transit|visibility:off"].map((x) => "&style=" + encodeURIComponent(x)).join("");
+      const url = `https://maps.googleapis.com/maps/api/staticmap?size=600x360&scale=2&format=png${style}&path=${encodeURIComponent("weight:6|color:0xff6b6bff|enc:" + poly)}&markers=${encodeURIComponent(`size:small|color:0xf4efe9|${from[0]},${from[1]}`)}&markers=${encodeURIComponent(`color:0xff5a6e|${to[0]},${to[1]}`)}&key=${key}`;
+      let img: string | null = null, imgerr: string | null = null;
+      try { const m = await fetch(url); log("whereis_staticmap"); if (!m.ok) imgerr = m.status + " " + (await m.text()).slice(0, 160); if (m.ok) { const buf = new Uint8Array(await m.arrayBuffer()); let bin = ""; for (let i = 0; i < buf.length; i += 8192) bin += String.fromCharCode(...buf.subarray(i, i + 8192)); img = "data:image/png;base64," + btoa(bin); } } catch (e) { img = null; imgerr = String(e).slice(0, 160); }
+      return json({ mins: Math.max(1, Math.round((parseInt(String(rt.duration ?? "0")) || 0) / 60)), meters: rt.distanceMeters ?? null, steps, img, imgerr });
     }
     if (b.action === "corner") {
       // 27 Nov, Dave: "days where we want to wander without a plan but want to make sure there are places really close".

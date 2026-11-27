@@ -1388,6 +1388,8 @@ button.prow.cupi{width:100%;text-align:left;background:none;border:0;border-bott
 .wn.ob2 .field{display:block;margin-top:12px}.ob2-fine{font-size:12.5px;color:var(--muted);margin-top:12px}
 
 /* splash: the tile pops, the two cards swing in, the overlap fills, the heart beats once, the name rises. About 1.1s. */
+.rmap{display:block;width:100%;border-radius:18px;margin:14px 0 4px;aspect-ratio:600/360;object-fit:cover;background:#1d1b22}
+.rsteps{margin:12px 0 0;padding:0 0 0 22px;display:grid;gap:10px}.rsteps li{font-size:15px;line-height:1.4}.rsteps small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}
 .splash .sA,.splash .sB,.splash .sO{transform-box:fill-box;transform-origin:center}   /* 26 Nov, Dave: no symbol in the mark; the overlap itself lands */
 .splash .sA{animation:spA .38s cubic-bezier(.2,.8,.2,1) .16s both}.splash .sB{animation:spB .38s cubic-bezier(.2,.8,.2,1) .25s both}
 .splash .sO{animation:spO .42s cubic-bezier(.3,1.4,.5,1) .56s both}
@@ -3504,10 +3506,22 @@ function cornerGo(id) { const p = Object.values(S.corner?.g || {}).flat().find(x
   const apple = `https://maps.apple.com/?q=${encodeURIComponent(p.name)}&ll=${p.lat},${p.lng}&dirflg=w`, goo = p.maps || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name)}&query_place_id=${encodeURIComponent(p.id)}`;
   S.cBack = true;
   sheet(`<div class="grab"></div><div class="body acs" style="text-align:left"><small class="tkick">${esc(p.walk + ' min walk')}</small><h2>${esc(p.name)}</h2>${p.address ? `<p class="muted" style="margin-top:4px;font-size:14px">${esc(p.address)}</p>` : ''}
-    <a class="btn" href="${esc(apple)}" target="_blank" rel="noopener" style="margin-top:14px">Open in Apple Maps</a>
+    <button class="btn" data-act="croute" data-id="${esc(p.id)}" style="margin-top:14px">Walk there</button>
+    <a class="btn ghost" href="${esc(apple)}" target="_blank" rel="noopener" style="margin-top:10px">Open in Apple Maps</a>
     <a class="btn ghost" href="${esc(goo)}" target="_blank" rel="noopener" style="margin-top:10px">Open in Google Maps</a>
     ${p.url ? `<a class="btn ghost" href="${esc(p.url)}" target="_blank" rel="noopener" style="margin-top:10px">Their website</a>` : ''}
     <button class="jlink" data-act="corner" style="margin-top:6px">Back to the list</button></div>`); }
+// Directions in the app (27 Nov, Dave): the walking route from home as a map picture and plain steps (whereis route).
+async function cornerRoute(id, t) { const p = Object.values(S.corner?.g || {}).flat().find(x => x.id === id); if (!p) return;
+  if (t) t.disabled = true; let d = p.route; if (!d) { try { ({ data: d } = await sb.functions.invoke('whereis', { body: { code: S.code, action: 'route', lat: p.lat, lng: p.lng } })); } catch {} } if (t) t.disabled = false;
+  if (!d?.steps) return toast('Couldn’t get directions. Try Apple or Google Maps.'); p.route = d;
+  const mi = d.meters ? (d.meters / 1609.344 < 0.1 ? Math.round(d.meters * 3.281) + ' ft' : (Math.round(d.meters / 160.9344) / 10) + ' mi') : '';
+  const apple = `https://maps.apple.com/?daddr=${p.lat},${p.lng}&dirflg=w`;
+  sheet(`<div class="grab"></div><div class="body acs" style="text-align:left"><small class="tkick">${esc([d.mins + ' min walk', mi].filter(Boolean).join(' · '))}</small><h2>${esc(p.name)}</h2>
+    ${d.img ? `<img class="rmap" src="${d.img}" alt="Map of the walk from home to ${esc(p.name)}">` : ''}
+    <ol class="rsteps">${d.steps.map(x => `<li>${esc(x.text.replace(/\n/g, '. '))}${x.m ? `<small>${x.m < 160 ? Math.round(x.m * 3.281) + ' ft' : (Math.round(x.m / 160.9344) / 10) + ' mi'}</small>` : ''}</li>`).join('')}</ol>
+    <a class="btn ghost" href="${esc(apple)}" target="_blank" rel="noopener" style="margin-top:12px">Follow it in Apple Maps</a>
+    <button class="jlink" data-act="cgo" data-id="${esc(p.id)}" style="margin-top:6px">Back</button></div>`); }
 function homeAddrSheet(then, ask) {
   S.haThen = !!then;
   sheet(`<div class="grab"></div><div class="body"><h2>${ask ? 'Is home in the right spot?' : 'Your home address'}</h2>
@@ -8305,6 +8319,7 @@ const onTap = async e => {
       case 'homeaddr': return homeAddrSheet(document.querySelector('.sheet h2')?.textContent === 'Around the corner');
       case 'hafind': return homeAddrFind(t);
       case 'cgo': return cornerGo(ds.id);
+      case 'croute': return cornerRoute(ds.id, t);
       case 'hapick': return homeAddrPick(Number(ds.i));
       case 'haskip': ls.set('homeaddr', '1'); return cornerSheet(5, true);
       case 'lbopen': { const c = S.lbIdx?.[ds.id]; if (!c) return; S.listCards = [c, ...(S.listCards || []).filter(x => x.id !== c.id)]; closeSheet(); return showDetail(c); }
